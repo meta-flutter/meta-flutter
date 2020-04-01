@@ -2,9 +2,7 @@
 
 Yocto Layer for Flutter Engine
 
-## ** Work in progress **
-
-### `Status:` Currently building arm64 flutter-engine.  Linking issue with embedder.  No artifacts have been tested yet.
+### `Status` Tested building aarch64 Flutter Engine.  No known reason it shouldn't build arm, x86, or x86_64.
 
 
 The Flutter engine build uses the GN meta-build system in conjunction with Chrome Infrastructure Package Deployment (CPID).

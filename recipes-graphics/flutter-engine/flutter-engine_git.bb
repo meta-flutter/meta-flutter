@@ -51,13 +51,7 @@ COMPATIBLE_MACHINE_armv7ve = "(.*)"
 COMPATIBLE_MACHINE_x86 = "(.*)"
 COMPATIBLE_MACHINE_x86-64 = "(.*)"
 
-# Also build the parts that are run on the host with clang.
-BUILD_AR_toolchain-clang = "llvm-ar"
-BUILD_CC_toolchain-clang = "clang"
-BUILD_CXX_toolchain-clang = "clang++"
-BUILD_LD_toolchain-clang = "clang"
-
-PACKAGECONFIG ??= "unoptimized full-dart-sdk"
+PACKAGECONFIG ??= "embedder-for-target full-dart-sdk fontconfig skshaper stripped lto"
 
 PACKAGECONFIG[clang] = "--clang"
 PACKAGECONFIG[static-analyzer] = "--clang-static-analyzer"
@@ -65,25 +59,33 @@ PACKAGECONFIG[unoptimized] = "--unoptimized"
 PACKAGECONFIG[dart-debug] = "--dart-debug"
 PACKAGECONFIG[full-dart-debug] = "--full-dart-debug"
 PACKAGECONFIG[full-dart-sdk] = "--full-dart-sdk"
-PACKAGECONFIG[embedder-for-target] = "--embedder-for-target"
 PACKAGECONFIG[build-glfw-shell] = "--build-glfw-shell"
 PACKAGECONFIG[vulkan] = "--enable-vulkan"
 PACKAGECONFIG[vulkan-validation-layers] = "--enable-vulkan-validation-layers"
 PACKAGECONFIG[fontconfig] = "--enable-fontconfig"
 PACKAGECONFIG[skshaper] = "--enable-skshaper"
-PACKAGECONFIG[goma] = "--goma"
+PACKAGECONFIG[embedder-for-target] = "--embedder-for-target"
+PACKAGECONFIG[lto] = "--lto"
 PACKAGECONFIG[stripped] = "--stripped"
 PACKAGECONFIG[coverage] = "--coverage"
 PACKAGECONFIG[interpreter] = "--interpreter"
+PACKAGECONFIG[goma] = "--goma"
 PACKAGECONFIG[asan] = "--asan"
 PACKAGECONFIG[lsan] = "--lsan"
 PACKAGECONFIG[msan] = "--msan"
 PACKAGECONFIG[tsan] = "--tsan"
 PACKAGECONFIG[ubsan] = "--ubsan"
-PACKAGECONFIG[lto] = "--lto"
 
 #  --runtime-mode {debug,profile,release,jit_release}
 #  --operator-new-alignment OPERATOR_NEW_ALIGNMENT
+
+GN_ARGS = " \
+  ${PACKAGECONFIG_CONFARGS} \
+  --target-os linux \
+  --linux-cpu ${@gn_target_arch_name(d)} \
+  --target-sysroot ${STAGING_DIR_TARGET} \
+  --target-triple ${TARGET_SYS} \
+  "
 
 do_patch() {
 
@@ -104,7 +106,11 @@ do_patch() {
     }]'
 
     cd ${S}/src
-    gclient.py sync --nohooks --shallow ${PARALLEL_MAKE} -v
+    gclient.py sync --nohooks --no-history ${PARALLEL_MAKE} -v
+
+    # libraries required for linking
+    cp ${STAGING_LIBDIR}/${TARGET_SYS}/9.2.0/crtbeginS.o buildtools/linux-x64/clang/lib/clang/8.0.0/aarch64-unknown-linux-gnu/lib
+    cp ${STAGING_LIBDIR}/${TARGET_SYS}/9.2.0/crtendS.o buildtools/linux-x64/clang/lib/clang/8.0.0/aarch64-unknown-linux-gnu/lib
 }
 do_patch[depends] += " \
     depot-tools-native:do_populate_sysroot \
@@ -114,24 +120,33 @@ do_patch[depends] += " \
 do_configure() {
 
     cd ${S}/src
-    ./flutter/tools/gn --target-os linux --linux-cpu ${@gn_target_arch_name(d)} --target-sysroot ${STAGING_DIR_TARGET} --target-triple ${TARGET_SYS} ${PACKAGECONFIG_CONFARGS}
+    ./flutter/tools/gn ${GN_ARGS}
 }
 
 do_compile() {
 
     cd ${S}/src
-	ninja ${PARALLEL_MAKE} -C out/linux_debug_unopt_${@gn_target_arch_name(d)}
+	ninja ${PARALLEL_MAKE} -C out/linux_debug_${@gn_target_arch_name(d)}
 }
 do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
 do_install() {
+    
+    cd ${S}/src/out/linux_debug_${@gn_target_arch_name(d)}
 
-    ls -laR ${S}/src/out/linux_debug_unopt_${@gn_target_arch_name(d)}
+    install -d ${D}${libdir}/flutter
+    install -d ${D}${includedir}/flutter
+    install -m 644 icudtl.dat ${D}${libdir}/flutter
+    install -m 755 libflutter_engine.so ${D}${libdir}/flutter
+    install -m 644 flutter_embedder.h ${D}${includedir}/flutter
 }
 
-
-# There is no need to ship empty -dev packages.
-ALLOW_EMPTY_${PN}-dev = "0"
-
+FILES_${PN} = " \
+    ${libdir}/flutter/* \
+    "
+    
+FILES_${PN}-dev = " \
+    ${includedir}/flutter/* \
+    "
 
 # vim:set ts=4 sw=4 sts=4 expandtab:
