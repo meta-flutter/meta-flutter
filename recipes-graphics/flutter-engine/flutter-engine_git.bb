@@ -1,22 +1,16 @@
 DESCRIPTION = "Flutter Engine"
 
-LICENSE = "CLOSED"
+LICENSE = "BSD-3-Clause"
+LIC_FILES_CHKSUM = "file://src/flutter/LICENSE;md5=a60894397335535eb10b54e2fff9f265"
 
 SRCREV = "f3d9f9a950eb5b115d33705922bc2ec47a2f7eb5"
 SRC_URI = "git://github.com/flutter/engine;protocol=https;destsuffix=src/flutter"
 
 S = "${WORKDIR}/git"
 
+inherit python3native
 
-inherit pythonnative
-
-
-DEPENDS += "\
-    curl-native \
-    ninja-native \    
-    depot-tools-native \
-    freetype \
-"
+DEPENDS =+ " curl-native ninja-native depot-tools-native freetype"
 
 require gn-utils.inc
 
@@ -66,6 +60,7 @@ GN_ARGS = " \
 
 do_patch() {
 
+    export CURL_CA_BUNDLE=${STAGING_BINDIR_NATIVE}/depot_tools/ca-certificates.crt
     export PATH=${STAGING_BINDIR_NATIVE}/depot_tools:${PATH}
     export SSH_AUTH_SOCK=${SSH_AUTH_SOCK}
     export SSH_AGENT_PID=${SSH_AGENT_PID}
@@ -85,11 +80,8 @@ do_patch() {
     cd ${S}/src
     gclient.py sync --nohooks --no-history ${PARALLEL_MAKE} -v
 
-    # libraries required for linking
-    cp ${STAGING_LIBDIR}/${TARGET_SYS}/9.2.0/crtbeginS.o buildtools/linux-x64/clang/lib/clang/8.0.0/aarch64-unknown-linux-gnu/lib
-    cp ${STAGING_LIBDIR}/${TARGET_SYS}/9.2.0/crtendS.o buildtools/linux-x64/clang/lib/clang/8.0.0/aarch64-unknown-linux-gnu/lib
 }
-do_patch[depends] += " \
+do_patch[depends] =+ " \
     depot-tools-native:do_populate_sysroot \
     curl-native:do_populate_sysroot \
     "
@@ -98,37 +90,44 @@ do_configure() {
 
     cd ${S}/src
     ./flutter/tools/gn ${GN_ARGS}
+
+    # libraries required for linking so
+    mkdir -p buildtools/linux-x64/clang/lib/clang/8.0.0/aarch64-unknown-linux-gnu/lib
+    cp ${STAGING_LIBDIR}/${TARGET_SYS}/9.2.0/crtbeginS.o buildtools/linux-x64/clang/lib/clang/8.0.0/aarch64-unknown-linux-gnu/lib
+    cp ${STAGING_LIBDIR}/${TARGET_SYS}/9.2.0/crtendS.o buildtools/linux-x64/clang/lib/clang/8.0.0/aarch64-unknown-linux-gnu/lib
 }
 
 do_compile() {
 
     cd ${S}/src
-	ninja ${PARALLEL_MAKE} -C out/linux_debug_${@gn_target_arch_name(d)}
+	ninja ${PARALLEL_MAKE} -C ${@get_out_dir(d)}
 }
 do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
 do_install() {
-    
-    cd ${S}/src/out/linux_debug_${@gn_target_arch_name(d)}
 
-    install -d ${D}${libdir}/flutter
-    install -d ${D}${includedir}/flutter
-    install -m 644 icudtl.dat ${D}${libdir}/flutter
-    install -m 755 libflutter_engine.so ${D}${libdir}/flutter
-    install -m 644 flutter_embedder.h ${D}${includedir}/flutter
+    cd ${S}/src/${@get_out_dir(d)}
+
+    install -d ${D}${bindir}
+    install -d ${D}${libdir}
+    install -d ${D}${includedir}
+    install -m 644 icudtl.dat ${D}${bindir}
+    install -m 755 libflutter_engine.so ${D}${libdir}
+    install -m 644 flutter_embedder.h ${D}${includedir}
 }
 
 FILES_${PN} = " \
-    ${libdir}/flutter/* \
-    "
-    
-FILES_${PN}-dev = " \
-    ${includedir}/flutter/* \
+    ${bindir}/icudtl.dat \
+    ${libdir}/libflutter_engine.so \
     "
 
-SYSROOT_DIRS += " \
-    ${libdir}/flutter \
-    ${includedir}/flutter \
+FILES_${PN}-dev = " \
+    ${includedir}/flutter_embedder.h \
+    "
+
+SYSROOT_DIRS =+ " \
+    ${libdir} \
+    ${includedir} \
     "
 
 # vim:set ts=4 sw=4 sts=4 expandtab:
