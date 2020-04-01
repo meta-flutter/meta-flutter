@@ -1,8 +1,9 @@
 DESCRIPTION = "Flutter Engine"
-CVE_PRODUCT = "google:flutter_engine"
+
 LICENSE = "CLOSED"
 
-SRC_URI = "git://github.com/flutter/engine;protocol=https;rev=f3d9f9a950eb5b115d33705922bc2ec47a2f7eb5;destsuffix=src/flutter"
+SRCREV = "f3d9f9a950eb5b115d33705922bc2ec47a2f7eb5"
+SRC_URI = "git://github.com/flutter/engine;protocol=https;destsuffix=src/flutter"
 
 S = "${WORKDIR}/git"
 
@@ -10,35 +11,11 @@ S = "${WORKDIR}/git"
 inherit pythonnative
 
 
-REQUIRED_DISTRO_FEATURES = "wayland"
-
 DEPENDS += "\
     curl-native \
+    ninja-native \    
     depot-tools-native \
-    libxkbcommon \
-    virtual/egl \
-    wayland \
-    wayland-native \
-    alsa-lib \
-    ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'at-spi2-core', '', d)} \
-    atk \
-    bison-native \
-    cairo \
-    dbus \
-    expat \
-    flac \
     freetype \
-    glib-2.0 \
-    gperf-native \
-    gtk+3 \
-    jpeg \
-    libdrm \
-    libxslt \
-    ninja-native \
-    pkgconfig-native \
-    ${@bb.utils.contains('DISTRO_FEATURES', 'pulseaudio', 'pulseaudio', '', d)} \
-    qemu-native \
-    virtual/libgl \
 "
 
 require gn-utils.inc
@@ -147,6 +124,11 @@ FILES_${PN} = " \
     
 FILES_${PN}-dev = " \
     ${includedir}/flutter/* \
+    "
+
+SYSROOT_DIRS += " \
+    ${libdir}/flutter \
+    ${includedir}/flutter \
     "
 
 # vim:set ts=4 sw=4 sts=4 expandtab:

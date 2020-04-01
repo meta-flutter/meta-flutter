@@ -2,7 +2,7 @@
 
 Yocto Layer for Flutter Engine
 
-### `Status` Tested building aarch64 Flutter Engine.  No known reason it shouldn't build arm, x86, or x86_64.
+### `Status` Builds flutter-engine + flutter-wayland
 
 
 The Flutter engine build uses the GN meta-build system in conjunction with Chrome Infrastructure Package Deployment (CPID).

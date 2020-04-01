@@ -320,12 +320,12 @@ IMAGE_INSTALL_append = "\
     ttf-dejavu-serif \
     ttf-dejavu-serif-condensed \
     ttf-dejavu-common \
+    flutter-wayland \
     avahi-daemon \
     i2c-tools \
     can-utils \
     rt-tests hwlatdetect \
     libwebp \
-    flutter-engine \
 "
 
 
