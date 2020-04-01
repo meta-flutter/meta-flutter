@@ -2,8 +2,17 @@
 
 Yocto Layer for Flutter Engine
 
-### `Status` Builds flutter-engine + flutter-wayland
 
+### Project Status
+
+flutter-engine embedder builds
+
+flutter-wayland builds
+
+See [manfest](https://github.com/jwinarske/manifests/blob/zeus/rpi64-flutter.xml) for a working RPI4-64 image.
+
+
+### Overview
 
 The Flutter engine build uses the GN meta-build system in conjunction with Chrome Infrastructure Package Deployment (CPID).
 
