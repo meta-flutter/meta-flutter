@@ -1,7 +1,7 @@
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=a60894397335535eb10b54e2fff9f265"
 
-SRCREV = "992de83dba5c9510c2a234e89867f5095ee99a42"
+SRCREV = "2b64b6ea08d4af762c0fe310d503b57dceb283ae"
 SRC_URI = "git://github.com/jwinarske/flutter_wayland;protocol=https;branch=yocto_zeus"
 
 DEPENDS =+ " flutter-engine wayland mesa"
