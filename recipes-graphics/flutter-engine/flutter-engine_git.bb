@@ -4,13 +4,13 @@ LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://src/flutter/LICENSE;md5=a60894397335535eb10b54e2fff9f265"
 
 SRCREV = "f3d9f9a950eb5b115d33705922bc2ec47a2f7eb5"
-SRC_URI = "git://github.com/flutter/engine;protocol=https;destsuffix=src/flutter"
+SRC_URI = "git://github.com/flutter/engine;protocol=https;destsuffix=git/src/flutter"
 
 S = "${WORKDIR}/git"
 
 inherit python3native
 
-DEPENDS =+ " curl-native ninja-native depot-tools-native freetype"
+DEPENDS =+ " ninja-native depot-tools-native freetype"
 
 require gn-utils.inc
 
@@ -83,7 +83,6 @@ do_patch() {
 }
 do_patch[depends] =+ " \
     depot-tools-native:do_populate_sysroot \
-    curl-native:do_populate_sysroot \
     "
 
 do_configure() {
