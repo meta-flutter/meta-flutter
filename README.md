@@ -32,6 +32,17 @@ waylandpp-native is dependent on pugixml
 ### futter-wayland
 depends on waylandpp
 
+Platform Channel Callbacks
+
+    Accessibility - stubbed
+    Platform Channel - stubbed
+    Text Input - stubbed
+    Platform Views - stubbed
+    URL Launcher - complete
+    Connectivity / Status - stubbed
+    Video Player / Events - stubbed
+GStreamer playback to Texture via DBUS control is my current plan.
+
 ### flutter-sdk
 ### flutter-gallery
 depdends on SDK.  Provides pattern to follow for the remaining examples.
