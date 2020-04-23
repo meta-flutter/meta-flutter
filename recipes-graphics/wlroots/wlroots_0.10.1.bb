@@ -6,7 +6,7 @@ SRC_URI[md5sum] = "3d9736cfbfaf6661d36b6c788ac2c199"
 
 DEPENDS = " wayland-native wayland mesa libinput libxkbcommon pixman"
 
-REQUIRED_DISTRO_FEATURES = "wayland"
+REQUIRED_DISTRO_FEATURES = "wayland wayland"
 
 
 S = "${WORKDIR}/${PN}-${PV}"
@@ -14,6 +14,5 @@ S = "${WORKDIR}/${PN}-${PV}"
 inherit meson pkgconfig distro_features_check
 
 do_configure_prepend() {
-    export WLR_BACKENDS="headless"
+    export WLR_BACKENDS="drm,headless,libinput,wayland"
 }
-

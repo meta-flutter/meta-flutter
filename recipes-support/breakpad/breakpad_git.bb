@@ -19,13 +19,13 @@ do_patch() {
     export SSH_AGENT_PID=${SSH_AGENT_PID}
 
     cd ${S}/..
-    gclient.py config --spec 'solutions = [ \
-        { \
-           "url": "https://chromium.googlesource.com/breakpad/breakpad.git", \
-           "managed": False, \
-           "name": "src", \
-           "custom_deps": {}, \
-        } \
+    gclient.py config --spec 'solutions = [
+        {
+           "url": "https://chromium.googlesource.com/breakpad/breakpad.git",
+           "managed": False,
+           "name": "src",
+           "custom_deps": {},
+        }
     ]'
 
     cd ${S}

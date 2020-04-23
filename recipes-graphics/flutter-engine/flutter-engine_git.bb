@@ -1,12 +1,12 @@
 DESCRIPTION = "Flutter Engine"
 
 LICENSE = "BSD-3-Clause"
-LIC_FILES_CHKSUM = "file://src/flutter/LICENSE;md5=a60894397335535eb10b54e2fff9f265"
+LIC_FILES_CHKSUM = "file://flutter/LICENSE;md5=a60894397335535eb10b54e2fff9f265"
 
 SRCREV = "f3d9f9a950eb5b115d33705922bc2ec47a2f7eb5"
-SRC_URI = "git://github.com/flutter/engine;protocol=https;destsuffix=git/src/flutter"
 
-S = "${WORKDIR}/git"
+
+S = "${WORKDIR}/git/src"
 
 inherit python3native
 
@@ -22,7 +22,7 @@ COMPATIBLE_MACHINE_armv7ve = "(.*)"
 COMPATIBLE_MACHINE_x86 = "(.*)"
 COMPATIBLE_MACHINE_x86-64 = "(.*)"
 
-PACKAGECONFIG ??= "embedder-for-target full-dart-sdk fontconfig skshaper stripped lto"
+PACKAGECONFIG ??= "mode-debug embedder-for-target full-dart-sdk fontconfig skshaper stripped lto"
 
 PACKAGECONFIG[clang] = "--clang"
 PACKAGECONFIG[static-analyzer] = "--clang-static-analyzer"
@@ -46,9 +46,11 @@ PACKAGECONFIG[lsan] = "--lsan"
 PACKAGECONFIG[msan] = "--msan"
 PACKAGECONFIG[tsan] = "--tsan"
 PACKAGECONFIG[ubsan] = "--ubsan"
+PACKAGECONFIG[mode-debug] = "--runtime-mode debug"
+PACKAGECONFIG[mode-profile] = "--runtime-mode profile"
+PACKAGECONFIG[mode-release] = "--runtime-mode release"
+PACKAGECONFIG[mode-jit_release] = "--runtime-mode jit_release"
 
-#  --runtime-mode {debug,profile,release,jit_release}
-#  --operator-new-alignment OPERATOR_NEW_ALIGNMENT
 
 GN_ARGS = " \
   ${PACKAGECONFIG_CONFARGS} \
@@ -65,20 +67,21 @@ do_patch() {
     export SSH_AUTH_SOCK=${SSH_AUTH_SOCK}
     export SSH_AGENT_PID=${SSH_AGENT_PID}
 
-    cd ${S}
-    mkdir -p ${S}/src
-    gclient.py config --spec='solutions=[{
-        "managed" : False,
-        "name" : "src/flutter",
-        "url" : "git@github.com:flutter/engine.git",
-        "custom_vars" : {
-            "download_android_deps" : False,
-            "download_windows_deps" : False,
+    cd ${S}/..
+    gclient.py config --spec 'solutions = [
+        {
+            "managed" : False,
+            "name" : "src/flutter",
+            "url" : "git@github.com:flutter/engine.git",
+            "custom_vars" : {
+                "download_android_deps" : False,
+                "download_windows_deps" : False,
+            }
         }
-    }]'
+    ]'
 
-    cd ${S}/src
-    gclient.py sync --nohooks --no-history ${PARALLEL_MAKE} -v
+    cd ${S}
+    gclient.py sync --nohooks --no-history --revision ${SRCREV} ${PARALLEL_MAKE} -v
 
 }
 do_patch[depends] =+ " \
@@ -87,7 +90,7 @@ do_patch[depends] =+ " \
 
 do_configure() {
 
-    cd ${S}/src
+    cd ${S}
     ./flutter/tools/gn ${GN_ARGS}
 
     # libraries required for linking so
@@ -98,14 +101,14 @@ do_configure() {
 
 do_compile() {
 
-    cd ${S}/src
+    cd ${S}
 	ninja ${PARALLEL_MAKE} -C ${@get_out_dir(d)}
 }
 do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
 do_install() {
 
-    cd ${S}/src/${@get_out_dir(d)}
+    cd ${S}/${@get_out_dir(d)}
 
     install -d ${D}${bindir}
     install -d ${D}${libdir}
