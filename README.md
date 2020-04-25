@@ -5,10 +5,20 @@ Yocto Layer for Flutter Engine
 
 ### Project Status
 
-Running on a Raspberry Pi 3 64-bit.  Should build/run on any Aarch64 target.  
+Building Engine master for 32-bit and 64-bit.
+Engine pulls in Clang 11.0.  This is used for both build flavors.
 
-After sorting out ARM patch, my next effort will be an implementation for the wlroots compositor.
+Gallery validated on Raspberry Pi 3 64-bit.  To get text to show up properly, not only do you need the fonts installed on the target, but the engine needs to be built with fontconfig enabled.
 
+*Next Up*
+
+* wayland client on top of the wlroots compositor
+
+* client for https://wiki.automotivelinux.org/subsystem/graphics/weston-ivi-shell
+
+
+
+rpi3-64 running the Flutter Gallery App
 
 ![Running in Weston](flutter-rpi3-64.jpg)
 
@@ -17,7 +27,7 @@ After sorting out ARM patch, my next effort will be an implementation for the wl
 
 This layer includes everything to build:
     
-    Flutter Engine for Aarch64
+    Flutter Engine for armv7/aarch64/x86/x86_64
     Wayland Flutter Shell
     Flutter Gallery Demo
 
@@ -67,5 +77,5 @@ The build uses depot-tools to sync repos, and CI packages.  A pre-built Clang to
 
 ## Development image
 
-This workspace can be used for any Raspberry Pi machine type:
+This workspace can be used for *any* Raspberry Pi machine type
 https://github.com/jwinarske/manifests/blob/zeus/rpi64-flutter.xml
