@@ -3,8 +3,13 @@ DESCRIPTION = "Flutter Engine"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://flutter/LICENSE;md5=a60894397335535eb10b54e2fff9f265"
 
-SRCREV = "f3d9f9a950eb5b115d33705922bc2ec47a2f7eb5"
+SRCREV = "9e5072f0ce81206b99db3598da687a19ce57a863"
 
+FILESEXTRAPATHS_prepend_poky := "${THISDIR}/files:"
+SRC_URI = "file://sysroot_gni.patch \
+           file://custom_BUILD_gn.patch \
+           file://icu.patch \
+           "
 
 S = "${WORKDIR}/git/src"
 
@@ -16,13 +21,12 @@ require gn-utils.inc
 
 COMPATIBLE_MACHINE = "(-)"
 COMPATIBLE_MACHINE_aarch64 = "(.*)"
-COMPATIBLE_MACHINE_armv6 = "(.*)"
 COMPATIBLE_MACHINE_armv7a = "(.*)"
 COMPATIBLE_MACHINE_armv7ve = "(.*)"
 COMPATIBLE_MACHINE_x86 = "(.*)"
 COMPATIBLE_MACHINE_x86-64 = "(.*)"
 
-PACKAGECONFIG ??= "mode-debug embedder-for-target full-dart-sdk fontconfig skshaper stripped lto"
+PACKAGECONFIG ??= "embedder-for-target full-dart-sdk fontconfig skshaper stripped lto"
 
 PACKAGECONFIG[clang] = "--clang"
 PACKAGECONFIG[static-analyzer] = "--clang-static-analyzer"
@@ -57,7 +61,8 @@ GN_ARGS = " \
   --target-os linux \
   --linux-cpu ${@gn_target_arch_name(d)} \
   --target-sysroot ${STAGING_DIR_TARGET} \
-  --target-triple ${TARGET_SYS} \
+  --target-triple ${@gn_clang_triple_prefix(d)} \
+  --target-toolchain ${S}/buildtools/linux-x64/clang \
   "
 
 do_patch() {
@@ -81,28 +86,60 @@ do_patch() {
     ]'
 
     cd ${S}
-    gclient.py sync --nohooks --no-history --revision ${SRCREV} ${PARALLEL_MAKE} -v
+    if test -f "build/config/sysroot.gni"; then
+        git checkout build/config/sysroot.gni
+    fi
+    if test -f "build/toolchain/custom/BUILD.gn"; then
+        git checkout build/toolchain/custom/BUILD.gn
+    fi
 
+    [ -d "third_party/icu" ] && cd third_party/icu
+    if test -f "source/i18n/plurrule.cpp"; then
+        git checkout source/i18n/plurrule.cpp
+    fi
+
+    cd ${S}
+    gclient.py sync --nohooks --no-history --revision ${SRCREV} ${PARALLEL_MAKE} -v
+    git apply ../../sysroot_gni.patch
+    git apply ../../custom_BUILD_gn.patch
+
+    cd third_party/icu
+    git apply ../../../../icu.patch
 }
 do_patch[depends] =+ " \
     depot-tools-native:do_populate_sysroot \
     "
 
+ARGS_GN_FILE = "${S}/${@get_out_dir(d)}/args.gn"
+
+ARGS_GN_APPEND = " \
+    arm_tune = \"${TUNEABI}\" \
+    arm_float_abi = \"${TARGET_FPU}\" \
+    "
+
+FLUTTER_TRIPLE = "${@gn_clang_triple_prefix(d)}"
+
+
 do_configure() {
 
+    bbnote "./flutter/tools/gn ${GN_ARGS}"
+    bbnote "echo ${ARGS_GN_APPEND} >> ${ARGS_GN_FILE}"
+
     cd ${S}
-    ./flutter/tools/gn ${GN_ARGS}
+
+    ./flutter/tools/gn ${GN_ARGS} --disable-desktop-embeddings
+
+    echo ${ARGS_GN_APPEND} >> ${ARGS_GN_FILE}
 
     # libraries required for linking so
-    mkdir -p buildtools/linux-x64/clang/lib/clang/8.0.0/aarch64-unknown-linux-gnu/lib
-    cp ${STAGING_LIBDIR}/${TARGET_SYS}/9.2.0/crtbeginS.o buildtools/linux-x64/clang/lib/clang/8.0.0/aarch64-unknown-linux-gnu/lib
-    cp ${STAGING_LIBDIR}/${TARGET_SYS}/9.2.0/crtendS.o buildtools/linux-x64/clang/lib/clang/8.0.0/aarch64-unknown-linux-gnu/lib
+    cp ${STAGING_LIBDIR}/${TARGET_SYS}/9.2.0/crtbeginS.o ${S}/buildtools/linux-x64/clang/lib/clang/11.0.0/lib/${FLUTTER_TRIPLE}/
+    cp ${STAGING_LIBDIR}/${TARGET_SYS}/9.2.0/crtendS.o ${S}/buildtools/linux-x64/clang/lib/clang/11.0.0/lib/${FLUTTER_TRIPLE}/
 }
 
 do_compile() {
 
     cd ${S}
-	ninja ${PARALLEL_MAKE} -C ${@get_out_dir(d)}
+	ninja -C ${@get_out_dir(d)} -v
 }
 do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
@@ -131,5 +168,7 @@ SYSROOT_DIRS =+ " \
     ${libdir} \
     ${includedir} \
     "
+
+INSANE_SKIP_${PN} += "already-stripped"
 
 # vim:set ts=4 sw=4 sts=4 expandtab:

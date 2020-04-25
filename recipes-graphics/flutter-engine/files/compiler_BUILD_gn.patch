@@ -1,0 +1,24 @@
+diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
+index 9b52719..9d7d0d2 100644
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -666,14 +666,14 @@ if (is_win) {
+ 
+   if (!use_xcode) {
+     default_warning_flags += [
+-      "-Wno-implicit-int-float-conversion",
+-      "-Wno-c99-designator",
++#      "-Wno-implicit-int-float-conversion",
++#      "-Wno-c99-designator",
+     ]
+     if (!is_fuchsia) {
+       default_warning_flags += [
+-        "-Wno-non-c-typedef-for-linkage",
+-        "-Wno-deprecated-copy",
+-        "-Wno-range-loop-construct",
++#        "-Wno-non-c-typedef-for-linkage",
++#        "-Wno-deprecated-copy",
++#        "-Wno-range-loop-construct",
+       ]
+     }
+   }

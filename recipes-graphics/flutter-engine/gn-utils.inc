@@ -47,6 +47,23 @@ def gn_target_arch_name(d):
                  'GN_TARGET_ARCH_NAME variable could not be found.')
     return name
 
+def gn_clang_triple_prefix(d):
+    """Returns compiler triple prefix corresponding to the target's machine
+    architecture."""
+    import re
+    arch_translations = {
+        r'aarch64.*': 'aarch64-unknown-linux-gnu',
+        r'arm.*': 'armv7-unknown-linux-gnueabihf',
+        r'i[3456]86$': 'i386-unknown-linux-gnu',
+        r'x86_64$': 'x86_64-unknown-linux-gnu',
+    }
+    build_arch = d.getVar("GN_TARGET_ARCH_NAME")
+    for arch_regexp, gn_arch_name in arch_translations.items():
+        if re.match(arch_regexp, build_arch):
+            return gn_arch_name
+
+    bb.fatal('Unsuported GN_TARGET_ARCH_NAME value: "%s"' % build_arch)
+
 def parse_args(d):
     """Parses the Package Config arguments."""
     import argparse
