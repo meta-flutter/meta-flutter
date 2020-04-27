@@ -5,7 +5,7 @@ SRCREV = "0.2.7"
 SRC_URI = "git://github.com/NilsBrause/waylandpp.git"
 
 DEPENDS_append_class-native = " pugixml-native"
-DEPENDS_append_class-target = " waylandpp-native wayland mesa"
+DEPENDS_append_class-target = " waylandpp-native wayland mesa virtual/egl"
 
 REQUIRED_DISTRO_FEATURES = "wayland"
 
