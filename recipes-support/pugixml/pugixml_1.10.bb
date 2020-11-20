@@ -1,8 +1,8 @@
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE.md;md5=e794502c64d22460e31e72abad44ed2e"
 
-SRCREV = "v1.10"
-SRC_URI = "git://github.com/zeux/pugixml.git"
+PV = "1.10"
+SRC_URI = "git://github.com/zeux/pugixml.git;tag=v${PV}"
 
 S = "${WORKDIR}/git"
 
