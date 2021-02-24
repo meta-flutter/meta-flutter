@@ -1,0 +1,29 @@
+From a51e38a9fc7313d8b274bb07700d10b9b4cc6ddb Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@linux.com>
+Date: Mon, 22 Feb 2021 23:37:37 +0000
+Subject: [PATCH] tinywl_ldflags
+
+---
+ tinywl/Makefile | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/tinywl/Makefile b/tinywl/Makefile
+index 505666f0..8121f698 100644
+--- a/tinywl/Makefile
++++ b/tinywl/Makefile
+@@ -17,11 +17,7 @@ xdg-shell-protocol.c: xdg-shell-protocol.h
+ 		$(WAYLAND_PROTOCOLS)/stable/xdg-shell/xdg-shell.xml $@
+ 
+ tinywl: tinywl.c xdg-shell-protocol.h xdg-shell-protocol.c
+-	$(CC) $(CFLAGS) \
+-		-g -Werror -I. \
+-		-DWLR_USE_UNSTABLE \
+-		-o $@ $< \
+-		$(LIBS)
++	$(CC) $(CFLAGS) -g -Werror -I. -DWLR_USE_UNSTABLE -o $@ $< $(LDFLAGS) $(LIBS)
+ 
+ clean:
+ 	rm -f tinywl xdg-shell-protocol.h xdg-shell-protocol.c
+-- 
+2.29.2
+

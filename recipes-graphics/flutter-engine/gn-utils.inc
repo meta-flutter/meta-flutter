@@ -1,6 +1,23 @@
 # Copyright 2013 The Flutter Authors. All rights reserved.
+# Copyright 2021 Joel Winarske. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
+
+def gn_get_tune_features(d):
+    """ Returns tune value """
+    tune_features = d.getVar("TUNE_FEATURES")
+    if not tune_features:
+        return tune_features
+    return tune_features.replace(" ", "+")
+
+def gn_get_channel_commit(d):
+    """ Returns commit hash of selected channel """
+    import urllib.request
+    build_channel = d.getVar("CHANNEL")
+    with urllib.request.urlopen('https://raw.githubusercontent.com/flutter/flutter/' + build_channel + '/bin/internal/engine.version') as f:
+        return f.read().decode('utf-8').strip()
+
+    bb.fatal('Unknown Error getting" "%s"' % build_channel)
 
 # GN host architecture helpers.
 #
@@ -52,7 +69,7 @@ def gn_clang_triple_prefix(d):
     architecture."""
     import re
     arch_translations = {
-        r'aarch64.*': 'aarch64-unknown-linux-gnu',
+        r'arm64.*': 'aarch64-unknown-linux-gnu',
         r'arm.*': 'armv7-unknown-linux-gnueabihf',
         r'i[3456]86$': 'i386-unknown-linux-gnu',
         r'x86_64$': 'x86_64-unknown-linux-gnu',
@@ -77,28 +94,45 @@ def parse_args(d):
     parser.add_argument('--interpreter', default=False, action='store_true')
     parser.add_argument('--dart-debug', default=False, action='store_true', help='Enables assertions in the Dart VM. ' +
         'Does not affect optimization levels. If you need to disable optimizations in Dart, use --full-dart-debug')
+    parser.add_argument('--no-dart-version-git-info', default=False, action='store_true',
+                        help='Set by default; if unset, turns off the dart SDK git hash check')
     parser.add_argument('--full-dart-debug', default=False, action='store_true', help='Implies --dart-debug ' +
         'and also disables optimizations in the Dart VM making it easier to step through VM code in the debugger.')
 
-    parser.add_argument('--target-os', type=str, choices=['android', 'ios', 'linux', 'fuchsia'])
+    parser.add_argument('--target-os', type=str, choices=['android', 'ios', 'linux', 'fuchsia', 'win', 'winuwp'])
     parser.add_argument('--android', dest='target_os', action='store_const', const='android')
     parser.add_argument('--android-cpu', type=str, choices=['arm', 'x64', 'x86', 'arm64'], default='arm')
     parser.add_argument('--ios', dest='target_os', action='store_const', const='ios')
     parser.add_argument('--ios-cpu', type=str, choices=['arm', 'arm64'], default='arm64')
     parser.add_argument('--simulator', action='store_true', default=False)
+    parser.add_argument('--linux', dest='target_os', action='store_const', const='linux')
     parser.add_argument('--fuchsia', dest='target_os', action='store_const', const='fuchsia')
+    parser.add_argument('--fuchsia-legacy', default=True, action='store_true')
+    parser.add_argument('--no-fuchsia-legacy', dest='fuchsia_legacy', action='store_false')
+    parser.add_argument('--winuwp', dest='target_os', action='store_const', const='winuwp')
+
     parser.add_argument('--linux-cpu', type=str, choices=['x64', 'x86', 'arm64', 'arm'])
     parser.add_argument('--fuchsia-cpu', type=str, choices=['x64', 'arm64'], default = 'x64')
+    parser.add_argument('--windows-cpu', type=str, choices=['x64', 'arm64'], default = 'x64')
+    parser.add_argument('--simulator-cpu', type=str, choices=['x64', 'arm64'], default = 'x64')
     parser.add_argument('--arm-float-abi', type=str, choices=['hard', 'soft', 'softfp'])
 
     parser.add_argument('--goma', default=True, action='store_true')
     parser.add_argument('--no-goma', dest='goma', action='store_false')
+    parser.add_argument('--xcode-symlinks', action='store_true', help='Set to true for builds targetting macOS or iOS ' +
+        'when using goma. If set, symlinks to the Xcode provided sysroot and SDKs will be created in a generated ' +
+        'folder, which will avoid potential backend errors in Fuchsia RBE. Instead of specifying the flag on each invocation ' +
+        'the FLUTTER_GOMA_CREATE_XCODE_SYMLINKS environment variable may be set to 1 to achieve the same effect.')
+    parser.add_argument('--no-xcode-symlinks', dest='xcode_symlinks', default=False, action='store_false')
+    parser.add_argument('--depot-tools', default='~/depot_tools', type=str,
+                        help='Depot tools provides an alternative location for gomacc in ' +
+                        '/path/to/depot_tools/.cipd_bin')
 
     parser.add_argument('--lto', default=True, action='store_true')
     parser.add_argument('--no-lto', dest='lto', action='store_false')
 
-    parser.add_argument('--clang', default=True, action='store_true')
-    parser.add_argument('--no-clang', dest='clang', action='store_false')
+    parser.add_argument('--clang', action='store_const', const=True)
+    parser.add_argument('--no-clang', dest='clang', action='store_const', const=False)
 
     parser.add_argument('--clang-static-analyzer', default=False, action='store_true')
     parser.add_argument('--no-clang-static-analyzer', dest='clang_static_analyzer', action='store_false')
@@ -108,11 +142,15 @@ def parse_args(d):
     parser.add_argument('--target-triple', type=str)
     parser.add_argument('--operator-new-alignment', dest='operator_new_alignment', type=str, default=None)
 
+    parser.add_argument('--macos-enable-metal', action='store_true', default=False)
     parser.add_argument('--enable-vulkan', action='store_true', default=False)
 
     parser.add_argument('--enable-fontconfig', action='store_true', default=False)
-    parser.add_argument('--enable-skshaper', action='store_true', default=False)
     parser.add_argument('--enable-vulkan-validation-layers', action='store_true', default=False)
+
+    parser.add_argument('--enable-skshaper', action='store_true', default=True)
+    parser.add_argument('--no-enable-skshaper', dest='enable_skshaper', action='store_false')
+    parser.add_argument('--always-use-skshaper', action='store_true', default=False)
 
     parser.add_argument('--embedder-for-target', dest='embedder_for_target', action='store_true', default=False)
 
@@ -128,8 +166,12 @@ def parse_args(d):
                         help='The IDE files to generate using GN. Use `gn gen help` and look for the --ide flag to' +
                         ' see supported IDEs. If this flag is not specified, a platform specific default is selected.')
 
-    parser.add_argument('--build-glfw-shell', dest='build_glfw_shell', default=False, action='store_true',
-                        help='Force building the GLFW shell on desktop platforms where it is not built by default.')
+    parser.add_argument('--disable-desktop-embeddings', default=False, action='store_true',
+                        help='Do not include desktop embeddings in the build.')
+    parser.add_argument('--build-glfw-shell', action='store_const', const=True,
+                        help='Build the GLFW shell on supported platforms where it is not built by default.')
+    parser.add_argument('--no-build-glfw-shell', dest='build_glfw_shell', action='store_const', const=False,
+                        help='Do not build the GLFW shell on platforms where it is built by default.')
 
     parser.add_argument('--bitcode', default=False, action='store_true',
                         help='Enable bitcode for iOS targets. On debug runtime modes, this will be a marker only.')
@@ -177,13 +219,22 @@ def get_out_dir(d):
     if args.ios_cpu != 'arm64':
         target_dir.append(args.ios_cpu)
 
+    if args.simulator_cpu != 'x64':
+        target_dir.append(args.simulator_cpu)
+
     if args.linux_cpu is not None:
       target_dir.append(args.linux_cpu)
+
+    if args.windows_cpu != 'x64':
+      target_dir.append(args.windows_cpu)
 
     if args.target_os == 'fuchsia' and args.fuchsia_cpu is not None:
       target_dir.append(args.fuchsia_cpu)
 
     if args.enable_vulkan:
         target_dir.append('vulkan')
+
+    if args.macos_enable_metal:
+      target_dir.append('metal')
 
     return os.path.join(args.out_dir, 'out', '_'.join(target_dir))

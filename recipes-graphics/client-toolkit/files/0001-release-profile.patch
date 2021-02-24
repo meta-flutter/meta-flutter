@@ -1,0 +1,25 @@
+From 06b96af0fc316e5b1a35c5935712e9fa9ca803c2 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@linux.com>
+Date: Wed, 24 Feb 2021 03:57:00 +0000
+Subject: [PATCH] release profile
+
+---
+ Cargo.toml | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/Cargo.toml b/Cargo.toml
+index e4a2db52..be5e40d9 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -30,3 +30,8 @@ frames = ["andrew"]
+ 
+ [dev-dependencies]
+ image = "0.23"
++
++[profile.release]
++lto = true
++codegen-units = 1
++opt-level = "z"
+-- 
+2.29.2
+
