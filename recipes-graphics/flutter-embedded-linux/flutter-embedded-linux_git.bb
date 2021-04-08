@@ -31,6 +31,7 @@ do_patch() {
    install -d ${S}/build
    install -m 644 ${STAGING_LIBDIR}/libflutter_engine.so ${S}/build/
 }
+do_patch[depends] += "flutter-engine:do_populate_sysroot"
 
 do_install() {
    install -d ${D}${bindir}
