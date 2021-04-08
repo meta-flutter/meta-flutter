@@ -23,6 +23,8 @@ SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
+REQUIRED_DISTRO_FEATURES = "wayland"
+
 inherit pkgconfig cmake features_check
 
 EXTRA_OECMAKE += "-D USE_GLES3=ON \
