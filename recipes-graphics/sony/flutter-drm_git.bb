@@ -19,25 +19,27 @@ DEPENDS += "libxkbcommon \
 TOOLCHAIN = "clang"
 
 SRC_URI = "git://github.com/sony/flutter-embedded-linux.git;protocol=https;branch=master"
+
 SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
-REQUIRED_DISTRO_FEATURES = "wayland"
-
 inherit pkgconfig cmake features_check
 
-EXTRA_OECMAKE += "-D USE_GLES3=ON \
+EXTRA_OECMAKE += "-D CMAKE_BUILD_TYPE=Debug \
+                  -D USE_GLES3=ON \
+                  -D USER_PROJECT_PATH=${S}/examples/flutter-drm-backend \
+                  -D USE_DRM=ON \
                   "
-do_patch() {
+
+do_configure_prepend() {
    install -d ${S}/build
    install -m 644 ${STAGING_LIBDIR}/libflutter_engine.so ${S}/build/
 }
-do_patch[depends] += "flutter-engine:do_populate_sysroot"
 
 do_install() {
    install -d ${D}${bindir}
-   install -m 755 ${WORKDIR}/build/flutter-client ${D}${bindir}
+   install -m 755 ${WORKDIR}/build/flutter-drm-backend ${D}${bindir}
 }
 
 FILES_${PN} = "${bindir}"
