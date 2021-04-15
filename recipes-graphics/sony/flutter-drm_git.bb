@@ -28,7 +28,7 @@ inherit pkgconfig cmake features_check
 
 EXTRA_OECMAKE += "-D CMAKE_BUILD_TYPE=Debug \
                   -D USE_GLES3=ON \
-                  -D USER_PROJECT_PATH=${S}/examples/flutter-drm-backend \
+                  -D USER_PROJECT_PATH=${S}/examples/flutter-drm-gbm-backend \
                   -D USE_DRM=ON \
                   "
 
@@ -39,7 +39,7 @@ do_configure_prepend() {
 
 do_install() {
    install -d ${D}${bindir}
-   install -m 755 ${WORKDIR}/build/flutter-drm-backend ${D}${bindir}
+   install -m 755 ${WORKDIR}/build/flutter-drm-gbm-backend ${D}${bindir}
 }
 
 FILES_${PN} = "${bindir}"
