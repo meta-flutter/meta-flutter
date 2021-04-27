@@ -34,6 +34,7 @@ def gn_host_arch_name(d):
         r'arm.*': 'arm',
         r'i[3456]86$': 'x86',
         r'x86_64$': 'x64',
+        r'x64$': 'x64',
     }
     build_arch = d.getVar("BUILD_ARCH")
     for arch_regexp, gn_arch_name in arch_translations.items():
@@ -73,6 +74,7 @@ def gn_clang_triple_prefix(d):
         r'arm.*': 'armv7-unknown-linux-gnueabihf',
         r'i[3456]86$': 'i386-unknown-linux-gnu',
         r'x86_64$': 'x86_64-unknown-linux-gnu',
+        r'x64$': 'x86_64-unknown-linux-gnu',
     }
     build_arch = d.getVar("GN_TARGET_ARCH_NAME")
     for arch_regexp, gn_arch_name in arch_translations.items():
