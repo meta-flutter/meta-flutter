@@ -5,7 +5,7 @@ SRC_URI = "git://chromium.googlesource.com/chromium/tools/depot_tools;protocol=h
            file://0001-disable-ninjalog_upload.patch \
            file://ca-certificates.crt;name=certs"
 
-SRCREV = "6a7e234b584eff3fbbd5686f5ec75cba3d25667c"
+SRCREV = "3a56ba9d9c9d22bc78e24f96a9096247d53649f8"
 
 SRC_URI[certs.md5sum] = "1ecab07e89925a6e8684b75b8cf84890"
 
