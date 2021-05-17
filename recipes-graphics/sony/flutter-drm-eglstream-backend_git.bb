@@ -13,10 +13,7 @@ DEPENDS += "\
     glib-2.0 \
     libinput libxkbcommon \
     virtual/egl \
-    wayland wayland-native \
     "
-
-REQUIRED_DISTRO_FEATURES = "wayland"
 
 TOOLCHAIN = "clang"
 
