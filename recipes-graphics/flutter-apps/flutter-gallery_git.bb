@@ -49,7 +49,7 @@ do_compile() {
 
 do_install() {
     install -d ${D}${datadir}/homescreen/gallery
-    cp -rTv ${S}/ivi/build ${D}${datadir}/homescreen/gallery
+    cp -rTv ${S}/build ${D}${datadir}/homescreen/gallery
     rm -rf ${D}${datadir}/homescreen/gallery/.last_build_id
 }
 
