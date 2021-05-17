@@ -13,6 +13,7 @@ DEPENDS += "\
     glib-2.0 \
     libinput libxkbcommon \
     virtual/egl \
+    libdrm \
     "
 
 TOOLCHAIN = "clang"
