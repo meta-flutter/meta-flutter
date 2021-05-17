@@ -16,13 +16,14 @@ FLUTTER_CHANNEL ??= "beta"
 
 DEPENDS += "curl-native unzip-native"
 
-SRC_URI = "git://github.com/flutter/flutter;protocol=https;branch=${CHANNEL}"
+SRC_URI = "git://github.com/flutter/flutter;protocol=https;branch=${FLUTTER_CHANNEL} \
+           file://ca-certificates.crt"
 SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
 do_compile() {
-    export CURL_CA_BUNDLE=${STAGING_DIR_NATIVE}/etc/ssl/certs/ca-certificates.crt
+    export CURL_CA_BUNDLE=${WORKDIR}/ca-certificates.crt
     export PATH=${S}/bin:$PATH
     flutter doctor -v
 }
@@ -36,4 +37,4 @@ FILES_${PN} = "${datadir}/flutter/sdk/*"
 
 INSANE_SKIP_${PN} = "already-stripped"
 
-BBCLASSEXTEND = " native nativesdk"
+BBCLASSEXTEND = "native nativesdk"

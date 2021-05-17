@@ -13,7 +13,7 @@ def gn_get_tune_features(d):
 def gn_get_channel_commit(d):
     """ Returns commit hash of selected channel """
     import urllib.request
-    build_channel = d.getVar("CHANNEL")
+    build_channel = d.getVar("FLUTTER_CHANNEL")
     with urllib.request.urlopen('https://raw.githubusercontent.com/flutter/flutter/' + build_channel + '/bin/internal/engine.version') as f:
         return f.read().decode('utf-8').strip()
 

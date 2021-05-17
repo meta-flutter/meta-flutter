@@ -93,10 +93,9 @@ do_patch_prepend() {
     bbnote "ARGS_GN_FILE: ${ARGS_GN_FILE}"
     bbnote "CLANG_TOOLCHAIN_TRIPLE: ${CLANG_TOOLCHAIN_TRIPLE}"
     bbnote "GCLIENT_ROOT: ${S}/.."
-    bbnote "CHANNEL: ${CHANNEL} = ${@gn_get_channel_commit(d)}"
-    bbnote "SRCREV: ${SRCREV}"
+    bbnote "FLUTTER_CHANNEL: ${SRCREV}"
     bbnote "OUT_DIR_REL: ${OUT_DIR_REL}"
-    bbnote "gclient sync --shallow --no-history -R -D --revision ${CHANNEL_COMMIT} ${PARALLEL_MAKE}"
+    bbnote "gclient sync --shallow --no-history -R -D --revision ${SRCREV} ${PARALLEL_MAKE} -v"
 }
 
 do_patch() {

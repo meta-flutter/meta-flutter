@@ -6,9 +6,10 @@ BUGTRACKER = "https://github.com/flutter/gallery/issues"
 SECTION = "graphics"
 CVE_PRODUCT = ""
 
-LICENSE = "CLOSED"
+LICENSE = "BSD-3-Clause"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=1d84cf16c48e571923f837136633a265"
 
-FLUTTER_CHANNEL ??= "beta"
+FLUTTER_CHANNEL ??= "master"
 
 DEPENDS += "flutter-engine flutter-sdk-native unzip-native"
 
@@ -52,10 +53,6 @@ do_install() {
     rm -rf ${D}${datadir}/homescreen/gallery/.last_build_id
 }
 
-PACKAGES =+ "\
-    ${PN}-gallery \
-    "
-
-FILES_${PN}-ivi = "${datadir}/homescreen/gallery/*"
+FILES_${PN} = "${datadir}/homescreen/gallery/*"
 
 do_package_qa[noexec] = "1"
