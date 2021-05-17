@@ -23,7 +23,7 @@ SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
-inherit pkgconfig cmake features_check
+inherit pkgconfig cmake
 
 EXTRA_OECMAKE += "\
     -D CMAKE_BUILD_TYPE=Debug \
