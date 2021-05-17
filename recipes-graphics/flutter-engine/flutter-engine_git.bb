@@ -17,7 +17,7 @@ SRC_URI = "file://0001-clang-toolchain.patch \
 
 S = "${WORKDIR}/src"
 
-CHANNEL ??= "beta"
+FLUTTER_CHANNEL ??= "beta"
 FLUTTER_CLANG_VERSION ??= "12.0.0"
 TARGET_GCC_VERSION ??= "9.3.0"
 DEPOT_TOOLS_PYTHON2_PATH ??= "depot_tools/bootstrap-2@3.8.9.chromium.14_bin/python/bin"

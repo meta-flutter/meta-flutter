@@ -8,7 +8,7 @@ CVE_PRODUCT = ""
 
 LICENSE = "CLOSED"
 
-CHANNEL ??= "beta"
+FLUTTER_CHANNEL ??= "beta"
 
 DEPENDS += "flutter-engine flutter-sdk-native unzip-native"
 
