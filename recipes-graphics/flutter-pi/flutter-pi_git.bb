@@ -11,11 +11,15 @@ CVE_PRODUCT = ""
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=49fada46694956cdf2fc0292d72d888c"
 
-DEPENDS += "libxkbcommon \
-            libinput \
-            virtual/egl \
-            flutter-engine \
-           "
+DEPENDS += "\
+    libdrm \
+    libinput \
+    libxkbcommon \
+    flutter-engine \
+    virtual/egl \
+   "
+
+RDEPENDS_${PN} += "xkeyboard-config"
 
 SRC_URI = "git://github.com/ardera/flutter-pi.git;protocol=https;branch=master"
 SRCREV = "8e7432ce1be2691e38942b301fb0dbf7b3e4e608"
