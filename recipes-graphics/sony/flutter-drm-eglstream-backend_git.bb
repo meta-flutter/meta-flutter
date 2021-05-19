@@ -13,6 +13,7 @@ DEPENDS += "\
     glib-2.0 \
     libinput libxkbcommon \
     virtual/egl \
+    libdrm \
     "
 
 RDEPENDS_${PN} += "xkeyboard-config"
@@ -25,7 +26,7 @@ SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
-inherit pkgconfig cmake features_check
+inherit pkgconfig cmake
 
 EXTRA_OECMAKE += "\
     -D CMAKE_BUILD_TYPE=Debug \

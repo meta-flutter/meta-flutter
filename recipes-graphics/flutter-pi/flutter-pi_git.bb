@@ -22,7 +22,7 @@ SRCREV = "8e7432ce1be2691e38942b301fb0dbf7b3e4e608"
 
 S = "${WORKDIR}/git"
 
-inherit pkgconfig cmake features_check
+inherit pkgconfig cmake
 
 EXTRA_OECMAKE += "-D BUILD_TEXT_INPUT_PLUGIN=ON \
                   -D BUILD_RAW_KEYBOARD_PLUGIN=ON \
