@@ -186,19 +186,19 @@ do_install() {
     install -d                                                            ${D}/${includedir}
     install -m 644 ${S}/${OUT_DIR_REL}/flutter_embedder.h                 ${D}/${includedir}
 
-    install -d                                                            ${D}/usr/share/flutter
-    install -m 644 ${S}/${OUT_DIR_REL}/icudtl.dat                         ${D}/usr/share/flutter/
+    install -d                                                            ${D}/${datadir}/flutter
+    install -m 644 ${S}/${OUT_DIR_REL}/icudtl.dat                         ${D}/${datadir}/flutter/
 
     # create SDK
-    install -d                                                            ${D}/usr/share/flutter/sdk
+    install -d                                                            ${D}/${datadir}/flutter/sdk
     echo "${SRCREV}" > ${D}/usr/share/flutter/sdk/engine.version
-    install -m 644 ${S}/${OUT_DIR_REL}/flutter_patched_sdk/*              ${D}/usr/share/flutter/sdk/
-    install -m 644 ${S}/${OUT_DIR_REL}/gen/frontend_server.dart.snapshot  ${D}/usr/share/flutter/sdk/
+    install -m 644 ${S}/${OUT_DIR_REL}/flutter_patched_sdk/*              ${D}/${datadir}/flutter/sdk/
+    install -m 644 ${S}/${OUT_DIR_REL}/gen/frontend_server.dart.snapshot  ${D}/${datadir}/flutter/sdk/
 
-    install -d                                                            ${D}/usr/share/flutter/sdk/clang_x64
-    install -m 755 ${S}/${OUT_DIR_REL}/clang_x64/gen_snapshot             ${D}/usr/share/flutter/sdk/clang_x64/
+    install -d                                                            ${D}/${datadir}/flutter/sdk/clang_x64
+    install -m 755 ${S}/${OUT_DIR_REL}/clang_x64/gen_snapshot             ${D}/${datadir}/flutter/sdk/clang_x64/
 
-    cd ${D}/usr/share/flutter
+    cd ${D}/${datadir}/flutter
     zip -r engine_sdk.zip sdk
     rm -rf sdk
 }
