@@ -4,11 +4,9 @@ Yocto Layer for Flutter related artifacts.
 
 Recommended development flow starts with making an embedder run on desktop, then target.  This approach will save you a good deal of time and aggrevation.
 
-Note: In theory Swift Shader (CPU render) engine builds should work with the right build flags.  Be warned it won't work out of the box.  Select a SoC with a GPU that support OpenGL 3.0+ and save yourself the Engineering NRE.
+Note: In theory Swift Shader (CPU render) engine builds should work with the right build flags.  Be warned it won't work out of the box.  Select a SoC with a GPU that supports OpenGL 3.0+ and save yourself the Engineering NRE.
 
-
-Note:  Most of the embedders in this layer do not handle all of the expected platform channels for the Gallery Application to run properly.  At one point flutter-wayland did, not sure about latest builds.  So don't be suprised to see a gray screen when running the Gallery app.  It's there to show the development work flow.  Start your application recipe by copying the flutter-gallery recipe.
-
+Note: If you get a gray screen running the Gallery app, chances are you don't have `LC_ALL` set.  Check `/usr/share/locale/` on your target for available locale, and set LC_ALL appropriately.  Example: `export LC_ALL=en_GB`
 
 ## Layers dependencies
 
