@@ -15,6 +15,8 @@ DEPENDS += "\
     virtual/egl \
     "
 
+RDEPENDS_${PN} += "xkeyboard-config"
+
 TOOLCHAIN = "clang"
 
 SRC_URI = "git://github.com/sony/flutter-embedded-linux.git;protocol=https;branch=master"

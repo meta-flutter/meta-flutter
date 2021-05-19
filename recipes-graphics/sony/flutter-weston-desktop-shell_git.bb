@@ -17,6 +17,8 @@ DEPENDS += "\
     weston \
     "
 
+RDEPENDS_${PN} += "xkeyboard-config"
+
 REQUIRED_DISTRO_FEATURES = "wayland"
 
 TOOLCHAIN = "clang"

@@ -44,15 +44,22 @@ do_compile() {
     cd ${S}
     flutter build bundle
     dart ${ENGINE_SDK}/frontend_server.dart.snapshot --aot --tfa --target=flutter --sdk-root ${ENGINE_SDK} --output-dill app.dill lib/main.dart
-    ${ENGINE_SDK}/clang_x64/gen_snapshot --deterministic --snapshot_kind=app-aot-elf --elf=build/libapp.so --strip app.dill
+    ${ENGINE_SDK}/clang_x64/gen_snapshot --deterministic --snapshot_kind=app-aot-elf --elf=libapp.so --strip app.dill
 }
 
 do_install() {
-    install -d ${D}${datadir}/homescreen/gallery
-    cp -rTv ${S}/ivi/build ${D}${datadir}/homescreen/gallery
-    rm -rf ${D}${datadir}/homescreen/gallery/.last_build_id
+
+    #
+    # Sony Layout
+    #
+    install -d ${D}${datadir}/${PN}/sony
+    install -d ${D}${datadir}/${PN}/sony/lib
+    install -m 644 ${S}/libapp.so ${D}${datadir}/${PN}/sony/lib
+    install -d ${D}${datadir}/${PN}/sony/data
+    install -m 644 ${STAGING_DATADIR}/flutter/icudtl.dat ${D}${datadir}/${PN}/sony/data/
+    cp -rTv ${S}/build/flutter_assets/* ${D}${datadir}/${PN}/sony/
 }
 
-FILES_${PN} = "${datadir}/homescreen/gallery/*"
+FILES_${PN} = "${datadir}/${PN}/*"
 
 do_package_qa[noexec] = "1"
