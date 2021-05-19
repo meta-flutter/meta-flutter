@@ -53,11 +53,15 @@ do_install() {
     # Sony Layout
     #
     install -d ${D}${datadir}/${PN}/sony
+    
     install -d ${D}${datadir}/${PN}/sony/lib
     install -m 644 ${S}/libapp.so ${D}${datadir}/${PN}/sony/lib
+    
     install -d ${D}${datadir}/${PN}/sony/data
     install -m 644 ${STAGING_DATADIR}/flutter/icudtl.dat ${D}${datadir}/${PN}/sony/data/
-    cp -rTv ${S}/build/flutter_assets/* ${D}${datadir}/${PN}/sony/
+    
+    install -d ${D}${datadir}/${PN}/sony/data/flutter_assets
+    cp -rTv ${S}/build/flutter_assets/* ${D}${datadir}/${PN}/sony/data/flutter_assets/
 }
 
 FILES_${PN} = "${datadir}/${PN}/*"
