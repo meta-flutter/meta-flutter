@@ -36,23 +36,31 @@ Targets known to work
 * etc
 
 
-NVidia local.conf addition to include Flutter Engine, Flutter Gallery App, Sony DRM eglstream embedder
+### NVidia Xavier/Nano
 
-```
-TARGET_GCC_VRSION = "8.3.0"
-FLUTTER_CHANNEL = "master"
-IMAGE_INSTALL += "\
-    flutter-drm-eglstream-backend \
-    flutter-gallery \
-"
-```
-    
-Sony notes
+local.conf changes
+
+    TARGET_GCC_VRSION = "8.3.0"
+    FLUTTER_CHANNEL = "master"
+    IMAGE_INSTALL_append = " flutter-drm-eglstream-backend"
+    IMAGE_INSTALL_append = " flutter-gallery"
+
+Build EGL image
+
+    bitbake demo-image-egl
+
+Run Flutter application on target (defaults to AOT)
+
+    FLUTTER_DRM_DEVICE=/dev/dri/card0 flutter-drm-eglstream-backend -b /usr/share/flutter-gallery/sony
+
+
+### Sony notes
 - not accepting PRs
 - weston >= 8 does not work
 - no multi-engine
 - no platform view / hybrid composition
 - no vsync support
 - not enough debug spew for debug builds
-- too much boiler plate - my opinion
+- code difficult to follow
+- too much boiler plate
 
