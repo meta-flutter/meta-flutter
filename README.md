@@ -27,7 +27,7 @@ This layer includes recipes to build
 
 ## Notes
 
-Targets flutter-engine known to work on
+Targets flutter-engine is known to work on
 
 * DragonBoard 410c - aarch64
 * Intel MinnowBoard Max (BayTrail) - intel-icore7-64
@@ -36,6 +36,7 @@ Targets flutter-engine known to work on
 * Raspberry Pi 3 - armv7hf
 * Raspberry Pi 4 / Compute - aarch64
 * Renesas R-Car m3ulcb - aarch64
+* AGL QEMU images - x86_64
 * etc, etc
 
 
