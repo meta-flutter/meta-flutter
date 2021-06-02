@@ -40,7 +40,11 @@ Targets flutter-engine is known to work on
 * etc, etc
 
 
+<<<<<<< HEAD
 ### NVIDIA Xavier/Nano
+=======
+### NVidia Xavier/Nano
+>>>>>>> d9016312844779d5d80c698754471e187f0d08a3
 
 local.conf changes
 
@@ -50,6 +54,7 @@ local.conf changes
     IMAGE_INSTALL_append = " flutter-gallery"
 
 OR
+<<<<<<< HEAD
 
     TARGET_GCC_VRSION = "8.3.0"
     FLUTTER_CHANNEL = "master"
@@ -103,6 +108,24 @@ TARGET_FPU      = "hard"
 ```
 
 See release notes regarding "fip": https://wiki.st.com/stm32mpu/wiki/STM32MP15_OpenSTLinux_release_note
+=======
+
+    TARGET_GCC_VRSION = "8.3.0"
+    FLUTTER_CHANNEL = "master"
+    CORE_IMAGE_EXTRA_INSTALL += "\
+        flutter-drm-eglstream-backend \
+        flutter-gallery \
+    "
+
+Build EGL image
+
+    bitbake demo-image-egl
+
+Run Flutter application on target (defaults to AOT)
+
+    FLUTTER_DRM_DEVICE=/dev/dri/card0 flutter-drm-eglstream-backend -b /usr/share/flutter-gallery/sony
+   
+>>>>>>> d9016312844779d5d80c698754471e187f0d08a3
 
 ### Sony notes
 - not accepting PRs
