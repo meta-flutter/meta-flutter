@@ -71,14 +71,23 @@ CLANG_PATH = "${WORKDIR}/src/buildtools/linux-x64/clang"
 CLANG_INSTALL_DIR = "${CLANG_PATH}/lib/clang/${FLUTTER_CLANG_VERSION}/lib/${CLANG_TOOLCHAIN_TRIPLE}"
 GCC_OBJ_DIR = "${STAGING_LIBDIR}/${TARGET_SYS}/${TARGET_GCC_VERSION}"
 
-ARGS_GN_append_aarch64 = "arm_tune = \"${@gn_get_tune_features(d)}\"\n"
-ARGS_GN_APPEND_armv7 = "arm_tune = \"${@gn_get_tune_features(d)}\"\narm_float_abi = \"${TARGET_FPU}\"\n"
-ARGS_GN_APPEND_armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\"\narm_float_abi = \"${TARGET_FPU}\"\n"
-ARGS_GN_APPEND_armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\"\narm_float_abi = \"${TARGET_FPU}\"\n"
+ARGS_GN_FILE = "${WORKDIR}/src/${OUT_DIR_REL}/args.gn"
+
+ARGS_GN_aarch64 = "arm_tune = \"${@gn_get_tune_features(d)}\""
+
+ARGS_GN_armv7 = "\
+arm_tune = \"\" \n\
+arm_float_abi = \"${TARGET_FPU}\""
+
+ARGS_GN_armv7a = "\
+arm_tune = \"\" \n\
+arm_float_abi = \"${TARGET_FPU}\""
+
+ARGS_GN_armv7ve = "\
+arm_tune = \"\" \n\
+arm_float_abi = \"${TARGET_FPU}\""
 
 OUT_DIR_REL = "${@get_out_dir(d)}"
-
-ARGS_GN_FILE = "${WORKDIR}/src/${OUT_DIR_REL}/args.gn"
 
 GN_ARGS = "${PACKAGECONFIG_CONFARGS} --clang --lto --no-goma"
 GN_ARGS_append = " --target-os linux"
@@ -162,7 +171,7 @@ do_configure() {
 
     ./flutter/tools/gn ${GN_ARGS}
 
-    echo "${ARGS_GN_APPEND}" >> ${ARGS_GN_FILE}
+    echo -e "${ARGS_GN}" >> ${ARGS_GN_FILE}
 }
 do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 
