@@ -30,6 +30,7 @@ SRCREV ??= "${@gn_get_channel_commit(d)}"
 
 COMPATIBLE_MACHINE = "(-)"
 COMPATIBLE_MACHINE_aarch64 = "(.*)"
+COMPATIBLE_MACHINE_armv7 = "(.*)"
 COMPATIBLE_MACHINE_armv7a = "(.*)"
 COMPATIBLE_MACHINE_armv7ve = "(.*)"
 COMPATIBLE_MACHINE_x86 = "(.*)"
@@ -70,9 +71,10 @@ CLANG_PATH = "${WORKDIR}/src/buildtools/linux-x64/clang"
 CLANG_INSTALL_DIR = "${CLANG_PATH}/lib/clang/${FLUTTER_CLANG_VERSION}/lib/${CLANG_TOOLCHAIN_TRIPLE}"
 GCC_OBJ_DIR = "${STAGING_LIBDIR}/${TARGET_SYS}/${TARGET_GCC_VERSION}"
 
-ARGS_GN_APPEND_aarch64 = "arm_tune = \"${@gn_get_tune_features(d)}\""
-ARGS_GN_APPEND_armv7a  = "arm_tune = \"${TUNEABI}\" arm_float_abi = \"${TARGET_FPU}\""
-ARGS_GN_APPEND_armv7ve = "arm_tune = \"${TUNEABI}\" arm_float_abi = \"${TARGET_FPU}\""
+ARGS_GN_append_aarch64 = "arm_tune = \"${@gn_get_tune_features(d)}\"\n"
+ARGS_GN_APPEND_armv7 = "arm_tune = \"${@gn_get_tune_features(d)}\"\narm_float_abi = \"${TARGET_FPU}\"\n"
+ARGS_GN_APPEND_armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\"\narm_float_abi = \"${TARGET_FPU}\"\n"
+ARGS_GN_APPEND_armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\"\narm_float_abi = \"${TARGET_FPU}\"\n"
 
 OUT_DIR_REL = "${@get_out_dir(d)}"
 
