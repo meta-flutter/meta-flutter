@@ -61,7 +61,7 @@ do_install() {
     install -m 644 ${STAGING_DATADIR}/flutter/icudtl.dat ${D}${datadir}/${PN}/sony/data/
     
     install -d ${D}${datadir}/${PN}/sony/data/flutter_assets
-    cp -rTv ${S}/build/flutter_assets/* ${D}${datadir}/${PN}/sony/data/flutter_assets/
+    cp -r ${S}/build/flutter_assets/* ${D}${datadir}/${PN}/sony/data/flutter_assets/
 }
 
 FILES_${PN} = "${datadir}/${PN}/*"
