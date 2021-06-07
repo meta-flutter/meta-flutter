@@ -10,7 +10,7 @@ Note: If you get a gray screen running the Gallery app, chances are you don't ha
 
 ## Layers dependencies
 
-* meta-clang (embedders only)
+* meta-clang (Sony embedders only)
 
 ## Overview
 
@@ -23,7 +23,7 @@ This layer includes recipes to build
 * fltter-gallery Application (interpreted and AOT - requires master channel override)
 * flutter-pi (DRM w/VSync)
 * flutter-wayland (basic POC) / waylandpp/ipugxml
-* Sony embedders (No VSync)
+* Sony embedders (No VSync except recent naive Wayland Vsync; which is not power friendly)
 
 ## Notes
 
@@ -39,24 +39,21 @@ Targets flutter-engine is known to work on
 * AGL QEMU images - x86_64
 * etc, etc
 
+Reagrding building for ARM (32-bit) there is an outstanding P4 bug on this:  https://github.com/flutter/flutter/issues/83765
 
-<<<<<<< HEAD
-### NVIDIA Xavier/Nano
-=======
+
 ### NVidia Xavier/Nano
->>>>>>> d9016312844779d5d80c698754471e187f0d08a3
 
 local.conf changes
 
-    TARGET_GCC_VRSION = "8.3.0"
+    TARGET_GCC_VERSION = "8.3.0"
     FLUTTER_CHANNEL = "master"
     IMAGE_INSTALL_append = " flutter-drm-eglstream-backend"
     IMAGE_INSTALL_append = " flutter-gallery"
 
 OR
-<<<<<<< HEAD
 
-    TARGET_GCC_VRSION = "8.3.0"
+    TARGET_GCC_VERSION = "8.3.0"
     FLUTTER_CHANNEL = "master"
     CORE_IMAGE_EXTRA_INSTALL += "\
         flutter-drm-eglstream-backend \
@@ -108,9 +105,8 @@ TARGET_FPU      = "hard"
 ```
 
 See release notes regarding "fip": https://wiki.st.com/stm32mpu/wiki/STM32MP15_OpenSTLinux_release_note
-=======
 
-    TARGET_GCC_VRSION = "8.3.0"
+    TARGET_GCC_VERSION = "8.3.0"
     FLUTTER_CHANNEL = "master"
     CORE_IMAGE_EXTRA_INSTALL += "\
         flutter-drm-eglstream-backend \
@@ -125,11 +121,10 @@ Run Flutter application on target (defaults to AOT)
 
     FLUTTER_DRM_DEVICE=/dev/dri/card0 flutter-drm-eglstream-backend -b /usr/share/flutter-gallery/sony
    
->>>>>>> d9016312844779d5d80c698754471e187f0d08a3
-
 ### Sony notes
 - not accepting PRs
-- no vsync support
+- no real texture solution
+- preliminary vsync support
 - weston >= 8 does not work
 - no multi-engine
 - no platform view / hybrid composition
