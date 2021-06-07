@@ -31,8 +31,8 @@ Targets flutter-engine is known to work on
 
 * DragonBoard 410c - aarch64
 * Intel MinnowBoard Max (BayTrail) - intel-icore7-64
-* NVidia Nano Dev Kit - aarch64
-* NVidia Xavier NX Dev Kit - aarch64
+* NVIDIA Nano Dev Kit - aarch64
+* NVIDIA Xavier NX Dev Kit - aarch64
 * Raspberry Pi 3 - armv7hf
 * Raspberry Pi 4 / Compute - aarch64
 * Renesas R-Car m3ulcb - aarch64
@@ -42,7 +42,7 @@ Targets flutter-engine is known to work on
 Reagrding building for ARM (32-bit) there is an outstanding P4 bug on this:  https://github.com/flutter/flutter/issues/83765
 
 
-### NVidia Xavier/Nano
+### NVIDIA Xavier/Nano
 
 local.conf changes
 
