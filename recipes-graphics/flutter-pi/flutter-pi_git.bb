@@ -12,17 +12,18 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=49fada46694956cdf2fc0292d72d888c"
 
 DEPENDS += "\
+    flutter-engine \
     fontconfig \
     libdrm \
     libinput \
     libxkbcommon \
-    flutter-engine \
     virtual/egl \
    "
 
 RDEPENDS_${PN} += "xkeyboard-config"
 
-SRC_URI = "git://github.com/ardera/flutter-pi.git;protocol=https;branch=master"
+SRC_URI = "git://github.com/ardera/flutter-pi.git;protocol=https;branch=master \
+           file://0001-icudtl.dat-path.patch"
 SRCREV = "8e7432ce1be2691e38942b301fb0dbf7b3e4e608"
 
 S = "${WORKDIR}/git"

@@ -1,0 +1,28 @@
+From 2cff703a35c0fd0c5945936cb2fcf853d3d1146c Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@linux.com>
+Date: Thu, 25 Feb 2021 18:08:23 +0000
+Subject: [PATCH] icudtl.dat path
+
+---
+ src/flutter-pi.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/flutter-pi.c b/src/flutter-pi.c
+index 670c7cd..f38e129 100644
+--- a/src/flutter-pi.c
++++ b/src/flutter-pi.c
+@@ -2639,9 +2639,9 @@ static bool setup_paths(void) {
+ 		}
+ 	}
+ 
+-	asprintf(&icu_data_path, "/usr/lib/icudtl.dat");
++	asprintf(&icu_data_path, "/usr/share/flutter/icudtl.dat");
+ 	if (!PATH_EXISTS(icu_data_path)) {
+-		fprintf(stderr, "[flutter-pi] Could not find \"icudtl.dat\" file inside \"/usr/lib/\".\n");
++		fprintf(stderr, "[flutter-pi] Could not find \"icudtl.dat\" file inside \"/usr/share/flutter/\".\n");
+ 		return false;
+ 	}
+ 
+-- 
+2.29.2
+
