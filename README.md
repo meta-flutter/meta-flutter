@@ -79,7 +79,7 @@ repo sync -j20
 DISTRO=openstlinux-eglfs MACHINE=stm32mp1-disco source layers/meta-st/scripts/envsetup.sh
 pushd ../layers
 git clone -b dunfell https://github.com/jwinarske/meta-flutter.git
-git clone -b dunfell https://github.com/krav/meta-clang.git
+git clone -b dunfell https://github.com/kraj/meta-clang.git
 popd
 bitbake-layers add-layer ../layers/meta-flutter ../layers/meta-clang
 echo -e 'MACHINE_FEATURES_remove = "fip"\n' >> conf/local.conf
