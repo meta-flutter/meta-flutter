@@ -93,7 +93,6 @@ echo -e '  flutter-gallery \' >> conf/local.conf
 echo -e '"' >> conf/local.conf
 cat conf/local.conf
 bitbake st-image-core
-
 ...
 TARGET_SYS      = "arm-ostl-linux-gnueabi"
 MACHINE         = "stm32mp1-disco"
@@ -101,17 +100,9 @@ DISTRO          = "openstlinux-eglfs"
 DISTRO_VERSION  = "3.1-snapshot-20210602"
 TUNE_FEATURES   = "arm vfp cortexa7 neon vfpv4 thumb callconvention-hard"
 TARGET_FPU      = "hard"
-...
 ```
 
 See release notes regarding "fip": https://wiki.st.com/stm32mpu/wiki/STM32MP15_OpenSTLinux_release_note
-
-    TARGET_GCC_VERSION = "8.3.0"
-    FLUTTER_CHANNEL = "master"
-    CORE_IMAGE_EXTRA_INSTALL += "\
-        flutter-drm-eglstream-backend \
-        flutter-gallery \
-    "
 
 Build EGL image
 
@@ -120,7 +111,7 @@ Build EGL image
 Run Flutter application on target (defaults to AOT)
 
     FLUTTER_DRM_DEVICE=/dev/dri/card0 flutter-drm-eglstream-backend -b /usr/share/flutter-gallery/sony
-   
+
 ### Sony notes
 - not accepting PRs
 - no real texture solution
