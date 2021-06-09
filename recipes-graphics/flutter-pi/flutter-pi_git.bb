@@ -12,6 +12,7 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=49fada46694956cdf2fc0292d72d888c"
 
 DEPENDS += "\
+    fontconfig \
     libdrm \
     libinput \
     libxkbcommon \
