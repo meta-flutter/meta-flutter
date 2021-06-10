@@ -1,8 +1,8 @@
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=7f6b13e4480850c59e176edd427d996e"
 
-PV = "0.2.8"
-SRC_URI = "git://github.com/NilsBrause/waylandpp.git;tag=${PV}"
+SRC_URI = "git://github.com/NilsBrause/waylandpp.git;branch=master"
+SRCREV = "19689edf6d4b40363cc013cbf8dcf4ac10c2e9df"
 
 DEPENDS_append_class-native = " pugixml-native"
 DEPENDS_append_class-target = " waylandpp-native wayland virtual/egl"
