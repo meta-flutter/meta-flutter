@@ -13,11 +13,14 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=49fada46694956cdf2fc0292d72d888c"
 
 DEPENDS += "\
     flutter-engine \
-    fontconfig \
     libdrm \
     libinput \
     libxkbcommon \
     virtual/egl \
+   "
+
+RDEPENDS += "\
+    fontconfig \
    "
 
 RDEPENDS_${PN} += "xkeyboard-config"
