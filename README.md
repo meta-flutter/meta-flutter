@@ -70,7 +70,8 @@ Run Flutter application on target (defaults to AOT)
 
 ### STM32MP157x Discovery Board
 
-Setup Ubuntu 16.04 for building Yocto images.  envsetup.sh will complain if you're missing a package.  Fails to build on Fedora 34.
+Setup Ubuntu 16.04 for building Yocto images.  envsetup.sh will complain if you're missing a package.  
+
 
 ```
 mkdir openstlinux-5.10-dunfell-mp1-21-03-31 && cd openstlinux-5.10-dunfell-mp1-21-03-31
@@ -111,6 +112,13 @@ Build EGL image
 Run Flutter application on target (defaults to AOT)
 
     FLUTTER_DRM_DEVICE=/dev/dri/card0 flutter-drm-eglstream-backend -b /usr/share/flutter-gallery/sony
+
+### General Yocto Notes
+
+When building on systems with GCC version > than uninative in Yocto distro add the following to conf/local.conf
+
+    INHERIT_remove = "uninative"
+
 
 ### Sony notes
 - not accepting PRs
