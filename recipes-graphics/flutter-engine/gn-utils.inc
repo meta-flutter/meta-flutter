@@ -8,6 +8,9 @@ def gn_get_tune_features(d):
     tune_features = d.getVar("TUNE_FEATURES")
     if not tune_features:
         return tune_features
+    tune_features = tune_features.replace("aarch64 ", "")
+    tune_features = tune_features.replace("arm ", "")
+    tune_features = tune_features.replace("vfp ", "")
     return tune_features.replace(" ", "+")
 
 def gn_get_channel_commit(d):

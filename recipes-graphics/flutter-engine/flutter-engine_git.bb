@@ -75,17 +75,9 @@ ARGS_GN_FILE = "${WORKDIR}/src/${OUT_DIR_REL}/args.gn"
 
 ARGS_GN_aarch64 = "arm_tune = \"${@gn_get_tune_features(d)}\""
 
-ARGS_GN_armv7 = "\
-arm_tune = \"\" \n\
-arm_float_abi = \"${TARGET_FPU}\""
-
-ARGS_GN_armv7a = "\
-arm_tune = \"\" \n\
-arm_float_abi = \"${TARGET_FPU}\""
-
-ARGS_GN_armv7ve = "\
-arm_tune = \"\" \n\
-arm_float_abi = \"${TARGET_FPU}\""
+ARGS_GN_armv7 = "arm_tune = \"${@gn_get_tune_features(d)}\""
+ARGS_GN_armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\""
+ARGS_GN_armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
 
 OUT_DIR_REL = "${@get_out_dir(d)}"
 
@@ -95,6 +87,10 @@ GN_ARGS_append = " --linux-cpu ${@gn_target_arch_name(d)}"
 GN_ARGS_append = " --target-sysroot ${STAGING_DIR_TARGET}"
 GN_ARGS_append = " --target-toolchain ${CLANG_PATH}"
 GN_ARGS_append = " --target-triple ${CLANG_TOOLCHAIN_TRIPLE}"
+
+GN_ARGS_append_armv7 = " --arm_float-abi ${TARGET_FPU}"
+GN_ARGS_append_armv7a = " --arm_float-abi ${TARGET_FPU}"
+GN_ARGS_append_armv7ve = " --arm_float-abi ${TARGET_FPU}"
 
 do_patch_prepend() {
 
