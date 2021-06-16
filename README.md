@@ -68,6 +68,34 @@ Run Flutter application on target (defaults to AOT)
 
     FLUTTER_DRM_DEVICE=/dev/dri/card0 flutter-drm-eglstream-backend -b /usr/share/flutter-gallery/sony
 
+### NXP i.MX 8QuadXPlus MEK
+
+```
+repo init -u https://source.codeaurora.org/external/imx/imx-manifest -b imx-linux-gatesgarth -m imx-5.10.9-1.0.0.xml
+repo sync -j20
+DISTRO=fslc-wayland MACHINE=imx8qxpmek source setup-environment build
+pushd ../sources
+git clone -b dunfell https://github.com/jwinarske/meta-flutter.git
+popd
+bitbake-layers add-layer ../sources/meta-clang ../sources/meta-flutter
+echo -e 'TARGET_GCC_VERSION = "10.2.0"' >> conf/local.conf
+echo -e 'FLUTTER_CHANNEL = "dev"' >> conf/local.conf
+echo -e 'IMAGE_INSTALL_append = " flutter-wayland"' >> conf/local.conf
+echo -e 'IMAGE_INSTALL_append = " flutter-gallery"' >> conf/local.conf
+bitbake fsl-image-multimedia
+...
+Build Configuration:
+BB_VERSION           = "1.48.0"
+BUILD_SYS            = "x86_64-linux"
+NATIVELSBSTRING      = "universal"
+TARGET_SYS           = "aarch64-fslc-linux"
+MACHINE              = "imx8qxpmek"
+DISTRO               = "fslc-wayland"
+DISTRO_VERSION       = "3.2-snapshot-20210616"
+TUNE_FEATURES        = "aarch64 armv8a crc cortexa35 crypto"
+TARGET_FPU           = ""
+```
+
 ### STM32MP157x Discovery Board
 
 Setup Ubuntu 16.04 for building Yocto images.  envsetup.sh will complain if you're missing a package.  
