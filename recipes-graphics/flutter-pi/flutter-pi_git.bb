@@ -19,11 +19,7 @@ DEPENDS += "\
     virtual/egl \
    "
 
-RDEPENDS += "\
-    fontconfig \
-   "
-
-RDEPENDS_${PN} += "xkeyboard-config"
+RDEPENDS_${PN} += "xkeyboard-config fontconfig"
 
 SRC_URI = "git://github.com/ardera/flutter-pi.git;protocol=https;branch=master \
            file://0001-icudtl.dat-path.patch"
