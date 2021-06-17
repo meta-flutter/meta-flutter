@@ -1,7 +1,7 @@
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=7f6b13e4480850c59e176edd427d996e"
 
-SRC_URI = "git://github.com/NilsBrause/waylandpp.git;branch=master"
+SRC_URI = "git://github.com/NilsBrause/waylandpp.git;protocol=https"
 SRCREV = "19689edf6d4b40363cc013cbf8dcf4ac10c2e9df"
 
 DEPENDS_append_class-native = " pugixml-native"
