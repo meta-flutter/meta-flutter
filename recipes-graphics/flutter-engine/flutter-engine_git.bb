@@ -11,7 +11,6 @@ CVE_PRODUCT = "libflutter_engine.so"
 DEPENDS += "depot-tools-native \
             fontconfig \
             zip-native \
-            flutter-sdk-native \
             "
 
 SRC_URI = "file://0001-clang-toolchain.patch \
@@ -22,7 +21,10 @@ S = "${WORKDIR}/src"
 FLUTTER_CHANNEL ??= "beta"
 FLUTTER_CLANG_VERSION ??= "12.0.0"
 TARGET_GCC_VERSION ??= "9.3.0"
-DEPOT_TOOLS_PYTHON2_PATH ??= "depot_tools/bootstrap-2@3.8.9.chromium.14_bin/python/bin"
+
+DEPOT_TOOLS ??= "${STAGING_DIR_NATIVE}/usr/share/depot_tools"
+PYTHON2_PATH ??= "bootstrap-2@3.8.9.chromium.14_bin/python/bin"
+
 
 inherit python3native
 
@@ -97,7 +99,7 @@ ARGS_GN_append_armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
 
 do_patch_prepend() {
 
-    export PATH=${STAGING_BINDIR_NATIVE}/depot_tools:${STAGING_BINDIR_NATIVE}/${DEPOT_TOOLS_PYTHON2_PATH}:$PATH
+    export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:$PATH
 
     bbnote "ARGS: ${GN_ARGS}"
     bbnote "ARGS_GN_FILE: ${ARGS_GN_FILE}"
@@ -136,14 +138,16 @@ do_patch() {
     # force python 2
     export GCLIENT_PY3=0
 
+    bbnote `python -V`
+    bbnote `which python`
+    bbnote `which gclient`
+
     #################################################################
     # --shallow:    Do a shallow clone into the cache dir
     # --no-history: No git history to minimize download
     # -R:           resets any local changes before updating
     # -D:           Deletes from the working copy any dependencies that
     #               have been removed since the last sync
-    # --revision:   Enforces revision/hash for the solutions with the format src@rev
-    # -j:           Specify how many SCM commands can run in parallel
     #################################################################
     gclient sync --shallow --no-history -R -D --revision ${SRCREV} ${PARALLEL_MAKE} -v
 
@@ -162,7 +166,7 @@ do_patch[depends] += "fontconfig:do_populate_sysroot"
 
 do_configure_prepend() {
 
-    export PATH=${STAGING_BINDIR_NATIVE}/depot_tools:${STAGING_BINDIR_NATIVE}/${DEPOT_TOOLS_PYTHON2_PATH}:$PATH
+    export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:$PATH
 }
 
 do_configure() {
@@ -177,7 +181,7 @@ do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 
 do_compile_prepend() {
 
-    export PATH=${STAGING_BINDIR_NATIVE}/depot_tools:${STAGING_BINDIR_NATIVE}/${DEPOT_TOOLS_PYTHON2_PATH}:$PATH
+    export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:$PATH
 }
 
 do_compile() {
@@ -224,4 +228,3 @@ FILES_${PN}-dev = "${includedir}"
 BBCLASSEXTEND = ""
 
 # vim:set ts=4 sw=4 sts=4 expandtab:
-

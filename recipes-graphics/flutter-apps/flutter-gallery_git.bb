@@ -20,6 +20,7 @@ S = "${WORKDIR}/git"
 do_patch() {
     export CURL_CA_BUNDLE=${STAGING_DIR_NATIVE}/etc/ssl/certs/ca-certificates.crt
     export PATH=${STAGING_DIR_NATIVE}/usr/share/flutter/sdk/bin:$PATH
+    export PUB_CACHE=${STAGING_DIR_NATIVE}/usr/share/flutter/sdk/.pub-cache
 
     FLUTTER_VER="$( flutter --version | head -n 1 | awk '{print $2}' )"
     echo "Flutter Version: ${FLUTTER_VER}"
@@ -59,7 +60,7 @@ do_install() {
     install -m 644 ${STAGING_DATADIR}/flutter/icudtl.dat ${D}${datadir}/${PN}/sony/data/
     
     install -d ${D}${datadir}/${PN}/sony/data/flutter_assets
-    cp -r ${S}/build/flutter_assets/* ${D}${datadir}/${PN}/sony/data/flutter_assets/
+    cp -rTv ${S}/build/flutter_assets/. ${D}${datadir}/${PN}/sony/data/flutter_assets/
 }
 
 FILES_${PN} = "${datadir}/${PN}/*"

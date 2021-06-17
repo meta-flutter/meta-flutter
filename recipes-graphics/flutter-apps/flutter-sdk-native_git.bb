@@ -22,10 +22,13 @@ SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
+inherit native
+
 do_compile() {
     export CURL_CA_BUNDLE=${WORKDIR}/ca-certificates.crt
     export PATH=${S}/bin:$PATH
     export PUB_CACHE=${S}/.pub-cache
+
     flutter channel ${FLUTTER_CHANNEL}
     flutter upgrade
 }
@@ -35,8 +38,10 @@ do_install() {
     cp -rTv ${S}/. ${D}${datadir}/flutter/sdk
 }
 
-FILES_${PN} = "${datadir}/flutter/sdk/*"
+FILES_${PN}-dev = "${datadir}/flutter/sdk/*"
 
-INSANE_SKIP_${PN} = "already-stripped"
+INSANE_SKIP_${PN}-dev = "already-stripped"
 
 BBCLASSEXTEND = "native nativesdk"
+
+# vim:set ts=4 sw=4 sts=4 expandtab:

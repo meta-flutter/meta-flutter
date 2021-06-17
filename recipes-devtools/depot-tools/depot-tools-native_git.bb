@@ -11,6 +11,8 @@ SRC_URI[certs.md5sum] = "1ecab07e89925a6e8684b75b8cf84890"
 
 S = "${WORKDIR}/git"
 
+inherit native
+
 do_compile() {
 
     # force bootstrap download to get python2
@@ -25,17 +27,15 @@ do_compile() {
 
 do_install() {
 
-    install -d ${D}/${bindir}/depot_tools
-    cp -r ${S}/* ${D}${bindir}/depot_tools
+    install -d ${D}/${datadir}/depot_tools
+    cp -rTv ${S}/. ${D}${datadir}/depot_tools
 
-    install -m 644 ${WORKDIR}/ca-certificates.crt ${D}${bindir}/depot_tools
+    install -m 644 ${WORKDIR}/ca-certificates.crt ${D}${datadir}/depot_tools
 }
 
-SYSROOT_DIRS += "${bindir}"
+FILES_${PN}-dev = "${datadir}/depot_tools/*"
 
-FILES_${PN}-dev = "${bindir}/depot_tools/*"
-
-INSANE_SKIP_${PN} = "already-stripped"
+INSANE_SKIP_${PN}-dev = "already-stripped"
 
 BBCLASSEXTEND += "native nativesdk"
 
