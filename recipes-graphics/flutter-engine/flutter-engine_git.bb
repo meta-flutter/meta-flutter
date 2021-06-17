@@ -1,6 +1,6 @@
 SUMMARY = "Flutter Engine"
 DESCRIPTION = "recipe to build Google Flutter Engine for use with Dart applications on embedded Linux"
-AUTHOR = "joel.winarske@linux.com"
+AUTHOR = "Joel Winarske <joel.winarske@linux.com>"
 HOMEPAGE = "https://github.com/jwinarske/meta-flutter/"
 BUGTRACKER = "https://github.com/jwinarske/meta-flutter/issues"
 SECTION = "graphics"
@@ -10,7 +10,9 @@ CVE_PRODUCT = "libflutter_engine.so"
 
 DEPENDS += "depot-tools-native \
             fontconfig \
-            zip-native"
+            zip-native \
+            flutter-sdk-native \
+            "
 
 SRC_URI = "file://0001-clang-toolchain.patch \
            file://0002-x64-sysroot-assert.patch"
@@ -40,7 +42,7 @@ PACKAGECONFIG ?= "disable-desktop-embeddings \
                   embedder-for-target \
                   fontconfig \
                   full-dart-sdk \
-                  mode-release \
+                  mode-debug \
                  "
 
 PACKAGECONFIG[asan] = "--asan"
@@ -73,12 +75,6 @@ GCC_OBJ_DIR = "${STAGING_LIBDIR}/${TARGET_SYS}/${TARGET_GCC_VERSION}"
 
 ARGS_GN_FILE = "${WORKDIR}/src/${OUT_DIR_REL}/args.gn"
 
-ARGS_GN_aarch64 = "arm_tune = \"${@gn_get_tune_features(d)}\""
-
-ARGS_GN_armv7 = "arm_tune = \"${@gn_get_tune_features(d)}\""
-ARGS_GN_armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\""
-ARGS_GN_armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
-
 OUT_DIR_REL = "${@get_out_dir(d)}"
 
 GN_ARGS = "${PACKAGECONFIG_CONFARGS} --clang --lto --no-goma"
@@ -88,9 +84,16 @@ GN_ARGS_append = " --target-sysroot ${STAGING_DIR_TARGET}"
 GN_ARGS_append = " --target-toolchain ${CLANG_PATH}"
 GN_ARGS_append = " --target-triple ${CLANG_TOOLCHAIN_TRIPLE}"
 
-GN_ARGS_append_armv7 = " --arm_float-abi ${TARGET_FPU}"
-GN_ARGS_append_armv7a = " --arm_float-abi ${TARGET_FPU}"
-GN_ARGS_append_armv7ve = " --arm_float-abi ${TARGET_FPU}"
+GN_ARGS_append_armv7 = " --arm-float-abi ${TARGET_FPU}"
+GN_ARGS_append_armv7a = " --arm-float-abi ${TARGET_FPU}"
+GN_ARGS_append_armv7ve = " --arm-float-abi ${TARGET_FPU}"
+
+ARGS_GN = ""
+ARGS_GN_append_aarch64 = "arm_tune = \"${@gn_get_tune_features(d)}\""
+ARGS_GN_append_armv7 = "arm_tune = \"${@gn_get_tune_features(d)}\""
+ARGS_GN_append_armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\""
+ARGS_GN_append_armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
+
 
 do_patch_prepend() {
 
@@ -98,6 +101,7 @@ do_patch_prepend() {
 
     bbnote "ARGS: ${GN_ARGS}"
     bbnote "ARGS_GN_FILE: ${ARGS_GN_FILE}"
+    bbnote "ARGS_GN: ${ARGS_GN}"
     bbnote "CLANG_TOOLCHAIN_TRIPLE: ${CLANG_TOOLCHAIN_TRIPLE}"
     bbnote "GCLIENT_ROOT: ${S}/.."
     bbnote "FLUTTER_CHANNEL: ${SRCREV}"
@@ -167,7 +171,7 @@ do_configure() {
 
     ./flutter/tools/gn ${GN_ARGS}
 
-    echo -e "${ARGS_GN}" >> ${ARGS_GN_FILE}
+    echo -e ${ARGS_GN} >> ${ARGS_GN_FILE}
 }
 do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 

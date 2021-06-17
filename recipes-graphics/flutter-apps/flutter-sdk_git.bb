@@ -12,7 +12,7 @@ CVE_PRODUCT = ""
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=1d84cf16c48e571923f837136633a265"
 
-FLUTTER_CHANNEL ??= "beta"
+FLUTTER_CHANNEL ??= "dev"
 
 DEPENDS += "curl-native unzip-native"
 
@@ -25,7 +25,8 @@ S = "${WORKDIR}/git"
 do_compile() {
     export CURL_CA_BUNDLE=${WORKDIR}/ca-certificates.crt
     export PATH=${S}/bin:$PATH
-    flutter doctor -v
+    flutter channel ${FLUTTER_CHANNEL}
+    flutter upgrade
 }
 
 do_install() {

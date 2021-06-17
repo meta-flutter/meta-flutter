@@ -9,8 +9,6 @@ CVE_PRODUCT = ""
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=3ac21e3d8ebe7dd79f273ca11b9e7b4e"
 
-FLUTTER_CHANNEL ??= "master"
-
 DEPENDS += "flutter-engine flutter-sdk-native unzip-native"
 
 SRC_URI = "git://github.com/flutter/gallery.git;lfs=0;protocol=https;destsuffix=git"
