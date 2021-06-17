@@ -1,5 +1,5 @@
 LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://LICENSE.md;md5=e794502c64d22460e31e72abad44ed2e"
+LIC_FILES_CHKSUM = "file://LICENSE.md;md5=0618cf07b3350ec269695b32b835c1b2"
 
 SRC_URI = "git://github.com/zeux/pugixml.git;protocol=https"
 SRCREV = "08b3433180727ea2f78fe02e860a08471db1e03c"
