@@ -22,8 +22,6 @@ DEPENDS += "\
 RDEPENDS_${PN} += "\
     xkeyboard-config \
     fontconfig \
-    liberation-fonts \
-    ttf-liberation-sans-narrow \
     "
 
 SRC_URI = "git://github.com/ardera/flutter-pi.git;protocol=https;branch=master \
