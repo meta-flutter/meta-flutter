@@ -28,9 +28,9 @@ do_compile() {
     export CURL_CA_BUNDLE=${WORKDIR}/ca-certificates.crt
     export PATH=${S}/bin:$PATH
     export PUB_CACHE=${S}/.pub-cache
-
+    
     flutter channel ${FLUTTER_CHANNEL}
-    flutter upgrade
+    bbnote `flutter doctor -v`
 }
 
 do_install() {
