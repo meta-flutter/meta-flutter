@@ -29,17 +29,18 @@ This layer includes recipes to build
 
 Targets flutter-engine is known to work on
 
+* AGL QEMU images - x86_64
 * DragonBoard 410c - aarch64
 * Intel MinnowBoard Max (BayTrail) - intel-icore7-64
 * NVIDIA Nano Dev Kit - aarch64
 * NVIDIA Xavier NX Dev Kit - aarch64
-* Raspberry Pi 3 - armv7hf
+* Raspberry Pi 3 / Compute - aarch64 / armv7hf
 * Raspberry Pi 4 / Compute - aarch64
 * Renesas R-Car m3ulcb - aarch64
-* AGL QEMU images - x86_64
+* STM32MP157x - cortexa7t2hf
 * etc, etc
 
-Reagrding building for ARM (32-bit) there is an outstanding P4 bug on this:  https://github.com/flutter/flutter/issues/83765
+Building for ARM (32-bit) has an outstanding P4 bug on this:  https://github.com/flutter/flutter/issues/83765
 
 
 ### NVIDIA Xavier/Nano
@@ -96,7 +97,30 @@ TUNE_FEATURES        = "aarch64 armv8a crc cortexa35 crypto"
 TARGET_FPU           = ""
 ```
 
-### STM32MP157x Discovery Board
+### Raspberry PI 3/4 (aarch64)
+
+```
+export MACHINE=raspberrypi4-64
+```
+or
+```
+export MACHINE=raspberrypi3-64
+```
+
+```
+mkdir rpi_yocto && cd rpi_yocto
+repo init -u https://github.com/jwinarske/manifests.git -m rpi64.xml -b dunfell
+repo sync -j20
+source ./setup-environment $MACHINE
+bitbake-layers add-layer ../sources/meta-clang ../sources/meta-flutter
+echo -e 'FLUTTER_CHANNEL = "dev"' >> conf/local.conf
+echo -e 'IMAGE_INSTALL_append = " flutter-pi"' >> conf/local.conf
+echo -e 'IMAGE_INSTALL_append = " flutter-gallery"' >> conf/local.conf
+bitbake core-image-minimal
+```
+Note: you may want/need to increase the `GPU_MEM` value.  It's defaulting to 64.
+
+### STM32MP157x Discovery Board (doesn't include build hack)
 
 Setup Ubuntu 16.04 for building Yocto images.  envsetup.sh will complain if you're missing a package.  
 
