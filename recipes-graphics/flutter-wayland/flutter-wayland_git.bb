@@ -13,7 +13,7 @@ DEPENDS =+ "\
 RDEPENDS_${PN} += "xkeyboard-config"
 
 SRC_URI = "git://github.com/jwinarske/flutter_wayland;protocol=https;branch=waylandpp"
-SRCREV = "9b0fedbccf68af62e60a76bc220b455f9520ee52"
+SRCREV = "17d0d57544fbff855817af0aba4f17e4a014c184"
 
 REQUIRED_DISTRO_FEATURES = "wayland"
 
