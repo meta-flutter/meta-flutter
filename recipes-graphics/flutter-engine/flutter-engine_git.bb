@@ -175,7 +175,7 @@ do_configure() {
 
     ./flutter/tools/gn ${GN_ARGS}
 
-    echo -e ${ARGS_GN} >> ${ARGS_GN_FILE}
+    echo ${ARGS_GN} >> ${ARGS_GN_FILE}
 }
 do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 
