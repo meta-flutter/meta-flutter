@@ -11,6 +11,7 @@ CVE_PRODUCT = "libflutter_engine.so"
 DEPENDS += "depot-tools-native \
             fontconfig \
             zip-native \
+            curl-native \
             "
 
 SRC_URI = "file://0001-clang-toolchain.patch \
