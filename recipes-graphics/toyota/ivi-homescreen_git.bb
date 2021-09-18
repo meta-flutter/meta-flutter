@@ -19,7 +19,7 @@ DEPENDS += "\
 
 PV .= "+${SRCPV}"
 
-SRC_URI = "git://github.com:toyota-connected-na/ivi-homescreen.git;protocol=https"
+SRC_URI = "git://github.com:toyota-connected/ivi-homescreen.git;protocol=https"
 
 SRCREV = "${AUTOREV}"
 
