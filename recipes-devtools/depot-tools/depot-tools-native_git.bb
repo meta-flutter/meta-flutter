@@ -1,7 +1,7 @@
 LICENSE = "GPLv3"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=c2c05f9bdd5fc0b458037c2d1fb8d95e"
 
-SRC_URI = "git://chromium.googlesource.com/chromium/tools/depot_tools;protocol=https \
+SRC_URI = "git://chromium.googlesource.com/chromium/tools/depot_tools;protocol=https;branch=main \
            file://0001-disable-ninjalog_upload.patch \
            file://ca-certificates.crt;name=certs"
 
