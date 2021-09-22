@@ -10,7 +10,7 @@ Note: If you get a gray screen running the Gallery app, chances are you don't ha
 
 ## Layers dependencies
 
-* meta-clang (Sony embedders only)
+* meta-clang Toyota and Sony embedders
 
 ## Overview
 
@@ -22,8 +22,9 @@ This layer includes recipes to build
 * flutter-sdk (channel selection, default is beta)
 * fltter-gallery Application (interpreted and AOT - requires master channel override)
 * flutter-pi (DRM w/VSync)
-* flutter-wayland (basic POC) / waylandpp/ipugxml
-* Sony embedders (No VSync except recent naive Wayland Vsync; which is not power friendly)
+* flutter-wayland (basic POC) / waylandpp/ipugxml (archived)
+* Toyota ivi-homescreen (Recommended)
+* Sony embedders
 
 ## Notes
 
@@ -170,15 +171,3 @@ Run Flutter application on target (defaults to AOT)
 When building on systems with GCC version > than uninative in Yocto distro add the following to conf/local.conf
 
     INHERIT_remove = "uninative"
-
-
-### Sony notes
-- not accepting PRs
-- no real texture solution
-- preliminary vsync support
-- weston >= 8 does not work
-- no multi-engine
-- no platform view / hybrid composition
-- not enough debug spew for debug builds
-- code difficult to follow
-- too much boiler plate
