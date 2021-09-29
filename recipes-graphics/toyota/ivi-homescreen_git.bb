@@ -16,6 +16,7 @@ DEPENDS += "\
     wayland \
     wayland-native \
     wayland-protocols \
+    libcxx \
     "
 
 PV .= "+${SRCPV}"
@@ -29,6 +30,8 @@ S = "${WORKDIR}/git"
 inherit cmake
 
 TOOLCHAIN = "clang"
+
+RUNTIME = "llvm"
 
 EXTRA_OECMAKE += "\ 
     -D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr \
