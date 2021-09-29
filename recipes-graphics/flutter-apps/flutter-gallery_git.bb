@@ -53,8 +53,8 @@ do_install() {
     #
 
     install -d ${D}${datadir}/homescreen/gallery
-    install -d ${D}${datadir}/homescreen/gallery/flutter_assets
-    cp -r ${S}/build/flutter_assets/* ${D}${datadir}/homescreen/gallery/flutter_assets/
+    cp -r ${S}/build/* ${D}${datadir}/homescreen/gallery
+    rm -rf ${D}${datadir}/homescreen/gallery/.last_build_id
     install -m 644 ${S}/libapp.so ${D}${datadir}/homescreen/gallery/libapp.so
 
     #
