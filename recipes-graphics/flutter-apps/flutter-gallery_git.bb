@@ -49,6 +49,15 @@ do_compile() {
 do_install() {
 
     #
+    # Toyota Layout
+    #
+
+    install -d ${D}${datadir}/homescreen/gallery
+    install -d ${D}${datadir}/homescreen/gallery/flutter_assets
+    cp -r ${S}/build/flutter_assets/* ${D}${datadir}/homescreen/gallery/flutter_assets/
+    install -m 644 ${S}/libapp.so ${D}${datadir}/homescreen/gallery/libapp.so
+
+    #
     # Sony Layout
     #
     install -d ${D}${datadir}/${PN}/sony
