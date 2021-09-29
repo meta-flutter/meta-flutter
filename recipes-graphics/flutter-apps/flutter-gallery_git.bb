@@ -36,17 +36,18 @@ do_configure() {
 }
 
 do_compile() {
-    export PATH=${STAGING_DIR_NATIVE}/usr/share/flutter/sdk/bin:$PATH
-
+    FLUTTER_SDK=${STAGING_DIR_NATIVE}/usr/share/flutter/sdk
     ENGINE_SDK=${S}/engine_sdk/sdk
+
+    export PATH=${FLUTTER_SDK}/bin:$PATH
 
     cd ${S}
     flutter config --enable-linux-desktop
     flutter create .
     flutter build bundle
-    dart ${STAGING_DIR_NATIVE}/usr/share/flutter/bin/cache/dart-sdk/bin/snapshots/frontend_server.dart.snapshot \
+    dart ${FLUTTER_SDK}/bin/cache/dart-sdk/bin/snapshots/frontend_server.dart.snapshot \
       --aot --tfa --target=flutter \
-      --sdk-root ${STAGING_DIR_NATIVE}/usr/share/flutter/bin/cache/artifacts/engine/common/flutter_patched_sdk --output-dill app.dill lib/main.dart
+      --sdk-root ${FLUTTER_SDK}/bin/cache/artifacts/engine/common/flutter_patched_sdk --output-dill app.dill lib/main.dart
     ${ENGINE_SDK}/clang_x64/gen_snapshot --deterministic --snapshot_kind=app-aot-elf --elf=libapp.so --strip app.dill
 }
 
