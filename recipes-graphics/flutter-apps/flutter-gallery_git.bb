@@ -62,6 +62,9 @@ do_install() {
     rm -rf ${D}${datadir}/homescreen/gallery/.last_build_id
     install -m 644 ${S}/libapp.so ${D}${datadir}/homescreen/gallery/libapp.so
 
+    # flutter application path that ivi-homescreen uses
+    ln -sf ${D}${datadir}/homescreen/gallery/ ${D}${datadir}/homescreen/bundle
+
     #
     # Sony Layout
     #
