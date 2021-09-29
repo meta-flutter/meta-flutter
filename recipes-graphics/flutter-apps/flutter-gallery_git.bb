@@ -45,10 +45,10 @@ do_compile() {
     flutter config --enable-linux-desktop
     flutter create .
     flutter build bundle
-    dart ${FLUTTER_SDK}/bin/cache/dart-sdk/bin/snapshots/frontend_server.dart.snapshot \
-      --aot --tfa --target=flutter \
-      --sdk-root ${FLUTTER_SDK}/bin/cache/artifacts/engine/common/flutter_patched_sdk --output-dill app.dill lib/main.dart
-    ${ENGINE_SDK}/clang_x64/gen_snapshot --deterministic --snapshot_kind=app-aot-elf --elf=libapp.so --strip app.dill
+    # dart ${FLUTTER_SDK}/bin/cache/dart-sdk/bin/snapshots/frontend_server.dart.snapshot \
+    #  --aot --tfa --target=flutter \
+    #  --sdk-root ${FLUTTER_SDK}/bin/cache/artifacts/engine/common/flutter_patched_sdk --output-dill app.dill lib/main.dart
+    # ${ENGINE_SDK}/clang_x64/gen_snapshot --deterministic --snapshot_kind=app-aot-elf --elf=libapp.so --strip app.dill
 }
 
 do_install() {
@@ -60,7 +60,7 @@ do_install() {
     install -d ${D}${datadir}/homescreen/gallery
     cp -r ${S}/build/* ${D}${datadir}/homescreen/gallery
     rm -rf ${D}${datadir}/homescreen/gallery/.last_build_id
-    install -m 644 ${S}/libapp.so ${D}${datadir}/homescreen/gallery/libapp.so
+    # install -m 644 ${S}/libapp.so ${D}${datadir}/homescreen/gallery/libapp.so
 
     # flutter application path that ivi-homescreen uses
     ln -sf ${D}${datadir}/homescreen/gallery/ ${D}${datadir}/homescreen/bundle
