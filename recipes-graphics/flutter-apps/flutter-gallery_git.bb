@@ -71,7 +71,7 @@ do_install() {
     install -d ${D}${datadir}/${PN}/sony
     
     install -d ${D}${datadir}/${PN}/sony/lib
-    install -m 644 ${S}/libapp.so ${D}${datadir}/${PN}/sony/lib
+    # install -m 644 ${S}/libapp.so ${D}${datadir}/${PN}/sony/lib
     
     install -d ${D}${datadir}/${PN}/sony/data
     install -m 644 ${STAGING_DATADIR}/flutter/icudtl.dat ${D}${datadir}/${PN}/sony/data/
