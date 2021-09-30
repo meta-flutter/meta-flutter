@@ -80,6 +80,8 @@ do_install() {
     cp -rTv ${S}/build/flutter_assets/. ${D}${datadir}/${PN}/sony/data/flutter_assets/
 }
 
-FILES_${PN} = "${datadir}/${PN}/*"
+FILES_${PN} = "${datadir}/${PN}/* \
+               ${datadir}/homescreen/bundle
+              "
 
 do_package_qa[noexec] = "1"
