@@ -84,6 +84,6 @@ FILES_${PN} = "${datadir}/homescreen \
               "
 
 FILES_${PN}-dbg = ""
-
+FILES_${PN}-dev = ""
 
 do_package_qa[noexec] = "1"
