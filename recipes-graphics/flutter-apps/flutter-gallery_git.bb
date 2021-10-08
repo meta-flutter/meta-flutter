@@ -83,4 +83,7 @@ FILES_${PN} = "${datadir}/homescreen \
                ${datadir}/${PN} \
               "
 
+FILES_${PN}-dbg = ""
+
+
 do_package_qa[noexec] = "1"
