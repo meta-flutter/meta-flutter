@@ -17,6 +17,7 @@ DEPENDS += "\
     wayland-native \
     wayland-protocols \
     libcxx \
+    libunwind \
     "
 
 PV .= "+${SRCPV}"
@@ -27,19 +28,13 @@ SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
-inherit cmake
-
 TOOLCHAIN = "clang"
 
 RUNTIME = "llvm"
 
-EXTRA_OECMAKE += "\ 
-    -D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr \
-    -D CMAKE_THREAD_LIBS_INIT=-lpthread \
-    -D CMAKE_HAVE_THREADS_LIBRARY=1 \
-    -D CMAKE_USE_WIN32_THREADS_INIT=0 \
-    -D CMAKE_USE_PTHREADS_INIT=1 \
-    -D THREADS_PREFER_PTHREAD_FLAG=ON \
-    "
+inherit cmake
+
+EXTRA_OECMAKE += "-D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr"
+
 
 BBCLASSEXTEND = ""
