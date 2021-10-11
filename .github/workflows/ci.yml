@@ -1,0 +1,24 @@
+name: rpi4
+on: push
+
+jobs:
+  build:
+    container:
+      image: embeddedflutter.jfrog.io/default-docker-local/desktop:latest
+      credentials:
+        username: ${{ secrets.CI_REGISTRY_USER}}
+        password: ${{ secrets.CI_REGISTRY_PASSWORD}}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build RPI4 b4-bit
+        run: |
+          mkdir rpi_yocto && cd rpi_yocto
+          export MACHINE=raspberrypi4-64
+          repo init -u https://github.com/jwinarske/manifests.git -m rpi64.xml -b dunfell
+          repo sync -j20
+          source ./setup-environment $MACHINE
+          bitbake-layers add-layer ../sources/meta-clang ../sources/meta-flutter
+          echo -e 'IMAGE_INSTALL_append = " ivi-homescreen"' >> conf/local.conf
+          echo -e 'IMAGE_INSTALL_append = " flutter-pi"' >> conf/local.conf
+          echo -e 'IMAGE_INSTALL_append = " flutter-gallery"' >> conf/local.conf
+          bitbake core-image-minimal
