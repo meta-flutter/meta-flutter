@@ -5,6 +5,7 @@ jobs:
   build:
     container:
       image: embeddedflutter.jfrog.io/default-docker-local/desktop:latest
+      options: --user 1000
       credentials:
         username: ${{ secrets.CI_REGISTRY_USER}}
         password: ${{ secrets.CI_REGISTRY_PASSWORD}}
