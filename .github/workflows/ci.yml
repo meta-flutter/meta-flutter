@@ -10,10 +10,12 @@ jobs:
         password: ${{ secrets.CI_REGISTRY_PASSWORD}}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
       - name: Build RPI4 64-bit
         run: |
+          whoami
+          ls -la github
+          ls -la /home/dev
+          ls -la /home/root
           export PATH=/home/dev/bin:$PATH
           mkdir rpi_yocto && cd rpi_yocto
           export MACHINE=raspberrypi4-64
