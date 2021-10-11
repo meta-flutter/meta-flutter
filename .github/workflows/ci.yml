@@ -3,19 +3,19 @@ on: push
 
 jobs:
   build:
+    runs-on: ubuntu-latest
     container:
       image: embeddedflutter.jfrog.io/default-docker-local/desktop:latest
-      options: --user 1000
       credentials:
         username: ${{ secrets.CI_REGISTRY_USER}}
         password: ${{ secrets.CI_REGISTRY_PASSWORD}}
-    runs-on: ubuntu-latest
+      options: --user 1000
     steps:
       - name: Build RPI4 64-bit
         run: |
-          whoami
+          pwd
           ls -la /home/dev
-          cd /home/dev
+          ls -la .
           export PATH=/home/dev/bin:$PATH
           mkdir rpi_yocto && cd rpi_yocto
           export MACHINE=raspberrypi4-64
