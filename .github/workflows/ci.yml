@@ -13,9 +13,8 @@ jobs:
       - name: Build RPI4 64-bit
         run: |
           whoami
-          ls -la github
           ls -la /home/dev
-          ls -la /home/root
+          cd /home/dev
           export PATH=/home/dev/bin:$PATH
           mkdir rpi_yocto && cd rpi_yocto
           export MACHINE=raspberrypi4-64
