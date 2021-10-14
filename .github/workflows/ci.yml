@@ -12,7 +12,7 @@ jobs:
     env:
       YOCTO_VERSION: 3.3.2
       YOCTO_BRANCH: hardknott
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux]
     container: 
       image: ghcr.io/jwinarske/ubuntu-20-dev:main
       credentials:
