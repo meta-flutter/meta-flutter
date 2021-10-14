@@ -19,6 +19,7 @@ jobs:
           path: 'meta-flutter'
       - name: Install packages
         run: |
+          sudo apt-get update && apt-get install -y apt-utils
           sudo apt-get install -y gawk wget git-core diffstat unzip curl rpm texinfo gcc-multilib build-essential chrpath socat libsdl1.2-dev xterm
       - name: Fetch poky
         run: |
