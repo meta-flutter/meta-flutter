@@ -1,8 +1,9 @@
-name: rpi4
-on: push
-
+on: [pull_request]
 jobs:
   build:
+    env:
+      YOCTO_VERSION: 3.3.2
+      YOCTO_BRANCH: hardknott
     runs-on: ubuntu-latest
     container:
       image: embeddedflutter.jfrog.io/default-docker-local/desktop:latest
@@ -10,19 +11,41 @@ jobs:
         username: ${{ secrets.CI_REGISTRY_USER}}
         password: ${{ secrets.CI_REGISTRY_PASSWORD}}
     steps:
-      - name: Build RPI4 64-bit
+      - uses: actions/checkout@v2
+        with:
+          path: 'meta-flutter'
+      - name: Fetch poky
         run: |
-          pwd
-          ls -la /home/dev
-          ls -la .
-          export PATH=/home/dev/bin:$PATH
-          mkdir rpi_yocto && cd rpi_yocto
-          export MACHINE=raspberrypi4-64
-          repo init -u https://github.com/jwinarske/manifests.git -m rpi64.xml -b dunfell
-          repo sync -j`grep -c ^processor /proc/cpuinfo`
-          source ./setup-environment $MACHINE
-          bitbake-layers add-layer ../sources/meta-clang ../sources/meta-flutter
-          echo -e 'IMAGE_INSTALL_append = " ivi-homescreen"' >> conf/local.conf
-          echo -e 'IMAGE_INSTALL_append = " flutter-pi"' >> conf/local.conf
-          echo -e 'IMAGE_INSTALL_append = " flutter-gallery"' >> conf/local.conf
-          bitbake core-image-minimal
+          mv poky/build/sstate-cache . || true
+          rm -rf poky meta-openembedded
+          git clone -b $YOCTO_BRANCH --single-branch git://git.yoctoproject.org/poky
+          git clone -b $YOCTO_BRANCH --single-branch git://git.openembedded.org/meta-openembedded
+      - name: Configure build
+        run: |
+          cd poky
+          . oe-init-build-env
+          mv ../../sstate-cache . || true
+          bitbake-layers add-layer ../../meta-openembedded/meta-oe
+          bitbake-layers add-layer ../../meta-flutter
+          echo "SSTATE_MIRRORS = \"file://.* http://sstate.yoctoproject.org/$YOCTO_VERSION/PATH;downloadfilename=PATH \\n\"" >> conf/local.conf
+          echo 'PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"' >> conf/local.conf
+      - name: Run bitbake flutter-engine
+        run: |
+          cd poky
+          . oe-init-build-env
+          bitbake flutter-engine
+      - name: Run bitbake flutter-sdk
+        run: |
+          cd poky
+          . oe-init-build-env
+          bitbake flutter-sdk
+      - name: Run bitbake flutter-gallery
+        run: |
+          cd poky
+          . oe-init-build-env
+          bitbake flutter-gallery
+      - name: Run bitbake flutter-pi
+        run: |
+          cd poky
+          . oe-init-build-env
+          bitbake flutter-pi
