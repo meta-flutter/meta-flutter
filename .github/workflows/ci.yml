@@ -1,4 +1,12 @@
-on: [pull_request]
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, closed ]
+  release:
+    types: [ published, created, edited ]
+  workflow_dispatch:
+  schedule:
+    # daily
+    - cron:  '0 0 * * *'
 jobs:
   build:
     env:
