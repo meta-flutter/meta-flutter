@@ -5,15 +5,18 @@ jobs:
       YOCTO_VERSION: 3.3.2
       YOCTO_BRANCH: hardknott
     runs-on: ubuntu-latest
-    container:
-      image: embeddedflutter.jfrog.io/default-docker-local/desktop:latest
-      credentials:
-        username: ${{ secrets.CI_REGISTRY_USER}}
-        password: ${{ secrets.CI_REGISTRY_PASSWORD}}
     steps:
       - uses: actions/checkout@v2
         with:
           path: 'meta-flutter'
+      - name: Install packages
+        run: |
+          sudo apt-get install -y gawk wget git-core diffstat \
+            unzip curl rpm texinfo gcc-multilib build-essential chrpath socat \
+            libsdl1.2-dev xterm python python-git-doc python3 python3-pip python3-pexpect \
+            python3-virtualenv p7zip-full python3-git python3-jinja2 \
+            xz-utils debianutils iputils-ping \
+            locales libdatetime-perl libxml-simple-perl libdigest-md5-perl
       - name: Fetch poky
         run: |
           mv poky/build/sstate-cache . || true
