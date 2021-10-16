@@ -21,6 +21,10 @@ jobs:
       IMAGE_PATH: ghcr.io/meta-flutter/ubuntu-20-dev:main
     runs-on: [self-hosted, linux]
     steps:
+      - name: Workaround https://github.com/containers/podman/issues/8539
+        run: |
+          mkdir -p /tmp/podman-run-$( id -u ) ${XDG_RUNTIME_DIR} || true
+          ls -la /tmp
       - name: Log in to ghcr.io
         uses: redhat-actions/podman-login@v1
         with:
