@@ -18,7 +18,7 @@ jobs:
       REGISTRY_USER: ${{ github.actor }}
       REGISTRY_PASSWORD: ${{ github.token }}
       IMAGE_REGISTRY: ghcr.io/meta-flutter
-    runs-on: [ selfhost, linux ]
+    runs-on: [ selfhost , linux ]
     steps:
       - uses: redhat-actions/podman-login@v1
         with:
