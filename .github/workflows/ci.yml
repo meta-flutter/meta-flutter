@@ -17,6 +17,7 @@ jobs:
     steps:
       - run: |
           cat /etc/subuid
+          whoami
           id -u
           ls -la $HOME
       - uses: actions/checkout@v2
