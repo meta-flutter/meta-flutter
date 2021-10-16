@@ -38,8 +38,7 @@ jobs:
 
       - name: Display UID Info
         run: |
-          echo ${XDG_RUNTIME_DIR}
-          cat /tmp/podman-run-$( id -u )/containers/auth.json
+          echo "XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}"
           cat /etc/subuid
           whoami
           id -u
