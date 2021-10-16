@@ -7,7 +7,23 @@ on:
   schedule:
     # daily
     - cron:  '0 0 * * *'
+
+env:
+  REGISTRY_USER: ${{ github.actor }}
+  REGISTRY_PASSWORD: ${{ github.token }}
+  IMAGE_REGISTRY: ghcr.io/meta-flutter
+
 jobs:
+  login:
+    name: Log in to GitHub Container Registry
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Log in to ghcr.io
+        uses: redhat-actions/podman-login@v1
+        with:
+          username: ${{ env.REGISTRY_USER }}
+          password: ${{ env.REGISTRY_PASSWORD }}
+          registry: ${{ env.IMAGE_REGISTRY }}
   build:
     env:
       YOCTO_VERSION: 3.3.2
