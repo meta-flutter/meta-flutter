@@ -11,8 +11,8 @@ on:
 jobs:
   build:
     env:
-      REGISTRY_USER: ${{ github.actor }}
-      REGISTRY_PASSWORD: ${{ github.token }}
+      REGISTRY_REDHAT_IO_USER: ${{ github.actor }}
+      REGISTRY_REDHAT_IO_PASSWORD: ${{ github.token }}
       IMAGE_REGISTRY: ghcr.io
       YOCTO_VERSION: 3.3.2
       YOCTO_BRANCH: hardknott
