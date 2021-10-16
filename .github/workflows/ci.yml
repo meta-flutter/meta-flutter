@@ -31,11 +31,10 @@ jobs:
           registry: ${{ env.IMAGE_REGISTRY }}
       - name: Display UID Info
         run: |
-          ls -la /tmp
+          cat /tmp/podman-run-$( id -u )/containers/auth.json
           cat /etc/subuid
           whoami
           id -u
-          ls -la $HOME
           podman pull ${{ env.IMAGE_REGISTRY }}/ubuntu-20-dev:main
       - uses: actions/checkout@v2
         with:
