@@ -13,13 +13,7 @@ jobs:
     env:
       YOCTO_VERSION: 3.3.2
       YOCTO_BRANCH: hardknott
-    runs-on: [self-hosted, linux]
-    container:
-      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
-      credentials:
-          username: ${{ github.actor }}
-          password: ${{ github.token }}  
-      options: --user 1001
+    runs-on: ubuntu-latest
     steps:
       - run: |
           sudo chown -R dev:dev $HOME .       
