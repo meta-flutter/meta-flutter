@@ -22,7 +22,7 @@ jobs:
     steps:    
       - name: Workaround https://github.com/containers/podman/issues/8539
         run: |
-          ln -s /tmp/run-$( id -u ) /tmp/podman-run-$( id -u )
+          ln -s /tmp/run-$( id -u ) /tmp/podman-run-$( id -u ) || true
           ls -la /tmp
       - uses: redhat-actions/podman-login@v1
         with:
