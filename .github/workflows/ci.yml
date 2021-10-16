@@ -18,18 +18,21 @@ jobs:
       REGISTRY_USER: ${{ github.actor }}
       REGISTRY_PASSWORD: ${{ github.token }}
       IMAGE_REGISTRY: ghcr.io/meta-flutter
+      IMAGE_PATH: ghcr.io/meta-flutter/ubuntu-20-dev:main
     runs-on: [self-hosted, linux]
-    steps:    
-      - name: Workaround https://github.com/containers/podman/issues/8539
-        run: |
-          mkdir -p /tmp/podman-run-$( id -u )/containers/ || true
-          touch /tmp/podman-run-$( id -u )/containers/auth.json
-          ls -la /tmp
-      - uses: redhat-actions/podman-login@v1
+    steps:
+      - name: Log in to ghcr.io
+        uses: redhat-actions/podman-login@v1
         with:
           username: ${{ env.REGISTRY_USER }}
           password: ${{ env.REGISTRY_PASSWORD }}
           registry: ${{ env.IMAGE_REGISTRY }}
+
+      - name: Pull image with Podman
+        run: |
+          echo ${XDG_RUNTIME_DIR}
+          podman pull ${{ env.IMAGE_PATH }}
+        
       - name: Display UID Info
         run: |
           echo ${XDG_RUNTIME_DIR}
