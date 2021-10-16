@@ -25,11 +25,13 @@ jobs:
           username: ${{ env.REGISTRY_USER }}
           password: ${{ env.REGISTRY_PASSWORD }}
           registry: ${{ env.IMAGE_REGISTRY }}
-      - run: |
+      - name: Display UID Info
+        run: |
           cat /etc/subuid
           whoami
           id -u
           ls -la $HOME
+          podman pull ${{ env.IMAGE_REGISTRY }}/ubuntu-20-dev:main
       - uses: actions/checkout@v2
         with:
           path: 'meta-flutter'
