@@ -19,6 +19,9 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
     steps:
+      - name: Setup permissions
+        run: |
+          sudo chown -R dev:dev $HOME .       
       - uses: actions/checkout@v2
         with:
           path: 'meta-flutter'
