@@ -8,14 +8,12 @@ on:
     # daily
     - cron:  '0 0 * * *'
 
-env:
-  REGISTRY_USER: ${{ github.actor }}
-  REGISTRY_PASSWORD: ${{ github.token }}
-  IMAGE_REGISTRY: ghcr.io
-
 jobs:
   build:
     env:
+      REGISTRY_USER: ${{ github.actor }}
+      REGISTRY_PASSWORD: ${{ github.token }}
+      IMAGE_REGISTRY: ghcr.io
       YOCTO_VERSION: 3.3.2
       YOCTO_BRANCH: hardknott
     runs-on: [self-hosted, linux]
