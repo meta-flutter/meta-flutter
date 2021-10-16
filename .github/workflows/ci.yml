@@ -11,19 +11,16 @@ on:
 jobs:
   build:
     env:
-      REGISTRY_REDHAT_IO_USER: ${{ github.actor }}
-      REGISTRY_REDHAT_IO_PASSWORD: ${{ github.token }}
-      IMAGE_REGISTRY: ghcr.io
       YOCTO_VERSION: 3.3.2
       YOCTO_BRANCH: hardknott
     runs-on: [self-hosted, linux]
     steps:
-      - name: Log in to ghcr.io Registry
+      - name: Log in to Registry
         uses: redhat-actions/podman-login@v1
         with:
-          registry: registry.redhat.io
-          username: ${{ secrets.REGISTRY_REDHAT_IO_USER }}
-          password: ${{ secrets.REGISTRY_REDHAT_IO_PASSWORD }}    
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}  
       - name: Pull Container
         run: |
           docker pull ghcr.io/meta-flutter/ubuntu-20-dev:main
