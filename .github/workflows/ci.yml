@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
+          cat /etc/subuid
           sudo chown -R dev:dev $HOME .       
       - uses: actions/checkout@v2
         with:
