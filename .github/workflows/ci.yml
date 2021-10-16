@@ -14,16 +14,13 @@ jobs:
       YOCTO_VERSION: 3.3.2
       YOCTO_BRANCH: hardknott
     runs-on: [self-hosted, linux]
-    steps:
-      - name: Log in to Registry
-        uses: redhat-actions/podman-login@v1
-        with:
-          registry: ghcr.io
+    container:
+      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      credentials:
           username: ${{ github.actor }}
           password: ${{ github.token }}  
-      - name: Pull Container
-        run: |
-          docker pull ghcr.io/meta-flutter/ubuntu-20-dev:main
+      options: --user 1001
+    steps:
       - run: |
           sudo chown -R dev:dev $HOME .       
       - uses: actions/checkout@v2
