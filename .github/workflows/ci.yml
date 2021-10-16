@@ -11,33 +11,25 @@ on:
 env:
   REGISTRY_USER: ${{ github.actor }}
   REGISTRY_PASSWORD: ${{ github.token }}
-  IMAGE_REGISTRY: ghcr.io/meta-flutter
+  IMAGE_REGISTRY: ghcr.io
 
 jobs:
-  login:
-    name: Log in to GitHub Container Registry
-    runs-on: [self-hosted, linux]
-    steps:
-      - name: Log in to ghcr.io
-        uses: redhat-actions/podman-login@v1
-        with:
-          username: ${{ env.REGISTRY_USER }}
-          password: ${{ env.REGISTRY_PASSWORD }}
-          registry: ${{ env.IMAGE_REGISTRY }}
-      - name: Pull image
-        run: |
-          docker pull ghcr.io/meta-flutter/ubuntu-20-dev:main
-
   build:
     env:
       YOCTO_VERSION: 3.3.2
       YOCTO_BRANCH: hardknott
     runs-on: [self-hosted, linux]
-    container: 
-      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
     steps:
-      - name: Setup permissions
+      - name: Log in to ghcr.io Registry
+        uses: redhat-actions/podman-login@v1
+        with:
+          registry: registry.redhat.io
+          username: ${{ secrets.REGISTRY_REDHAT_IO_USER }}
+          password: ${{ secrets.REGISTRY_REDHAT_IO_PASSWORD }}    
+      - name: Pull Container
         run: |
+          docker pull ghcr.io/meta-flutter/ubuntu-20-dev:main
+      - run: |
           sudo chown -R dev:dev $HOME .       
       - uses: actions/checkout@v2
         with:
