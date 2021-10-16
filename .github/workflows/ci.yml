@@ -21,10 +21,9 @@ jobs:
       IMAGE_PATH: ghcr.io/meta-flutter/ubuntu-20-dev:main
     runs-on: [self-hosted, linux]
     steps:
-      - name: Workaround https://github.com/containers/podman/issues/8539
+      - name: Wayland Workaround
         run: |
-          mkdir -p /tmp/podman-run-$( id -u ) ${XDG_RUNTIME_DIR} || true
-          ls -la /tmp
+          ln -sf $XDG_RUNTIME_DIR/ /tmp/podman-run-$( id -u ) || true
       - name: Log in to ghcr.io
         uses: redhat-actions/podman-login@v1
         with:
@@ -36,7 +35,7 @@ jobs:
         run: |
           echo ${XDG_RUNTIME_DIR}
           podman pull ${{ env.IMAGE_PATH }}
-          podman --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1 run -it -v /b/yocto/dl:/home/runner/dl:Z -it ${{ env.IMAGE_PATH }} 
+
       - name: Display UID Info
         run: |
           echo ${XDG_RUNTIME_DIR}
@@ -44,7 +43,6 @@ jobs:
           cat /etc/subuid
           whoami
           id -u
-          podman pull ${{ env.IMAGE_REGISTRY }}/ubuntu-20-dev:main
       - uses: actions/checkout@v2
         with:
           path: 'meta-flutter'
