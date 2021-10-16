@@ -19,7 +19,9 @@ jobs:
       REGISTRY_PASSWORD: ${{ github.token }}
       IMAGE_REGISTRY: ghcr.io/meta-flutter
     runs-on: [self-hosted, linux]
-    steps:
+    steps:    
+      - name: Workaround https://github.com/containers/podman/issues/8539
+        run: ln -s /tmp/run-$( id -u ) /tmp/podman-run-$( id -u )
       - uses: redhat-actions/podman-login@v1
         with:
           username: ${{ env.REGISTRY_USER }}
