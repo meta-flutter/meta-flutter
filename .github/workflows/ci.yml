@@ -36,7 +36,7 @@ jobs:
         run: |
           echo ${XDG_RUNTIME_DIR}
           podman pull ${{ env.IMAGE_PATH }}
-        
+          podman --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1 run -it -v /b/yocto/dl:/home/runner/dl:Z -it ${{ env.IMAGE_PATH }} 
       - name: Display UID Info
         run: |
           echo ${XDG_RUNTIME_DIR}
