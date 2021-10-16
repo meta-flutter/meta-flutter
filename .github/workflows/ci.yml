@@ -16,7 +16,7 @@ env:
 jobs:
   login:
     name: Log in to GitHub Container Registry
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Log in to ghcr.io
         uses: redhat-actions/podman-login@v1
@@ -24,6 +24,9 @@ jobs:
           username: ${{ env.REGISTRY_USER }}
           password: ${{ env.REGISTRY_PASSWORD }}
           registry: ${{ env.IMAGE_REGISTRY }}
+      - name: Pull image
+        run: |
+          docker pull ghcr.io/meta-flutter/ubuntu-20-dev:main
   build:
     env:
       YOCTO_VERSION: 3.3.2
