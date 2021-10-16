@@ -26,7 +26,7 @@ jobs:
           registry: ${{ env.IMAGE_REGISTRY }}
       - name: Pull image
         run: |
-          docker pull ghcr.io/meta-flutter/ubuntu-20-dev:main
+          docker pull ubuntu-20-dev:main
   build:
     env:
       YOCTO_VERSION: 3.3.2
