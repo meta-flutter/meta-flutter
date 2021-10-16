@@ -23,6 +23,7 @@ jobs:
       - name: Workaround https://github.com/containers/podman/issues/8539
         run: |
           mkdir -p /tmp/podman-run-$( id -u )/containers/ || true
+          touch /tmp/podman-run-$( id -u )/containers/auth.json
           ls -la /tmp
       - uses: redhat-actions/podman-login@v1
         with:
@@ -31,6 +32,7 @@ jobs:
           registry: ${{ env.IMAGE_REGISTRY }}
       - name: Display UID Info
         run: |
+          echo ${XDG_RUNTIME_DIR}
           cat /tmp/podman-run-$( id -u )/containers/auth.json
           cat /etc/subuid
           whoami
