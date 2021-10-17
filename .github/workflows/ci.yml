@@ -34,7 +34,7 @@ jobs:
       - name: Set Ownership
         run: |
           chown -R dev:dev $HOME .
-          [ -d ${{ env.GITHUB_JOB }} ] || mkdir ${{ env.GITHUB_JOB }}
+          [ -d meta-flutter/${{ env.GITHUB_JOB }} ] || mkdir meta-flutter/${{ env.GITHUB_JOB }}
           
       - uses: actions/checkout@v2
         with:
