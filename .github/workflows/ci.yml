@@ -162,7 +162,7 @@ jobs:
     
     container:
       image: ghcr.io/meta-flutter/ubuntu-20-dev:main
-      options: --user 1000 --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1 -v /b/yocto/dl:/home/dev/dl:Z
+      options: --user 1018 --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1 -v /b/yocto/dl:/home/dev/dl:Z
       
     steps:
     
