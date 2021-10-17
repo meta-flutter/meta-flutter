@@ -77,6 +77,8 @@ jobs:
           ls -la
           cd poky
           . ./oe-init-build-env
+          pwd
+          ls -la
           bitbake core-image-minimal
 
       - name: Publish core-image-minimal artifacts
