@@ -51,6 +51,7 @@ jobs:
           rm -rf poky meta-openembedded
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git
           
       - name: Configure build
         run: |
@@ -67,8 +68,7 @@ jobs:
           echo 'PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           cat ./conf/local.conf
-          bitbake-layers add-layer ../../meta-openembedded/meta-oe
-          bitbake-layers add-layer ../../meta-flutter
+          bitbake-layers add-layer ../../meta-openembedded/meta-oe ../../meta-clang ../../meta-flutter
           bitbake-layers show-layers
 
       - name: Build core-image-minimal
@@ -80,7 +80,7 @@ jobs:
       - name: Publish core-image-minimal artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: core-image-minimal-x86_64-linux
+          name: core-image-minimal-core2_64-linux
           path: |
             poky/build/tmp/deploy/images/qemux86-64/*
 
@@ -95,9 +95,37 @@ jobs:
       - name: Publish flutter-engine artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: flutter-engine-x86_64-linux
+          name: flutter-engine-core2_64-linux
           path: |
             poky/build/tmp/deploy/rpm/core2_64/flutter-engine*.rpm
+
+      - name: Build ivi-homescreen
+        run: |
+          pwd
+          cd poky
+          . ./oe-init-build-env
+          bitbake ivi-homescreen
+
+      - name: Publish ivi-homescreen artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ivi-homescreen-core2_64-linux
+          path: |
+             poky/build/tmp/deploy/rpm/core2_64/ivi-homescreen*.rpm
+
+      - name: Build flutter-wayland
+        run: |
+          pwd
+          cd poky
+          . ./oe-init-build-env
+          bitbake flutter-wayland
+
+      - name: Publish flutter-wayland artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: flutter-wayland-core2_64-linux
+          path: |
+             poky/build/tmp/deploy/rpm/core2_64/flutter-wayland*.rpm
 
       - name: Build flutter-pi
         run: |
@@ -109,7 +137,7 @@ jobs:
       - name: Publish flutter-pi artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: flutter-pi-x86_64-linux
+          name: flutter-pi-core2_64-linux
           path: |
              poky/build/tmp/deploy/rpm/core2_64/flutter-pi*.rpm
 
@@ -123,6 +151,6 @@ jobs:
       - name: Publish flutter-gallery artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: flutter-gallery-x86_64-linux
+          name: flutter-gallery-core2_64-linux
           path: |
             poky/build/tmp/deploy/rpm/core2_64/flutter-gallery*.rpm
