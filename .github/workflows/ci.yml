@@ -37,10 +37,11 @@ jobs:
           
       - uses: actions/checkout@v2
         with:
-          path: meta-flutter-${{ env.GITHUB_JOB }}
+          path: ${{ env.GITHUB_JOB }}/meta-flutter
 
       - name: Fetch poky
         run: |
+          cd ${{ env.GITHUB_JOB }}/meta-flutter
           mv poky/build/sstate-cache . || true
           rm -rf poky meta-openembedded meta-clang
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
@@ -50,7 +51,7 @@ jobs:
           
       - name: Configure build
         run: |
-          cd poky
+          cd ${{ env.GITHUB_JOB }}/meta-flutter/poky
           . ./oe-init-build-env
           mv ../../sstate-cache . || true
           echo 'SSTATE_MIRRORS = "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
@@ -68,7 +69,7 @@ jobs:
 
       - name: Build core-image-minimal
         run: |
-          cd poky
+          cd ${{ env.GITHUB_JOB }}/meta-flutter/poky
           . ./oe-init-build-env
           bitbake core-image-minimal
 
@@ -77,27 +78,24 @@ jobs:
         with:
           name: core-image-minimal-core2_64-linux
           path: |
-            poky/build/tmp/deploy/images/qemux86-64/*
+            ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/images/qemux86-64/*
 
       - name: Build flutter-engine
         run: |
-          pwd
-          cd poky
+          cd ${{ env.GITHUB_JOB }}/poky
           . ./oe-init-build-env
           bitbake flutter-engine
-          ls -la tmp/deploy/rpm/
 
       - name: Publish flutter-engine artifacts
         uses: actions/upload-artifact@v2
         with:
           name: flutter-engine-core2_64-linux
           path: |
-            poky/build/tmp/deploy/rpm/core2_64/flutter-engine*.rpm
+            ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-engine*.rpm
 
       - name: Build ivi-homescreen
         run: |
-          pwd
-          cd poky
+          cd ${{ env.GITHUB_JOB }}/poky
           . ./oe-init-build-env
           bitbake ivi-homescreen
 
@@ -106,12 +104,11 @@ jobs:
         with:
           name: ivi-homescreen-core2_64-linux
           path: |
-             poky/build/tmp/deploy/rpm/core2_64/ivi-homescreen*.rpm
+             ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/ivi-homescreen*.rpm
 
       - name: Build flutter-wayland
         run: |
-          pwd
-          cd poky
+          cd ${{ env.GITHUB_JOB }}/poky
           . ./oe-init-build-env
           bitbake flutter-wayland
 
@@ -120,12 +117,11 @@ jobs:
         with:
           name: flutter-wayland-core2_64-linux
           path: |
-             poky/build/tmp/deploy/rpm/core2_64/flutter-wayland*.rpm
+             ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-wayland*.rpm
 
       - name: Build flutter-pi
         run: |
-          pwd
-          cd poky
+          cd ${{ env.GITHUB_JOB }}/poky
           . ./oe-init-build-env
           bitbake flutter-pi
 
@@ -134,12 +130,11 @@ jobs:
         with:
           name: flutter-pi-core2_64-linux
           path: |
-             poky/build/tmp/deploy/rpm/core2_64/flutter-pi*.rpm
+             ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-pi*.rpm
 
       - name: Build flutter-gallery
         run: |
-          pwd
-          cd poky
+          cd ${{ env.GITHUB_JOB }}/poky
           . ./oe-init-build-env
           bitbake flutter-gallery
 
@@ -148,7 +143,7 @@ jobs:
         with:
           name: flutter-gallery-core2_64-linux
           path: |
-            poky/build/tmp/deploy/rpm/core2_64/flutter-gallery*.rpm
+            ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-gallery*.rpm
             
 
   agl-lamprey:
@@ -178,12 +173,11 @@ jobs:
           
       - uses: actions/checkout@v2
         with:
-          path: meta-flutter-${{ env.GITHUB_JOB }}
+          path: ${{ env.GITHUB_JOB }}/meta-flutter
 
       - name: Fetch Layers
         run: |
-          [ -d agl ] || mkdir agl
-          cd agl
+          cd ${{ env.GITHUB_JOB }}
           /home/dev/.bin/repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
           /home/dev/.bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git &
@@ -191,8 +185,8 @@ jobs:
           
       - name: Configure AGL build
         run: |
-          cd agl
-          source meta-agl/scripts/aglsetup.sh -m $MACHINE agl-devel agl-basesystem
+          cd ${{ env.GITHUB_JOB }}
+          source meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
           echo "IMAGE_INSTALL_append = \" ivi-homescreen\"" >> conf/local.conf
           echo "IMAGE_INSTALL_append = \" flutter-gallery\"" >> conf/local.conf
           mv ../../sstate-cache . || true
