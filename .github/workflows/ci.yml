@@ -67,11 +67,11 @@ jobs:
           ls -la tmp/deploy/images/qemux86-64/*
 
       - name: Publish core-image-minimal artifacts
-                uses: actions/upload-artifact@v2
-                with:
-                name: core-image-minimal-x86_64-linux
-                path: |
-                  tmp/deploy/images/qemux86-64/*
+        uses: actions/upload-artifact@v2
+        with:
+          name: core-image-minimal-x86_64-linux
+          path: |
+            tmp/deploy/images/qemux86-64/*
 
       - name: Build flutter-engine
         run: |
@@ -81,11 +81,11 @@ jobs:
           ls -la tmp/deploy
 
       - name: Publish flutter-engine artifacts
-                uses: actions/upload-artifact@v2
-                with:
-                name: flutter-engine-x86_64-linux
-                path: |
-                  tmp/deploy/rpm/corei7_64/flutter-engine*.rpm
+        uses: actions/upload-artifact@v2
+        with:
+          name: flutter-engine-x86_64-linux
+          path: |
+            tmp/deploy/rpm/corei7_64/flutter-engine*.rpm
 
       - name: Build flutter-pi
         run: |
@@ -94,11 +94,11 @@ jobs:
           bitbake flutter-pi
 
       - name: Publish flutter-pi artifacts
-                uses: actions/upload-artifact@v2
-                with:
-                name: flutter-pi-x86_64-linux
-                path: |
-                  tmp/deploy/rpm/corei7_64/flutter-pi*.rpm
+        uses: actions/upload-artifact@v2
+        with:
+          name: flutter-pi-x86_64-linux
+          path: |
+             tmp/deploy/rpm/corei7_64/flutter-pi*.rpm
 
       - name: Build flutter-gallery
         run: |
@@ -108,8 +108,8 @@ jobs:
           ls -la tmp/deploy
 
       - name: Publish flutter-gallery artifacts
-                uses: actions/upload-artifact@v2
-                with:
-                name: flutter-gallery-x86_64-linux
-                path: |
-                  tmp/deploy/rpm/corei7_64/flutter-gallery*.rpm
+        uses: actions/upload-artifact@v2
+        with:
+          name: flutter-gallery-x86_64-linux
+          path: |
+            tmp/deploy/rpm/corei7_64/flutter-gallery*.rpm
