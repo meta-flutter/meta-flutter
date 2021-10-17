@@ -17,8 +17,10 @@ FLUTTER_CHANNEL ??= "dev"
 DEPENDS += "curl-native unzip-native"
 
 SRC_URI = "git://github.com/flutter/flutter;protocol=https;branch=${FLUTTER_CHANNEL} \
-           file://ca-certificates.crt"
+           file://ca-certificates.crt;name=certs"
 SRCREV = "${AUTOREV}"
+
+SRC_URI[certs.md5sum] = "7d4a083badda35440134e9156d23f153"
 
 S = "${WORKDIR}/git"
 
