@@ -70,12 +70,6 @@ jobs:
           DL_DIR=/home/dev/dl . ./oe-init-build-env
           bitbake flutter-engine
           ls -la tmp/deploy
-      - name: Build ivi-homescreen
-        run: |
-          cd poky
-          DL_DIR=/home/dev/dl . ./oe-init-build-env
-          bitbake ivi-homescreen
-          ls -la tmp/deploy
       - name: Build flutter-pi
         run: |
           cd poky
