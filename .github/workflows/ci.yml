@@ -182,7 +182,7 @@ jobs:
 
       - name: Fetch Layers
         run: |
-          mkdir agl || true
+          [ -d agl ] || mkdir agl
           cd agl
           repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
           repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
