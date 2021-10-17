@@ -30,7 +30,6 @@ jobs:
         run: |
           whoami
           id -u
-          cat /etc/subuid
           
       - name: Set Ownership
         run: |
@@ -171,7 +170,6 @@ jobs:
         run: |
           whoami
           id -u
-          cat /etc/subuid
           
       - name: Set Ownership
         run: |
