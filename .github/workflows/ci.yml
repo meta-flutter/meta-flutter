@@ -97,7 +97,7 @@ jobs:
         with:
           name: flutter-engine-x86_64-linux
           path: |
-            poky/build/tmp/deploy/rpm/corei7_64/flutter-engine*.rpm
+            poky/build/tmp/deploy/rpm/core2_64/flutter-engine*.rpm
 
       - name: Build flutter-pi
         run: |
@@ -111,7 +111,7 @@ jobs:
         with:
           name: flutter-pi-x86_64-linux
           path: |
-             poky/build/tmp/deploy/rpm/corei7_64/flutter-pi*.rpm
+             poky/build/tmp/deploy/rpm/core2_64/flutter-pi*.rpm
 
       - name: Build flutter-gallery
         run: |
@@ -125,4 +125,4 @@ jobs:
         with:
           name: flutter-gallery-x86_64-linux
           path: |
-            poky/build/tmp/deploy/rpm/corei7_64/flutter-gallery*.rpm
+            poky/build/tmp/deploy/rpm/core2_64/flutter-gallery*.rpm
