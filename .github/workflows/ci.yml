@@ -33,7 +33,8 @@ jobs:
           path: 'meta-flutter'
       - name: Set Ownership
         run: |
-          chown -R dev:dev "$HOME" . 
+          chown -R dev:dev "$HOME" .
+          ls -la /home/dev/dl
       - name: Fetch poky
         run: |
           mv poky/build/sstate-cache . || true
@@ -50,24 +51,33 @@ jobs:
           bitbake-layers add-layer ../../meta-openembedded/meta-oe
           bitbake-layers add-layer ../../meta-flutter
           bitbake-layers show-layers
+      - name: Build core-image-minimal
+        run: |
+          cd poky
+          DL_DIR=/home/dev/dl . ./oe-init-build-env
+          bitbake core-image-minimal
+          ls -la tmp/deploy/images/qemux86-64/*
       - name: Build flutter-engine
         run: |
           cd poky
           DL_DIR=/home/dev/dl . ./oe-init-build-env
           bitbake flutter-engine
-          ls -la tmp/deploy/*/*
+          ls -la tmp/deploy
       - name: Build ivi-homescreen
         run: |
           cd poky
           DL_DIR=/home/dev/dl . ./oe-init-build-env
-          bitbake flutter-pi
+          bitbake ivi-homescreen
+          ls -la tmp/deploy
       - name: Build flutter-pi
         run: |
           cd poky
-          . ./oe-init-build-env
+          DL_DIR=/home/dev/dl . ./oe-init-build-env
           bitbake flutter-pi
+          ls -la tmp/deploy
       - name: Build flutter-gallery
         run: |
           cd poky
           DL_DIR=/home/dev/dl . ./oe-init-build-env
           bitbake flutter-gallery
+          ls -la tmp/deploy
