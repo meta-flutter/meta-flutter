@@ -13,8 +13,8 @@ on:
 jobs:
   build:
     env:
-      YOCTO_VERSION: 3.3.2
-      YOCTO_BRANCH: hardknott
+      YOCTO_VERSION: 3.1.11
+      YOCTO_BRANCH: dunfell
       REGISTRY_USER: ${{ github.actor }}
       REGISTRY_PASSWORD: ${{ github.token }}
       IMAGE_REGISTRY: ghcr.io/meta-flutter
