@@ -9,7 +9,6 @@ on:
   schedule:
     # daily
     - cron:  '0 0 * * *'
-
 jobs:
   build:
     env:
@@ -22,22 +21,8 @@ jobs:
     runs-on: [self-hosted, linux]
     container:
       image: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      options: --user 1001
     steps:
-      - name: Wayland Workaround
-        run: |
-          ln -sf $XDG_RUNTIME_DIR/ /tmp/podman-run-$( id -u ) || true
-      - name: Log in to ghcr.io
-        uses: redhat-actions/podman-login@v1
-        with:
-          username: ${{ env.REGISTRY_USER }}
-          password: ${{ env.REGISTRY_PASSWORD }}
-          registry: ${{ env.IMAGE_REGISTRY }}
-
-      - name: Pull image with Podman
-        run: |
-          echo ${XDG_RUNTIME_DIR}
-          podman pull ${{ env.IMAGE_PATH }}
-
       - name: Display UID Info
         run: |
           echo "XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}"
