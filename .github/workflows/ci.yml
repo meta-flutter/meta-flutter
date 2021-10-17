@@ -21,7 +21,7 @@ jobs:
       IMAGE_PATH: ghcr.io/meta-flutter/ubuntu-20-dev:main
     runs-on: [self-hosted, linux]
     container:
-      image: ${{ env.IMAGE_PATH }}
+      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
     steps:
       - name: Wayland Workaround
         run: |
