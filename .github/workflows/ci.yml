@@ -12,16 +12,11 @@ on:
 
 jobs:
 
-  meta-flutter:
+  yocto-dunfell-latest:
   
     env:
       YOCTO_VERSION: 3.1.11
       YOCTO_BRANCH: dunfell
-      REGISTRY_USER: ${{ github.actor }}
-      REGISTRY_PASSWORD: ${{ github.token }}
-      IMAGE_REGISTRY: ghcr.io/meta-flutter
-      IMAGE_PATH: ghcr.io/meta-flutter/ubuntu-20-dev:main
-      DL_DIR: /home/dev/dl
       
     runs-on: [self-hosted, linux]
     
@@ -154,3 +149,57 @@ jobs:
           name: flutter-gallery-core2_64-linux
           path: |
             poky/build/tmp/deploy/rpm/core2_64/flutter-gallery*.rpm
+            
+
+  agl-lamprey:
+  
+    env:
+      YOCTO_VERSION: 3.1.8
+      YOCTO_BRANCH: dunfell
+      MACHINE: qemux86-64
+      AGL_BRANCH: lamprey
+
+    runs-on: [self-hosted, linux]
+    
+    container:
+      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      options: --user 1000 --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1 -v /b/yocto/dl:/home/dev/dl:Z
+      
+    steps:
+    
+      - name: Display UID Info
+        run: |
+          whoami
+          id -u
+          cat /etc/subuid
+
+      - uses: actions/checkout@v2
+        with:
+          path: 'agl-meta-flutter'
+          
+      - name: Set Ownership
+        run: |
+          chown -R dev:dev $HOME .
+          
+      - name: Fetch Layers
+        run: |
+          mkdir agl || true
+          cd agl
+          repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
+          repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git &
+          wait
+          
+      - name: Configure AGL build
+        run: |
+          cd agl
+          source meta-agl/scripts/aglsetup.sh -m $MACHINE agl-devel agl-basesystem
+          echo "IMAGE_INSTALL_append = \" ivi-homescreen\"" >> conf/local.conf
+          echo "IMAGE_INSTALL_append = \" flutter-gallery\"" >> conf/local.conf
+          mv ../../sstate-cache . || true
+          echo 'SSTATE_MIRRORS = "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
+          echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
+          cat ./conf/local.conf
+          bitbake-layers add-layer ../meta-clang ../meta-flutter
+          bitbake-layers show-layers
+          ls -la
