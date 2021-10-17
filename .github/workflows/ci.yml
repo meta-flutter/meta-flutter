@@ -33,9 +33,9 @@ jobs:
     
       - name: Display UID Info
         run: |
-          cat /etc/subuid
           whoami
           id -u
+          cat /etc/subuid
 
       - uses: actions/checkout@v2
         with:
@@ -43,7 +43,7 @@ jobs:
           
       - name: Set Ownership
         run: |
-          chown -R dev:dev "$HOME" .
+          chown -R dev:dev $HOME .
           
       - name: Fetch poky
         run: |
@@ -73,12 +73,8 @@ jobs:
 
       - name: Build core-image-minimal
         run: |
-          pwd
-          ls -la
           cd poky
           . ./oe-init-build-env
-          pwd
-          ls -la
           bitbake core-image-minimal
 
       - name: Publish core-image-minimal artifacts
@@ -86,7 +82,7 @@ jobs:
         with:
           name: core-image-minimal-x86_64-linux
           path: |
-            poky/tmp/deploy/images/qemux86-64/*
+            poky/build/tmp/deploy/images/qemux86-64/*
 
       - name: Build flutter-engine
         run: |
@@ -100,7 +96,7 @@ jobs:
         with:
           name: flutter-engine-x86_64-linux
           path: |
-            poky/tmp/deploy/rpm/corei7_64/flutter-engine*.rpm
+            poky/build/tmp/deploy/rpm/corei7_64/flutter-engine*.rpm
 
       - name: Build flutter-pi
         run: |
@@ -114,7 +110,7 @@ jobs:
         with:
           name: flutter-pi-x86_64-linux
           path: |
-             poky/tmp/deploy/rpm/corei7_64/flutter-pi*.rpm
+             poky/build/tmp/deploy/rpm/corei7_64/flutter-pi*.rpm
 
       - name: Build flutter-gallery
         run: |
@@ -128,4 +124,4 @@ jobs:
         with:
           name: flutter-gallery-x86_64-linux
           path: |
-            poky/tmp/deploy/rpm/corei7_64/flutter-gallery*.rpm
+            poky/build/tmp/deploy/rpm/corei7_64/flutter-gallery*.rpm
