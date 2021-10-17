@@ -31,15 +31,15 @@ jobs:
           whoami
           id -u
           cat /etc/subuid
-
-      - uses: actions/checkout@v2
-        with:
-          path: 'meta-flutter'
           
       - name: Set Ownership
         run: |
           chown -R dev:dev $HOME .
           
+      - uses: actions/checkout@v2
+        with:
+          path: 'meta-flutter'
+
       - name: Fetch poky
         run: |
           mv poky/build/sstate-cache . || true
@@ -172,15 +172,15 @@ jobs:
           whoami
           id -u
           cat /etc/subuid
-
-      - uses: actions/checkout@v2
-        with:
-          path: 'agl-meta-flutter'
           
       - name: Set Ownership
         run: |
           chown -R dev:dev $HOME .
           
+      - uses: actions/checkout@v2
+        with:
+          path: 'agl-meta-flutter'
+
       - name: Fetch Layers
         run: |
           mkdir agl || true
