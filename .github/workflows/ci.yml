@@ -1,4 +1,4 @@
-name: CI Validation
+name: validation
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ on:
     # daily
     - cron:  '0 0 * * *'
 jobs:
-  build:
+  meta-flutter:
     env:
       YOCTO_VERSION: 3.1.11
       YOCTO_BRANCH: dunfell
@@ -21,11 +21,10 @@ jobs:
     runs-on: [self-hosted, linux]
     container:
       image: ghcr.io/meta-flutter/ubuntu-20-dev:main
-      options: --user 1001
+      options: --user 1000
     steps:
       - name: Display UID Info
         run: |
-          echo "XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}"
           cat /etc/subuid
           whoami
           id -u
@@ -47,11 +46,6 @@ jobs:
           bitbake-layers add-layer ../../meta-flutter
           echo "SSTATE_MIRRORS = \"file://.* http://sstate.yoctoproject.org/$YOCTO_VERSION/PATH;downloadfilename=PATH \\n\"" >> conf/local.conf
           echo 'PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"' >> conf/local.conf
-      - name: Run bitbake flutter-engine
-        run: |
-          cd poky
-          . oe-init-build-env
-          bitbake flutter-engine
       - name: Run bitbake flutter-sdk
         run: |
           cd poky
@@ -62,6 +56,11 @@ jobs:
           cd poky
           . oe-init-build-env
           bitbake flutter-gallery
+      - name: Run bitbake flutter-engine
+        run: |
+          cd poky
+          . oe-init-build-env
+          bitbake flutter-engine
       - name: Run bitbake flutter-pi
         run: |
           cd poky
