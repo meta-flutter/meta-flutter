@@ -21,6 +21,7 @@ jobs:
       REGISTRY_PASSWORD: ${{ github.token }}
       IMAGE_REGISTRY: ghcr.io/meta-flutter
       IMAGE_PATH: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      DL_DIR: /home/dev/dl
       
     runs-on: [self-hosted, linux]
     
@@ -54,7 +55,7 @@ jobs:
       - name: Configure build
         run: |
           cd poky
-          DL_DIR=/home/dev/dl . ./oe-init-build-env
+          . ./oe-init-build-env
           mv ../../sstate-cache . || true
           echo 'SSTATE_MIRRORS = "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
@@ -72,7 +73,7 @@ jobs:
       - name: Build core-image-minimal
         run: |
           cd poky
-          DL_DIR=/home/dev/dl source ./ie-init-build-env
+          . ./oe-init-build-env
           bitbake core-image-minimal
 
       - name: Publish core-image-minimal artifacts
@@ -85,7 +86,7 @@ jobs:
       - name: Build flutter-engine
         run: |
           cd poky
-          DL_DIR=/home/dev/dl source ./oe-init-build-env
+          . ./oe-init-build-env
           bitbake flutter-engine
 
       - name: Publish flutter-engine artifacts
@@ -98,7 +99,7 @@ jobs:
       - name: Build flutter-pi
         run: |
           cd poky
-          DL_DIR=/home/dev/dl source ./oe-init-build-env
+          . ./oe-init-build-env
           bitbake flutter-pi
 
       - name: Publish flutter-pi artifacts
@@ -111,7 +112,7 @@ jobs:
       - name: Build flutter-gallery
         run: |
           cd poky
-          DL_DIR=/home/dev/dl source ./oe-init-build-env
+          . ./oe-init-build-env
           bitbake flutter-gallery
 
       - name: Publish flutter-gallery artifacts
