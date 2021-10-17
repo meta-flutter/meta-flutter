@@ -36,12 +36,11 @@ jobs:
           chown -R dev:dev $HOME .
           
       - uses: actions/checkout@v2
-        with:
-          path: ${{ env.GITHUB_JOB }}/meta-flutter
 
       - name: Fetch poky
         run: |
-          cd ${{ env.GITHUB_JOB }}/meta-flutter
+          [ -d ${{ env.GITHUB_JOB }} ] || mkdir ${{ env.GITHUB_JOB }}
+          cd ${{ env.GITHUB_JOB }}
           mv poky/build/sstate-cache . || true
           rm -rf poky meta-openembedded meta-clang
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
@@ -51,7 +50,7 @@ jobs:
           
       - name: Configure build
         run: |
-          cd ${{ env.GITHUB_JOB }}/meta-flutter/poky
+          cd ${{ env.GITHUB_JOB }}/poky
           . ./oe-init-build-env
           mv ../../sstate-cache . || true
           echo 'SSTATE_MIRRORS = "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
@@ -69,7 +68,7 @@ jobs:
 
       - name: Build core-image-minimal
         run: |
-          cd ${{ env.GITHUB_JOB }}/meta-flutter/poky
+          cd ${{ env.GITHUB_JOB }}/poky
           . ./oe-init-build-env
           bitbake core-image-minimal
 
@@ -172,11 +171,10 @@ jobs:
           chown -R dev:dev $HOME .
           
       - uses: actions/checkout@v2
-        with:
-          path: ${{ env.GITHUB_JOB }}/meta-flutter
 
       - name: Fetch Layers
         run: |
+          [ -d ${{ env.GITHUB_JOB }} ] || mkdir ${{ env.GITHUB_JOB }}
           cd ${{ env.GITHUB_JOB }}
           /home/dev/.bin/repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
           /home/dev/.bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
