@@ -22,7 +22,7 @@ jobs:
     
     container:
       image: ghcr.io/meta-flutter/ubuntu-20-dev:main
-      options: --user 1018 --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1 -v /b/yocto/dl:/home/dev/dl:Z
+      options: --user 1018 --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1 -v /b/github-ci/download:/home/dev/dl:Z
       
     steps:
     
@@ -37,7 +37,7 @@ jobs:
           
       - uses: actions/checkout@v2
         with:
-          path: 'meta-flutter'
+          path: meta-flutter-${{ env.GITHUB_JOB }}
 
       - name: Fetch poky
         run: |
@@ -162,7 +162,7 @@ jobs:
     
     container:
       image: ghcr.io/meta-flutter/ubuntu-20-dev:main
-      options: --user 1018 --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1 -v /b/yocto/dl:/home/dev/dl:Z
+      options: --user 1018 --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1 -v /b/github-ci/download:/home/dev/dl:Z
       
     steps:
     
@@ -177,7 +177,7 @@ jobs:
           
       - uses: actions/checkout@v2
         with:
-          path: 'agl-meta-flutter'
+          path: meta-flutter-${{ env.GITHUB_JOB }}
 
       - name: Fetch Layers
         run: |
