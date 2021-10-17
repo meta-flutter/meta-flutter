@@ -54,18 +54,24 @@ jobs:
           cd poky
           . ./oe-init-build-env
           bitbake core-image-minimal
-      - name: Run bitbake flutter-gallery
-        run: |
-          cd poky
-          . ./oe-init-build-env
-          bitbake flutter-gallery
-      - name: Run bitbake flutter-engine
+          ls -la tmp/deploy/*/*
+      - name: Build flutter-engine
         run: |
           cd poky
           . ./oe-init-build-env
           bitbake flutter-engine
-      - name: Run bitbake flutter-pi
+      - name: Build ivi-homescreen
         run: |
           cd poky
           . ./oe-init-build-env
           bitbake flutter-pi
+      - name: Build flutter-pi
+        run: |
+          cd poky
+          . ./oe-init-build-env
+          bitbake flutter-pi
+      - name: Build flutter-gallery
+        run: |
+          cd poky
+          . ./oe-init-build-env
+          bitbake flutter-gallery
