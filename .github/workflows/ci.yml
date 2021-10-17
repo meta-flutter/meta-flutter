@@ -39,8 +39,8 @@ jobs:
 
       - name: Fetch poky
         run: |
-          [ -d ${{ env.GITHUB_JOB }} ] || mkdir ${{ env.GITHUB_JOB }}
-          cd ${{ env.GITHUB_JOB }}
+          [ -d ${{ github.workspace }}/${{ env.GITHUB_JOB }} ] || mkdir -p ${{ github.workspace }}/${{ env.GITHUB_JOB }}
+          cd ${{ github.workspace }}/${{ env.GITHUB_JOB }}
           mv poky/build/sstate-cache . || true
           rm -rf poky meta-openembedded meta-clang
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
@@ -50,7 +50,7 @@ jobs:
           
       - name: Configure build
         run: |
-          cd ${{ env.GITHUB_JOB }}/poky
+          cd ${{ github.workspace }}/${{ env.GITHUB_JOB }}
           . ./oe-init-build-env
           mv ../../sstate-cache . || true
           echo 'SSTATE_MIRRORS = "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
@@ -68,7 +68,7 @@ jobs:
 
       - name: Build core-image-minimal
         run: |
-          cd ${{ env.GITHUB_JOB }}/poky
+          cd ${{ github.workspace }}/${{ env.GITHUB_JOB }}/poky
           . ./oe-init-build-env
           bitbake core-image-minimal
 
@@ -81,7 +81,7 @@ jobs:
 
       - name: Build flutter-engine
         run: |
-          cd ${{ env.GITHUB_JOB }}/poky
+          cd ${{ github.workspace }}/${{ env.GITHUB_JOB }}/poky
           . ./oe-init-build-env
           bitbake flutter-engine
 
@@ -94,7 +94,7 @@ jobs:
 
       - name: Build ivi-homescreen
         run: |
-          cd ${{ env.GITHUB_JOB }}/poky
+          cd ${{ github.workspace }}/${{ env.GITHUB_JOB }}/poky
           . ./oe-init-build-env
           bitbake ivi-homescreen
 
@@ -107,7 +107,7 @@ jobs:
 
       - name: Build flutter-wayland
         run: |
-          cd ${{ env.GITHUB_JOB }}/poky
+          cd ${{ github.workspace }}/${{ env.GITHUB_JOB }}/poky
           . ./oe-init-build-env
           bitbake flutter-wayland
 
@@ -120,7 +120,7 @@ jobs:
 
       - name: Build flutter-pi
         run: |
-          cd ${{ env.GITHUB_JOB }}/poky
+          cd ${{ github.workspace }}/${{ env.GITHUB_JOB }}/poky
           . ./oe-init-build-env
           bitbake flutter-pi
 
@@ -133,7 +133,7 @@ jobs:
 
       - name: Build flutter-gallery
         run: |
-          cd ${{ env.GITHUB_JOB }}/poky
+          cd ${{ github.workspace }}/${{ env.GITHUB_JOB }}/poky
           . ./oe-init-build-env
           bitbake flutter-gallery
 
@@ -174,8 +174,8 @@ jobs:
 
       - name: Fetch Layers
         run: |
-          [ -d ${{ env.GITHUB_JOB }} ] || mkdir ${{ env.GITHUB_JOB }}
-          cd ${{ env.GITHUB_JOB }}
+          [ -d ${{ github.workspace }}/${{ env.GITHUB_JOB }} ] || mkdir -p ${{ github.workspace }}/${{ env.GITHUB_JOB }}
+          cd ${{ github.workspace }}/${{ env.GITHUB_JOB }}
           /home/dev/.bin/repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
           /home/dev/.bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git &
@@ -183,7 +183,7 @@ jobs:
           
       - name: Configure AGL build
         run: |
-          cd ${{ env.GITHUB_JOB }}
+          cd ${{ github.workspace }}/${{ env.GITHUB_JOB }}
           source meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
           echo "IMAGE_INSTALL_append = \" ivi-homescreen\"" >> conf/local.conf
           echo "IMAGE_INSTALL_append = \" flutter-gallery\"" >> conf/local.conf
