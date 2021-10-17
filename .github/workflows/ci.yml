@@ -28,9 +28,13 @@ jobs:
           cat /etc/subuid
           whoami
           id -u
-      - uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
         with:
           path: 'meta-flutter'
+      - name: Set Ownership
+        run: |
+          sudo chown -R dev:dev "$HOME" . 
       - name: Fetch poky
         run: |
           mv poky/build/sstate-cache . || true
