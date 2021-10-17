@@ -9,8 +9,11 @@ on:
   schedule:
     # daily
     - cron:  '0 0 * * *'
+
 jobs:
+
   meta-flutter:
+  
     env:
       YOCTO_VERSION: 3.1.11
       YOCTO_BRANCH: dunfell
@@ -18,29 +21,36 @@ jobs:
       REGISTRY_PASSWORD: ${{ github.token }}
       IMAGE_REGISTRY: ghcr.io/meta-flutter
       IMAGE_PATH: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      
     runs-on: [self-hosted, linux]
+    
     container:
       image: ghcr.io/meta-flutter/ubuntu-20-dev:main
       options: --user 1000 --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1 -v /b/yocto/dl:/home/dev/dl:Z
+      
     steps:
+    
       - name: Display UID Info
         run: |
           cat /etc/subuid
           whoami
           id -u
+
       - uses: actions/checkout@v2
         with:
           path: 'meta-flutter'
+          
       - name: Set Ownership
         run: |
           chown -R dev:dev "$HOME" .
-          ls -la /home/dev/dl
+          
       - name: Fetch poky
         run: |
           mv poky/build/sstate-cache . || true
           rm -rf poky meta-openembedded
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded
+          
       - name: Configure build
         run: |
           cd poky
@@ -62,9 +72,8 @@ jobs:
       - name: Build core-image-minimal
         run: |
           cd poky
-          DL_DIR=/home/dev/dl . ./ie-init-build-env
+          DL_DIR=/home/dev/dl source ./ie-init-build-env
           bitbake core-image-minimal
-          ls -la tmp/deploy/images/qemux86-64/*
 
       - name: Publish core-image-minimal artifacts
         uses: actions/upload-artifact@v2
@@ -76,9 +85,8 @@ jobs:
       - name: Build flutter-engine
         run: |
           cd poky
-          DL_DIR=/home/dev/dl . ./oe-init-build-env
+          DL_DIR=/home/dev/dl source ./oe-init-build-env
           bitbake flutter-engine
-          ls -la tmp/deploy
 
       - name: Publish flutter-engine artifacts
         uses: actions/upload-artifact@v2
@@ -90,7 +98,7 @@ jobs:
       - name: Build flutter-pi
         run: |
           cd poky
-          DL_DIR=/home/dev/dl . ./oe-init-build-env
+          DL_DIR=/home/dev/dl source ./oe-init-build-env
           bitbake flutter-pi
 
       - name: Publish flutter-pi artifacts
@@ -103,9 +111,8 @@ jobs:
       - name: Build flutter-gallery
         run: |
           cd poky
-          DL_DIR=/home/dev/dl . ./oe-init-build-env
+          DL_DIR=/home/dev/dl source ./oe-init-build-env
           bitbake flutter-gallery
-          ls -la tmp/deploy
 
       - name: Publish flutter-gallery artifacts
         uses: actions/upload-artifact@v2
