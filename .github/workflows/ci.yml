@@ -81,7 +81,7 @@ jobs:
         with:
           name: core-image-minimal-x86_64-linux
           path: |
-            tmp/deploy/images/qemux86-64/*
+            poky/tmp/deploy/images/qemux86-64/*
 
       - name: Build flutter-engine
         run: |
@@ -94,7 +94,7 @@ jobs:
         with:
           name: flutter-engine-x86_64-linux
           path: |
-            tmp/deploy/rpm/corei7_64/flutter-engine*.rpm
+            poky/tmp/deploy/rpm/corei7_64/flutter-engine*.rpm
 
       - name: Build flutter-pi
         run: |
@@ -107,7 +107,7 @@ jobs:
         with:
           name: flutter-pi-x86_64-linux
           path: |
-             tmp/deploy/rpm/corei7_64/flutter-pi*.rpm
+             poky/tmp/deploy/rpm/corei7_64/flutter-pi*.rpm
 
       - name: Build flutter-gallery
         run: |
@@ -120,4 +120,4 @@ jobs:
         with:
           name: flutter-gallery-x86_64-linux
           path: |
-            tmp/deploy/rpm/corei7_64/flutter-gallery*.rpm
+            poky/tmp/deploy/rpm/corei7_64/flutter-gallery*.rpm
