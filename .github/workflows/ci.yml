@@ -47,13 +47,14 @@ jobs:
           DL_DIR=/home/dev/dl . ./oe-init-build-env
           mv ../../sstate-cache . || true
           echo 'SSTATE_MIRRORS = "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
-          echo 'DISTRO_FEATURES_remove = " sysvinit x11\n"' >> ./conf/local.conf
+          echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES_remove = " sysvinit x11"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES_append = " wayland opengl systemd"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES_BACKFILL_CONSIDERED = ""' >> ./conf/local.conf
-          echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
           echo 'VIRTUAL-RUNTIME_init_manager = "systemd"' >> ./conf/local.conf
           echo 'VIRTUAL-RUNTIME_initscripts = ""' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"' >> ./conf/local.conf
+          cat ./conf/local.conf
           bitbake-layers add-layer ../../meta-openembedded/meta-oe
           bitbake-layers add-layer ../../meta-flutter
           bitbake-layers show-layers
