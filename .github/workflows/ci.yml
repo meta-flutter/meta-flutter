@@ -34,10 +34,11 @@ jobs:
       - name: Set Ownership
         run: |
           chown -R dev:dev $HOME .
+          [ -d ${{ env.GITHUB_JOB }} ] || mkdir ${{ env.GITHUB_JOB }}
           
       - uses: actions/checkout@v2
         with:
-          path: ${{ env.GITHUB_JOB }}/meta-flutter
+          path: meta-flutter
 
       - name: Fetch poky
         run: |
@@ -170,6 +171,7 @@ jobs:
       - name: Set Ownership
         run: |
           chown -R dev:dev $HOME .
+          [ -d ${{ env.GITHUB_JOB }} ] || mkdir ${{ env.GITHUB_JOB }}
           
       - uses: actions/checkout@v2
 
