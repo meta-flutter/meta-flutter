@@ -34,7 +34,7 @@ jobs:
           path: 'meta-flutter'
       - name: Set Ownership
         run: |
-          sudo chown -R dev:dev "$HOME" . 
+          chown -R dev:dev "$HOME" . 
       - name: Fetch poky
         run: |
           mv poky/build/sstate-cache . || true
