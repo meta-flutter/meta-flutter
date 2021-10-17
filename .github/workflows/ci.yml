@@ -74,6 +74,7 @@ jobs:
       - name: Build core-image-minimal
         run: |
           pwd
+          ls -la
           cd poky
           . ./oe-init-build-env
           bitbake core-image-minimal
