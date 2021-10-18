@@ -73,7 +73,7 @@ jobs:
           echo 'PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           cat ./conf/local.conf
-          bitbake-layers add-layer ../../meta-openembedded/meta-oe ../../meta-clang ../../meta-flutter
+          bitbake-layers add-layer ../../meta-openembedded/meta-oe ../../meta-clang ../../../meta-flutter
           bitbake-layers show-layers
 
       - name: Build core-image-minimal
@@ -209,16 +209,17 @@ jobs:
           
       - name: Configure AGL build
         run: |
+          ps -p $$
           cd ../agl-lamprey
           pwd
           ls -la
-          . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
+          source ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
           echo "IMAGE_INSTALL_append = \" ivi-homescreen\"" >> conf/local.conf
           echo "IMAGE_INSTALL_append = \" flutter-gallery\"" >> conf/local.conf
           mv ../../sstate-cache . || true
           echo 'SSTATE_MIRRORS = "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           cat ./conf/local.conf
-          bitbake-layers add-layer ../meta-clang ../meta-flutter
+          bitbake-layers add-layer ../meta-clang ../../meta-flutter
           bitbake-layers show-layers
           ls -la
