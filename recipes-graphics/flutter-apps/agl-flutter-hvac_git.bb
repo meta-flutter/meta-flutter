@@ -70,17 +70,14 @@ do_install() {
     install -d ${D}${datadir}/homescreen/gallery
     cp -r ${S}/build/* ${D}${datadir}/homescreen/gallery
     rm -rf ${D}${datadir}/homescreen/gallery/.last_build_id
-    install -m 644 ${S}/libapp.so ${D}${datadir}/homescreen/gallery/libapp.so
+    install -m 644 ${S}/libapp.so ${D}${datadir}/homescreen/hvac/libapp.so
 
     # flutter application path that ivi-homescreen loads
-    pushd ${D}${datadir}/homescreen && ln -sf gallery/ bundle/ && popd
+    pushd ${D}${datadir}/homescreen && ln -sf hvac/ bundle/ && popd
 }
 
 FILES_${PN} = "${datadir}/homescreen \
                ${datadir}/${PN} \
               "
-
-FILES_${PN}-aot = "${datadir}/homescreen/gallery/libapp.so \
-                  "
 
 do_package_qa[noexec] = "1"
