@@ -196,14 +196,13 @@ jobs:
           [ -d ../agl-lamprey ] || mkdir -p ../agl-lamprey
           cd ../agl-lamprey
           /home/dev/bin/repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
-          /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git &
-          wait
+          /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo`
           
       - name: Configure AGL build
         run: |
           cd ../agl-lamprey
           ls -la `which bash`
+          cat /etc/shells
           . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
           echo "IMAGE_INSTALL_append = \" ivi-homescreen\"" >> conf/local.conf
           echo "IMAGE_INSTALL_append = \" flutter-gallery\"" >> conf/local.conf
