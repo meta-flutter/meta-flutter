@@ -185,6 +185,7 @@ jobs:
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo`
           
       - name: Configure AGL build
+        shell: bash
         run: |
           cd ../agl-lamprey
           if test -n "$ZSH_VERSION"; then
