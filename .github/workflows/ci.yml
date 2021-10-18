@@ -41,7 +41,6 @@ jobs:
 
       - name: Fetch poky
         run: |
-          pwd
           [ -d ../yocto-dunfell-latest ] || mkdir -p ../yocto-dunfell-latest
           cd ../yocto-dunfell-latest
           pwd
@@ -55,10 +54,7 @@ jobs:
           
       - name: Configure build
         run: |
-          pwd
           cd ../yocto-dunfell-latest/poky
-          pwd
-          ls -la
           . ./oe-init-build-env
           mv ../../sstate-cache . || true
           echo 'SSTATE_MIRRORS = "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
@@ -76,11 +72,7 @@ jobs:
 
       - name: Build core-image-minimal
         run: |
-          pwd
-          ls -la
           cd ../yocto-dunfell-latest/poky
-          pwd
-          ls -la
           . ./oe-init-build-env
           bitbake core-image-minimal
 
@@ -89,15 +81,11 @@ jobs:
         with:
           name: core-image-minimal-core2_64-linux
           path: |
-            ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/images/qemux86-64/*
+            ../${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/images/qemux86-64/*
 
       - name: Build flutter-engine
         run: |
-          pwd
-          ls -la
           cd ../yocto-dunfell-latest/poky
-          pwd
-          ls -la
           . ./oe-init-build-env
           bitbake flutter-engine
 
@@ -106,12 +94,10 @@ jobs:
         with:
           name: flutter-engine-core2_64-linux
           path: |
-            ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-engine*.rpm
+            ../${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-engine*.rpm
 
       - name: Build ivi-homescreen
         run: |
-          pwd
-          ls -la
           cd ../yocto-dunfell-latest/poky
           . ./oe-init-build-env
           bitbake ivi-homescreen
@@ -121,7 +107,7 @@ jobs:
         with:
           name: ivi-homescreen-core2_64-linux
           path: |
-             ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/ivi-homescreen*.rpm
+             ../${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/ivi-homescreen*.rpm
 
       - name: Build flutter-wayland
         run: |
@@ -134,7 +120,7 @@ jobs:
         with:
           name: flutter-wayland-core2_64-linux
           path: |
-             ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-wayland*.rpm
+             ../${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-wayland*.rpm
 
       - name: Build flutter-pi
         run: |
@@ -147,7 +133,7 @@ jobs:
         with:
           name: flutter-pi-core2_64-linux
           path: |
-             ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-pi*.rpm
+             ../${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-pi*.rpm
 
       - name: Build flutter-gallery
         run: |
@@ -160,7 +146,7 @@ jobs:
         with:
           name: flutter-gallery-core2_64-linux
           path: |
-            ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-gallery*.rpm
+            ../${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-gallery*.rpm
             
 
   agl-lamprey:
@@ -192,7 +178,6 @@ jobs:
 
       - name: Fetch Layers
         run: |
-          pwd
           [ -d ../agl-lamprey ] || mkdir -p ../agl-lamprey
           cd ../agl-lamprey
           /home/dev/bin/repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
@@ -201,8 +186,9 @@ jobs:
       - name: Configure AGL build
         run: |
           cd ../agl-lamprey
-          ls -la `which bash`
           cat /etc/shells
+          ls -la `which bash`
+          ls -ls ./meta-agl/scripts/aglsetup.sh
           . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
           echo "IMAGE_INSTALL_append = \" ivi-homescreen\"" >> conf/local.conf
           echo "IMAGE_INSTALL_append = \" flutter-gallery\"" >> conf/local.conf
