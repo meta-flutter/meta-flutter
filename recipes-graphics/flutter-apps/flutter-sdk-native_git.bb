@@ -44,7 +44,8 @@ do_install() {
     install -m 644 ${WORKDIR}/ca-certificates.crt ${D}${datadir}/ssl/certs/ca-certificates.crt
 }
 
-FILES_${PN}-dev = "${datadir}/flutter/sdk/*"
+FILES_${PN}-dev = "${datadir}/flutter/sdk/* \
+                   ${datadir}/ssl/certs/* "
 
 INSANE_SKIP_${PN}-dev = "already-stripped"
 
