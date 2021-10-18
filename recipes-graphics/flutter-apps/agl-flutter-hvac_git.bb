@@ -73,7 +73,8 @@ do_install() {
     install -m 644 ${S}/libapp.so ${D}${datadir}/homescreen/hvac/libapp.so
 
     # set flutter application to run
-    ln -sf ${datadir}/homescreen/hvac/ ${D}${datadir}/homescreen/bundle/
+    cd ${D}${datadir}/homescreen
+    ln -sf hvac/ bundle
 }
 
 FILES_${PN} = "${datadir}/homescreen \
