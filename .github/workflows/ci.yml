@@ -53,8 +53,9 @@ jobs:
           wait
 
       - name: Configure build
+        shell: bash
+        working-directory: ../yocto-dunfell-latest/poky
         run: |
-          cd ../yocto-dunfell-latest/poky
           . ./oe-init-build-env
           mv ../../sstate-cache . || true
           echo 'SSTATE_MIRRORS = "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
@@ -72,8 +73,9 @@ jobs:
           bitbake-layers show-layers
 
       - name: Build core-image-minimal
+        shell: bash
+        working-directory: ../yocto-dunfell-latest/poky
         run: |
-          cd ../yocto-dunfell-latest/poky
           . ./oe-init-build-env
           bitbake core-image-minimal
 
@@ -85,8 +87,9 @@ jobs:
             ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/images/qemux86-64/*
 
       - name: Build flutter-engine
+        shell: bash
+        working-directory: ../yocto-dunfell-latest/poky
         run: |
-          cd ../yocto-dunfell-latest/poky
           . ./oe-init-build-env
           bitbake flutter-engine
 
@@ -98,8 +101,9 @@ jobs:
             ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-engine*.rpm
 
       - name: Build ivi-homescreen
+        shell: bash
+        working-directory: ../yocto-dunfell-latest/poky
         run: |
-          cd ../yocto-dunfell-latest/poky
           . ./oe-init-build-env
           bitbake ivi-homescreen
 
@@ -111,8 +115,9 @@ jobs:
              ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/ivi-homescreen*.rpm
 
       - name: Build flutter-wayland
+        shell: bash
+        working-directory: ../yocto-dunfell-latest/poky
         run: |
-          cd ../yocto-dunfell-latest/poky
           . ./oe-init-build-env
           bitbake flutter-wayland
 
@@ -124,8 +129,9 @@ jobs:
              ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-wayland*.rpm
 
       - name: Build flutter-pi
+        shell: bash
+        working-directory: ../yocto-dunfell-latest/poky
         run: |
-          cd ../yocto-dunfell-latest/poky
           . ./oe-init-build-env
           bitbake flutter-pi
 
@@ -137,8 +143,9 @@ jobs:
              ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-pi*.rpm
 
       - name: Build flutter-gallery
+        shell: bash
+        working-directory: ../yocto-dunfell-latest/poky
         run: |
-          cd ../yocto-dunfell-latest/poky
           . ./oe-init-build-env
           bitbake flutter-gallery
 
@@ -186,22 +193,8 @@ jobs:
           
       - name: Configure AGL build
         shell: bash
+        working-directory: ../agl-lamprey
         run: |
-          cd ../agl-lamprey
-          if test -n "$ZSH_VERSION"; then
-            PROFILE_SHELL=zsh
-          elif test -n "$BASH_VERSION"; then
-            PROFILE_SHELL=bash
-          elif test -n "$KSH_VERSION"; then
-            PROFILE_SHELL=ksh
-          elif test -n "$FCEDIT"; then
-            PROFILE_SHELL=ksh
-          elif test -n "$PS3"; then
-            PROFILE_SHELL=unknown
-          else
-            PROFILE_SHELL=sh
-          fi
-          echo 'Using ${PROFILE_SHELL}'
           . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
           echo "IMAGE_INSTALL_append = \" ivi-homescreen\"" >> conf/local.conf
           echo "IMAGE_INSTALL_append = \" flutter-gallery\"" >> conf/local.conf
