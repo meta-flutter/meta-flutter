@@ -71,6 +71,9 @@ jobs:
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
+          ls ../../meta-openembedded/meta-oe/conf
+          ls ../../meta-clang/conf
+          ls ../../../meta-flutter/conf/
           bitbake-layers add-layer ../../meta-openembedded/meta-oe ../../meta-clang ../../../meta-flutter
           bitbake-layers show-layers
 
