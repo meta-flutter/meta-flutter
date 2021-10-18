@@ -187,11 +187,7 @@ jobs:
       - name: Configure AGL build
         run: |
           cd ../agl-lamprey
-          cat /etc/shells
-          ls -la `which bash`
-          ls -ls ./meta-agl/scripts/aglsetup.sh
-          cat ./meta-agl/scripts/aglsetup.sh
-          . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
+          source meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
           echo "IMAGE_INSTALL_append = \" ivi-homescreen\"" >> conf/local.conf
           echo "IMAGE_INSTALL_append = \" flutter-gallery\"" >> conf/local.conf
           mv ../../sstate-cache . || true
