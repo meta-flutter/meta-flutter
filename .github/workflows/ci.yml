@@ -196,12 +196,30 @@ jobs:
         working-directory: ../agl-lamprey
         run: |
           . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
-          ls -la
-          echo "IMAGE_INSTALL_append = \" ivi-homescreen\"" >> conf/local.conf
-          echo "IMAGE_INSTALL_append = \" flutter-gallery\"" >> conf/local.conf
           mv ../../sstate-cache . || true
           echo 'SSTATE_MIRRORS = "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://download.automotivelinux.org/sstate-mirror/${{ env.AGL_BRANCH }}/${DEFAULTTUNE}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           bitbake-layers add-layer ../meta-clang ../../meta-flutter
           bitbake-layers show-layers
+
+      - name: Build agl-image-weston
+        shell: bash
+        working-directory: ../agl-lamprey
+        run: |
+          . ./agl-init-build-env
+          bitbake agl-image-weston
+
+      - name: Build flutter-engine
+        shell: bash
+        working-directory: ../agl-lamprey
+        run: |
+          . ./agl-init-build-env
+          bitbake flutter-engine
+
+      - name: Build ivi-homescreen
+        shell: bash
+        working-directory: ../agl-lamprey
+        run: |
+          . ./agl-init-build-env
+          bitbake ivi-homescreen
