@@ -42,11 +42,14 @@ jobs:
       - name: Fetch poky
         run: |
           pwd
+          ls -la ..
           ls -la
           [ -d ../yocto-dunfell-latest ] || mkdir -p ../yocto-dunfell-latest
           pwd
+          ls -la ..
           ls -la
           cd yocto-dunfell-latest
+          ls -la
           mv poky/build/sstate-cache . || true
           rm -rf poky meta-openembedded meta-clang
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
@@ -213,6 +216,7 @@ jobs:
           cd ../agl-lamprey
           pwd
           ls -la
+          bash
           source ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
           echo "IMAGE_INSTALL_append = \" ivi-homescreen\"" >> conf/local.conf
           echo "IMAGE_INSTALL_append = \" flutter-gallery\"" >> conf/local.conf
