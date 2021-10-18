@@ -18,9 +18,10 @@ DEPENDS += "curl-native unzip-native"
 
 SRC_URI = "git://github.com/flutter/flutter;protocol=https;branch=${FLUTTER_CHANNEL};name=repo \
            file://ca-certificates.crt;name=certs"
-SRC_URI[certs.md5sum] = "7d4a083badda35440134e9156d23f153"
 
 SRCREV = "${AUTOREV}"
+
+SRC_URI[certs.md5sum] = "1ecab07e89925a6e8684b75b8cf84890"
 
 S = "${WORKDIR}/git"
 
@@ -32,6 +33,7 @@ do_compile() {
     export PUB_CACHE=${S}/.pub-cache
     
     flutter channel ${FLUTTER_CHANNEL}
+    flutter upgrade
     bbnote `flutter doctor -v`
 }
 
