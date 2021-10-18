@@ -75,8 +75,8 @@ jobs:
           cat ./conf/local.conf
           echo '***************************************'
           bitbake-layers add-layer ../../meta-openembedded/meta-oe ../../meta-clang ../../../meta-flutter
-          echo '***************************************'
           bitbake-layers show-layers
+          echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
 
@@ -225,6 +225,7 @@ jobs:
           [ -d ../agl-lamprey ] || mkdir -p ../agl-lamprey
           cd ../agl-lamprey
           rm -rf .repo
+          rm -rf meta-agl-flutter
           /home/dev/bin/repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           git clone https://github.com/meta-flutter/meta-agl-flutter.git &
@@ -245,10 +246,11 @@ jobs:
           echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-debug"' >> ./conf/local.conf
           echo '***************************************'
           bitbake-layers add-layer ../../meta-flutter ../meta-agl-flutter
-          echo '***************************************'
           bitbake-layers show-layers
+          echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
+          echo '***************************************'
           bitbake clang -c do_clean --force
 
       - name: Build agl-image-weston
