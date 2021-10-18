@@ -251,7 +251,7 @@ jobs:
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
           echo '***************************************'
-          bitbake clang -c do_clean --force
+          bitbake weston -c do_clean --force
 
       - name: Build agl-image-weston
         shell: bash
