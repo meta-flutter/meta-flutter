@@ -259,14 +259,14 @@ jobs:
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
           bitbake agl-image-weston
-          cp tmp/deploy/images/${{ env.MACHINE }}/* /home/dev/artifacts
+          cp tmp/deploy/images/qemux86-64/* /home/dev/artifacts
 
       - name: Publish agl-image-weston artifacts
         uses: actions/upload-artifact@v2
         with:
           name: agl-image-weston-qemux86-64-linux
           path: |
-             /home/dev/artifacts/*.rpm
+             /home/dev/artifacts/*
 
       - name: Build flutter-engine
         shell: bash
@@ -275,7 +275,7 @@ jobs:
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
           bitbake flutter-engine
-          cp tmp/deploy/rpm/core2_64/flutter-engine*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/corei7_64/flutter-engine*.rpm /home/dev/artifacts
 
       - name: Publish flutter-engine artifacts
         uses: actions/upload-artifact@v2
@@ -291,7 +291,7 @@ jobs:
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
           bitbake ivi-homescreen
-          cp tmp/deploy/rpm/core2_64/ivi-homescreen*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/corei7_64/ivi-homescreen*.rpm /home/dev/artifacts
 
       - name: Publish ivi-homescreen artifacts
         uses: actions/upload-artifact@v2
@@ -307,7 +307,7 @@ jobs:
           . ./oe-init-build-env
           rm -rf /home/dev/artifacts/*
           bitbake agl-flutter-hvac
-          cp tmp/deploy/rpm/core2_64/agl-flutter-hvac*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/corei7_64/agl-flutter-hvac*.rpm /home/dev/artifacts
 
       - name: Publish agl-flutter-hvac artifacts
         uses: actions/upload-artifact@v2
@@ -323,7 +323,7 @@ jobs:
           . ./oe-init-build-env
           rm -rf /home/dev/artifacts/*
           bitbake flutter-gallery
-          cp tmp/deploy/rpm/core2_64/flutter-gallery*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/corei7_64/flutter-gallery*.rpm /home/dev/artifacts
 
       - name: Publish flutter-gallery artifacts
         uses: actions/upload-artifact@v2
