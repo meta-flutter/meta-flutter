@@ -82,7 +82,7 @@ jobs:
         with:
           name: core-image-minimal-core2_64-linux
           path: |
-            ../${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/images/qemux86-64/*
+            ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/images/qemux86-64/*
 
       - name: Build flutter-engine
         run: |
@@ -95,7 +95,7 @@ jobs:
         with:
           name: flutter-engine-core2_64-linux
           path: |
-            ../${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-engine*.rpm
+            ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-engine*.rpm
 
       - name: Build ivi-homescreen
         run: |
@@ -108,7 +108,7 @@ jobs:
         with:
           name: ivi-homescreen-core2_64-linux
           path: |
-             ../${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/ivi-homescreen*.rpm
+             ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/ivi-homescreen*.rpm
 
       - name: Build flutter-wayland
         run: |
@@ -121,7 +121,7 @@ jobs:
         with:
           name: flutter-wayland-core2_64-linux
           path: |
-             ../${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-wayland*.rpm
+             ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-wayland*.rpm
 
       - name: Build flutter-pi
         run: |
@@ -134,7 +134,7 @@ jobs:
         with:
           name: flutter-pi-core2_64-linux
           path: |
-             ../${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-pi*.rpm
+             ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-pi*.rpm
 
       - name: Build flutter-gallery
         run: |
@@ -147,7 +147,7 @@ jobs:
         with:
           name: flutter-gallery-core2_64-linux
           path: |
-            ../${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-gallery*.rpm
+            ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-gallery*.rpm
             
 
   agl-lamprey:
@@ -187,6 +187,7 @@ jobs:
       - name: Configure AGL build
         run: |
           cd ../agl-lamprey
+          ps -p $$
           source meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
           echo "IMAGE_INSTALL_append = \" ivi-homescreen\"" >> conf/local.conf
           echo "IMAGE_INSTALL_append = \" flutter-gallery\"" >> conf/local.conf
