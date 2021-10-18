@@ -12,7 +12,7 @@ CVE_PRODUCT = ""
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=1d84cf16c48e571923f837136633a265"
 
-FLUTTER_CHANNEL ??= "beta"
+FLUTTER_CHANNEL ?= "beta"
 
 DEPENDS += "curl-native unzip-native"
 
@@ -31,6 +31,8 @@ do_compile() {
     export CURL_CA_BUNDLE=${WORKDIR}/ca-certificates.crt
     export PATH=${S}/bin:$PATH
     export PUB_CACHE=${S}/.pub-cache
+
+    bbnote "Using Flutter SDK Channel = ${FLUTTER_CHANNEL}"
     
     flutter config --no-enable-android
     flutter config --no-enable-ios
