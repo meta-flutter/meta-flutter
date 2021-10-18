@@ -41,6 +41,8 @@ jobs:
 
       - name: Fetch poky
         run: |
+          pwd
+          ls -la
           [ -d yocto-dunfell-latest ] || mkdir yocto-dunfell-latest
           cd yocto-dunfell-latest
           mv poky/build/sstate-cache . || true
@@ -52,6 +54,8 @@ jobs:
           
       - name: Configure build
         run: |
+          pwd
+          ls -la
           cd yocto-dunfell-latest/poky
           . ./oe-init-build-env
           mv ../../sstate-cache . || true
@@ -70,6 +74,8 @@ jobs:
 
       - name: Build core-image-minimal
         run: |
+          pwd
+          ls -la
           cd yocto-dunfell-latest/poky
           . ./oe-init-build-env
           bitbake core-image-minimal
@@ -83,6 +89,8 @@ jobs:
 
       - name: Build flutter-engine
         run: |
+          pwd
+          ls -la
           cd yocto-dunfell-latest/poky
           . ./oe-init-build-env
           bitbake flutter-engine
@@ -96,6 +104,8 @@ jobs:
 
       - name: Build ivi-homescreen
         run: |
+          pwd
+          ls -la
           cd yocto-dunfell-latest/poky
           . ./oe-init-build-env
           bitbake ivi-homescreen
@@ -176,15 +186,23 @@ jobs:
 
       - name: Fetch Layers
         run: |
+          pwd
+          ls -la
           [ -d agl-lamprey ] || mkdir agl-lamprey
           cd agl-lamprey
+          pwd
+          ls -la
           /home/dev/bin/repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git &
           wait
+          pwd
+          ls -la
           
       - name: Configure AGL build
         run: |
+          pwd
+          ls -la
           cd agl-lamprey
           source meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
           echo "IMAGE_INSTALL_append = \" ivi-homescreen\"" >> conf/local.conf
