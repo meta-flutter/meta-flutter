@@ -251,7 +251,6 @@ jobs:
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
           echo '***************************************'
-          bitbake gstreamer1.0-plugins-base -c do_clean --force
 
       - name: Build agl-image-weston
         shell: bash
