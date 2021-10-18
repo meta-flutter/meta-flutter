@@ -32,6 +32,10 @@ do_compile() {
     export PATH=${S}/bin:$PATH
     export PUB_CACHE=${S}/.pub-cache
     
+    flutter config --no-enable-android
+    flutter config --no-enable-ios
+    flutter config --no-enable-web
+    flutter config --enable-linux-desktop
     flutter channel ${FLUTTER_CHANNEL}
     flutter upgrade
     bbnote `flutter doctor -v`
