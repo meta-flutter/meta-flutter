@@ -40,7 +40,6 @@ do_compile() {
 do_install() {
     install -d ${D}${datadir}/flutter/sdk
     cp -rTv ${S}/. ${D}${datadir}/flutter/sdk
-    install 644 ${D}${datadir}/
 }
 
 FILES_${PN}-dev = "${datadir}/flutter/sdk/*"
