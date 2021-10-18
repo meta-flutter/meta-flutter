@@ -42,15 +42,8 @@ jobs:
       - name: Fetch poky
         run: |
           pwd
-          ls -la ..
-          pwd
-          ls -la
           [ -d ../yocto-dunfell-latest ] || mkdir -p ../yocto-dunfell-latest
-          pwd
-          ls -la ..
-          pwd
-          ls -la
-          cd yocto-dunfell-latest
+          cd ../yocto-dunfell-latest
           pwd
           ls -la
           mv poky/build/sstate-cache . || true
@@ -63,7 +56,6 @@ jobs:
       - name: Configure build
         run: |
           pwd
-          ls -la
           cd ../yocto-dunfell-latest/poky
           pwd
           ls -la
@@ -201,30 +193,17 @@ jobs:
       - name: Fetch Layers
         run: |
           pwd
-          ls -la
           [ -d ../agl-lamprey ] || mkdir -p ../agl-lamprey
           cd ../agl-lamprey
-          pwd
-          ls -la
           /home/dev/bin/repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git &
           wait
-          pwd
-          ls -la
           
       - name: Configure AGL build
         run: |
-          ps -p $$
-          pwd
-          ls -la ..
           cd ../agl-lamprey
-          pwd
-          ls -la
-          bash
-          ps -p $$
-          pwd
-          ls -la
+          ls -la `which bash`
           . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
           echo "IMAGE_INSTALL_append = \" ivi-homescreen\"" >> conf/local.conf
           echo "IMAGE_INSTALL_append = \" flutter-gallery\"" >> conf/local.conf
