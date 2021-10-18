@@ -304,7 +304,7 @@ jobs:
         shell: bash
         working-directory: ../agl-lamprey
         run: |
-          . ./oe-init-build-env
+          . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
           bitbake agl-flutter-hvac
           cp tmp/deploy/rpm/corei7_64/agl-flutter-hvac*.rpm /home/dev/artifacts
@@ -320,7 +320,7 @@ jobs:
         shell: bash
         working-directory: ../agl-lamprey
         run: |
-          . ./oe-init-build-env
+          . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
           bitbake flutter-gallery
           cp tmp/deploy/rpm/corei7_64/flutter-gallery*.rpm /home/dev/artifacts
