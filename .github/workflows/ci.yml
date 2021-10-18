@@ -77,6 +77,8 @@ jobs:
           bitbake-layers add-layer ../../meta-openembedded/meta-oe ../../meta-clang ../../../meta-flutter
           echo '***************************************'
           bitbake-layers show-layers
+          bitbake -e virtual/kernel | grep "^PV"
+          bitbake -e virtual/kernel | grep "^PN"
 
       - name: Build core-image-minimal
         shell: bash
@@ -243,6 +245,8 @@ jobs:
           bitbake-layers add-layer ../../meta-flutter
           echo '***************************************'
           bitbake-layers show-layers
+          bitbake -e virtual/kernel | grep "^PV"
+          bitbake -e virtual/kernel | grep "^PN"
 
       - name: Build agl-image-weston
         shell: bash
