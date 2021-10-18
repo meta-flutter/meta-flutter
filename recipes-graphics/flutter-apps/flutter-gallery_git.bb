@@ -74,7 +74,8 @@ do_install() {
     install -m 644 ${S}/libapp.so ${D}${datadir}/homescreen/gallery/libapp.so
 
     # flutter application path that ivi-homescreen loads
-    pushd ${D}${datadir}/homescreen && ln -sf gallery/ bundle/ && popd
+    cd ${D}${datadir}/homescreen
+    ln -sf gallery/ bundle/
 
     #
     # Sony Layout
