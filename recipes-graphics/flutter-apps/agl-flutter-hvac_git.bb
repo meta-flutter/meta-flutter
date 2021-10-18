@@ -73,7 +73,8 @@ do_install() {
     install -m 644 ${S}/libapp.so ${D}${datadir}/homescreen/hvac/libapp.so
 
     # flutter application path that ivi-homescreen loads
-    pushd ${D}${datadir}/homescreen && ln -sf hvac/ bundle/ && popd
+    cd ${D}${datadir}/homescreen
+    ln -sf hvac/ bundle/
 }
 
 FILES_${PN} = "${datadir}/homescreen \
