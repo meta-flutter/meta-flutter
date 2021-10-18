@@ -57,6 +57,7 @@ jobs:
         working-directory: ../yocto-dunfell-latest/poky
         run: |
           . ./oe-init-build-env
+          echo '***************************************'
           echo 'INHERIT += "rm_work"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
@@ -73,10 +74,9 @@ jobs:
           echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-debug"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
-          ls ../../meta-openembedded/meta-oe/conf
-          ls ../../meta-clang/conf
-          ls ../../../meta-flutter/conf/
+          echo '***************************************'
           bitbake-layers add-layer ../../meta-openembedded/meta-oe ../../meta-clang ../../../meta-flutter
+          echo '***************************************'
           bitbake-layers show-layers
 
       - name: Build core-image-minimal
@@ -203,6 +203,7 @@ jobs:
         working-directory: ../agl-lamprey
         run: |
           . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
+          echo '***************************************'
           echo 'INHERIT += "rm_work"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
@@ -211,7 +212,9 @@ jobs:
           echo 'SSTATE_MIRRORS += "file://.* http://download.automotivelinux.org/sstate-mirror/${{ env.AGL_BRANCH }}/${DEFAULTTUNE}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
           echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-debug"' >> ./conf/local.conf
+          echo '***************************************'
           bitbake-layers add-layer ../external/meta-clang ../../meta-flutter
+          echo '***************************************'
           bitbake-layers show-layers
 
       - name: Build agl-image-weston
