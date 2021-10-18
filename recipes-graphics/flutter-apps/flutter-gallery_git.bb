@@ -42,6 +42,9 @@ do_compile() {
     export PATH=${FLUTTER_SDK}/bin:$PATH
 
     cd ${S}
+    flutter config --no-enable-android
+    flutter config --no-enable-ios
+    flutter config --no-enable-web
     flutter config --enable-linux-desktop
     flutter create .
     flutter build bundle
