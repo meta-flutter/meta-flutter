@@ -149,6 +149,20 @@ jobs:
           path: |
              ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-pi*.rpm
 
+      - name: Build agl-flutter-hvac
+        shell: bash
+        working-directory: ../yocto-dunfell-latest/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake agl-flutter-hvac
+
+      - name: Publish agl-flutter-hvac artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: agl-flutter-hvac-core2_64-linux
+          path: |
+            ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/agl-flutter-hvac*.rpm
+
       - name: Build flutter-gallery
         shell: bash
         working-directory: ../yocto-dunfell-latest/poky
