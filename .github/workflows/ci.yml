@@ -210,6 +210,7 @@ jobs:
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://download.automotivelinux.org/sstate-mirror/${{ env.AGL_BRANCH }}/${DEFAULTTUNE}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES_remove = " x11"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
           echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-debug"' >> ./conf/local.conf
           echo '***************************************'
