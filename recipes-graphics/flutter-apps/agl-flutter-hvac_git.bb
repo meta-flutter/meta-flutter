@@ -67,8 +67,8 @@ do_install() {
     # Toyota Layout
     #
 
-    install -d ${D}${datadir}/homescreen/gallery
-    cp -r ${S}/build/* ${D}${datadir}/homescreen/gallery
+    install -d ${D}${datadir}/homescreen/hvac
+    cp -r ${S}/build/* ${D}${datadir}/homescreen/hvac
     rm -rf ${D}${datadir}/homescreen/gallery/.last_build_id
     install -m 644 ${S}/libapp.so ${D}${datadir}/homescreen/hvac/libapp.so
 
