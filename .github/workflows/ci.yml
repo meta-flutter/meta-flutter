@@ -207,7 +207,7 @@ jobs:
           echo 'SSTATE_MIRRORS += "file://.* http://download.automotivelinux.org/sstate-mirror/${{ env.AGL_BRANCH }}/${DEFAULTTUNE}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
-          bitbake-layers add-layer ../meta-clang ../../meta-flutter
+          bitbake-layers add-layer ../external/meta-clang ../../meta-flutter
           bitbake-layers show-layers
           pwd
 
