@@ -208,19 +208,19 @@ jobs:
         shell: bash
         working-directory: ../agl-lamprey
         run: |
-          . ./agl-init-build-env
+          . ./build/agl-init-build-env
           bitbake agl-image-weston
 
       - name: Build flutter-engine
         shell: bash
         working-directory: ../agl-lamprey
         run: |
-          . ./agl-init-build-env
+          . ./build/agl-init-build-env
           bitbake flutter-engine
 
       - name: Build ivi-homescreen
         shell: bash
         working-directory: ../agl-lamprey
         run: |
-          . ./agl-init-build-env
+          . ./build/agl-init-build-env
           bitbake ivi-homescreen
