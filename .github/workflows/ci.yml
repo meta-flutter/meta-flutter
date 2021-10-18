@@ -83,98 +83,112 @@ jobs:
         working-directory: ../yocto-dunfell-latest/poky
         run: |
           . ./oe-init-build-env
+          rm -rf /home/dev/artifacts/*
           bitbake core-image-minimal
+          cp tmp/deploy/images/qemux86-64/* /home/dev/artifacts
 
       - name: Publish core-image-minimal artifacts
         uses: actions/upload-artifact@v2
         with:
           name: core-image-minimal-core2_64-linux
           path: |
-            ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/images/qemux86-64/*
+            /home/dev/artifacts/*
 
       - name: Build flutter-engine
         shell: bash
         working-directory: ../yocto-dunfell-latest/poky
         run: |
           . ./oe-init-build-env
+          rm -rf /home/dev/artifacts/*
           bitbake flutter-engine
+          cp tmp/deploy/rpm/core2_64/flutter-engine*.rpm /home/dev/artifacts
 
       - name: Publish flutter-engine artifacts
         uses: actions/upload-artifact@v2
         with:
           name: flutter-engine-core2_64-linux
           path: |
-            ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-engine*.rpm
+            /home/dev/artifacts/*.rpm
 
       - name: Build ivi-homescreen
         shell: bash
         working-directory: ../yocto-dunfell-latest/poky
         run: |
           . ./oe-init-build-env
+          rm -rf /home/dev/artifacts/*
           bitbake ivi-homescreen
+          cp tmp/deploy/rpm/core2_64/ivi-homescreen*.rpm /home/dev/artifacts
 
       - name: Publish ivi-homescreen artifacts
         uses: actions/upload-artifact@v2
         with:
           name: ivi-homescreen-core2_64-linux
           path: |
-             ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/ivi-homescreen*.rpm
+             /home/dev/artifacts/*.rpm
 
       - name: Build flutter-wayland
         shell: bash
         working-directory: ../yocto-dunfell-latest/poky
         run: |
           . ./oe-init-build-env
+          rm -rf /home/dev/artifacts/*
           bitbake flutter-wayland
+          cp tmp/deploy/rpm/core2_64/flutter-wayland*.rpm /home/dev/artifacts
 
       - name: Publish flutter-wayland artifacts
         uses: actions/upload-artifact@v2
         with:
           name: flutter-wayland-core2_64-linux
           path: |
-             ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-wayland*.rpm
+             /home/dev/artifacts/*.rpm
 
       - name: Build flutter-pi
         shell: bash
         working-directory: ../yocto-dunfell-latest/poky
         run: |
           . ./oe-init-build-env
+          rm -rf /home/dev/artifacts/*
           bitbake flutter-pi
+          cp tmp/deploy/rpm/core2_64/flutter-pi*.rpm /home/dev/artifacts
 
       - name: Publish flutter-pi artifacts
         uses: actions/upload-artifact@v2
         with:
           name: flutter-pi-core2_64-linux
           path: |
-             ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-pi*.rpm
+             /home/dev/artifacts/*.rpm
 
       - name: Build agl-flutter-hvac
         shell: bash
         working-directory: ../yocto-dunfell-latest/poky
         run: |
           . ./oe-init-build-env
+          rm -rf /home/dev/artifacts/*
           bitbake agl-flutter-hvac
+          cp tmp/deploy/rpm/core2_64/agl-flutter-hvac*.rpm /home/dev/artifacts
 
       - name: Publish agl-flutter-hvac artifacts
         uses: actions/upload-artifact@v2
         with:
           name: agl-flutter-hvac-core2_64-linux
           path: |
-            ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/agl-flutter-hvac*.rpm
+             /home/dev/artifacts/*.rpm
 
       - name: Build flutter-gallery
         shell: bash
         working-directory: ../yocto-dunfell-latest/poky
         run: |
           . ./oe-init-build-env
+          rm -rf /home/dev/artifacts/*
           bitbake flutter-gallery
+          cp tmp/deploy/rpm/core2_64/flutter-gallery*.rpm /home/dev/artifacts
 
       - name: Publish flutter-gallery artifacts
         uses: actions/upload-artifact@v2
         with:
           name: flutter-gallery-core2_64-linux
           path: |
-            ${{ env.GITHUB_JOB }}/poky/build/tmp/deploy/rpm/core2_64/flutter-gallery*.rpm
+             /home/dev/artifacts/*.rpm
             
 
   agl-lamprey:
@@ -235,18 +249,77 @@ jobs:
         working-directory: ../agl-lamprey
         run: |
           . ./build/agl-init-build-env
+          rm -rf /home/dev/artifacts/*
           bitbake agl-image-weston
+          cp tmp/deploy/images/${{ env.MACHINE }}/* /home/dev/artifacts
+
+      - name: Publish agl-image-weston artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: agl-image-weston-qemux86-64-linux
+          path: |
+             /home/dev/artifacts/*.rpm
 
       - name: Build flutter-engine
         shell: bash
         working-directory: ../agl-lamprey
         run: |
           . ./build/agl-init-build-env
+          rm -rf /home/dev/artifacts/*
           bitbake flutter-engine
+          cp tmp/deploy/rpm/core2_64/flutter-engine*.rpm /home/dev/artifacts
+
+      - name: Publish flutter-engine artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: flutter-engine-qemux86-64-linux
+          path: |
+             /home/dev/artifacts/*.rpm
 
       - name: Build ivi-homescreen
         shell: bash
         working-directory: ../agl-lamprey
         run: |
           . ./build/agl-init-build-env
+          rm -rf /home/dev/artifacts/*
           bitbake ivi-homescreen
+          cp tmp/deploy/rpm/core2_64/ivi-homescreen*.rpm /home/dev/artifacts
+
+      - name: Publish ivi-homescreen artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ivi-homescreen-qemux86-64-linux
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build agl-flutter-hvac
+        shell: bash
+        working-directory: ../agl-lamprey
+        run: |
+          . ./oe-init-build-env
+          rm -rf /home/dev/artifacts/*
+          bitbake agl-flutter-hvac
+          cp tmp/deploy/rpm/core2_64/agl-flutter-hvac*.rpm /home/dev/artifacts
+
+      - name: Publish agl-flutter-hvac artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: agl-flutter-hvac-qemux86-64-linux
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build flutter-gallery
+        shell: bash
+        working-directory: ../agl-lamprey
+        run: |
+          . ./oe-init-build-env
+          rm -rf /home/dev/artifacts/*
+          bitbake flutter-gallery
+          cp tmp/deploy/rpm/core2_64/flutter-gallery*.rpm /home/dev/artifacts
+
+      - name: Publish flutter-gallery artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: flutter-gallery-qemux86-64-linux
+          path: |
+             /home/dev/artifacts/*.rpm
