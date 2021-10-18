@@ -42,8 +42,6 @@ do_compile() {
     export PATH=${FLUTTER_SDK}/bin:$PATH
 
     cd ${S}
-    flutter channel beta
-    flutter upgrade
     flutter config --enable-linux-desktop
     flutter create .
     flutter build bundle
