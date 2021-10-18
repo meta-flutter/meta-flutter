@@ -41,12 +41,12 @@ jobs:
 
       - name: Fetch poky
         run: |
-          `pwd`/..
+          pwd
           ls -la ..
           pwd
           ls -la
           [ -d ../yocto-dunfell-latest ] || mkdir -p ../yocto-dunfell-latest
-          `pwd`/..
+          pwd
           ls -la ..
           pwd
           ls -la
@@ -216,7 +216,7 @@ jobs:
       - name: Configure AGL build
         run: |
           ps -p $$
-          `pwd`/..
+          pwd
           ls -la ..
           cd ../agl-lamprey
           pwd
