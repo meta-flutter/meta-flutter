@@ -200,7 +200,9 @@ jobs:
           echo "IMAGE_INSTALL_append = \" flutter-gallery\"" >> conf/local.conf
           mv ../../sstate-cache . || true
           echo 'SSTATE_MIRRORS = "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
+          echo 'SSTATE_MIRRORS += "file://.* http://download.automotivelinux.org/sstate-mirror/${{ env.AGL_BRANCH }}/${DEFAULTTUNE}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
+          echo '***** ./conf/local.conf *****'
           cat ./conf/local.conf
           bitbake-layers add-layer ../meta-clang ../../meta-flutter
           bitbake-layers show-layers
