@@ -202,6 +202,7 @@ jobs:
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           bitbake-layers add-layer ../meta-clang ../../meta-flutter
           bitbake-layers show-layers
+          pwd
 
       - name: Build agl-image-weston
         shell: bash
