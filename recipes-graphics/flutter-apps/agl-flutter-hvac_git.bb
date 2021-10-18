@@ -71,10 +71,6 @@ do_install() {
     cp -r ${S}/build/* ${D}${datadir}/homescreen/hvac
     rm -rf ${D}${datadir}/homescreen/gallery/.last_build_id
     install -m 644 ${S}/libapp.so ${D}${datadir}/homescreen/hvac/libapp.so
-
-    # set flutter application to run
-    cd ${D}${datadir}/homescreen
-    ln -sf hvac/ bundle
 }
 
 FILES_${PN} = "${datadir}/homescreen \
