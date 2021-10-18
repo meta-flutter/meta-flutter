@@ -41,14 +41,17 @@ jobs:
 
       - name: Fetch poky
         run: |
-          pwd
+          `pwd`/..
           ls -la ..
+          pwd
           ls -la
           [ -d ../yocto-dunfell-latest ] || mkdir -p ../yocto-dunfell-latest
-          pwd
+          `pwd`/..
           ls -la ..
+          pwd
           ls -la
           cd yocto-dunfell-latest
+          pwd
           ls -la
           mv poky/build/sstate-cache . || true
           rm -rf poky meta-openembedded meta-clang
@@ -213,11 +216,16 @@ jobs:
       - name: Configure AGL build
         run: |
           ps -p $$
+          `pwd`/..
+          ls -la ..
           cd ../agl-lamprey
           pwd
           ls -la
           bash
-          source ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
+          ps -p $$
+          pwd
+          ls -la
+          . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
           echo "IMAGE_INSTALL_append = \" ivi-homescreen\"" >> conf/local.conf
           echo "IMAGE_INSTALL_append = \" flutter-gallery\"" >> conf/local.conf
           mv ../../sstate-cache . || true
