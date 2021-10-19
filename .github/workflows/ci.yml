@@ -22,7 +22,14 @@ jobs:
     
     container:
       image: ghcr.io/meta-flutter/ubuntu-20-dev:main
-      options: --user 1018 --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1 -v /b/github-ci/download:/home/dev/dl:Z -v /b/github-ci/sstate/yocto/dunfell/latest:/home/dev/sstate:Z -v /b/github-ci/artifacts/yocto/dunfell/latest:/home/dev/artifacts:Z      
+      options:
+        --user 1018
+        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
+        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        -v /b/github-ci/download:/home/dev/dl:Z
+        -v /b/github-ci/sstate/yocto/dunfell/latest:/home/dev/sstate:Z
+        -v /b/github-ci/artifacts/yocto/dunfell/latest:/home/dev/artifacts:Z      
+
     steps:
     
       - name: Display UID Info
@@ -79,6 +86,12 @@ jobs:
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
+          echo '***************************************'
+          bitbake flutter-engine -c do_cleansstate
+          bitbake flutter-sdk-native -c do_cleansstate
+          bitbake ivi-homescreen -c do_cleansstate
+          bitbake flutter-gallery -c do_cleansstate
+          bitbake agl-flutter-hvac -c do_cleansstate
 
       - name: Build core-image-minimal
         shell: bash
@@ -205,7 +218,13 @@ jobs:
     
     container:
       image: ghcr.io/meta-flutter/ubuntu-20-dev:main
-      options: --user 1018 --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1 -v /b/github-ci/download:/home/dev/dl:Z -v /b/github-ci/sstate/agl/lampry:/home/dev/sstate:Z -v /b/github-ci/artifacts/agl/lamprey:/home/dev/artifacts:Z
+      options:
+        --user 1018
+        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
+        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        -v /b/github-ci/download:/home/dev/dl:Z
+        -v /b/github-ci/sstate/agl/lampry:/home/dev/sstate:Z
+        -v /b/github-ci/artifacts/agl/lamprey:/home/dev/artifacts:Z
       
     steps:
     
@@ -252,6 +271,11 @@ jobs:
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
           echo '***************************************'
+          bitbake flutter-engine -c do_cleansstate
+          bitbake flutter-sdk-native -c do_cleansstate
+          bitbake ivi-homescreen -c do_cleansstate
+          bitbake flutter-gallery -c do_cleansstate
+          bitbake agl-flutter-hvac -c do_cleansstate
 
       - name: Build agl-image-weston
         shell: bash
