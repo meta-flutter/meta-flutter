@@ -64,6 +64,17 @@ jobs:
         run: |
           . ./oe-init-build-env
           echo '***************************************'
+          sed -i '/rm_work/d' ./conf/local.conf
+          sed -i '/DL_DIR/d' ./conf/local.conf
+          sed -i '/SSTATE_DIR/d' ./conf/local.conf
+          sed -i '/SSTATE_MIRRORS/d' ./conf/local.conf
+          sed -i '/INIT_MANAGER/d' ./conf/local.conf
+          sed -i '/DISTRO_FEATURES/d' ./conf/local.conf
+          sed -i '/VIRTUAL-RUNTIME/d' ./conf/local.conf
+          sed -i '/PREFERRED_PROVIDER/d' ./conf/local.conf
+          sed -i '/FLUTTER_CHANNEL/d' ./conf/local.conf
+          sed -i '/PACKAGECONFIG_pn-flutter-engine/d' ./conf/local.conf
+          echo '***************************************'
           echo 'INHERIT += "rm_work"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
@@ -257,6 +268,13 @@ jobs:
         run: |
           . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
           echo '***************************************'
+          sed -i '/rm_work/d' ./conf/local.conf
+          sed -i '/DL_DIR/d' ./conf/local.conf
+          sed -i '/SSTATE_DIR/d' ./conf/local.conf
+          sed -i '/SSTATE_MIRRORS/d' ./conf/local.conf
+          sed -i '/FLUTTER_CHANNEL/d' ./conf/local.conf
+          sed -i '/PACKAGECONFIG_pn-flutter-engine/d' ./conf/local.conf
+          echo '***************************************'
           echo 'INHERIT += "rm_work"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
@@ -368,7 +386,8 @@ jobs:
         working-directory: ../agl-lamprey
         run: |
           . ./build/agl-init-build-env
-          echo 'IMAGE_INSTALL_append = " ivi-homescreen flutter-gallery agl-flutter-hvac"' >> ./conf/local.conf
+          sed -i '/IMAGE_INSTALL_append/d' ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " ivi-homescreen flutter-gallery"' >> ./conf/local.conf
           rm -rf /home/dev/artifacts/*
           bitbake agl-image-weston
           cp bb.environment /home/dev/artifacts
