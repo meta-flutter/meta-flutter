@@ -256,7 +256,7 @@ jobs:
         shell: bash
         working-directory: ../agl-lamprey
         run: |
-          [ -f "build/conf/local.conf" ] && rm build/conf/local.conf
+          rm -rf build || true
           . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
           echo '***************************************'
           echo 'INHERIT += "rm_work"' >> ./conf/local.conf
