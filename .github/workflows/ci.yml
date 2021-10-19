@@ -245,8 +245,7 @@ jobs:
         run: |
           [ -d ../agl-lamprey ] || mkdir -p ../agl-lamprey
           cd ../agl-lamprey
-          rm -rf .repo
-          rm -rf meta-agl-flutter
+          rm -rf .repo meta-agl-flutter
           /home/dev/bin/repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           git clone https://github.com/meta-flutter/meta-agl-flutter.git &
@@ -256,7 +255,6 @@ jobs:
         shell: bash
         working-directory: ../agl-lamprey
         run: |
-          rm -rf build || true
           . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
           echo '***************************************'
           echo 'INHERIT += "rm_work"' >> ./conf/local.conf
