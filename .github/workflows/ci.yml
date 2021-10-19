@@ -260,7 +260,8 @@ jobs:
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
           bitbake agl-image-weston
-          cp tmp/deploy/images/qemux86-64/* /home/dev/artifacts
+          cp tmp/deploy/images/qemux86-64/agl-image-weston-qemux86-64.ext4 /home/dev/artifacts
+          cp tmp/deploy/images/qemux86-64/bzImage /home/dev/artifacts
 
       - name: Publish agl-image-weston artifacts
         uses: actions/upload-artifact@v2
