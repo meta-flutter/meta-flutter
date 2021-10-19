@@ -62,7 +62,6 @@ jobs:
         shell: bash
         working-directory: ../yocto-dunfell-latest/poky
         run: |
-          rm build/conf/local.conf
           . ./oe-init-build-env
           echo '***************************************'
           echo 'INHERIT += "rm_work"' >> ./conf/local.conf
@@ -257,7 +256,7 @@ jobs:
         shell: bash
         working-directory: ../agl-lamprey
         run: |
-          rm build/conf/local.conf
+          [ -f "build/conf/local.conf" ] && rm build/conf/local.conf
           . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
           echo '***************************************'
           echo 'INHERIT += "rm_work"' >> ./conf/local.conf
@@ -280,6 +279,7 @@ jobs:
           bitbake ivi-homescreen -c do_cleansstate
           bitbake flutter-gallery -c do_cleansstate
           bitbake agl-flutter-hvac -c do_cleansstate
+          echo '***************************************'
           bitbake -e > bb.environment
 
       - name: Build agl-image-weston
