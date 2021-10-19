@@ -92,6 +92,7 @@ jobs:
           bitbake ivi-homescreen -c do_cleansstate
           bitbake flutter-gallery -c do_cleansstate
           bitbake agl-flutter-hvac -c do_cleansstate
+          bitbake -e > bb.environment
 
       - name: Build core-image-minimal
         shell: bash
@@ -100,6 +101,7 @@ jobs:
           . ./oe-init-build-env
           rm -rf /home/dev/artifacts/*
           bitbake core-image-minimal
+          cp bb.environment /home/dev/artifacts
           cp tmp/deploy/images/qemux86-64/* /home/dev/artifacts
 
       - name: Publish core-image-minimal artifacts
@@ -276,6 +278,7 @@ jobs:
           bitbake ivi-homescreen -c do_cleansstate
           bitbake flutter-gallery -c do_cleansstate
           bitbake agl-flutter-hvac -c do_cleansstate
+          bitbake -e > bb.environment
 
       - name: Build agl-image-weston
         shell: bash
@@ -284,6 +287,7 @@ jobs:
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
           bitbake agl-image-weston
+          cp bb.environment /home/dev/artifacts
           cp tmp/deploy/images/qemux86-64/agl-image-weston-qemux86-64.wic.vmdk /home/dev/artifacts
           cp tmp/deploy/images/qemux86-64/agl-image-weston-qemux86-64.ext4 /home/dev/artifacts
           cp tmp/deploy/images/qemux86-64/bzImage /home/dev/artifacts
