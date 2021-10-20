@@ -333,22 +333,6 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build agl-flutter-hvac
-        shell: bash
-        working-directory: ../agl-lamprey
-        run: |
-          . ./build/agl-init-build-env
-          rm -rf /home/dev/artifacts/*
-          bitbake agl-flutter-hvac
-          cp tmp/deploy/rpm/corei7_64/agl-flutter-hvac-git*.rpm /home/dev/artifacts
-
-      - name: Publish agl-flutter-hvac artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: agl-flutter-hvac-qemux86-64-linux
-          path: |
-             /home/dev/artifacts/*.rpm
-
       - name: Build flutter-gallery
         shell: bash
         working-directory: ../agl-lamprey
@@ -371,7 +355,7 @@ jobs:
         run: |
           . ./build/agl-init-build-env
           sed -i '/IMAGE_INSTALL_append/d' ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " ivi-homescreen flutter-gallery agl-flutter-hvac"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " ivi-homescreen flutter-gallery"' >> ./conf/local.conf
           rm -rf /home/dev/artifacts/*
           bitbake agl-image-weston
           cp bb.environment /home/dev/artifacts
