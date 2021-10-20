@@ -102,7 +102,6 @@ jobs:
           bitbake flutter-sdk-native -c do_cleansstate
           bitbake ivi-homescreen -c do_cleansstate
           bitbake flutter-gallery -c do_cleansstate
-          bitbake agl-flutter-hvac -c do_cleansstate
           bitbake -e > bb.environment
 
       - name: Build core-image-minimal
@@ -278,7 +277,6 @@ jobs:
           bitbake flutter-sdk-native -c do_cleansstate
           bitbake ivi-homescreen -c do_cleansstate
           bitbake flutter-gallery -c do_cleansstate
-          bitbake agl-flutter-hvac -c do_cleansstate
           echo '***************************************'
           bitbake -e > bb.environment
 
