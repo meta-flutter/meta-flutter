@@ -202,7 +202,7 @@ jobs:
              /home/dev/artifacts/*.rpm
             
 
-  agl-lamprey:
+  agl-lamprey-qemu:
   
     env:
       YOCTO_VERSION: 3.1.8
@@ -221,6 +221,175 @@ jobs:
         -v /b/github-ci/download:/home/dev/dl:Z
         -v /b/github-ci/sstate/agl/lampry:/home/dev/sstate:Z
         -v /b/github-ci/artifacts/agl/lamprey:/home/dev/artifacts:Z
+      
+    steps:
+    
+      - name: Display UID Info
+        run: |
+          whoami
+          id -u
+          
+      - name: Set Ownership
+        run: |
+          chown -R dev:dev $HOME .
+          
+      - uses: actions/checkout@v2
+
+      - name: Fetch Layers
+        run: |
+          [ -d ../agl-lamprey ] || mkdir -p ../agl-lamprey
+          cd ../agl-lamprey
+          rm -rf .repo meta-agl-flutter
+          /home/dev/bin/repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
+          /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
+          git clone https://github.com/meta-flutter/meta-agl-flutter.git &
+          wait
+          
+      - name: Configure AGL build
+        shell: bash
+        working-directory: ../agl-lamprey
+        run: |
+          . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
+          echo '***************************************'
+          sed -i '/rm_work/d' ./conf/local.conf
+          sed -i '/DL_DIR/d' ./conf/local.conf
+          sed -i '/SSTATE_DIR/d' ./conf/local.conf
+          sed -i '/SSTATE_MIRRORS/d' ./conf/local.conf
+          sed -i '/FLUTTER_CHANNEL/d' ./conf/local.conf
+          sed -i '/PACKAGECONFIG_pn-flutter-engine/d' ./conf/local.conf
+          echo '***************************************'
+          echo 'INHERIT += "rm_work"' >> ./conf/local.conf
+          echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
+          echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
+          echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
+          echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
+          echo 'SSTATE_MIRRORS += "file://.* http://download.automotivelinux.org/sstate-mirror/${{ env.AGL_BRANCH }}/${DEFAULTTUNE}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
+          echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-debug"' >> ./conf/local.conf
+          echo '***************************************'
+          bitbake-layers add-layer ../../meta-flutter ../meta-agl-flutter ../external/meta-clang
+          bitbake-layers show-layers
+          echo '***************************************'
+          bitbake -e virtual/kernel | grep "^PV"
+          bitbake -e virtual/kernel | grep "^PN"
+          echo '***************************************'
+          bitbake flutter-engine -c do_cleansstate
+          bitbake flutter-sdk-native -c do_cleansstate
+          bitbake ivi-homescreen -c do_cleansstate
+          bitbake flutter-gallery -c do_cleansstate
+          echo '***************************************'
+          bitbake -e > bb.environment
+
+      - name: Build agl-image-weston
+        shell: bash
+        working-directory: ../agl-lamprey
+        run: |
+          . ./build/agl-init-build-env
+          rm -rf /home/dev/artifacts/*
+          bitbake agl-image-weston
+          cp bb.environment /home/dev/artifacts
+          cp tmp/deploy/images/qemux86-64/agl-image-weston-qemux86-64.wic.vmdk /home/dev/artifacts
+          cp tmp/deploy/images/qemux86-64/agl-image-weston-qemux86-64.ext4 /home/dev/artifacts
+          cp tmp/deploy/images/qemux86-64/bzImage /home/dev/artifacts
+
+      - name: Publish agl-image-weston artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: agl-image-weston-qemux86-64-linux
+          path: |
+             /home/dev/artifacts/*
+
+      - name: Build flutter-engine
+        shell: bash
+        working-directory: ../agl-lamprey
+        run: |
+          . ./build/agl-init-build-env
+          rm -rf /home/dev/artifacts/*
+          bitbake flutter-engine
+          cp tmp/deploy/rpm/corei7_64/flutter-engine-git*.rpm /home/dev/artifacts
+
+      - name: Publish flutter-engine artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: flutter-engine-qemux86-64-linux
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build ivi-homescreen
+        shell: bash
+        working-directory: ../agl-lamprey
+        run: |
+          . ./build/agl-init-build-env
+          rm -rf /home/dev/artifacts/*
+          bitbake ivi-homescreen
+          cp tmp/deploy/rpm/corei7_64/ivi-homescreen-git*.rpm /home/dev/artifacts
+
+      - name: Publish ivi-homescreen artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ivi-homescreen-qemux86-64-linux
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build flutter-gallery
+        shell: bash
+        working-directory: ../agl-lamprey
+        run: |
+          . ./build/agl-init-build-env
+          rm -rf /home/dev/artifacts/*
+          bitbake flutter-gallery
+          cp tmp/deploy/rpm/corei7_64/flutter-gallery-git*.rpm /home/dev/artifacts
+
+      - name: Publish flutter-gallery artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: flutter-gallery-qemux86-64-linux
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build agl-image-weston with flutter
+        shell: bash
+        working-directory: ../agl-lamprey
+        run: |
+          . ./build/agl-init-build-env
+          sed -i '/IMAGE_INSTALL_append/d' ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " ivi-homescreen flutter-gallery agl-flutter-hvac"' >> ./conf/local.conf
+          rm -rf /home/dev/artifacts/*
+          bitbake agl-flutter-hvac -c do_cleansstate
+          bitbake agl-image-weston
+          cp bb.environment /home/dev/artifacts
+          cp tmp/deploy/images/qemux86-64/agl-image-weston-qemux86-64.wic.vmdk /home/dev/artifacts
+          cp tmp/deploy/images/qemux86-64/agl-image-weston-qemux86-64.ext4 /home/dev/artifacts
+          cp tmp/deploy/images/qemux86-64/bzImage /home/dev/artifacts
+
+      - name: Publish agl-image-weston artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: agl-image-weston-flutter-qemux86-64-linux
+          path: |
+             /home/dev/artifacts/*
+
+  agl-lamprey-m3ulcb:
+  
+    env:
+      YOCTO_VERSION: 3.1.8
+      YOCTO_BRANCH: dunfell
+      MACHINE: m3ulcb
+      AGL_BRANCH: lamprey
+      XDG_DOWNLOAD_DIR: /home/dev/rcar_dl
+
+    runs-on: [self-hosted, linux]
+    
+    container:
+      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      options:
+        --user 1018
+        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
+        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        -v /b/github-ci/download:/home/dev/dl:Z
+        -v /b/github-ci/sstate/agl/lampry:/home/dev/sstate:Z
+        -v /b/github-ci/artifacts/agl/lamprey:/home/dev/artifacts:Z
+        -v /b/github-ci/rcar_dl:/home/dev/rcar_dl:Z
       
     steps:
     
