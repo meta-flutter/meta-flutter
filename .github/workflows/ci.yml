@@ -12,7 +12,7 @@ on:
 
 jobs:
 
-  yocto-dunfell-latest:
+  yocto-dunfell-latest-linux-dummy:
   
     env:
       YOCTO_VERSION: 3.1.11
@@ -114,13 +114,6 @@ jobs:
           cp bb.environment /home/dev/artifacts
           cp tmp/deploy/images/qemux86-64/* /home/dev/artifacts
 
-      - name: Publish core-image-minimal artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: core-image-minimal-core2_64-linux
-          path: |
-            /home/dev/artifacts/*
-
       - name: Build flutter-engine
         shell: bash
         working-directory: ../yocto-dunfell-latest/poky
@@ -129,13 +122,6 @@ jobs:
           rm -rf /home/dev/artifacts/*
           bitbake flutter-engine
           cp tmp/deploy/rpm/core2_64/flutter-engine-git*.rpm /home/dev/artifacts
-
-      - name: Publish flutter-engine artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: flutter-engine-core2_64-linux
-          path: |
-            /home/dev/artifacts/*.rpm
 
       - name: Build ivi-homescreen
         shell: bash
@@ -146,13 +132,6 @@ jobs:
           bitbake ivi-homescreen
           cp tmp/deploy/rpm/core2_64/ivi-homescreen-git*.rpm /home/dev/artifacts
 
-      - name: Publish ivi-homescreen artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: ivi-homescreen-core2_64-linux
-          path: |
-             /home/dev/artifacts/*.rpm
-
       - name: Build flutter-wayland
         shell: bash
         working-directory: ../yocto-dunfell-latest/poky
@@ -161,13 +140,6 @@ jobs:
           rm -rf /home/dev/artifacts/*
           bitbake flutter-wayland
           cp tmp/deploy/rpm/core2_64/flutter-wayland-git*.rpm /home/dev/artifacts
-
-      - name: Publish flutter-wayland artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: flutter-wayland-core2_64-linux
-          path: |
-             /home/dev/artifacts/*.rpm
 
       - name: Build flutter-pi
         shell: bash
@@ -178,13 +150,6 @@ jobs:
           bitbake flutter-pi
           cp tmp/deploy/rpm/core2_64/flutter-pi-git*.rpm /home/dev/artifacts
 
-      - name: Publish flutter-pi artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: flutter-pi-core2_64-linux
-          path: |
-             /home/dev/artifacts/*.rpm
-
       - name: Build flutter-gallery
         shell: bash
         working-directory: ../yocto-dunfell-latest/poky
@@ -193,14 +158,6 @@ jobs:
           rm -rf /home/dev/artifacts/*
           bitbake flutter-gallery
           cp tmp/deploy/rpm/core2_64/flutter-gallery-git*.rpm /home/dev/artifacts
-
-      - name: Publish flutter-gallery artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: flutter-gallery-core2_64-linux
-          path: |
-             /home/dev/artifacts/*.rpm
-            
 
   agl-lamprey-qemu:
   
@@ -237,8 +194,8 @@ jobs:
 
       - name: Fetch Layers
         run: |
-          [ -d ../agl-lamprey ] || mkdir -p ../agl-lamprey
-          cd ../agl-lamprey
+          [ -d ../agl-lamprey-qemu ] || mkdir -p ../agl-lamprey-qemu
+          cd ../agl-lamprey-qemu
           rm -rf .repo meta-agl-flutter
           /home/dev/bin/repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
@@ -247,7 +204,7 @@ jobs:
           
       - name: Configure AGL build
         shell: bash
-        working-directory: ../agl-lamprey
+        working-directory: ../agl-lamprey-qemu
         run: |
           . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
           echo '***************************************'
@@ -282,7 +239,7 @@ jobs:
 
       - name: Build agl-image-weston
         shell: bash
-        working-directory: ../agl-lamprey
+        working-directory: ../agl-lamprey-qemu
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
@@ -301,7 +258,7 @@ jobs:
 
       - name: Build flutter-engine
         shell: bash
-        working-directory: ../agl-lamprey
+        working-directory: ../agl-lamprey-qemu
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
@@ -317,7 +274,7 @@ jobs:
 
       - name: Build ivi-homescreen
         shell: bash
-        working-directory: ../agl-lamprey
+        working-directory: ../agl-lamprey-qemu
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
@@ -333,7 +290,7 @@ jobs:
 
       - name: Build flutter-gallery
         shell: bash
-        working-directory: ../agl-lamprey
+        working-directory: ../agl-lamprey-qemu
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
@@ -349,7 +306,7 @@ jobs:
 
       - name: Build agl-image-weston with flutter
         shell: bash
-        working-directory: ../agl-lamprey
+        working-directory: ../agl-lamprey-qemu
         run: |
           . ./build/agl-init-build-env
           sed -i '/IMAGE_INSTALL_append/d' ./conf/local.conf
@@ -406,8 +363,8 @@ jobs:
 
       - name: Fetch Layers
         run: |
-          [ -d ../agl-lamprey ] || mkdir -p ../agl-lamprey
-          cd ../agl-lamprey
+          [ -d ../agl-lamprey-m3ulcb ] || mkdir -p ../agl-lamprey-m3ulcb
+          cd ../agl-lamprey-m3ulcb
           rm -rf .repo meta-agl-flutter
           /home/dev/bin/repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
@@ -416,7 +373,7 @@ jobs:
           
       - name: Configure AGL build
         shell: bash
-        working-directory: ../agl-lamprey
+        working-directory: ../agl-lamprey-m3ulcb
         run: |
           . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
           echo '***************************************'
@@ -451,7 +408,7 @@ jobs:
 
       - name: Build agl-image-weston
         shell: bash
-        working-directory: ../agl-lamprey
+        working-directory: ../agl-lamprey-m3ulcb
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
@@ -464,13 +421,13 @@ jobs:
       - name: Publish agl-image-weston artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: agl-image-weston-qemux86-64-linux
+          name: agl-image-weston-m3ulcb-linux
           path: |
              /home/dev/artifacts/*
 
       - name: Build flutter-engine
         shell: bash
-        working-directory: ../agl-lamprey
+        working-directory: ../agl-lamprey-m3ulcb
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
@@ -480,13 +437,13 @@ jobs:
       - name: Publish flutter-engine artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: flutter-engine-qemux86-64-linux
+          name: flutter-engine-m3ulcb-linux
           path: |
              /home/dev/artifacts/*.rpm
 
       - name: Build ivi-homescreen
         shell: bash
-        working-directory: ../agl-lamprey
+        working-directory: ../agl-lamprey-m3ulcb
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
@@ -496,13 +453,13 @@ jobs:
       - name: Publish ivi-homescreen artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: ivi-homescreen-qemux86-64-linux
+          name: ivi-homescreen-m3ulcb-linux
           path: |
              /home/dev/artifacts/*.rpm
 
       - name: Build flutter-gallery
         shell: bash
-        working-directory: ../agl-lamprey
+        working-directory: ../agl-lamprey-m3ulcb
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
@@ -512,13 +469,13 @@ jobs:
       - name: Publish flutter-gallery artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: flutter-gallery-qemux86-64-linux
+          name: flutter-gallery-m3ulcb-linux
           path: |
              /home/dev/artifacts/*.rpm
 
       - name: Build agl-image-weston with flutter
         shell: bash
-        working-directory: ../agl-lamprey
+        working-directory: ../agl-lamprey-m3ulcb
         run: |
           . ./build/agl-init-build-env
           sed -i '/IMAGE_INSTALL_append/d' ./conf/local.conf
@@ -534,6 +491,6 @@ jobs:
       - name: Publish agl-image-weston artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: agl-image-weston-flutter-qemux86-64-linux
+          name: agl-image-weston-flutter-m3ulcb-linux
           path: |
              /home/dev/artifacts/*
