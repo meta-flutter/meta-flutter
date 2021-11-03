@@ -97,7 +97,7 @@ jobs:
         shell: bash
         working-directory: ../rpi4-drm-honister-latest
         run: |
-          . ./setup-environment
+          . ./sources/poky/oe-init-build-env $MACHINE
           bitbake flutter-engine -c do_cleansstate
           bitbake flutter-engine
           cp tmp/deploy/rpm/cortexa72/flutter-engine-git*.rpm /home/dev/artifacts
@@ -113,7 +113,7 @@ jobs:
         shell: bash
         working-directory: ../rpi4-drm-honister-latest
         run: |
-          . ./setup-environment
+          . ./sources/poky/oe-init-build-env $MACHINE
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
           cp tmp/deploy/rpm/cortexa72/flutter-pi-git*.rpm /home/dev/artifacts
@@ -129,7 +129,7 @@ jobs:
         shell: bash
         working-directory: ../rpi4-drm-honister-latest
         run: |
-          . ./setup-environment
+          . ./sources/poky/oe-init-build-env $MACHINE
           bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-gallery -c do_cleansstate
           bitbake flutter-gallery
@@ -146,7 +146,7 @@ jobs:
         shell: bash
         working-directory: ../rpi4-drm-honister-latest
         run: |
-          . ./setup-environment
+          . ./sources/poky/oe-init-build-env $MACHINE
           sed -i '/ivi-homescreen/d' ./conf/local.conf
           sed -i '/flutter-pi/d' ./conf/local.conf
           sed -i '/flutter-gallery/d' ./conf/local.conf
