@@ -70,6 +70,7 @@ jobs:
           sed -i '/sources\/meta-openembedded\/meta-webserver/d' ./conf/bblayers.conf
           sed -i '/sources\/meta-qt5/d' ./conf/bblayers.conf
           sed -i '/sources\/meta-flutter/d' ./conf/bblayers.conf
+          cat ./conf/bblayers.conf
           echo '***************************************'
           sed -i '/DL_DIR/d' ./conf/local.conf
           sed -i '/SSTATE_DIR/d' ./conf/local.conf
