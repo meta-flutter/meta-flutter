@@ -58,19 +58,21 @@ jobs:
           /home/dev/bin/repo init -u https://github.com/jwinarske/manifests.git -m rpi64.xml -b $YOCTO_BRANCH
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           wait
+          echo '***************************************'
+          sed -i '/meta-flutter\/meta-flutter/d' ./raspberrypi4-64/conf/bblayers.conf
+          sed -i '/sources\/meta-openembedded\/meta-webserver/d' ./raspberrypi4-64/conf/bblayers.conf
+          sed -i '/sources\/meta-qt5/d' ./raspberrypi4-64/conf/bblayers.conf
+          sed -i '/sources\/meta-flutter/d' ./raspberrypi4-64/conf/bblayers.conf
+          echo '***************************************'
           cd sources/poky && git checkout 5f26494b3a5e296d99be7634b96e6dc62c6896b5 && cd ../..
 
       - name: Configure build
         shell: bash
         working-directory: ../rpi4-drm-dunfell-latest
         run: |
-          . ./setup-environment $MACHINE
-          echo '***************************************'
-          sed -i '/meta-flutter\/meta-flutter/d' ./conf/bblayers.conf
-          sed -i '/sources\/meta-openembedded\/meta-webserver/d' ./conf/bblayers.conf
-          sed -i '/sources\/meta-qt5/d' ./conf/bblayers.conf
-          sed -i '/sources\/meta-flutter/d' ./conf/bblayers.conf
           cat ./conf/bblayers.conf
+          echo '***************************************'
+          . ./setup-environment $MACHINE
           echo '***************************************'
           sed -i '/DL_DIR/d' ./conf/local.conf
           sed -i '/SSTATE_DIR/d' ./conf/local.conf
