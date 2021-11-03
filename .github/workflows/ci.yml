@@ -480,3 +480,158 @@ jobs:
           name: agl-image-weston-flutter-m3ulcb-linux
           path: |
              /home/dev/artifacts/*
+
+  rpi4-drm-dunfell-latest:
+  
+    env:
+      YOCTO_VERSION: 3.1.11
+      YOCTO_BRANCH: dunfell
+      MACHINE: raspberrypi4-64
+      
+    runs-on: [self-hosted, linux]
+    
+    container:
+      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      options:
+        --user 1018
+        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
+        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        -v /b/github-ci/download:/home/dev/dl:Z
+        -v /b/github-ci/sstate/yocto/dunfell/rpi4-drm/latest:/home/dev/sstate:Z
+        -v /b/github-ci/artifacts/rpi4/drm:/home/dev/artifacts:Z
+
+
+    steps:
+    
+      - name: Display UID Info
+        run: |
+          whoami
+          id -u
+          
+      - name: Set Ownership
+        run: |
+          chown -R dev:dev $HOME .
+          
+      - uses: actions/checkout@v2
+        with:
+          path: meta-flutter
+
+      - name: Fetch poky
+        run: |
+          [ -d ../rpi4-drm-dunfell-latest ] || mkdir -p ../rpi4-drm-dunfell-latest
+          cd ../rpi4-drm-dunfell-latest
+          pwd
+          ls -la
+          mv poky/build/sstate-cache . || true
+          rm -rf poky meta-openembedded meta-clang
+          repo init -u https://github.com/jwinarske/manifests.git -m rpi64.xml -b $YOCTO_BRANCH
+          repo sync -j40
+          wait
+
+      - name: Configure build
+        shell: bash
+        working-directory: ../rpi4-drm-dunfell-latest
+        run: |
+          . ./setup-environment $MACHINE
+          echo '***************************************'
+          sed -i '/rm_work/d' ./conf/local.conf
+          sed -i '/DL_DIR/d' ./conf/local.conf
+          sed -i '/SSTATE_DIR/d' ./conf/local.conf
+          sed -i '/SSTATE_MIRRORS/d' ./conf/local.conf
+          sed -i '/INIT_MANAGER/d' ./conf/local.conf
+          sed -i '/DISTRO_FEATURES/d' ./conf/local.conf
+          sed -i '/VIRTUAL-RUNTIME/d' ./conf/local.conf
+          sed -i '/PREFERRED_PROVIDER/d' ./conf/local.conf
+          sed -i '/FLUTTER_CHANNEL/d' ./conf/local.conf
+          sed -i '/PACKAGECONFIG_pn-flutter-engine/d' ./conf/local.conf
+          sed -i '/IMAGE_INSTALL/d' ./conf/local.conf
+          echo '***************************************'
+          echo 'INHERIT += "rm_work"' >> ./conf/local.conf
+          echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
+          echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
+          echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
+          echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
+          echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES_remove = " sysvinit x11"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES_append = " opengl systemd"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES_BACKFILL_CONSIDERED = ""' >> ./conf/local.conf
+          echo 'VIRTUAL-RUNTIME_init_manager = "systemd"' >> ./conf/local.conf
+          echo 'VIRTUAL-RUNTIME_initscripts = ""' >> ./conf/local.conf
+          echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " kernel-modules"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-debug"' >> ./conf/local.conf
+          echo '********** ./conf/local.conf **********'
+          cat ./conf/local.conf
+          echo '***************************************'
+          bitbake-layers add-layer ../../meta-openembedded/meta-oe ../../meta-clang ../../../meta-flutter
+          bitbake-layers show-layers
+          echo '***************************************'
+          bitbake -e virtual/kernel | grep "^PV"
+          bitbake -e virtual/kernel | grep "^PN"
+          echo '***************************************'
+          bitbake flutter-engine -c do_cleansstate
+          bitbake flutter-sdk-native -c do_cleansstate
+          bitbake ivi-homescreen -c do_cleansstate
+          bitbake flutter-gallery -c do_cleansstate
+          bitbake -e > bb.environment
+
+      - name: Build core-image-minimal
+        shell: bash
+        working-directory: ../rpi4-drm-dunfell-latest
+        run: |
+          . ./setup-environment $MACHINE
+          bitbake core-image-minimal
+
+      - name: Build flutter-engine
+        shell: bash
+        working-directory: ../rpi4-drm-dunfell-latest
+        run: |
+          . ./setup-environment $MACHINE
+          bitbake flutter-engine
+
+      - name: Build ivi-homescreen
+        shell: bash
+        working-directory: ../rpi4-drm-dunfell-latest
+        run: |
+          . ./setup-environment $MACHINE
+          bitbake ivi-homescreen
+
+      - name: Build flutter-wayland
+        shell: bash
+        working-directory: ../rpi4-drm-dunfell-latest
+        run: |
+          . ./setup-environment $MACHINE
+          bitbake flutter-wayland
+
+      - name: Build flutter-pi
+        shell: bash
+        working-directory: ../rpi4-drm-dunfell-latest
+        run: |
+          . ./setup-environment $MACHINE
+          bitbake flutter-pi
+
+      - name: Build flutter-gallery
+        shell: bash
+        working-directory: ../rpi4-drm-dunfell-latest
+        run: |
+          . ./setup-environment $MACHINE
+          bitbake flutter-gallery
+
+      - name: Build core-image-minimal
+        shell: bash
+        working-directory: ../rpi4-drm-dunfell-latest
+        run: |
+          . ./setup-environment $MACHINE
+          echo 'IMAGE_INSTALL_append = " ivi-homescreen"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " flutter-pi"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " flutter-gallery"' >> ./conf/local.conf
+          bitbake core-image-minimal
+          cp bb.environment /home/dev/artifacts
+          ls -la tmp/deploy/images/
+
+      - name: Publish rpi4-drm-dunfell-latest artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: rpi4-drm-dunfell-latest
+          path: |
+             /home/dev/artifacts/*
