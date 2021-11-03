@@ -8,11 +8,11 @@ S = "${WORKDIR}/git"
 
 inherit cmake
 
-EXTRA_OECMAKE_append = " \
+EXTRA_OECMAKE:append = " \
     -DCMAKE_VERBOSE_MAKEFILE=TRUE \
     "
 
-FILES_${PN}-dev  = " \
+FILES:${PN}-dev  = " \
     ${includedir} \
     ${libdir}/libpugixml.a \
     ${libdir}/pkgconfig \

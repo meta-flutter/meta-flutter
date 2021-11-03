@@ -54,10 +54,10 @@ def gn_host_arch_name(d):
 # non-Python variables with overrides that are generic enough (i.e. "x86"
 # instead of "i586") and then use gn_target_arch_name() to return the right
 # value with some validation.
-GN_TARGET_ARCH_NAME_aarch64 = "arm64"
-GN_TARGET_ARCH_NAME_arm = "arm"
-GN_TARGET_ARCH_NAME_x86 = "x86"
-GN_TARGET_ARCH_NAME_x86-64 = "x64"
+GN_TARGET_ARCH_NAME:aarch64 = "arm64"
+GN_TARGET_ARCH_NAME:arm = "arm"
+GN_TARGET_ARCH_NAME:x86 = "x86"
+GN_TARGET_ARCH_NAME:x86-64 = "x64"
 
 def gn_target_arch_name(d):
     """Returns a GN architecture name corresponding to the target machine's

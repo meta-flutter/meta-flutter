@@ -91,11 +91,11 @@ do_install() {
     cp -rTv ${S}/build/flutter_assets/. ${D}${datadir}/${PN}/sony/data/flutter_assets/
 }
 
-FILES_${PN} = "${datadir}/homescreen \
+FILES:${PN} = "${datadir}/homescreen \
                ${datadir}/${PN} \
               "
 
-FILES_${PN}-aot = "${datadir}/homescreen/gallery/libapp.so \
+FILES:${PN}-aot = "${datadir}/homescreen/gallery/libapp.so \
                    ${datadir}/${PN}/sony/lib/libapp.so \
                   "
 

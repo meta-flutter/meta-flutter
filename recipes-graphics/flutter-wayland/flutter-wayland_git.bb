@@ -10,7 +10,7 @@ DEPENDS =+ "\
     waylandpp \
 "
 
-RDEPENDS_${PN} += "xkeyboard-config"
+RDEPENDS:${PN} += "xkeyboard-config"
 
 SRC_URI = "git://github.com/jwinarske/flutter_wayland;protocol=https;branch=waylandpp"
 SRCREV = "17d0d57544fbff855817af0aba4f17e4a014c184"
@@ -26,4 +26,4 @@ EXTRA_OECMAKE = " \
     -DFLUTTER_ENGINE_LIBRARY=${STAGING_LIBDIR}/libflutter_engine.so \
     "
 
-FILES_${PN}  = "${bindir}/flutter_wayland"
+FILES:${PN}  = "${bindir}/flutter_wayland"

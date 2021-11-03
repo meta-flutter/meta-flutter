@@ -18,7 +18,7 @@ DEPENDS += "\
     wayland-native \
     "
 
-RDEPENDS_${PN} += "xkeyboard-config"
+RDEPENDS:${PN} += "xkeyboard-config"
 
 REQUIRED_DISTRO_FEATURES = "wayland"
 
@@ -37,7 +37,7 @@ EXTRA_OECMAKE += "\
     -D USER_PROJECT_PATH=examples/${PN} \
 "
 
-do_configure_prepend() {
+do_configure:prepend() {
    install -d ${S}/build
    install -m 644 ${STAGING_LIBDIR}/libflutter_engine.so ${S}/build/
 }

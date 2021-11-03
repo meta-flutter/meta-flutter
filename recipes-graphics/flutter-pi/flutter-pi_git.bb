@@ -19,7 +19,7 @@ DEPENDS += "\
     virtual/egl \
    "
 
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
     xkeyboard-config \
     fontconfig \
     "
@@ -38,6 +38,6 @@ EXTRA_OECMAKE += "-D BUILD_TEXT_INPUT_PLUGIN=ON \
                   -D BUILD_OMXPLAYER_VIDEO_PLAYER_PLUGIN=ON \
                   "
 
-FILES_${PN} = "${bindir}"
+FILES:${PN} = "${bindir}"
 
 BBCLASSEXTEND = ""
