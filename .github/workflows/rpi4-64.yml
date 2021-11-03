@@ -81,9 +81,11 @@ jobs:
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
-          sed -i '/sources\/meta-flutter/d' ./conf/bblayers.conf
+          sed -i '/meta-flutter\/meta-flutter/d' ./conf/bblayers.conf
+          sed -i '/sources\/meta-openembedded\/meta-webserver/d' ./conf/bblayers.conf
           sed -i '/sources\/meta-qt5/d' ./conf/bblayers.conf
-          sed -i '/sources\/meta-weserver/d' ./conf/bblayers.conf
+          sed -i '/sources\/meta-flutter/d' ./conf/bblayers.conf
+          echo '***************************************'
           bitbake-layers add-layer ../sources/meta-clang ../../meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
