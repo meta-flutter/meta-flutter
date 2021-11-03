@@ -58,7 +58,9 @@ jobs:
           /home/dev/bin/repo init -u https://github.com/jwinarske/manifests.git -m rpi64.xml -b $YOCTO_BRANCH
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           wait
-          pushd sources/poky && git checkout 5f26494b3a5e296d99be7634b96e6dc62c6896b5 && popd
+          pwd
+          ls -la sources
+          cd sources/poky && git checkout 5f26494b3a5e296d99be7634b96e6dc62c6896b5 && cd ../..
 
       - name: Configure build
         shell: bash
