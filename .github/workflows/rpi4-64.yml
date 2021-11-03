@@ -80,7 +80,8 @@ jobs:
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
-          bitbake-layers remove-layer meta-flutter meta-qt5 meta-webserver
+          sed -i '/sources\/meta-flutter/d' ./conf/bblayers.conf
+          bitbake-layers remove-layer meta-qt5 meta-webserver
           bitbake-layers add-layer ../sources/meta-clang ../../meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
