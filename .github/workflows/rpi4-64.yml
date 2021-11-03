@@ -67,6 +67,8 @@ jobs:
           sed -i '/DL_DIR/d' ./conf/local.conf
           sed -i '/SSTATE_DIR/d' ./conf/local.conf
           sed -i '/SSTATE_MIRRORS/d' ./conf/local.conf
+          sed -i '/FLUTTER_CHANNEL/d' ./conf/local.conf
+          sed -i '/PACKAGECONFIG/d' ./conf/local.conf
           echo '***************************************'
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
@@ -77,8 +79,6 @@ jobs:
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
-          bitbake-layers remove-layer meta-flutter
-          bitbake-layers add-layer ../../meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
