@@ -12,11 +12,11 @@ on:
 
 jobs:
 
-  drm-dunfell:
+  drm-honister:
   
     env:
-      YOCTO_VERSION: 3.1.11
-      YOCTO_BRANCH: dunfell
+      DISTRO_VERSION: 3.4
+      YOCTO_BRANCH: honister
       MACHINE: raspberrypi4-64
       
     runs-on: [self-hosted, linux]
@@ -49,8 +49,8 @@ jobs:
 
       - name: Fetch poky
         run: |
-          [ -d ../rpi4-drm-dunfell-latest ] || mkdir -p ../rpi4-drm-dunfell-latest
-          cd ../rpi4-drm-dunfell-latest
+          [ -d ../rpi4-drm-honister-latest ] || mkdir -p ../rpi4-drm-honister-latest
+          cd ../rpi4-drm-honister-latest
           pwd
           ls -la
           /home/dev/bin/repo init -u https://github.com/jwinarske/manifests.git -m rpi64.xml -b $YOCTO_BRANCH
@@ -61,7 +61,7 @@ jobs:
 
       - name: Configure build
         shell: bash
-        working-directory: ../rpi4-drm-dunfell-latest
+        working-directory: ../rpi4-drm-honister-latest
         run: |
           rm -rf raspberrypi4-64 || true
           . ./setup-environment $MACHINE
@@ -73,7 +73,7 @@ jobs:
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
-          echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
+          echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.DISTRO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
           echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-debug"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
@@ -90,14 +90,14 @@ jobs:
 
       - name: Build core-image-minimal
         shell: bash
-        working-directory: ../rpi4-drm-dunfell-latest
+        working-directory: ../rpi4-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env $MACHINE
           bitbake core-image-minimal
 
       - name: Build flutter-engine
         shell: bash
-        working-directory: ../rpi4-drm-dunfell-latest
+        working-directory: ../rpi4-drm-honister-latest
         run: |
           . ./setup-environment
           bitbake flutter-engine -c do_cleansstate
@@ -113,7 +113,7 @@ jobs:
 
       - name: Build flutter-pi
         shell: bash
-        working-directory: ../rpi4-drm-dunfell-latest
+        working-directory: ../rpi4-drm-honister-latest
         run: |
           . ./setup-environment
           bitbake flutter-pi -c do_cleansstate
@@ -129,7 +129,7 @@ jobs:
 
       - name: Build flutter-gallery
         shell: bash
-        working-directory: ../rpi4-drm-dunfell-latest
+        working-directory: ../rpi4-drm-honister-latest
         run: |
           . ./setup-environment
           bitbake flutter-sdk-native -c do_cleansstate
@@ -146,7 +146,7 @@ jobs:
 
       - name: Build core-image-minimal
         shell: bash
-        working-directory: ../rpi4-drm-dunfell-latest
+        working-directory: ../rpi4-drm-honister-latest
         run: |
           . ./setup-environment
           sed -i '/ivi-homescreen/d' ./conf/local.conf
