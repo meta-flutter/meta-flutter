@@ -64,7 +64,6 @@ jobs:
         working-directory: ../rpi4-drm-dunfell-latest
         run: |
           . ./setup-environment $MACHINE
-          sed -i '/sources\/meta-flutter/d' ./conf/bblayers.conf
           echo '***************************************'
           sed -i '/DL_DIR/d' ./conf/local.conf
           sed -i '/SSTATE_DIR/d' ./conf/local.conf
