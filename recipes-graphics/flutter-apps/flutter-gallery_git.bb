@@ -49,7 +49,7 @@ do_compile() {
     flutter create .
     flutter build bundle
     
-    ${ENGINE_SDK}/clang_x64/dart ${FLUTTER_SDK}/bin/cache/dart-sdk/bin/snapshots/frontend_server.dart.snapshot \
+    dart ${FLUTTER_SDK}/bin/cache/dart-sdk/bin/snapshots/frontend_server.dart.snapshot \
       --aot --tfa --target=flutter \
       --sdk-root ${FLUTTER_SDK}/bin/cache/artifacts/engine/common/flutter_patched_sdk \
       --output-dill app.dill \
