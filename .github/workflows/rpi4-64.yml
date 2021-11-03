@@ -64,6 +64,7 @@ jobs:
         working-directory: ../rpi4-drm-dunfell-latest
         run: |
           . ./setup-environment $MACHINE
+          sed -i '/sources\/meta-flutter/d' ./conf/bblayers.conf
           echo '***************************************'
           sed -i '/DL_DIR/d' ./conf/local.conf
           sed -i '/SSTATE_DIR/d' ./conf/local.conf
@@ -80,8 +81,8 @@ jobs:
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
-          bitbake-layers remove-layer ../sources/meta-flutter
-          bitbake-layers add-layer ../sources/meta-openembedded/meta-oe ../sources/meta-clang ../../meta-flutter
+          bitbake-layers remove-layer meta-flutter meta-qt5 meta-webserver
+          bitbake-layers add-layer ../sources/meta-clang ../../meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
@@ -93,7 +94,7 @@ jobs:
         shell: bash
         working-directory: ../rpi4-drm-dunfell-latest
         run: |
-          . ./setup-environment $MACHINE
+          . ./sources/poky/oe-init-build-env $MACHINE
           bitbake core-image-minimal
 
       - name: Build flutter-engine
