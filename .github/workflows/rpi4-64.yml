@@ -56,26 +56,18 @@ jobs:
           /home/dev/bin/repo init -u https://github.com/jwinarske/manifests.git -m rpi64.xml -b $YOCTO_BRANCH
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           wait
-          echo '***************************************'
-          sed -i '/meta-flutter\/meta-flutter/d' ./raspberrypi4-64/conf/bblayers.conf
-          sed -i '/sources\/meta-openembedded\/meta-webserver/d' ./raspberrypi4-64/conf/bblayers.conf
-          sed -i '/sources\/meta-qt5/d' ./raspberrypi4-64/conf/bblayers.conf
-          sed -i '/sources\/meta-flutter/d' ./raspberrypi4-64/conf/bblayers.conf
-          cat ./raspberrypi4-64/conf/bblayers.conf || true
-          echo '***************************************'
           cd sources/poky && git checkout 5f26494b3a5e296d99be7634b96e6dc62c6896b5 && cd ../..
 
       - name: Configure build
         shell: bash
         working-directory: ../rpi4-drm-dunfell-latest
         run: |
+          rm -rf raspberrypi4-64 || true
           . ./setup-environment $MACHINE
           echo '***************************************'
           sed -i '/DL_DIR/d' ./conf/local.conf
           sed -i '/SSTATE_DIR/d' ./conf/local.conf
           sed -i '/SSTATE_MIRRORS/d' ./conf/local.conf
-          sed -i '/FLUTTER_CHANNEL/d' ./conf/local.conf
-          sed -i '/PACKAGECONFIG_pn-flutter-engine/d' ./conf/local.conf
           echo '***************************************'
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
@@ -86,7 +78,8 @@ jobs:
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
-          bitbake-layers add-layer ../sources/meta-clang ../../meta-flutter
+          bitbake-layers remove-layer meta-flutter meta-qt5 meta-webserver
+          bitbake-layers add-layer ../../meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
