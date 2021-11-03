@@ -1,4 +1,4 @@
-name: rpi4-drm-dunfell
+name: rpi4-64
 
 on:
   pull_request:
@@ -12,7 +12,7 @@ on:
 
 jobs:
 
-  rpi4-drm-dunfell-latest:
+  drm-dunfell:
   
     env:
       YOCTO_VERSION: 3.1.11

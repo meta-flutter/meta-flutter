@@ -1,4 +1,4 @@
-name: dunfell-linux-dummy
+name: linux-dummy
 
 on:
   pull_request:
@@ -12,7 +12,7 @@ on:
 
 jobs:
 
-  yocto-dunfell-latest-linux-dummy:
+  linux-dummy:
   
     env:
       YOCTO_VERSION: 3.1.11

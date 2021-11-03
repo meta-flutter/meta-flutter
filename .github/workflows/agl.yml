@@ -1,4 +1,4 @@
-name: agl-lamprey
+name: agl
 
 on:
   pull_request:
@@ -12,7 +12,7 @@ on:
 
 jobs:
 
-  qemu:
+  lamprey-qemu:
   
     env:
       YOCTO_VERSION: 3.1.8
@@ -178,7 +178,7 @@ jobs:
           path: |
              /home/dev/artifacts/*
 
-  m3ulcb:
+  lamprey-m3ulcb:
   
     env:
       YOCTO_VERSION: 3.1.8
