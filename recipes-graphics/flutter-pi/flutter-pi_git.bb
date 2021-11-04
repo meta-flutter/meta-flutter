@@ -20,13 +20,14 @@ DEPENDS += "\
    "
 
 RDEPENDS:${PN} += "\
+    flutter-engine \
     xkeyboard-config \
     fontconfig \
     "
 
 SRC_URI = "git://github.com/ardera/flutter-pi.git;protocol=https;branch=master \
            file://0001-icudtl.dat-path.patch"
-SRCREV = "e000e5777a86944a9e627364c8ab654408022351"
+SRCREV = "e60ccd19d753674dc9481d87a073dd7e9c9bf4f9"
 
 S = "${WORKDIR}/git"
 
