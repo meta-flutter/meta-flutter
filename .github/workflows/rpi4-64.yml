@@ -151,9 +151,9 @@ jobs:
           sed -i '/ivi-homescreen/d' ./conf/local.conf
           sed -i '/flutter-pi/d' ./conf/local.conf
           sed -i '/flutter-gallery/d' ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " ivi-homescreen"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " flutter-pi"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " flutter-gallery"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = " ivi-homescreen"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
           bitbake core-image-minimal
           cp bb.environment /home/dev/artifacts
           cp tmp/deploy/images/raspberrypi4-64/core-image-minimal-raspberrypi4-64.wic.bmap /home/dev/artifacts
