@@ -78,6 +78,11 @@ do_install() {
     ln -sf gallery/ bundle
 
     #
+    # Flutter PI Layout
+    #
+    install -m 644 ${S}/libapp.so ${D}${datadir}/homescreen/gallery/flutter_assets/app.so
+
+    #
     # Sony Layout
     #
     install -d ${D}${datadir}/${PN}/sony    
