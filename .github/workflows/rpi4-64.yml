@@ -174,8 +174,11 @@ jobs:
         run: |
           . ./sources/poky/oe-init-build-env $MACHINE
           sed -i '/ivi-homescreen/d' ./conf/local.conf
+          sed -i '/android-tools/d' ./conf/local.conf
           sed -i '/flutter-pi/d' ./conf/local.conf
           sed -i '/flutter-gallery/d' ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " android-tools"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " android-tools-adbd"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
           bitbake core-image-minimal
