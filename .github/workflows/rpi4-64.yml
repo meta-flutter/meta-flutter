@@ -56,6 +56,10 @@ jobs:
           /home/dev/bin/repo init -u https://github.com/jwinarske/manifests.git -m rpi64.xml -b $YOCTO_BRANCH
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           wait
+          cd sources/poky
+          git checkout honister
+          git checkout honister-3.4
+          git apply ../../conf/rpi64/0001-mesa-broadcom-vulkan.patch && cd ../..
 
       - name: Configure build
         shell: bash
@@ -102,6 +106,7 @@ jobs:
           . ./sources/poky/oe-init-build-env $MACHINE
           bitbake flutter-engine -c do_cleansstate
           bitbake flutter-engine
+          rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa72/flutter-engine-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-engine artifacts
@@ -118,6 +123,7 @@ jobs:
           . ./sources/poky/oe-init-build-env $MACHINE
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
+          rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa72/flutter-pi-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-pi artifacts
@@ -135,6 +141,7 @@ jobs:
           bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-gallery -c do_cleansstate
           bitbake flutter-gallery
+          rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa72/flutter-gallery-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-gallery artifacts
@@ -156,6 +163,7 @@ jobs:
           echo 'IMAGE_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
           bitbake core-image-minimal
+          rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
           cp tmp/deploy/images/raspberrypi4-64/core-image-minimal-raspberrypi4-64.wic.bmap /home/dev/artifacts
           cp tmp/deploy/images/raspberrypi4-64/core-image-minimal-raspberrypi4-64.wic.bz2 /home/dev/artifacts
