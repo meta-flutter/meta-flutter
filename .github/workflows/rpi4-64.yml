@@ -65,6 +65,10 @@ jobs:
           git checkout honister
           git checkout honister-3.4
           git apply ../../conf/rpi64/0001-mesa-broadcom-vulkan.patch && cd ../..
+          cd sources/meta-raspberrypi
+          git reset --hard
+          git checkout master
+          git apply ../../conf/rpi64/0001-rpi-mesa-vulkan-broadcom-override.patch && cd ../..
 
       - name: Configure build
         shell: bash
