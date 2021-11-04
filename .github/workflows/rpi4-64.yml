@@ -107,6 +107,15 @@ jobs:
         run: |
           . ./sources/poky/oe-init-build-env $MACHINE
           bitbake core-image-minimal
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa72/mesa-vulkan-drivers-*.rpm /home/dev/artifacts
+
+      - name: Publish mesa-vulkan-drivers artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: mesa-vulkan-drivers-rpi4-64
+          path: |
+             /home/dev/artifacts/*.rpm
 
       - name: Build flutter-engine
         shell: bash
