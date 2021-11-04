@@ -134,6 +134,23 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
 
+      - name: Build ivi-homescreen
+        shell: bash
+        working-directory: ../rpi4-drm-honister-latest
+        run: |
+          . ./sources/poky/oe-init-build-env $MACHINE
+          bitbake ivi-homescreen -c do_cleansstate
+          bitbake ivi-homescreen
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa72/ivi-homescreen-git*.rpm /home/dev/artifacts
+
+      - name: Publish ivi-homescreen artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ivi-homescreen-rpi4-64
+          path: |
+             /home/dev/artifacts/*.rpm
+
       - name: Build flutter-pi
         shell: bash
         working-directory: ../rpi4-drm-honister-latest
@@ -177,9 +194,9 @@ jobs:
           sed -i '/ivi-homescreen/d' ./conf/local.conf
           sed -i '/flutter-pi/d' ./conf/local.conf
           sed -i '/flutter-gallery/d' ./conf/local.conf
-          echo 'IMAGE_INSTALL:append = " ivi-homescreen"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " ivi-homescreen"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
           bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
