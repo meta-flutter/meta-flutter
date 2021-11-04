@@ -53,10 +53,14 @@ jobs:
           cd ../rpi4-drm-honister-latest
           pwd
           ls -la
+          git config --list
           /home/dev/bin/repo init -u https://github.com/jwinarske/manifests.git -m rpi64.xml -b $YOCTO_BRANCH
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           wait
           cd sources/poky
+          git config --global user.email joel@winarske@gmail.com
+          git config --global user.name "Joel Winarske"
+          git config --list
           git checkout honister
           git checkout honister-3.4
           git apply ../../conf/rpi64/0001-mesa-broadcom-vulkan.patch && cd ../..
