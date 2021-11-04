@@ -90,7 +90,6 @@ jobs:
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-release"' >> ./conf/local.conf
           echo 'TARGET_GCC_VERSION = "11.2.0"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vulkan-samples"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
