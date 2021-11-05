@@ -110,16 +110,24 @@ export MACHINE=raspberrypi3-64
 
 ```
 mkdir rpi_yocto && cd rpi_yocto
-repo init -u https://github.com/jwinarske/manifests.git -m rpi64.xml -b dunfell
+repo init -u https://github.com/jwinarske/manifests.git -m rpi64.xml -b honister
 repo sync -j20
-source ./setup-environment $MACHINE
-bitbake-layers add-layer ../sources/meta-clang ../sources/meta-flutter
+. ./setup-environment $MACHINE
 echo -e 'FLUTTER_CHANNEL = "dev"' >> conf/local.conf
-echo -e 'IMAGE_INSTALL_append = " flutter-pi"' >> conf/local.conf
-echo -e 'IMAGE_INSTALL_append = " flutter-gallery"' >> conf/local.conf
+echo -e 'IMAGE_INSTALL:append = " flutter-pi"' >> conf/local.conf
+echo -e 'IMAGE_INSTALL:append = " flutter-gallery"' >> conf/local.conf
 bitbake core-image-minimal
 ```
-Note: you may want/need to increase the `GPU_MEM` value.  It's defaulting to 64.
+Note: you may want/need to increase/decrease the `GPU_MEM` value.  It's defaulting to 256.
+
+Checkout the Action CI artifacts for a ready to run image:
+https://github.com/meta-flutter/meta-flutter/actions/workflows/rpi4-64.yml
+
+Using ready built image run gallery app via:
+```
+cp /usr/share/homescreen/bundle/libapp.so /usr/share/homescreen/bundle/flutter_assets/app.so
+flutter-pi --release /usr/share/homescreen/bundle/flutter_assets
+```
 
 ### STM32MP157x Discovery Board (doesn't include build hack)
 
