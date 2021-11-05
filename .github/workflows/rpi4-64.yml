@@ -116,6 +116,23 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
 
+      - name: Build sascha-samples
+        shell: bash
+        working-directory: ../rpi4-drm-honister-latest
+        run: |
+          . ./sources/poky/oe-init-build-env $MACHINE
+          bitbake sascha-samples -c do_cleansstate
+          bitbake sascha-samples
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa72/sascha-samples-git*.rpm /home/dev/artifacts
+
+      - name: Publish sascha-samples artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: sascha-samples-rpi4-64
+          path: |
+             /home/dev/artifacts/*.rpm
+
       - name: Build flutter-engine
         shell: bash
         working-directory: ../rpi4-drm-honister-latest
