@@ -76,6 +76,11 @@ do_install() {
     # set flutter application to run
     cd ${D}${datadir}/homescreen
     ln -sf gallery/ bundle
+    
+    #
+    # Flutter PI Layout
+    #
+    install -m 644 ${S}/libapp.so ${D}${datadir}/homescreen/gallery/flutter_assets/app.so
 
     #
     # Flutter PI Layout
