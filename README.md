@@ -114,8 +114,8 @@ repo init -u https://github.com/jwinarske/manifests.git -m rpi64.xml -b honister
 repo sync -j20
 . ./setup-environment $MACHINE
 echo -e 'FLUTTER_CHANNEL = "dev"' >> conf/local.conf
-echo -e 'IMAGE_INSTALL:append = " flutter-pi"' >> conf/local.conf
-echo -e 'IMAGE_INSTALL:append = " flutter-gallery"' >> conf/local.conf
+echo -e 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> conf/local.conf
+echo -e 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> conf/local.conf
 bitbake core-image-minimal
 ```
 Note: you may want/need to increase/decrease the `GPU_MEM` value.  It's defaulting to 256.
