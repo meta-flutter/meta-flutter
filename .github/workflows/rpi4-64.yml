@@ -117,7 +117,7 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build sascha-samples
+      - name: Build sascha-samples (D2D)
         shell: bash
         working-directory: ../rpi4-drm-honister-latest
         run: |
@@ -130,7 +130,7 @@ jobs:
       - name: Publish sascha-samples artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: sascha-samples-rpi4-64
+          name: sascha-samples-d2d-rpi4-64
           path: |
              /home/dev/artifacts/*.rpm
 
@@ -195,8 +195,8 @@ jobs:
           sed -i '/android-tools/d' ./conf/local.conf
           sed -i '/flutter-pi/d' ./conf/local.conf
           sed -i '/flutter-gallery/d' ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " android-tools"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " android-tools-adbd"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
           bitbake core-image-minimal
