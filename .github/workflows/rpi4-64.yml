@@ -90,6 +90,7 @@ jobs:
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-release"' >> ./conf/local.conf
           echo 'TARGET_GCC_VERSION = "11.2.0"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:pn-sascha-samples = "d2d"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -113,6 +114,23 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: mesa-vulkan-drivers-rpi4-64
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build sascha-samples (D2D)
+        shell: bash
+        working-directory: ../rpi4-drm-honister-latest
+        run: |
+          . ./sources/poky/oe-init-build-env $MACHINE
+          bitbake sascha-samples -c do_cleansstate
+          bitbake sascha-samples
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa72/sascha-samples-git*.rpm /home/dev/artifacts
+
+      - name: Publish sascha-samples artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: sascha-samples-d2d-rpi4-64
           path: |
              /home/dev/artifacts/*.rpm
 
@@ -177,8 +195,8 @@ jobs:
           sed -i '/android-tools/d' ./conf/local.conf
           sed -i '/flutter-pi/d' ./conf/local.conf
           sed -i '/flutter-gallery/d' ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " android-tools"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " android-tools-adbd"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
           bitbake core-image-minimal
