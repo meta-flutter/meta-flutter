@@ -60,15 +60,6 @@ jobs:
           /home/dev/bin/repo init -u https://github.com/jwinarske/manifests.git -m rpi64.xml -b $YOCTO_BRANCH
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           wait
-          cd sources/poky
-          git reset --hard
-          git checkout honister
-          git checkout honister-3.4
-          git apply ../../conf/rpi64/0001-mesa-broadcom-vulkan.patch && cd ../..
-          cd sources/meta-raspberrypi
-          git reset --hard
-          git checkout master
-          git apply ../../conf/rpi64/0001-rpi-mesa-vulkan-broadcom-override.patch && cd ../..
 
       - name: Configure build
         shell: bash
@@ -200,11 +191,11 @@ jobs:
         working-directory: ../rpi3-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env $MACHINE
-          sed -i '/ivi-homescreen/d' ./conf/local.conf
           sed -i '/android-tools/d' ./conf/local.conf
           sed -i '/flutter-pi/d' ./conf/local.conf
           sed -i '/flutter-gallery/d' ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " android-tools-adbd"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " rpi-vk-driver"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
@@ -401,7 +392,6 @@ jobs:
         working-directory: ../rpi4-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env $MACHINE
-          sed -i '/ivi-homescreen/d' ./conf/local.conf
           sed -i '/android-tools/d' ./conf/local.conf
           sed -i '/flutter-pi/d' ./conf/local.conf
           sed -i '/flutter-gallery/d' ./conf/local.conf
