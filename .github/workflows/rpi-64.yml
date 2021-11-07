@@ -203,8 +203,8 @@ jobs:
           bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/images/raspberrypi4-64/core-image-minimal-raspberrypi4-64.wic.bmap /home/dev/artifacts
-          cp tmp/deploy/images/raspberrypi4-64/core-image-minimal-raspberrypi4-64.wic.bz2 /home/dev/artifacts
+          cp tmp/deploy/images/raspberrypi3-64/core-image-minimal-raspberrypi3-64.wic.bmap /home/dev/artifacts
+          cp tmp/deploy/images/raspberrypi3-64/core-image-minimal-raspberrypi3-64.wic.bz2 /home/dev/artifacts
 
       - name: Publish SD card image artifact
         uses: actions/upload-artifact@v2
