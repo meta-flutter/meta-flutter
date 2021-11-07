@@ -197,7 +197,7 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " android-tools-adbd"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " rpi-vk-driver"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner vkmark"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner vkcube"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
           bitbake core-image-minimal
@@ -398,7 +398,7 @@ jobs:
           sed -i '/flutter-gallery/d' ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " android-tools-adbd"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner vkmark"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner vkcube"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
           bitbake core-image-minimal
