@@ -108,7 +108,7 @@ jobs:
           bitbake rpi-vk-driver -c do_cleansstate
           bitbake rpi-vk-driver
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa72/rpi-vk-driver-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa53/rpi-vk-driver-git*.rpm /home/dev/artifacts
 
       - name: Publish rpi-vk-driver artifacts
         uses: actions/upload-artifact@v2
@@ -125,7 +125,7 @@ jobs:
           bitbake sascha-samples -c do_cleansstate
           bitbake sascha-samples
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa72/sascha-samples-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa53/sascha-samples-git*.rpm /home/dev/artifacts
 
       - name: Publish sascha-samples artifacts
         uses: actions/upload-artifact@v2
@@ -142,7 +142,7 @@ jobs:
           bitbake flutter-engine -c do_cleansstate
           bitbake flutter-engine
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa72/flutter-engine-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa53/flutter-engine-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-engine artifacts
         uses: actions/upload-artifact@v2
@@ -159,7 +159,7 @@ jobs:
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa72/flutter-pi-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa53/flutter-pi-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-pi artifacts
         uses: actions/upload-artifact@v2
@@ -177,7 +177,7 @@ jobs:
           bitbake flutter-gallery -c do_cleansstate
           bitbake flutter-gallery
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa72/flutter-gallery-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa53/flutter-gallery-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-gallery artifacts
         uses: actions/upload-artifact@v2
