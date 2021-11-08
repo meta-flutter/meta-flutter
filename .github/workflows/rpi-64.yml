@@ -73,6 +73,13 @@ jobs:
           sed -i '/SSTATE_MIRRORS/d' ./conf/local.conf
           sed -i '/FLUTTER_CHANNEL/d' ./conf/local.conf
           sed -i '/PACKAGECONFIG/d' ./conf/local.conf
+          sed -i '/android-tools/d' ./conf/local.conf
+          sed -i '/rpi-vk-driver/d' ./conf/local.conf
+          sed -i '/sascha-samples/d' ./conf/local.conf
+          sed -i '/vkquake3/d' ./conf/local.conf
+          sed -i '/vkrunner/d' ./conf/local.conf
+          sed -i '/flutter-pi/d' ./conf/local.conf
+          sed -i '/flutter-gallery/d' ./conf/local.conf
           echo '***************************************'
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
@@ -289,6 +296,12 @@ jobs:
           sed -i '/SSTATE_MIRRORS/d' ./conf/local.conf
           sed -i '/FLUTTER_CHANNEL/d' ./conf/local.conf
           sed -i '/PACKAGECONFIG/d' ./conf/local.conf
+          sed -i '/android-tools/d' ./conf/local.conf
+          sed -i '/sascha-samples/d' ./conf/local.conf
+          sed -i '/vkquake3/d' ./conf/local.conf
+          sed -i '/vkrunner/d' ./conf/local.conf
+          sed -i '/flutter-pi/d' ./conf/local.conf
+          sed -i '/flutter-gallery/d' ./conf/local.conf
           echo '***************************************'
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
