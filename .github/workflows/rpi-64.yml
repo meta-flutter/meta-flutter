@@ -192,11 +192,16 @@ jobs:
         run: |
           . ./sources/poky/oe-init-build-env $MACHINE
           sed -i '/android-tools/d' ./conf/local.conf
+          sed -i '/rpi-vk-driver/d' ./conf/local.conf
+          sed -i '/sascha-samples/d' ./conf/local.conf
+          sed -i '/vkquake3/d' ./conf/local.conf
+          sed -i '/vkrunner/d' ./conf/local.conf
           sed -i '/flutter-pi/d' ./conf/local.conf
           sed -i '/flutter-gallery/d' ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " android-tools-adbd"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " rpi-vk-driver"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples vkquake3"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkquake3"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
@@ -394,10 +399,14 @@ jobs:
         run: |
           . ./sources/poky/oe-init-build-env $MACHINE
           sed -i '/android-tools/d' ./conf/local.conf
+          sed -i '/sascha-samples/d' ./conf/local.conf
+          sed -i '/vkquake3/d' ./conf/local.conf
+          sed -i '/vkrunner/d' ./conf/local.conf
           sed -i '/flutter-pi/d' ./conf/local.conf
           sed -i '/flutter-gallery/d' ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " android-tools-adbd"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples vkquake3"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkquake3"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
