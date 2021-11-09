@@ -14,10 +14,11 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=1d84cf16c48e571923f837136633a265"
 
 FLUTTER_CHANNEL ??= "beta"
 
-DEPENDS += "curl-native unzip-native"
+DEPENDS += " ca-certificates-native curl-native unzip-native"
+RDEPENDS:${PN} += "ca-certificates-native curl-native unzip-native"
+RDEPENDS:nativesdk-${PN} += "ca-certificates-native curl-native unzip-native"
 
-SRC_URI = "git://github.com/flutter/flutter;protocol=https;branch=${FLUTTER_CHANNEL};name=repo \
-           file://ca-certificates.crt;name=certs"
+SRC_URI = "git://github.com/flutter/flutter;protocol=https;branch=${FLUTTER_CHANNEL};name=repo"
 
 SRCREV = "${AUTOREV}"
 
@@ -27,19 +28,22 @@ S = "${WORKDIR}/git"
 
 inherit native
 
+
 do_compile() {
-    export CURL_CA_BUNDLE=${WORKDIR}/ca-certificates.crt
+    export CURL_CA_BUNDLE=${STAGING_DIR_NATIVE}/etc/ssl/certs/ca-certificates.crt
     export PATH=${S}/bin:$PATH
     export PUB_CACHE=${S}/.pub-cache
 
     bbnote "Using Flutter SDK Channel = ${FLUTTER_CHANNEL}"
-    
+
     flutter config --no-enable-android
     flutter config --no-enable-ios
     flutter config --no-enable-web
     flutter config --enable-linux-desktop
+
     flutter channel ${FLUTTER_CHANNEL}
     flutter upgrade
+
     bbnote `flutter doctor -v`
 }
 
@@ -48,10 +52,12 @@ do_install() {
     cp -rTv ${S}/. ${D}${datadir}/flutter/sdk
 }
 
-FILES_${PN}-dev = "${datadir}/flutter/sdk/*"
 
-INSANE_SKIP_${PN}-dev = "already-stripped"
+ALLOW_EMPTY:${PN} = "1"
+
+FILES:${PN}-dev = "${datadir}/flutter/sdk"
+FILES:${PN}-dev:class-nativesdk = "${datadir}/flutter/sdk"
+
+INSANE_SKIP:${PN} += "already-stripped"
 
 BBCLASSEXTEND = "native nativesdk"
-
-# vim:set ts=4 sw=4 sts=4 expandtab:
