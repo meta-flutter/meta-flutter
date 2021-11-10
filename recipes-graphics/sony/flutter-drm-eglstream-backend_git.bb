@@ -1,5 +1,5 @@
 SUMMARY = "Embedded Linux embedding for Flutter"
-DESCRIPTION = "Sony's take on existing art around Flutter on Linux."
+DESCRIPTION = "Flutter Embedder with EGLStream Backend."
 AUTHOR = "Hidenori Matsubayashi"
 HOMEPAGE = "https://github.com/sony/flutter-embedded-linux"
 BUGTRACKER = "https://github.com/sony/flutter-embedded-linux/issues"
@@ -38,7 +38,7 @@ EXTRA_OECMAKE += "\
 
 do_configure:prepend() {
    install -d ${S}/build
-   install -m 644 ${STAGING_LIBDIR}/libflutter_engine.so ${S}/build/
+   ln -sf ${STAGING_LIBDIR}/libflutter_engine.so ${S}/build/libflutter_engine.so
 }
 
 do_install() {

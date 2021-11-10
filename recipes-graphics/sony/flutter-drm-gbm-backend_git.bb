@@ -1,5 +1,5 @@
 SUMMARY = "Embedded Linux embedding for Flutter"
-DESCRIPTION = "Sony's take on existing art around Flutter on Linux."
+DESCRIPTION = "Flutter Embedder with DRM GBM Backend."
 AUTHOR = "Hidenori Matsubayashi"
 HOMEPAGE = "https://github.com/sony/flutter-embedded-linux"
 BUGTRACKER = "https://github.com/sony/flutter-embedded-linux/issues"
@@ -20,25 +20,25 @@ DEPENDS += "\
 
 RDEPENDS:${PN} += "xkeyboard-config"
 
+REQUIRED_DISTRO_FEATURES = "opengl"
+
 SRC_URI = "git://github.com/sony/flutter-embedded-linux.git;protocol=https;branch=master"
 
 SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
-inherit pkgconfig cmake
+inherit pkgconfig cmake features_check
 
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
 PREFERRED_PROVIDER:libgcc = "compiler-rt"
 
-EXTRA_OECMAKE += "\
-    -D USER_PROJECT_PATH=${S}/examples/${PN} \
-"
+EXTRA_OECMAKE += "-D USER_PROJECT_PATH=${S}/examples/${PN}"
 
 do_configure:prepend() {
    install -d ${S}/build
-   install -m 644 ${STAGING_LIBDIR}/libflutter_engine.so ${S}/build/
+   ln -sf ${STAGING_LIBDIR}/libflutter_engine.so ${S}/build/libflutter_engine.so
 }
 
 do_install() {

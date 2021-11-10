@@ -35,13 +35,11 @@ RUNTIME = "llvm"
 TOOLCHAIN = "clang"
 PREFERRED_PROVIDER:libgcc = "compiler-rt"
 
-EXTRA_OECMAKE += "\
-    -D USER_PROJECT_PATH=${S}/examples/${PN} \
-"
+EXTRA_OECMAKE += "-D USER_PROJECT_PATH=${S}/examples/${PN}"
 
 do_configure:prepend() {
    install -d ${S}/build
-   install -m 644 ${STAGING_LIBDIR}/libflutter_engine.so ${S}/build/
+   ln -sf ${STAGING_LIBDIR}/libflutter_engine.so ${S}/build/libflutter_engine.so
 }
 
 do_install() {
