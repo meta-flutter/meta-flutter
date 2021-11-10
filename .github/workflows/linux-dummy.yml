@@ -180,6 +180,14 @@ jobs:
           bitbake flutter-weston-desktop-shell-virtual-keyboard -c do_cleansstate
           bitbake flutter-weston-desktop-shell-virtual-keyboard
 
+      - name: Build X11 Client (Sony)
+        shell: bash
+        working-directory: ../yocto-honister/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-x11-client -c do_cleansstate
+          bitbake flutter-x11-client
+
       - name: Build flutter-gallery
         shell: bash
         working-directory: ../yocto-honister/poky
