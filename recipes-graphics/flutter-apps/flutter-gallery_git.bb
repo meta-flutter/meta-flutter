@@ -66,7 +66,7 @@ do_compile() {
       --snapshot_kind=app-aot-elf \
       --elf=${D}${datadir}/homescreen/gallery/libapp.so \
       --strip \
-      --strip .dart_tool/flutter_build/*/app.dill \
+      .dart_tool/flutter_build/*/app.dill
 }
 
 do_install() {
