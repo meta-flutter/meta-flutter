@@ -80,7 +80,6 @@ jobs:
           sed -i '/vkrunner/d' ./conf/local.conf
           sed -i '/vkmark/d' ./conf/local.conf
           sed -i '/flutter-pi/d' ./conf/local.conf
-          sed -i '/flutter-drm-gbm-backend/d' ./conf/local.conf
           sed -i '/flutter-gallery/d' ./conf/local.conf
           echo '***************************************'
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
@@ -208,7 +207,6 @@ jobs:
           sed -i '/vkquake3/d' ./conf/local.conf
           sed -i '/vkrunner/d' ./conf/local.conf
           sed -i '/flutter-pi/d' ./conf/local.conf
-          sed -i '/flutter-drm-gbm-backend/d' ./conf/local.conf
           sed -i '/flutter-gallery/d' ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " android-tools-adbd"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " rpi-vk-driver"' >> ./conf/local.conf
@@ -216,7 +214,6 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkquake3"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-drm-egl-backend"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
           bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
@@ -431,7 +428,6 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkquake3"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-drm-egl-backend"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
           bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
