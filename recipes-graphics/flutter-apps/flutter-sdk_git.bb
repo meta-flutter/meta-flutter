@@ -15,21 +15,18 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=1d84cf16c48e571923f837136633a265"
 FLUTTER_CHANNEL ??= "beta"
 
 DEPENDS += " ca-certificates-native curl-native unzip-native"
-RDEPENDS:${PN} += "ca-certificates-native curl-native unzip-native"
-RDEPENDS:nativesdk-${PN} += "ca-certificates-native curl-native unzip-native"
+RDEPENDS:${PN}-native += "ca-certificates-native curl-native perl perl-modules unzip-native"
+RDEPENDS:nativesdk-${PN} += "ca-certificates-native curl-native perl perl-modules unzip-native"
 
 SRC_URI = "git://github.com/flutter/flutter;protocol=https;branch=${FLUTTER_CHANNEL};name=repo"
 
 SRCREV = "${AUTOREV}"
 
-SRC_URI[certs.md5sum] = "1ecab07e89925a6e8684b75b8cf84890"
-
 S = "${WORKDIR}/git"
 
-inherit native
 
+common_compile() {
 
-do_compile() {
     export CURL_CA_BUNDLE=${STAGING_DIR_NATIVE}/etc/ssl/certs/ca-certificates.crt
     export PATH=${S}/bin:$PATH
     export PUB_CACHE=${S}/.pub-cache
@@ -47,7 +44,19 @@ do_compile() {
     bbnote `flutter doctor -v`
 }
 
-do_install() {
+do_compile:class-native() {
+    common_compile
+}
+
+do_compile:class-nativesdk() {
+    common_compile
+}
+
+do_install:class-native() {
+    install -d ${D}${datadir}/flutter/sdk
+    cp -rTv ${S}/. ${D}${datadir}/flutter/sdk
+}
+do_install:class-nativesdk() {
     install -d ${D}${datadir}/flutter/sdk
     cp -rTv ${S}/. ${D}${datadir}/flutter/sdk
 }
@@ -55,9 +64,8 @@ do_install() {
 
 ALLOW_EMPTY:${PN} = "1"
 
-FILES:${PN}-dev = "${datadir}/flutter/sdk"
-FILES:${PN}-dev:class-nativesdk = "${datadir}/flutter/sdk"
+FILES:${PN} = "${datadir}/flutter/sdk"
 
-INSANE_SKIP:${PN} += "already-stripped"
+INSANE_SKIP:${PN} += "already-stripped file-rdeps"
 
 BBCLASSEXTEND = "native nativesdk"
