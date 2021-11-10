@@ -74,35 +74,37 @@ do_install() {
     PUBSPEC_APPNAME=gallery
 
     #
-    # Toyota Layout
+    # Toyota
     #
 
     install -d ${D}${datadir}/homescreen/${PUBSPEC_APPNAME}
+
     cp -r ${S}/build/flutter_assets ${D}${datadir}/homescreen/${PUBSPEC_APPNAME}
 
     # set flutter application to run
     ln -sf ${datadir}/homescreen/${PUBSPEC_APPNAME}/ ${D}${datadir}/homescreen/bundle
 
     #
-    # Flutter PI Layout
+    # Flutter PI
     #
     ln -sf ${datadir}/homescreen/${PUBSPEC_APPNAME}/flutter_assets/libapp.so \
       ${D}${datadir}/homescreen/${PUBSPEC_APPNAME}/flutter_assets/app.so
 
     #
-    # Sony Layout
+    # Sony
     #
     install -d ${D}${datadir}/${PN}/sony    
     install -d ${D}${datadir}/${PN}/sony/lib
+    install -d ${D}${datadir}/${PN}/sony/data
+
     ln -sf ${datadir}/homescreen/${PUBSPEC_APPNAME}/flutter_assets/libapp.so \
       ${D}${datadir}/${PN}/sony/lib/libapp.so
-    
-    install -d ${D}${datadir}/${PN}/sony/data
-    ln -sf ${datadir}/flutter/icudtl.dat ${D}${datadir}/${PN}/sony/data/
-    
-    install -d ${D}${datadir}/${PN}/sony/data
+   
     ln -sf ${datadir}/homescreen/${PUBSPEC_APPNAME}/flutter_assets \
       ${D}${datadir}/${PN}/sony/data/flutter_assets
+
+    ln -sf ${datadir}/flutter/icudtl.dat \
+      ${D}${datadir}/${PN}/sony/data/
 }
 
 FILES:${PN} = "${datadir}/homescreen \
