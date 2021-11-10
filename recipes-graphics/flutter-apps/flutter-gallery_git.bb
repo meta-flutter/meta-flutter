@@ -42,27 +42,31 @@ do_compile() {
     export PATH=${FLUTTER_SDK}/bin:$PATH
 
     cd ${S}
-    flutter config --no-enable-android
-    flutter config --no-enable-ios
-    flutter config --no-enable-web
-    flutter config --enable-linux-desktop
-    flutter create .
+
     flutter build bundle
-    
-    dart ${FLUTTER_SDK}/bin/cache/dart-sdk/bin/snapshots/frontend_server.dart.snapshot \
+
+    ${FLUTTER_SDK}/bin/cache/dart-sdk/bin/dart \
       --aot --tfa --target=flutter \
-      --sdk-root ${FLUTTER_SDK}/bin/cache/artifacts/engine/common/flutter_patched_sdk \
-      --output-dill app.dill \
-      lib/main.dart
-      
+      --sdk-root ${FLUTTER_SDK}/bin/cache/artifacts/engine/common/flutter_patched_sdk_product/ \
+      --output-dill .build/build/app.dill \
+      --disable-dart-dev ${FLUTTER_SDK}/bin/cache/artifacts/engine/linux-x64/frontend_server.dart.snapshot \
+      --no-print-incremental-dependencies \
+      -Ddart.vm.profile=false -Ddart.vm.product=true \
+      --packages .build/package_config.json \
+      --depfile .build/kernel_snapshot.d \
+      package:lib/main.dart \
+      --verbose
+
     ${ENGINE_SDK}/clang_x64/gen_snapshot \
       --deterministic \
       --snapshot_kind=app-aot-elf \
-      --elf=libapp.so \
-      --strip app.dill
+      --strip .build/app.dill \
+      --elf=libapp.so      
 }
 
 do_install() {
+
+    rm ${S}/build/.output
 
     #
     # Toyota Layout

@@ -44,7 +44,6 @@ COMPATIBLE_MACHINE:x86-64 = "(.*)"
 PACKAGECONFIG ?= "disable-desktop-embeddings \
                   embedder-for-target \
                   fontconfig \
-                  full-dart-sdk \
                   mode-release \
                  "
 
@@ -209,10 +208,8 @@ do_install() {
     install -d                                                            ${D}/${datadir}/flutter/sdk
     echo "${SRCREV}" > ${D}/usr/share/flutter/sdk/engine.version
     install -m 644 ${S}/${OUT_DIR_REL}/flutter_patched_sdk/*              ${D}/${datadir}/flutter/sdk/
-    install -m 644 ${S}/${OUT_DIR_REL}/dart-sdk/bin/snapshots/frontend_server.dart.snapshot  ${D}/${datadir}/flutter/sdk/
 
     install -d                                                            ${D}/${datadir}/flutter/sdk/clang_x64
-    install -m 755 ${S}/${OUT_DIR_REL}/clang_x64/dart                     ${D}/${datadir}/flutter/sdk/clang_x64/
     install -m 755 ${S}/${OUT_DIR_REL}/clang_x64/gen_snapshot             ${D}/${datadir}/flutter/sdk/clang_x64/
 
     cd ${D}/${datadir}/flutter
