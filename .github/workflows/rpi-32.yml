@@ -117,7 +117,7 @@ jobs:
           bitbake rpi-vk-driver -c do_cleansstate
           bitbake rpi-vk-driver
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa53/rpi-vk-driver-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa7t2hf-neon-vfpv4-poky-linux-gnueabi/rpi-vk-driver-git*.rpm /home/dev/artifacts
 
       - name: Publish rpi-vk-driver artifacts
         uses: actions/upload-artifact@v2
@@ -134,7 +134,7 @@ jobs:
           bitbake sascha-samples -c do_cleansstate
           bitbake sascha-samples
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa53/sascha-samples-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa7t2hf-neon-vfpv4-poky-linux-gnueabi/sascha-samples-git*.rpm /home/dev/artifacts
 
       - name: Publish sascha-samples artifacts
         uses: actions/upload-artifact@v2
@@ -151,7 +151,7 @@ jobs:
           bitbake flutter-engine -c do_cleansstate
           bitbake flutter-engine
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa53/flutter-engine-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa7t2hf-neon-vfpv4-poky-linux-gnueabi/flutter-engine-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-engine artifacts
         uses: actions/upload-artifact@v2
@@ -168,7 +168,7 @@ jobs:
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa53/flutter-pi-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa7t2hf-neon-vfpv4-poky-linux-gnueabi/flutter-pi-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-pi artifacts
         uses: actions/upload-artifact@v2
@@ -186,7 +186,7 @@ jobs:
           bitbake flutter-gallery -c do_cleansstate
           bitbake flutter-gallery
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa53/flutter-gallery-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa7t2hf-neon-vfpv4-poky-linux-gnueabi/flutter-gallery-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-gallery artifacts
         uses: actions/upload-artifact@v2
@@ -334,7 +334,7 @@ jobs:
           . ./sources/poky/oe-init-build-env $MACHINE
           bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa72/mesa-vulkan-drivers-*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa7t2hf-neon-vfpv4-poky-linux-gnueabi/mesa-vulkan-drivers-*.rpm /home/dev/artifacts
 
       - name: Publish mesa-vulkan-drivers artifacts
         uses: actions/upload-artifact@v2
@@ -351,7 +351,7 @@ jobs:
           bitbake sascha-samples -c do_cleansstate
           bitbake sascha-samples
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa72/sascha-samples-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa7t2hf-neon-vfpv4-poky-linux-gnueabi/sascha-samples-git*.rpm /home/dev/artifacts
 
       - name: Publish sascha-samples artifacts
         uses: actions/upload-artifact@v2
@@ -368,7 +368,7 @@ jobs:
           bitbake flutter-engine -c do_cleansstate
           bitbake flutter-engine
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa72/flutter-engine-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa7t2hf-neon-vfpv4-poky-linux-gnueabi/flutter-engine-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-engine artifacts
         uses: actions/upload-artifact@v2
@@ -385,7 +385,7 @@ jobs:
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa72/flutter-pi-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa7t2hf-neon-vfpv4-poky-linux-gnueabi/flutter-pi-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-pi artifacts
         uses: actions/upload-artifact@v2
@@ -403,7 +403,7 @@ jobs:
           bitbake flutter-gallery -c do_cleansstate
           bitbake flutter-gallery
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa72/flutter-gallery-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa7t2hf-neon-vfpv4-poky-linux-gnueabi/flutter-gallery-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-gallery artifacts
         uses: actions/upload-artifact@v2
