@@ -38,6 +38,7 @@ do_configure() {
 do_compile() {
     FLUTTER_SDK=${STAGING_DIR_NATIVE}/usr/share/flutter/sdk
     ENGINE_SDK=${S}/engine_sdk/sdk
+    PUBSPEC_APPNAME=gallery
 
     export PATH=${FLUTTER_SDK}/bin:$PATH
 
@@ -46,25 +47,31 @@ do_compile() {
     flutter build bundle
 
     ${FLUTTER_SDK}/bin/cache/dart-sdk/bin/dart \
-      --aot --tfa --target=flutter \
-      --sdk-root ${FLUTTER_SDK}/bin/cache/artifacts/engine/common/flutter_patched_sdk_product/ \
-      --output-dill .build/build/app.dill \
+      --verbose \
+      --disable-analytics \
       --disable-dart-dev ${FLUTTER_SDK}/bin/cache/artifacts/engine/linux-x64/frontend_server.dart.snapshot \
+      --sdk-root ${FLUTTER_SDK}/bin/cache/artifacts/engine/common/flutter_patched_sdk_product/ \
+      --target=flutter \
       --no-print-incremental-dependencies \
       -Ddart.vm.profile=false -Ddart.vm.product=true \
-      --packages .build/package_config.json \
-      --depfile .build/kernel_snapshot.d \
-      package:lib/main.dart \
-      --verbose
+      --aot --tfa \
+      --packages .dart_tool/package_config.json \
+      --output-dill .dart_tool/flutter_build/*/app.dill \
+      --depfile .dart_tool/flutter_build/*/kernel_snapshot.d \
+      package:${PUBSPEC_APPNAME}/main.dart
+
+    install -d ${D}${datadir}/homescreen/gallery
 
     ${ENGINE_SDK}/clang_x64/gen_snapshot \
-      --deterministic \
       --snapshot_kind=app-aot-elf \
-      --strip .build/app.dill \
-      --elf=libapp.so      
+      --elf=${D}${datadir}/homescreen/gallery/libapp.so \
+      --strip \
+      --strip .dart_tool/flutter_build/*/app.dill \
 }
 
 do_install() {
+
+    PUBSPEC_APPNAME=gallery
 
     rm ${S}/build/.output
 
@@ -72,19 +79,18 @@ do_install() {
     # Toyota Layout
     #
 
-    install -d ${D}${datadir}/homescreen/gallery
-    cp -r ${S}/build/* ${D}${datadir}/homescreen/gallery
-    rm -rf ${D}${datadir}/homescreen/gallery/.last_build_id
-    install -m 644 ${S}/libapp.so ${D}${datadir}/homescreen/gallery/libapp.so
+    install -d ${D}${datadir}/homescreen/${PUBSPEC_APPNAME}
+    cp -r ${S}/build/flutter_assets ${D}${datadir}/homescreen/${PUBSPEC_APPNAME}
 
     # set flutter application to run
     cd ${D}${datadir}/homescreen
-    ln -sf gallery/ bundle
+    ln -sf ${PUBSPEC_APPNAME}/ bundle
 
     #
     # Flutter PI Layout
     #
-    install -m 644 ${S}/libapp.so ${D}${datadir}/homescreen/gallery/flutter_assets/app.so
+    ln -sf ${datadir}/homescreen/${PUBSPEC_APPNAME}/flutter_assets/libapp.so \
+      ${D}${datadir}/homescreen/${PUBSPEC_APPNAME}/flutter_assets/app.so
 
     #
     # Sony Layout
@@ -103,9 +109,5 @@ do_install() {
 FILES:${PN} = "${datadir}/homescreen \
                ${datadir}/${PN} \
               "
-
-FILES:${PN}-aot = "${datadir}/homescreen/gallery/libapp.so \
-                   ${datadir}/${PN}/sony/lib/libapp.so \
-                  "
 
 do_package_qa[noexec] = "1"
