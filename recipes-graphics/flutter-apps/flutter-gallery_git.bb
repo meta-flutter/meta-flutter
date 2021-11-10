@@ -65,7 +65,7 @@ do_compile() {
 
     ${ENGINE_SDK}/clang_x64/gen_snapshot \
       --snapshot_kind=app-aot-elf \
-      --elf=${D}${datadir}/homescreen/gallery/libapp.so \
+      --elf=libapp.so \
       --strip \
       .dart_tool/flutter_build/*/app.dill
 }
@@ -80,6 +80,8 @@ do_install() {
 
     install -d ${D}${datadir}/homescreen/${PUBSPEC_APPNAME}
 
+    cp libapp.so ${D}${datadir}/homescreen/${PUBSPEC_APPNAME}/
+
     cp -r ${S}/build/flutter_assets ${D}${datadir}/homescreen/${PUBSPEC_APPNAME}
 
     # set flutter application to run
@@ -88,7 +90,7 @@ do_install() {
     #
     # Flutter PI
     #
-    ln -sf ${datadir}/homescreen/${PUBSPEC_APPNAME}/flutter_assets/libapp.so \
+    ln -sf ${datadir}/homescreen/${PUBSPEC_APPNAME}/libapp.so \
       ${D}${datadir}/homescreen/${PUBSPEC_APPNAME}/flutter_assets/app.so
 
     #
@@ -98,7 +100,7 @@ do_install() {
     install -d ${D}${datadir}/${PN}/sony/lib
     install -d ${D}${datadir}/${PN}/sony/data
 
-    ln -sf ${datadir}/homescreen/${PUBSPEC_APPNAME}/flutter_assets/libapp.so \
+    ln -sf ${datadir}/homescreen/${PUBSPEC_APPNAME}/libapp.so \
       ${D}${datadir}/${PN}/sony/lib/libapp.so
    
     ln -sf ${datadir}/homescreen/${PUBSPEC_APPNAME}/flutter_assets \
