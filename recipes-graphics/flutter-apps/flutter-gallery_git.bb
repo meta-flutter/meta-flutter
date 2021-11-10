@@ -81,7 +81,7 @@ do_install() {
     cp -r ${S}/build/flutter_assets ${D}${datadir}/homescreen/${PUBSPEC_APPNAME}
 
     # set flutter application to run
-    ln -sf ${PUBSPEC_APPNAME}/ ${D}${datadir}/homescreen/bundle
+    ln -sf ${datadir}/homescreen/${PUBSPEC_APPNAME}/ ${D}${datadir}/homescreen/bundle
 
     #
     # Flutter PI Layout

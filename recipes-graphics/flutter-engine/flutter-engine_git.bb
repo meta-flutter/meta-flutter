@@ -8,11 +8,14 @@ LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://flutter/LICENSE;md5=a60894397335535eb10b54e2fff9f265"
 CVE_PRODUCT = "libflutter_engine.so"
 
-DEPENDS += "depot-tools-native \
-            fontconfig \
-            zip-native \
-            curl-native \
-            "
+DEPENDS += "\
+    depot-tools-native \
+    fontconfig \
+    zip-native \
+    curl-native \
+    "
+
+REQUIRED_DISTRO_FEATURES = "opengl"
 
 SRC_URI = "file://0001-clang-toolchain.patch \
            file://0002-x64-sysroot-assert.patch"
@@ -27,7 +30,7 @@ DEPOT_TOOLS ??= "${STAGING_DIR_NATIVE}/usr/share/depot_tools"
 PYTHON2_PATH ??= "bootstrap-2@3.8.9.chromium.14_bin/python/bin"
 
 
-inherit python3native
+inherit python3native features_check
 
 require gn-utils.inc
 

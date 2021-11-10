@@ -1,18 +1,17 @@
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=7f6b13e4480850c59e176edd427d996e"
 
+REQUIRED_DISTRO_FEATURES = "wayland"
+
 SRC_URI = "git://github.com/NilsBrause/waylandpp.git;protocol=https"
 SRCREV = "19689edf6d4b40363cc013cbf8dcf4ac10c2e9df"
 
 DEPENDS:append:class-native = " pugixml-native"
 DEPENDS:append:class-target = " waylandpp-native wayland virtual/egl"
 
-REQUIRED_DISTRO_FEATURES = "wayland"
-
-
 S = "${WORKDIR}/git"
 
-inherit cmake
+inherit cmake features_check
 
 
 EXTRA_OECMAKE:append:class-native = " \

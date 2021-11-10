@@ -9,15 +9,17 @@ LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=d45359c88eb146940e4bede4f08c821a"
 
 DEPENDS += "\
+    compiler-rt \
     flutter-engine \
-    glib-2.0 \
-    libinput libxkbcommon \
+    libcxx \
+    libinput \
+    libxkbcommon \
     virtual/egl \
     "
 
 RDEPENDS:${PN} += "xkeyboard-config"
 
-TOOLCHAIN = "clang"
+REQUIRED_DISTRO_FEATURES = "x11 opengl"
 
 SRC_URI = "git://github.com/sony/flutter-embedded-linux.git;protocol=https;branch=master"
 
@@ -25,10 +27,13 @@ SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
-inherit pkgconfig cmake
+inherit pkgconfig cmake features_check
+
+RUNTIME = "llvm"
+TOOLCHAIN = "clang"
+PREFERRED_PROVIDER:libgcc = "compiler-rt"
 
 EXTRA_OECMAKE += "\
-    -D CMAKE_BUILD_TYPE=Debug \
     -D USER_PROJECT_PATH=${S}/examples/${PN} \
 "
 
