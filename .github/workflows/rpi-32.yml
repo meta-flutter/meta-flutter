@@ -49,8 +49,8 @@ jobs:
 
       - name: Fetch poky
         run: |
-          [ -d ../rpi3-drm-honister-latest ] || mkdir -p ../rpi3-drm-honister-latest
-          cd ../rpi3-drm-honister-latest
+          [ -d ../rpi3-32-drm-honister-latest ] || mkdir -p ../rpi3-32-drm-honister-latest
+          cd ../rpi3-32-drm-honister-latest
           pwd
           ls -la
           git config --list
@@ -63,9 +63,9 @@ jobs:
 
       - name: Configure build
         shell: bash
-        working-directory: ../rpi3-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
-          rm -rf raspberrypi4 || true
+          rm -rf raspberrypi3 || true
           . ./setup-environment $MACHINE
           echo '***************************************'
           sed -i '/DL_DIR/d' ./conf/local.conf
@@ -86,8 +86,8 @@ jobs:
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.DISTRO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
-          echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-release"' >> ./conf/local.conf
+          echo 'FLUTTER_CHANNEL = "master"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-release"' >> ./conf/local.conf
           echo 'TARGET_GCC_VERSION = "11.2.0"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-sascha-samples = "d2d"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-vk-rpi-driver = ""' >> ./conf/local.conf
@@ -104,14 +104,14 @@ jobs:
 
       - name: Build core-image-minimal
         shell: bash
-        working-directory: ../rpi3-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env $MACHINE
           bitbake core-image-minimal
 
       - name: Build rpi-vk-driver
         shell: bash
-        working-directory: ../rpi3-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env $MACHINE
           bitbake rpi-vk-driver -c do_cleansstate
@@ -128,7 +128,7 @@ jobs:
 
       - name: Build sascha-samples (D2D)
         shell: bash
-        working-directory: ../rpi3-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env $MACHINE
           bitbake sascha-samples -c do_cleansstate
@@ -145,7 +145,7 @@ jobs:
 
       - name: Build flutter-engine
         shell: bash
-        working-directory: ../rpi3-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env $MACHINE
           bitbake flutter-engine -c do_cleansstate
@@ -162,7 +162,7 @@ jobs:
 
       - name: Build flutter-pi
         shell: bash
-        working-directory: ../rpi3-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env $MACHINE
           bitbake flutter-pi -c do_cleansstate
@@ -179,7 +179,7 @@ jobs:
 
       - name: Build flutter-gallery
         shell: bash
-        working-directory: ../rpi3-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env $MACHINE
           bitbake flutter-sdk-native -c do_cleansstate
@@ -197,7 +197,7 @@ jobs:
 
       - name: Build core-image-minimal
         shell: bash
-        working-directory: ../rpi3-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env $MACHINE
           sed -i '/android-tools/d' ./conf/local.conf
@@ -266,8 +266,8 @@ jobs:
 
       - name: Fetch poky
         run: |
-          [ -d ../rpi4-drm-honister-latest ] || mkdir -p ../rpi4-drm-honister-latest
-          cd ../rpi4-drm-honister-latest
+          [ -d ../rpi4-32-drm-honister-latest ] || mkdir -p ../rpi4-32-drm-honister-latest
+          cd ../rpi4-32-drm-honister-latest
           pwd
           ls -la
           git config --list
@@ -289,7 +289,7 @@ jobs:
 
       - name: Configure build
         shell: bash
-        working-directory: ../rpi4-drm-honister-latest
+        working-directory: ../rpi4-32-drm-honister-latest
         run: |
           rm -rf raspberrypi4 || true
           . ./setup-environment $MACHINE
@@ -312,8 +312,8 @@ jobs:
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.DISTRO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
-          echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-release"' >> ./conf/local.conf
+          echo 'FLUTTER_CHANNEL = "master"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-release"' >> ./conf/local.conf
           echo 'TARGET_GCC_VERSION = "11.2.0"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-sascha-samples = "d2d"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-vulkan-tools = ""' >> ./conf/local.conf
@@ -329,7 +329,7 @@ jobs:
 
       - name: Build core-image-minimal
         shell: bash
-        working-directory: ../rpi4-drm-honister-latest
+        working-directory: ../rpi4-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env $MACHINE
           bitbake core-image-minimal
@@ -345,7 +345,7 @@ jobs:
 
       - name: Build sascha-samples (D2D)
         shell: bash
-        working-directory: ../rpi4-drm-honister-latest
+        working-directory: ../rpi4-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env $MACHINE
           bitbake sascha-samples -c do_cleansstate
@@ -362,7 +362,7 @@ jobs:
 
       - name: Build flutter-engine
         shell: bash
-        working-directory: ../rpi4-drm-honister-latest
+        working-directory: ../rpi4-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env $MACHINE
           bitbake flutter-engine -c do_cleansstate
@@ -379,7 +379,7 @@ jobs:
 
       - name: Build flutter-pi
         shell: bash
-        working-directory: ../rpi4-drm-honister-latest
+        working-directory: ../rpi4-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env $MACHINE
           bitbake flutter-pi -c do_cleansstate
@@ -396,7 +396,7 @@ jobs:
 
       - name: Build flutter-gallery
         shell: bash
-        working-directory: ../rpi4-drm-honister-latest
+        working-directory: ../rpi4-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env $MACHINE
           bitbake flutter-sdk-native -c do_cleansstate
@@ -414,7 +414,7 @@ jobs:
 
       - name: Build core-image-minimal
         shell: bash
-        working-directory: ../rpi4-drm-honister-latest
+        working-directory: ../rpi4-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env $MACHINE
           sed -i '/android-tools/d' ./conf/local.conf
