@@ -48,18 +48,6 @@ do_compile() {
     flutter config --enable-linux-desktop
     flutter create .
     flutter build bundle
-    
-    dart ${FLUTTER_SDK}/bin/cache/dart-sdk/bin/snapshots/frontend_server.dart.snapshot \
-      --aot --tfa --target=flutter \
-      --sdk-root ${FLUTTER_SDK}/bin/cache/artifacts/engine/common/flutter_patched_sdk \
-      --output-dill app.dill \
-      lib/main.dart
-      
-    ${ENGINE_SDK}/clang_x64/gen_snapshot \
-      --deterministic \
-      --snapshot_kind=app-aot-elf \
-      --elf=libapp.so \
-      --strip app.dill
 }
 
 do_install() {
@@ -71,21 +59,10 @@ do_install() {
     install -d ${D}${datadir}/homescreen/gallery
     cp -r ${S}/build/* ${D}${datadir}/homescreen/gallery
     rm -rf ${D}${datadir}/homescreen/gallery/.last_build_id
-    install -m 644 ${S}/libapp.so ${D}${datadir}/homescreen/gallery/libapp.so
 
     # set flutter application to run
     cd ${D}${datadir}/homescreen
     ln -sf gallery/ bundle
-    
-    #
-    # Flutter PI Layout
-    #
-    install -m 644 ${S}/libapp.so ${D}${datadir}/homescreen/gallery/flutter_assets/app.so
-
-    #
-    # Flutter PI Layout
-    #
-    install -m 644 ${S}/libapp.so ${D}${datadir}/homescreen/gallery/flutter_assets/app.so
     
     #
     # Sony Layout
@@ -104,9 +81,5 @@ do_install() {
 FILES_${PN} = "${datadir}/homescreen \
                ${datadir}/${PN} \
               "
-
-FILES_${PN}-aot = "${datadir}/homescreen/gallery/libapp.so \
-                   ${datadir}/${PN}/sony/lib/libapp.so \
-                  "
 
 do_package_qa[noexec] = "1"
