@@ -85,8 +85,8 @@ jobs:
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> $LOCAL_CONF
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> $LOCAL_CONF
           echo 'FLUTTER_CHANNEL = "master"' >> $LOCAL_CONF
-          echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-release"' >> $LOCAL_CONF
-          echo 'IMAGE_INSTALL += "flutter-pi flutter-gallery"' >> >> $LOCAL_CONF
+          echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-debug"' >> $LOCAL_CONF
+          echo 'IMAGE_INSTALL += "flutter-pi flutter-gallery"' >> $LOCAL_CONF
           echo '********** ./conf/local.conf **********'
           cat $LOCAL_CONF
           echo '***************************************'
