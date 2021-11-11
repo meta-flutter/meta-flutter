@@ -44,8 +44,9 @@ do_configure_prepend() {
 
 do_install() {
    install -d ${D}${bindir}
-   mv ${WORKDIR}/build/flutter-client ${WORKDIR}/build/flutter-texture
+   install -d ${D}${libdir}
    install -m 755 ${WORKDIR}/build/flutter-texture ${D}${bindir}
+   install -m 755 ${WORKDIR}/build/plugins/external_texture_test/libexternal_texture_test_plugin.so ${D}${libdir}
 }
 
 BBCLASSEXTEND = ""
