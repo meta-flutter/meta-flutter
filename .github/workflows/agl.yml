@@ -64,6 +64,8 @@ jobs:
           sed -i '/SSTATE_DIR/d' ./conf/local.conf
           sed -i '/SSTATE_MIRRORS/d' ./conf/local.conf
           sed -i '/INHERIT_remove/d' ./conf/local.conf
+          sed -i '/IMAGE_INSTALL_append/d' ./conf/local.conf
+          sed -i '/IMAGE_INSTALL:append/d' ./conf/local.conf
           sed -i '/FLUTTER_CHANNEL/d' ./conf/local.conf
           sed -i '/PACKAGECONFIG_pn-flutter-engine/d' ./conf/local.conf
           echo '***************************************'
@@ -232,6 +234,8 @@ jobs:
           sed -i '/SSTATE_DIR/d' ./conf/local.conf
           sed -i '/SSTATE_MIRRORS/d' ./conf/local.conf
           sed -i '/INHERIT_remove/d' ./conf/local.conf
+          sed -i '/IMAGE_INSTALL_append/d' ./conf/local.conf
+          sed -i '/IMAGE_INSTALL:append/d' ./conf/local.conf
           sed -i '/FLUTTER_CHANNEL/d' ./conf/local.conf
           sed -i '/PACKAGECONFIG_pn-flutter-engine/d' ./conf/local.conf
           echo '***************************************'
