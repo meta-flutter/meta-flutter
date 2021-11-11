@@ -73,6 +73,7 @@ jobs:
           echo n | source layers/meta-st/scripts/envsetup.sh --no-ui
           echo '***************************************'
           ls -la
+          env
           sync
           echo '***************************************'
           LOCAL_CONF=./build-openstlinuxeglfs-stm32mp1-disco/conf/local.conf
@@ -85,6 +86,7 @@ jobs:
           sed -i '/flutter-pi/d' $LOCAL_CONF
           sed -i '/flutter-gallery/d' $LOCAL_CONF
           echo '***************************************'
+          echo '\n' >> $LOCAL_CONF
           echo 'ACCEPT_EULA_stm32mp1-disco = "1"' >> $LOCAL_CONF
           echo 'DL_DIR = "/home/dev/dl"' >> $LOCAL_CONF
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> $LOCAL_CONF
@@ -92,10 +94,9 @@ jobs:
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.DISTRO_VERSION }}/PATH;downloadfilename=PATH"' >> $LOCAL_CONF
           echo 'FLUTTER_CHANNEL = "master"' >> $LOCAL_CONF
           echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-release"' >> $LOCAL_CONF
+          echo '\n' >> $LOCAL_CONF
           echo '********** ./conf/local.conf **********'
           cat $LOCAL_CONF
-          echo '***************************************'
-          bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
@@ -106,14 +107,14 @@ jobs:
         shell: bash
         working-directory: ../stm32mp15-dunfell
         run: |
-          . ./sources/poky/oe-init-build-env $MACHINE
+          . ./layers/meta-st/scripts/envsetup.sh --no-ui
           bitbake core-image-minimal
 
       - name: Build flutter-engine
         shell: bash
         working-directory: ../stm32mp15-dunfell
         run: |
-          . ./sources/poky/oe-init-build-env $MACHINE
+          . ./layers/meta-st/scripts/envsetup.sh --no-ui
           bitbake flutter-engine -c do_cleansstate
           bitbake flutter-engine
           rm -rf /home/dev/artifacts/*
@@ -130,7 +131,7 @@ jobs:
         shell: bash
         working-directory: ../stm32mp15-dunfell
         run: |
-          . ./sources/poky/oe-init-build-env $MACHINE
+          . ./layers/meta-st/scripts/envsetup.sh --no-ui
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
           rm -rf /home/dev/artifacts/*
@@ -147,7 +148,7 @@ jobs:
         shell: bash
         working-directory: ../stm32mp15-dunfell
         run: |
-          . ./sources/poky/oe-init-build-env $MACHINE
+          . ./layers/meta-st/scripts/envsetup.sh --no-ui
           bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-gallery -c do_cleansstate
           bitbake flutter-gallery
@@ -165,7 +166,7 @@ jobs:
         shell: bash
         working-directory: ../stm32mp15-dunfell
         run: |
-          . ./sources/poky/oe-init-build-env $MACHINE
+          . ./layers/meta-st/scripts/envsetup.sh --no-ui
           sed -i '/flutter-pi/d' ./conf/local.conf
           sed -i '/flutter-gallery/d' ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
