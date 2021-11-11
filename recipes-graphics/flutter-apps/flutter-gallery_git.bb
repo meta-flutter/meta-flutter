@@ -4,7 +4,7 @@ AUTHOR = "Google"
 HOMEPAGE = "https://github.com/flutter/gallery"
 BUGTRACKER = "https://github.com/flutter/gallery/issues"
 SECTION = "graphics"
-CVE_PRODUCT = ""
+CVE_PRODUCT = "libflutter_engine.so"
 
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=3ac21e3d8ebe7dd79f273ca11b9e7b4e"
@@ -61,13 +61,13 @@ do_compile() {
       --depfile .dart_tool/flutter_build/*/kernel_snapshot.d \
       package:${PUBSPEC_APPNAME}/main.dart
 
-    install -d ${D}${datadir}/homescreen/gallery
-
     ${ENGINE_SDK}/clang_x64/gen_snapshot \
       --snapshot_kind=app-aot-elf \
       --elf=libapp.so \
       --strip \
       .dart_tool/flutter_build/*/app.dill
+
+    bb.note(`ls -la`)
 }
 
 do_install() {
@@ -80,7 +80,7 @@ do_install() {
 
     install -d ${D}${datadir}/homescreen/${PUBSPEC_APPNAME}
 
-    cp libapp.so ${D}${datadir}/homescreen/${PUBSPEC_APPNAME}/
+    cp ${S}/libapp.so ${D}${datadir}/homescreen/${PUBSPEC_APPNAME}/
 
     cp -r ${S}/build/flutter_assets ${D}${datadir}/homescreen/${PUBSPEC_APPNAME}
 
