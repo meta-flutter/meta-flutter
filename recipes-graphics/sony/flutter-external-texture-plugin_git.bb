@@ -42,6 +42,10 @@ do_configure_prepend() {
    ln -sf ${STAGING_LIBDIR}/libflutter_engine.so ${S}/build/libflutter_engine.so
 }
 
+INSANE_SKIP_${PN} += " ldflags"
+SOLIBS = ".so"
+FILES_SOLIBSDEV = ""
+
 do_install() {
    install -d ${D}${bindir}
    install -d ${D}${libdir}
@@ -53,5 +57,5 @@ FILES_${PN} = "\
    ${bindir} \
    ${libdir} \
    "
- 
+
 BBCLASSEXTEND = ""
