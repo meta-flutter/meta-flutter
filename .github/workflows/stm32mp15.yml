@@ -57,6 +57,8 @@ jobs:
           git config --global user.email joel@winarske@gmail.com
           git config --global user.name "Joel Winarske"
           git config --list
+          rm -rf layers/meta-clang
+          rm -rf layers/meta-flutter
           /home/dev/bin/repo init -u https://github.com/STMicroelectronics/oe-manifest.git -b refs/tags/openstlinux-5.10-dunfell-mp1-21-07-21
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           git clone -b dunfell https://github.com/kraj/meta-clang.git layers/meta-clang &
