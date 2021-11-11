@@ -88,6 +88,7 @@ jobs:
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> $LOCAL_CONF
           echo 'FLUTTER_CHANNEL = "master"' >> $LOCAL_CONF
           echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-release"' >> $LOCAL_CONF
+          echo 'IMAGE_INSTALL += "flutter-pi flutter-gallery"' >> >> $LOCAL_CONF
           echo '********** ./conf/local.conf **********'
           cat $LOCAL_CONF
           echo '***************************************'
@@ -98,60 +99,25 @@ jobs:
           bitbake-layers add-layer ../layers/meta-clang ../layers/meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
+          bitbake -e > bb.environment
+          echo '***************************************'
+          bitbake flutter-engine -c do_cleansstate
+          echo '***************************************'
+          bitbake flutter-sdk-native -c do_cleansstate
+          echo '***************************************'
+          bitbake flutter-pi -c do_cleansstate
+          echo '***************************************'
+          bitbake flutter-gallery -c do_cleansstate
+          echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
-          echo '***************************************'
-          bitbake -e > bb.environment
-
+ 
       - name: Build st-image-core
         shell: bash
         working-directory: ../stm32mp15-dunfell
         run: |
           source ./layers/meta-st/scripts/envsetup.sh --no-ui
           bitbake st-image-core
-
-      - name: Build flutter-engine
-        shell: bash
-        working-directory: ../stm32mp15-dunfell
-        run: |
-          source ./layers/meta-st/scripts/envsetup.sh --no-ui
-          bitbake flutter-engine -c do_cleansstate
-          bitbake flutter-engine
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/flutter-engine-git*.rpm /home/dev/artifacts
-
-      - name: Build flutter-pi
-        shell: bash
-        working-directory: ../stm32mp15-dunfell
-        run: |
-          source ./layers/meta-st/scripts/envsetup.sh --no-ui
-          bitbake flutter-pi -c do_cleansstate
-          bitbake flutter-pi
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/flutter-pi-git*.rpm /home/dev/artifacts
-
-      - name: Build flutter-gallery
-        shell: bash
-        working-directory: ../stm32mp15-dunfell
-        run: |
-          source ./layers/meta-st/scripts/envsetup.sh --no-ui
-          bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-gallery -c do_cleansstate
-          bitbake flutter-gallery
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/flutter-gallery-git*.rpm /home/dev/artifacts
-
-      - name: Build core-image-minimal
-        shell: bash
-        working-directory: ../stm32mp15-dunfell
-        run: |
-          source ./layers/meta-st/scripts/envsetup.sh --no-ui
-          sed -i '/flutter-pi/d' ./conf/local.conf
-          sed -i '/flutter-gallery/d' ./conf/local.conf
-          echo 'IMAGE_INSTALL += "flutter-pi flutter-gallery"' >> ./conf/local.conf
-          bitbake  st-image-core
-          rm -rf /home/dev/artifacts/*
-          cp bb.environment /home/dev/artifacts
 
       - name: Publish OS image artifact
         uses: actions/upload-artifact@v2
