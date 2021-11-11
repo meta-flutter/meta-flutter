@@ -88,9 +88,6 @@ jobs:
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
-          bitbake-layers add-layer ../layers/meta-clang ../layers/meta-flutter
-          bitbake-layers show-layers
-          echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
           echo '***************************************'
