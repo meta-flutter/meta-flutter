@@ -64,18 +64,13 @@ jobs:
           git clone -b dunfell https://github.com/kraj/meta-clang.git layers/meta-clang &
           git clone -b main https://github.com/meta-flutter/meta-flutter.git layers/meta-flutter &
           wait
-          chmod a+x layers/meta-st/scripts/envsetup.sh
 
       - name: Configure build
         shell: bash
         working-directory: ../stm32mp15-dunfell
         run: |
           rm -rf build-openstlinuxeglfs-stm32mp1-disco
-          echo n | layers/meta-st/scripts/envsetup.sh --no-ui
-          echo '***************************************'
-          ls -la
-          env
-          sync
+          echo n | source ./layers/meta-st/scripts/envsetup.sh --no-ui
           echo '***************************************'
           LOCAL_CONF=./build-openstlinuxeglfs-stm32mp1-disco/conf/local.conf
           sed -i '/ACCEPT_EULA_/d' $LOCAL_CONF
@@ -97,7 +92,9 @@ jobs:
           echo '********** ./conf/local.conf **********'
           cat $LOCAL_CONF
           echo '***************************************'
-          . /layers/meta-st/scripts/envsetup.sh --no-ui
+          source ./layers/meta-st/scripts/envsetup.sh --no-ui
+          echo '***************************************'
+          env
           echo '***************************************'
           bitbake-layers show-layers
           echo '***************************************'
@@ -110,14 +107,14 @@ jobs:
         shell: bash
         working-directory: ../stm32mp15-dunfell
         run: |
-          . ./layers/meta-st/scripts/envsetup.sh --no-ui
+          source ./layers/meta-st/scripts/envsetup.sh --no-ui
           bitbake core-image-minimal
 
       - name: Build flutter-engine
         shell: bash
         working-directory: ../stm32mp15-dunfell
         run: |
-          . ./layers/meta-st/scripts/envsetup.sh --no-ui
+          source ./layers/meta-st/scripts/envsetup.sh --no-ui
           bitbake flutter-engine -c do_cleansstate
           bitbake flutter-engine
           rm -rf /home/dev/artifacts/*
@@ -134,7 +131,7 @@ jobs:
         shell: bash
         working-directory: ../stm32mp15-dunfell
         run: |
-          . ./layers/meta-st/scripts/envsetup.sh --no-ui
+          source ./layers/meta-st/scripts/envsetup.sh --no-ui
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
           rm -rf /home/dev/artifacts/*
@@ -151,7 +148,7 @@ jobs:
         shell: bash
         working-directory: ../stm32mp15-dunfell
         run: |
-          . ./layers/meta-st/scripts/envsetup.sh --no-ui
+          source ./layers/meta-st/scripts/envsetup.sh --no-ui
           bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-gallery -c do_cleansstate
           bitbake flutter-gallery
@@ -169,7 +166,7 @@ jobs:
         shell: bash
         working-directory: ../stm32mp15-dunfell
         run: |
-          . ./layers/meta-st/scripts/envsetup.sh --no-ui
+          source ./layers/meta-st/scripts/envsetup.sh --no-ui
           sed -i '/flutter-pi/d' ./conf/local.conf
           sed -i '/flutter-gallery/d' ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
