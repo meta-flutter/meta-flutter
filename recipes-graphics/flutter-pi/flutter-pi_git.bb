@@ -12,7 +12,9 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=49fada46694956cdf2fc0292d72d888c"
 
 DEPENDS += "\
+    compiler-rt \
     flutter-engine \
+    libcxx \
     libdrm \
     libinput \
     libxkbcommon \
@@ -25,13 +27,19 @@ RDEPENDS:${PN} += "\
     fontconfig \
     "
 
+REQUIRED_DISTRO_FEATURES = "opengl"
+
 SRC_URI = "git://github.com/ardera/flutter-pi.git;protocol=https;branch=master \
            file://0001-icudtl.dat-path.patch"
 SRCREV = "e60ccd19d753674dc9481d87a073dd7e9c9bf4f9"
 
 S = "${WORKDIR}/git"
 
-inherit pkgconfig cmake
+inherit pkgconfig cmake features_check
+
+RUNTIME = "llvm"
+TOOLCHAIN = "clang"
+PREFERRED_PROVIDER:libgcc = "compiler-rt"
 
 EXTRA_OECMAKE += "-D BUILD_TEXT_INPUT_PLUGIN=ON \
                   -D BUILD_RAW_KEYBOARD_PLUGIN=ON \

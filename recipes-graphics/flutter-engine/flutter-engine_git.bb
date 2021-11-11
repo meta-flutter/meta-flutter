@@ -8,11 +8,14 @@ LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://flutter/LICENSE;md5=a60894397335535eb10b54e2fff9f265"
 CVE_PRODUCT = "libflutter_engine.so"
 
-DEPENDS += "depot-tools-native \
-            fontconfig \
-            zip-native \
-            curl-native \
-            "
+DEPENDS += "\
+    depot-tools-native \
+    fontconfig \
+    zip-native \
+    curl-native \
+    "
+
+REQUIRED_DISTRO_FEATURES = "opengl"
 
 SRC_URI = "file://0001-clang-toolchain.patch \
            file://0002-x64-sysroot-assert.patch"
@@ -27,7 +30,7 @@ DEPOT_TOOLS ??= "${STAGING_DIR_NATIVE}/usr/share/depot_tools"
 PYTHON2_PATH ??= "bootstrap-2@3.8.9.chromium.14_bin/python/bin"
 
 
-inherit python3native
+inherit python3native features_check
 
 require gn-utils.inc
 
@@ -44,7 +47,6 @@ COMPATIBLE_MACHINE:x86-64 = "(.*)"
 PACKAGECONFIG ?= "disable-desktop-embeddings \
                   embedder-for-target \
                   fontconfig \
-                  full-dart-sdk \
                   mode-release \
                  "
 
@@ -209,10 +211,8 @@ do_install() {
     install -d                                                            ${D}/${datadir}/flutter/sdk
     echo "${SRCREV}" > ${D}/usr/share/flutter/sdk/engine.version
     install -m 644 ${S}/${OUT_DIR_REL}/flutter_patched_sdk/*              ${D}/${datadir}/flutter/sdk/
-    install -m 644 ${S}/${OUT_DIR_REL}/dart-sdk/bin/snapshots/frontend_server.dart.snapshot  ${D}/${datadir}/flutter/sdk/
 
     install -d                                                            ${D}/${datadir}/flutter/sdk/clang_x64
-    install -m 755 ${S}/${OUT_DIR_REL}/clang_x64/dart                     ${D}/${datadir}/flutter/sdk/clang_x64/
     install -m 755 ${S}/${OUT_DIR_REL}/clang_x64/gen_snapshot             ${D}/${datadir}/flutter/sdk/clang_x64/
 
     cd ${D}/${datadir}/flutter
