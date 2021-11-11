@@ -29,7 +29,7 @@ jobs:
         --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
         --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
         -v /b/github-ci/download:/home/dev/dl:Z
-        -v /b/github-ci/sstate/yocto/honister/stm32mp15:/home/dev/sstate:Z
+        -v /b/github-ci/sstate/yocto/dunfell/stm32mp15:/home/dev/sstate:Z
         -v /b/github-ci/artifacts/stm32mp15:/home/dev/artifacts:Z
 
     steps:
@@ -59,15 +59,14 @@ jobs:
           git config --list
           /home/dev/bin/repo init -u https://github.com/STMicroelectronics/oe-manifest.git -b refs/tags/openstlinux-5.10-dunfell-mp1-21-07-21
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
-          git clone -b dunfell https://github.com/kraj/meta-clang.git ../layers/meta-clang &
-          git clone -b main https://github.com/meta-flutter/meta-flutter.git ../layers/meta-flutter &
+          git clone -b dunfell https://github.com/kraj/meta-clang.git layers/meta-clang &
+          git clone -b main https://github.com/meta-flutter/meta-flutter.git layers/meta-flutter &
           wait
 
       - name: Configure build
         shell: bash
         working-directory: ../stm32mp15-dunfell
         run: |
-          DISTRO=${{ env.DISTRO }} MACHINE=${{ env.MACHINE }} source layers/meta-st/scripts/envsetup.sh
           echo '***************************************'
           sed -i '/DL_DIR/d' ./conf/local.conf
           sed -i '/SSTATE_DIR/d' ./conf/local.conf
@@ -86,7 +85,7 @@ jobs:
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
-          bitbake-layers add-layer ../../layers/meta-clang ../../meta-flutter
+          bitbake-layers add-layer ../layers/meta-clang ../layers/meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
