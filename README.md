@@ -18,6 +18,7 @@ Note: In theory Swift Shader (CPU render) engine builds should work with the rig
 * meta-clang
 
 Clang generates smaller runtime images, and is used by Google to build the the flutter engine for Android and iOS.  Changing toolchains should be avoided, as this would provide a path with little to no test milage.  If you are trying to port the flutter-engine to QNX 7.0 feel free to contact me.
+
 ## Overview
 
 Target BSP is expected to have a GPU with OpenGLES v2.0+ support.  
@@ -29,11 +30,31 @@ This layer includes recipes to build
 * flutter-pi (DRM w/VSync - Recommended embedder for DRM)
 * flutter-engine (channel selection, default is beta)
 * flutter-sdk (channel selection, default is beta)
-* fltter-gallery Application (interpreted and AOT - requires dev channel override)
+* flutter-gallery Application (interpreted and AOT - requires dev channel override)
 * flutter-wayland (basic POC) / waylandpp/ipugxml (archived)
 * Sony embedders
 
 ## Notes
+
+### CI Jobs
+
+* linux-dummy.yml - meta-flutter canary CI job builds all recipes against linux-dummy kernel (except x11 client)
+
+* rpi-32 (DRM, flutter-pi, flutter-gallery, vulkan)
+
+    RPI3 DRM - 32-bit RaspberryPi3 image - No X11/Wayland (Vulkan driver responds to Vulkan)
+    RPI4 DRM - 32-bit RaspberryPi3 image - No X11/Wayland (Mesa Vulkan Driver functional)
+
+* rpi-64 (DRM, flutter-pi, flutter-gallery, vulkan)
+
+    RPI3 DRM - 32-bit RaspberryPi3 image - No X11/Wayland (Vulkan driver loaded and not functional)
+    RPI4 DRM - 32-bit RaspberryPi3 image - No X11/Wayland (Mesa Vulkan Driver functional)
+
+Notes: CI job sstate is cleared between builds for all meta-flutter recipes; clean builds.
+
+CI jobs for common targets will be added.  STM32MP157x is planned next.
+
+### General
 
 Targets flutter-engine is known to work on
 
@@ -48,13 +69,15 @@ Targets flutter-engine is known to work on
 * STM32MP157x - cortexa7t2hf
 * etc, etc
 
-## Include Flutter SDK into Yocto SDK
+Note: 32-bit ARM builds currently require Flutter Channel = Master until commit makes it into dev->beta->stable.
+
+## Include the Flutter SDK into Yocto SDK
 
 Add to local.conf file:
 
     TOOLCHAIN_HOST_TASK:append = " nativesdk-flutter-sdk"
 
-Issue:
+Then run:
 
     bitbake <image name> -c populate_sdk
 

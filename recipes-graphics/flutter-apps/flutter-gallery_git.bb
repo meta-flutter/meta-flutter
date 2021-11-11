@@ -37,6 +37,7 @@ do_configure() {
 }
 
 do_compile() {
+
     FLUTTER_SDK=${STAGING_DIR_NATIVE}/usr/share/flutter/sdk
     ENGINE_SDK=${S}/engine_sdk/sdk
     PUBSPEC_APPNAME=gallery
@@ -66,8 +67,6 @@ do_compile() {
       --elf=libapp.so \
       --strip \
       .dart_tool/flutter_build/*/app.dill
-
-    bb.note(`ls -la`)
 }
 
 do_install() {
