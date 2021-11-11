@@ -69,6 +69,7 @@ jobs:
         shell: bash
         working-directory: ../stm32mp15-dunfell
         run: |
+          DISTRO=${{ env.DISTRO }} MACHINE=${{ env.MACHINE }} source layers/meta-st/scripts/envsetup.sh --no-ui
           echo '***************************************'
           sed -i '/DL_DIR/d' ./conf/local.conf
           sed -i '/SSTATE_DIR/d' ./conf/local.conf
