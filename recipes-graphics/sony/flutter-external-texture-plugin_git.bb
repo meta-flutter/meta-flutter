@@ -1,5 +1,5 @@
 SUMMARY = "Embedded Linux embedding for Flutter"
-DESCRIPTION = "Sony's take on existing art around Flutter on Linux."
+DESCRIPTION = "Flutter Embedder with external texture plugin."
 AUTHOR = "Hidenori Matsubayashi"
 HOMEPAGE = "https://github.com/sony/flutter-embedded-linux"
 BUGTRACKER = "https://github.com/sony/flutter-embedded-linux/issues"

@@ -166,22 +166,6 @@ jobs:
           bitbake flutter-wayland-client -c do_cleansstate
           bitbake flutter-wayland-client
 
-      - name: Build Weston Desktop Shell (Sony)
-        shell: bash
-        working-directory: ../yocto-dunfell/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake flutter-weston-desktop-shell -c do_cleansstate
-          bitbake flutter-weston-desktop-shell
-
-      - name: Build Weston Desktop Shell Virtual Keyboard (Sony)
-        shell: bash
-        working-directory: ../yocto-dunfell/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake flutter-weston-desktop-shell-virtual-keyboard -c do_cleansstate
-          bitbake flutter-weston-desktop-shell-virtual-keyboard
-
       - name: Build flutter-gallery
         shell: bash
         working-directory: ../yocto-dunfell/poky
