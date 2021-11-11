@@ -70,7 +70,7 @@ jobs:
         working-directory: ../stm32mp15-dunfell
         run: |
           rm -rf build-openstlinuxeglfs-stm32mp1-disco
-          echo n | . ./layers/meta-st/scripts/envsetup.sh --no-ui
+          echo n | source layers/meta-st/scripts/envsetup.sh --no-ui
           echo '***************************************'
           ls -la
           sync
@@ -84,6 +84,7 @@ jobs:
           sed -i '/flutter-pi/d' $LOCAL_CONF
           sed -i '/flutter-gallery/d' $LOCAL_CONF
           echo '***************************************'
+          echo 'ACCEPT_EULA_stm32mp1-disco = "1"' >> $LOCAL_CONF
           echo 'DL_DIR = "/home/dev/dl"' >> $LOCAL_CONF
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> $LOCAL_CONF
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> $LOCAL_CONF
