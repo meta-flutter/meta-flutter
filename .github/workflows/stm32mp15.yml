@@ -70,7 +70,7 @@ jobs:
         working-directory: ../stm32mp15-dunfell
         run: |
           rm -rf build-openstlinuxeglfs-stm32mp1-disco
-          echo n | DISTRO=${{ env.DISTRO }} MACHINE=${{ env.MACHINE }} source layers/meta-st/scripts/envsetup.sh --no-ui
+          echo n | . ./layers/meta-st/scripts/envsetup.sh --no-ui
           echo '***************************************'
           ls -la
           sync
