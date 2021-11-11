@@ -95,6 +95,7 @@ jobs:
           echo '***************************************'
           env
           echo '***************************************'
+          bitbake-layers add-layer ../layers/meta-clang ../layers/meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
