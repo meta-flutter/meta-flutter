@@ -10,6 +10,7 @@ DEPENDS += "\
     virtual/egl \
     wayland \
     waylandpp \
+    waylandpp-native \
 "
 
 RDEPENDS_${PN} += "xkeyboard-config"

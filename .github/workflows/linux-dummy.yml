@@ -124,13 +124,15 @@ jobs:
           bitbake ivi-homescreen -c do_cleansstate
           bitbake ivi-homescreen
 
-      - name: Build flutter-wayland
+      - name: Build pugixml
         shell: bash
         working-directory: ../yocto-dunfell/poky
         run: |
           . ./oe-init-build-env
-          bitbake flutter-wayland -c do_cleansstate
-          bitbake flutter-wayland
+          bitbake pugixml -c do_cleansstate
+          bitbake pugixml
+          bitbake pugixml-native -c do_cleansstate
+          bitbake pugixml-native
 
       - name: Build flutter-pi
         shell: bash
