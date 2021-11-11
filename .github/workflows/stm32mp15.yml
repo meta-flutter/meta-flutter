@@ -71,6 +71,7 @@ jobs:
         run: |
           rm -rf build-openstlinuxeglfs-stm32mp1-disco
           echo n | source layers/meta-st/scripts/envsetup.sh --no-ui
+          source layers/meta-st/scripts/envsetup.sh --no-ui
           echo '***************************************'
           ls -la
           env
@@ -86,7 +87,6 @@ jobs:
           sed -i '/flutter-pi/d' $LOCAL_CONF
           sed -i '/flutter-gallery/d' $LOCAL_CONF
           echo '***************************************'
-          echo '\n' >> $LOCAL_CONF
           echo 'ACCEPT_EULA_stm32mp1-disco = "1"' >> $LOCAL_CONF
           echo 'DL_DIR = "/home/dev/dl"' >> $LOCAL_CONF
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> $LOCAL_CONF
@@ -94,7 +94,6 @@ jobs:
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.DISTRO_VERSION }}/PATH;downloadfilename=PATH"' >> $LOCAL_CONF
           echo 'FLUTTER_CHANNEL = "master"' >> $LOCAL_CONF
           echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-release"' >> $LOCAL_CONF
-          echo '\n' >> $LOCAL_CONF
           echo '********** ./conf/local.conf **********'
           cat $LOCAL_CONF
           echo '***************************************'
