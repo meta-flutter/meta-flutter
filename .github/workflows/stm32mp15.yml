@@ -102,12 +102,12 @@ jobs:
           echo '***************************************'
           bitbake -e > bb.environment
 
-      - name: Build core-image-minimal
+      - name: Build st-image-core
         shell: bash
         working-directory: ../stm32mp15-dunfell
         run: |
           source ./layers/meta-st/scripts/envsetup.sh --no-ui
-          bitbake core-image-minimal
+          bitbake st-image-core
 
       - name: Build flutter-engine
         shell: bash
@@ -119,13 +119,6 @@ jobs:
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/flutter-engine-git*.rpm /home/dev/artifacts
 
-      - name: Publish flutter-engine artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: flutter-engine-rpi3
-          path: |
-             /home/dev/artifacts/*.rpm
-
       - name: Build flutter-pi
         shell: bash
         working-directory: ../stm32mp15-dunfell
@@ -135,13 +128,6 @@ jobs:
           bitbake flutter-pi
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/flutter-pi-git*.rpm /home/dev/artifacts
-
-      - name: Publish flutter-pi artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: flutter-pi-rpi3
-          path: |
-             /home/dev/artifacts/*.rpm
 
       - name: Build flutter-gallery
         shell: bash
@@ -154,13 +140,6 @@ jobs:
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/flutter-gallery-git*.rpm /home/dev/artifacts
 
-      - name: Publish flutter-gallery artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: flutter-gallery-rpi3
-          path: |
-             /home/dev/artifacts/*.rpm
-
       - name: Build core-image-minimal
         shell: bash
         working-directory: ../stm32mp15-dunfell
@@ -168,13 +147,10 @@ jobs:
           source ./layers/meta-st/scripts/envsetup.sh --no-ui
           sed -i '/flutter-pi/d' ./conf/local.conf
           sed -i '/flutter-gallery/d' ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
-          bitbake core-image-minimal
+          echo 'IMAGE_INSTALL += "flutter-pi flutter-gallery"' >> ./conf/local.conf
+          bitbake  st-image-core
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/images/raspberrypi3/core-image-minimal-raspberrypi3.wic.bmap /home/dev/artifacts
-          cp tmp/deploy/images/raspberrypi3/core-image-minimal-raspberrypi3.wic.bz2 /home/dev/artifacts
 
       - name: Publish OS image artifact
         uses: actions/upload-artifact@v2
