@@ -16,7 +16,7 @@ jobs:
   
     env:
       MACHINE: qemux86-64
-      AGL_BRANCH: lamprey
+      AGL_BRANCH: master
 
     runs-on: [self-hosted, linux]
     
@@ -181,9 +181,8 @@ jobs:
   lamprey-m3ulcb:
   
     env:
-      YOCTO_BRANCH: dunfell
       MACHINE: m3ulcb
-      AGL_BRANCH: lamprey
+      AGL_BRANCH: master
       XDG_DOWNLOAD_DIR: /home/dev/rcar_dl
 
     runs-on: [self-hosted, linux]
@@ -329,9 +328,8 @@ jobs:
         working-directory: ../agl-lamprey-m3ulcb
         run: |
           . ./build/agl-init-build-env
-          sed -i '/IMAGE_INSTALL:append/d' ./conf/local.conf
           sed -i '/IMAGE_INSTALL_append/d' ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " ivi-homescreen flutter-gallery agl-flutter-hvac agl-flutter-homescreen"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " ivi-homescreen flutter-gallery"' >> ./conf/local.conf
           rm -rf /home/dev/artifacts/*
           bitbake agl-flutter-hvac -c do_cleansstate
           bitbake agl-flutter-homescreen -c do_cleansstate
