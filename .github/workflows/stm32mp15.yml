@@ -76,6 +76,7 @@ jobs:
           sync
           echo '***************************************'
           LOCAL_CONF=./build-openstlinuxeglfs-stm32mp1-disco/conf/local.conf
+          sed -i '/ACCEPT_EULA_/d' $LOCAL_CONF
           sed -i '/DL_DIR/d' $LOCAL_CONF
           sed -i '/SSTATE_DIR/d' $LOCAL_CONF
           sed -i '/SSTATE_MIRRORS/d' $LOCAL_CONF
@@ -93,6 +94,8 @@ jobs:
           echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-release"' >> $LOCAL_CONF
           echo '********** ./conf/local.conf **********'
           cat $LOCAL_CONF
+          echo '***************************************'
+          bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
