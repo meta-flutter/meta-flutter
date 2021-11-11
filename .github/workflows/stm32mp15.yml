@@ -64,13 +64,14 @@ jobs:
           git clone -b dunfell https://github.com/kraj/meta-clang.git layers/meta-clang &
           git clone -b main https://github.com/meta-flutter/meta-flutter.git layers/meta-flutter &
           wait
+          chmod a+x layers/meta-st/scripts/envsetup.sh
 
       - name: Configure build
         shell: bash
         working-directory: ../stm32mp15-dunfell
         run: |
           rm -rf build-openstlinuxeglfs-stm32mp1-disco
-          echo n | source layers/meta-st/scripts/envsetup.sh --no-ui
+          echo n | layers/meta-st/scripts/envsetup.sh --no-ui
           echo '***************************************'
           ls -la
           env
@@ -96,7 +97,7 @@ jobs:
           echo '********** ./conf/local.conf **********'
           cat $LOCAL_CONF
           echo '***************************************'
-          source layers/meta-st/scripts/envsetup.sh --no-ui
+          . /layers/meta-st/scripts/envsetup.sh --no-ui
           echo '***************************************'
           bitbake-layers show-layers
           echo '***************************************'
