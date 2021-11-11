@@ -160,11 +160,11 @@ jobs:
         working-directory: ../agl-lamprey-qemu
         run: |
           . ./build/agl-init-build-env
+          sed -i '/IMAGE_INSTALL_append/d' ./conf/local.conf
           sed -i '/IMAGE_INSTALL:append/d' ./conf/local.conf
-          echo 'IMAGE_INSTALL:append = " ivi-homescreen flutter-gallery agl-flutter-hvac agl-flutter-homescreen"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " ivi-homescreen flutter-gallery"' >> ./conf/local.conf
           rm -rf /home/dev/artifacts/*
-          bitbake agl-flutter-hvac -c do_cleansstate
-          bitbake agl-flutter-homescreen -c do_cleansstate
+          bitbake flutter-gallery -c do_cleansstate
           bitbake agl-image-weston
           cp bb.environment /home/dev/artifacts
           cp tmp/deploy/images/qemux86-64/agl-image-weston-qemux86-64.wic.vmdk /home/dev/artifacts
@@ -331,8 +331,6 @@ jobs:
           sed -i '/IMAGE_INSTALL_append/d' ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " ivi-homescreen flutter-gallery"' >> ./conf/local.conf
           rm -rf /home/dev/artifacts/*
-          bitbake agl-flutter-hvac -c do_cleansstate
-          bitbake agl-flutter-homescreen -c do_cleansstate
           bitbake agl-image-weston
           cp bb.environment /home/dev/artifacts
           cp tmp/deploy/images/qemux86-64/agl-image-weston-qemux86-64.wic.vmdk /home/dev/artifacts
