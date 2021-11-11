@@ -49,4 +49,9 @@ do_install() {
    install -m 644 ${WORKDIR}/build/plugins/external_texture_test/libexternal_texture_test_plugin.so ${D}${libdir}
 }
 
+FILES_${PN} = "\
+   ${bindir} \
+   ${libdir} \
+   "
+ 
 BBCLASSEXTEND = ""
