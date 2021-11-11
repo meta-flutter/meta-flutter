@@ -15,8 +15,6 @@ jobs:
   lamprey-qemu:
   
     env:
-      YOCTO_VERSION: 3.1.8
-      YOCTO_BRANCH: dunfell
       MACHINE: qemux86-64
       AGL_BRANCH: lamprey
 
@@ -72,11 +70,10 @@ jobs:
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
-          echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://download.automotivelinux.org/sstate-mirror/${{ env.AGL_BRANCH }}/${DEFAULTTUNE}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-debug"' >> ./conf/local.conf
-          echo 'INHERIT_remove = "uninative"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-debug"' >> ./conf/local.conf
+          echo 'INHERIT:remove = "uninative"' >> ./conf/local.conf
           echo '***************************************'
           bitbake-layers add-layer ../../meta-flutter ../meta-agl-flutter ../external/meta-clang
           bitbake-layers show-layers
@@ -162,8 +159,8 @@ jobs:
         working-directory: ../agl-lamprey-qemu
         run: |
           . ./build/agl-init-build-env
-          sed -i '/IMAGE_INSTALL_append/d' ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " ivi-homescreen flutter-gallery agl-flutter-hvac agl-flutter-homescreen"' >> ./conf/local.conf
+          sed -i '/IMAGE_INSTALL:append/d' ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = " ivi-homescreen flutter-gallery agl-flutter-hvac agl-flutter-homescreen"' >> ./conf/local.conf
           rm -rf /home/dev/artifacts/*
           bitbake agl-flutter-hvac -c do_cleansstate
           bitbake agl-flutter-homescreen -c do_cleansstate
@@ -183,7 +180,6 @@ jobs:
   lamprey-m3ulcb:
   
     env:
-      YOCTO_VERSION: 3.1.8
       YOCTO_BRANCH: dunfell
       MACHINE: m3ulcb
       AGL_BRANCH: lamprey
@@ -242,11 +238,10 @@ jobs:
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
-          echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://download.automotivelinux.org/sstate-mirror/${{ env.AGL_BRANCH }}/${DEFAULTTUNE}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-debug"' >> ./conf/local.conf
-          echo 'INHERIT_remove = "uninative"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-debug"' >> ./conf/local.conf
+          echo 'INHERIT:remove = "uninative"' >> ./conf/local.conf
           echo '***************************************'
           bitbake-layers add-layer ../../meta-flutter ../meta-agl-flutter ../external/meta-clang
           bitbake-layers show-layers
@@ -332,8 +327,8 @@ jobs:
         working-directory: ../agl-lamprey-m3ulcb
         run: |
           . ./build/agl-init-build-env
-          sed -i '/IMAGE_INSTALL_append/d' ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " ivi-homescreen flutter-gallery agl-flutter-hvac agl-flutter-homescreen"' >> ./conf/local.conf
+          sed -i '/IMAGE_INSTALL:append/d' ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = " ivi-homescreen flutter-gallery agl-flutter-hvac agl-flutter-homescreen"' >> ./conf/local.conf
           rm -rf /home/dev/artifacts/*
           bitbake agl-flutter-hvac -c do_cleansstate
           bitbake agl-flutter-homescreen -c do_cleansstate
