@@ -75,7 +75,8 @@ jobs:
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://download.automotivelinux.org/sstate-mirror/${{ env.AGL_BRANCH }}/${DEFAULTTUNE}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-debug"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-debug"' >> ./conf/local.conf
+          echo 'INHERIT_remove = "uninative"' >> ./conf/local.conf
           echo '***************************************'
           bitbake-layers add-layer ../../meta-flutter ../meta-agl-flutter ../external/meta-clang
           bitbake-layers show-layers
@@ -162,9 +163,10 @@ jobs:
         run: |
           . ./build/agl-init-build-env
           sed -i '/IMAGE_INSTALL_append/d' ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " ivi-homescreen flutter-gallery agl-flutter-hvac"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " ivi-homescreen flutter-gallery agl-flutter-hvac agl-flutter-homescreen"' >> ./conf/local.conf
           rm -rf /home/dev/artifacts/*
           bitbake agl-flutter-hvac -c do_cleansstate
+          bitbake agl-flutter-homescreen -c do_cleansstate
           bitbake agl-image-weston
           cp bb.environment /home/dev/artifacts
           cp tmp/deploy/images/qemux86-64/agl-image-weston-qemux86-64.wic.vmdk /home/dev/artifacts
@@ -222,7 +224,7 @@ jobs:
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           git clone https://github.com/meta-flutter/meta-agl-flutter.git &
           wait
-          
+
       - name: Configure AGL build
         shell: bash
         working-directory: ../agl-lamprey-m3ulcb
@@ -243,18 +245,14 @@ jobs:
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://download.automotivelinux.org/sstate-mirror/${{ env.AGL_BRANCH }}/${DEFAULTTUNE}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-debug"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-debug"' >> ./conf/local.conf
+          echo 'INHERIT_remove = "uninative"' >> ./conf/local.conf
           echo '***************************************'
           bitbake-layers add-layer ../../meta-flutter ../meta-agl-flutter ../external/meta-clang
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
-          echo '***************************************'
-          bitbake flutter-engine -c do_cleansstate
-          bitbake flutter-sdk-native -c do_cleansstate
-          bitbake ivi-homescreen -c do_cleansstate
-          bitbake flutter-gallery -c do_cleansstate
           echo '***************************************'
           bitbake -e > bb.environment
 
@@ -283,6 +281,7 @@ jobs:
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
+          bitbake flutter-engine -c do_cleansstate
           bitbake flutter-engine
           cp tmp/deploy/rpm/corei7_64/flutter-engine-git*.rpm /home/dev/artifacts
 
@@ -299,6 +298,7 @@ jobs:
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
+          bitbake ivi-homescreen -c do_cleansstate
           bitbake ivi-homescreen
           cp tmp/deploy/rpm/corei7_64/ivi-homescreen-git*.rpm /home/dev/artifacts
 
@@ -315,6 +315,8 @@ jobs:
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
+          bitbake flutter-sdk-native -c do_cleansstate
+          bitbake flutter-gallery -c do_cleansstate
           bitbake flutter-gallery
           cp tmp/deploy/rpm/corei7_64/flutter-gallery-git*.rpm /home/dev/artifacts
 
@@ -331,9 +333,10 @@ jobs:
         run: |
           . ./build/agl-init-build-env
           sed -i '/IMAGE_INSTALL_append/d' ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " ivi-homescreen flutter-gallery agl-flutter-hvac"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " ivi-homescreen flutter-gallery agl-flutter-hvac agl-flutter-homescreen"' >> ./conf/local.conf
           rm -rf /home/dev/artifacts/*
           bitbake agl-flutter-hvac -c do_cleansstate
+          bitbake agl-flutter-homescreen -c do_cleansstate
           bitbake agl-image-weston
           cp bb.environment /home/dev/artifacts
           cp tmp/deploy/images/qemux86-64/agl-image-weston-qemux86-64.wic.vmdk /home/dev/artifacts

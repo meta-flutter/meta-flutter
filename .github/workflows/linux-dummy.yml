@@ -46,8 +46,8 @@ jobs:
 
       - name: Fetch poky
         run: |
-          [ -d ../yocto-dunfell-latest ] || mkdir -p ../yocto-dunfell-latest
-          cd ../yocto-dunfell-latest
+          [ -d ../yocto-dunfell ] || mkdir -p ../yocto-dunfell
+          cd ../yocto-dunfell
           pwd
           ls -la
           mv poky/build/sstate-cache . || true
@@ -59,7 +59,7 @@ jobs:
 
       - name: Configure build
         shell: bash
-        working-directory: ../yocto-dunfell-latest/poky
+        working-directory: ../yocto-dunfell/poky
         run: |
           . ./oe-init-build-env
           echo '***************************************'
@@ -88,7 +88,7 @@ jobs:
           echo 'VIRTUAL-RUNTIME_initscripts = ""' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-debug"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-debug"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -100,16 +100,17 @@ jobs:
           echo '***************************************'
           bitbake -e > bb.environment
 
+
       - name: Build core-image-minimal
         shell: bash
-        working-directory: ../yocto-dunfell-latest/poky
+        working-directory: ../yocto-dunfell/poky
         run: |
           . ./oe-init-build-env
           bitbake core-image-minimal
 
       - name: Build flutter-engine
         shell: bash
-        working-directory: ../yocto-dunfell-latest/poky
+        working-directory: ../yocto-dunfell/poky
         run: |
           . ./oe-init-build-env
           bitbake flutter-engine -c do_cleansstate
@@ -117,7 +118,7 @@ jobs:
 
       - name: Build ivi-homescreen
         shell: bash
-        working-directory: ../yocto-dunfell-latest/poky
+        working-directory: ../yocto-dunfell/poky
         run: |
           . ./oe-init-build-env
           bitbake ivi-homescreen -c do_cleansstate
@@ -125,7 +126,7 @@ jobs:
 
       - name: Build flutter-wayland
         shell: bash
-        working-directory: ../yocto-dunfell-latest/poky
+        working-directory: ../yocto-dunfell/poky
         run: |
           . ./oe-init-build-env
           bitbake flutter-wayland -c do_cleansstate
@@ -133,15 +134,55 @@ jobs:
 
       - name: Build flutter-pi
         shell: bash
-        working-directory: ../yocto-dunfell-latest/poky
+        working-directory: ../yocto-dunfell/poky
         run: |
           . ./oe-init-build-env
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
 
+      - name: Build drm gbm backend (Sony)
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-drm-gbm-backend -c do_cleansstate
+          bitbake flutter-drm-gbm-backend
+
+      - name: Build external texture plugin (Sony)
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-external-texture-plugin -c do_cleansstate
+          bitbake flutter-external-texture-plugin
+
+      - name: Build Wayland Client (Sony)
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-wayland-client -c do_cleansstate
+          bitbake flutter-wayland-client
+
+      - name: Build Weston Desktop Shell (Sony)
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-weston-desktop-shell -c do_cleansstate
+          bitbake flutter-weston-desktop-shell
+
+      - name: Build Weston Desktop Shell Virtual Keyboard (Sony)
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-weston-desktop-shell-virtual-keyboard -c do_cleansstate
+          bitbake flutter-weston-desktop-shell-virtual-keyboard
+
       - name: Build flutter-gallery
         shell: bash
-        working-directory: ../yocto-dunfell-latest/poky
+        working-directory: ../yocto-dunfell/poky
         run: |
           . ./oe-init-build-env
           bitbake flutter-sdk-native -c do_cleansstate
