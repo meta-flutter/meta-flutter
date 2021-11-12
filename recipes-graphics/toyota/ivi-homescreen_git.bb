@@ -19,7 +19,7 @@ DEPENDS += "\
     wayland-protocols \
     "
 
-PV = "1.0+git${SRCPV}"
+PV = "git${SRCPV}"
 
 REQUIRED_DISTRO_FEATURES = "wayland opengl"
 

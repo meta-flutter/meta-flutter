@@ -27,6 +27,8 @@ RDEPENDS_${PN} += "\
     fontconfig \
     "
 
+PV = "git${SRCPV}"
+
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 SRC_URI = "git://github.com/ardera/flutter-pi.git;protocol=https;branch=master \

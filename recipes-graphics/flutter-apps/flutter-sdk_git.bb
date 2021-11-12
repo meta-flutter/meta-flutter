@@ -18,6 +18,8 @@ DEPENDS += " ca-certificates-native curl-native unzip-native"
 RDEPENDS_${PN}-native += "ca-certificates-native curl-native perl perl-modules unzip-native"
 RDEPENDS_nativesdk-${PN} += "ca-certificates-native curl-native perl perl-modules unzip-native"
 
+PV = "git${SRCPV}"
+
 SRC_URI = "git://github.com/flutter/flutter;protocol=https;branch=${FLUTTER_CHANNEL};name=repo"
 
 SRCREV = "${AUTOREV}"

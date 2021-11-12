@@ -20,6 +20,8 @@ DEPENDS += "\
 
 RDEPENDS_${PN} += "xkeyboard-config"
 
+PV = "git${SRCPV}"
+
 SRC_URI = "git://github.com/sony/flutter-embedded-linux.git;protocol=https;branch=master"
 
 SRCREV = "${AUTOREV}"
