@@ -192,8 +192,7 @@ jobs:
           rm -rf /home/dev/artifacts/*
           bitbake agl-image-minimal -c do_populate_sdk
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/images/qemux86-64/agl-image-minimal-qemux86-64.wic.vmdk /home/dev/artifacts
-          cp tmp/deploy/images/sdk/qemux86-64/*.sh /home/dev/artifacts
+          cp tmp/deploy/sdk/poky-agl-*.sh /home/dev/artifacts
 
       - name: Publish agl-image-minimal SDK artifact
         uses: actions/upload-artifact@v2
