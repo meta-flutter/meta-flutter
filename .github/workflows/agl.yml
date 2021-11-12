@@ -12,13 +12,11 @@ on:
 
 jobs:
 
-  lamprey-qemu:
+  master-qemu:
   
     env:
-      YOCTO_VERSION: 3.1.8
-      YOCTO_BRANCH: dunfell
       MACHINE: qemux86-64
-      AGL_BRANCH: lamprey
+      AGL_BRANCH: master
 
     runs-on: [self-hosted, linux]
     
@@ -47,8 +45,8 @@ jobs:
 
       - name: Fetch Layers
         run: |
-          [ -d ../agl-lamprey-qemu ] || mkdir -p ../agl-lamprey-qemu
-          cd ../agl-lamprey-qemu
+          [ -d ../agl-master-qemu ] || mkdir -p ../agl-master-qemu
+          cd ../agl-master-qemu
           rm -rf .repo meta-agl-flutter
           /home/dev/bin/repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
@@ -57,7 +55,7 @@ jobs:
           
       - name: Configure AGL build
         shell: bash
-        working-directory: ../agl-lamprey-qemu
+        working-directory: ../agl-master-qemu
         run: |
           . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
           echo '***************************************'
@@ -65,6 +63,9 @@ jobs:
           sed -i '/DL_DIR/d' ./conf/local.conf
           sed -i '/SSTATE_DIR/d' ./conf/local.conf
           sed -i '/SSTATE_MIRRORS/d' ./conf/local.conf
+          sed -i '/INHERIT_remove/d' ./conf/local.conf
+          sed -i '/IMAGE_INSTALL_append/d' ./conf/local.conf
+          sed -i '/IMAGE_INSTALL:append/d' ./conf/local.conf
           sed -i '/FLUTTER_CHANNEL/d' ./conf/local.conf
           sed -i '/PACKAGECONFIG_pn-flutter-engine/d' ./conf/local.conf
           echo '***************************************'
@@ -72,10 +73,10 @@ jobs:
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
-          echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://download.automotivelinux.org/sstate-mirror/${{ env.AGL_BRANCH }}/${DEFAULTTUNE}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
+          echo 'INHERIT_remove = "uninative"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-debug"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-debug"' >> ./conf/local.conf
           echo '***************************************'
           bitbake-layers add-layer ../../meta-flutter ../meta-agl-flutter ../external/meta-clang
           bitbake-layers show-layers
@@ -87,7 +88,7 @@ jobs:
 
       - name: Build agl-image-weston
         shell: bash
-        working-directory: ../agl-lamprey-qemu
+        working-directory: ../agl-master-qemu
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
@@ -106,7 +107,7 @@ jobs:
 
       - name: Build flutter-engine
         shell: bash
-        working-directory: ../agl-lamprey-qemu
+        working-directory: ../agl-master-qemu
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
@@ -123,7 +124,7 @@ jobs:
 
       - name: Build ivi-homescreen
         shell: bash
-        working-directory: ../agl-lamprey-qemu
+        working-directory: ../agl-master-qemu
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
@@ -140,7 +141,7 @@ jobs:
 
       - name: Build flutter-gallery
         shell: bash
-        working-directory: ../agl-lamprey-qemu
+        working-directory: ../agl-master-qemu
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
@@ -158,13 +159,14 @@ jobs:
 
       - name: Build agl-image-weston with flutter
         shell: bash
-        working-directory: ../agl-lamprey-qemu
+        working-directory: ../agl-master-qemu
         run: |
           . ./build/agl-init-build-env
           sed -i '/IMAGE_INSTALL_append/d' ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " ivi-homescreen flutter-gallery agl-flutter-hvac"' >> ./conf/local.conf
+          sed -i '/IMAGE_INSTALL:append/d' ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " ivi-homescreen flutter-gallery"' >> ./conf/local.conf
           rm -rf /home/dev/artifacts/*
-          bitbake agl-flutter-hvac -c do_cleansstate
+          bitbake flutter-gallery -c do_cleansstate
           bitbake agl-image-weston
           cp bb.environment /home/dev/artifacts
           cp tmp/deploy/images/qemux86-64/agl-image-weston-qemux86-64.wic.vmdk /home/dev/artifacts
@@ -178,13 +180,11 @@ jobs:
           path: |
              /home/dev/artifacts/*
 
-  lamprey-m3ulcb:
+  master-m3ulcb:
   
     env:
-      YOCTO_VERSION: 3.1.8
-      YOCTO_BRANCH: dunfell
       MACHINE: m3ulcb
-      AGL_BRANCH: lamprey
+      AGL_BRANCH: master
       XDG_DOWNLOAD_DIR: /home/dev/rcar_dl
 
     runs-on: [self-hosted, linux]
@@ -215,17 +215,17 @@ jobs:
 
       - name: Fetch Layers
         run: |
-          [ -d ../agl-lamprey-m3ulcb ] || mkdir -p ../agl-lamprey-m3ulcb
-          cd ../agl-lamprey-m3ulcb
+          [ -d ../agl-master-m3ulcb ] || mkdir -p ../agl-master-m3ulcb
+          cd ../agl-master-m3ulcb
           rm -rf .repo meta-agl-flutter
           /home/dev/bin/repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           git clone https://github.com/meta-flutter/meta-agl-flutter.git &
           wait
-          
+
       - name: Configure AGL build
         shell: bash
-        working-directory: ../agl-lamprey-m3ulcb
+        working-directory: ../agl-master-m3ulcb
         run: |
           . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
           echo '***************************************'
@@ -233,6 +233,9 @@ jobs:
           sed -i '/DL_DIR/d' ./conf/local.conf
           sed -i '/SSTATE_DIR/d' ./conf/local.conf
           sed -i '/SSTATE_MIRRORS/d' ./conf/local.conf
+          sed -i '/INHERIT_remove/d' ./conf/local.conf
+          sed -i '/IMAGE_INSTALL_append/d' ./conf/local.conf
+          sed -i '/IMAGE_INSTALL:append/d' ./conf/local.conf
           sed -i '/FLUTTER_CHANNEL/d' ./conf/local.conf
           sed -i '/PACKAGECONFIG_pn-flutter-engine/d' ./conf/local.conf
           echo '***************************************'
@@ -240,10 +243,10 @@ jobs:
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
-          echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://download.automotivelinux.org/sstate-mirror/${{ env.AGL_BRANCH }}/${DEFAULTTUNE}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
+          echo 'INHERIT_remove = "uninative"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-debug"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-debug"' >> ./conf/local.conf
           echo '***************************************'
           bitbake-layers add-layer ../../meta-flutter ../meta-agl-flutter ../external/meta-clang
           bitbake-layers show-layers
@@ -251,16 +254,11 @@ jobs:
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
           echo '***************************************'
-          bitbake flutter-engine -c do_cleansstate
-          bitbake flutter-sdk-native -c do_cleansstate
-          bitbake ivi-homescreen -c do_cleansstate
-          bitbake flutter-gallery -c do_cleansstate
-          echo '***************************************'
           bitbake -e > bb.environment
 
       - name: Build agl-image-weston
         shell: bash
-        working-directory: ../agl-lamprey-m3ulcb
+        working-directory: ../agl-master-m3ulcb
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
@@ -279,10 +277,11 @@ jobs:
 
       - name: Build flutter-engine
         shell: bash
-        working-directory: ../agl-lamprey-m3ulcb
+        working-directory: ../agl-master-m3ulcb
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
+          bitbake flutter-engine -c do_cleansstate
           bitbake flutter-engine
           cp tmp/deploy/rpm/corei7_64/flutter-engine-git*.rpm /home/dev/artifacts
 
@@ -295,10 +294,11 @@ jobs:
 
       - name: Build ivi-homescreen
         shell: bash
-        working-directory: ../agl-lamprey-m3ulcb
+        working-directory: ../agl-master-m3ulcb
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
+          bitbake ivi-homescreen -c do_cleansstate
           bitbake ivi-homescreen
           cp tmp/deploy/rpm/corei7_64/ivi-homescreen-git*.rpm /home/dev/artifacts
 
@@ -311,10 +311,12 @@ jobs:
 
       - name: Build flutter-gallery
         shell: bash
-        working-directory: ../agl-lamprey-m3ulcb
+        working-directory: ../agl-master-m3ulcb
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
+          bitbake flutter-sdk-native -c do_cleansstate
+          bitbake flutter-gallery -c do_cleansstate
           bitbake flutter-gallery
           cp tmp/deploy/rpm/corei7_64/flutter-gallery-git*.rpm /home/dev/artifacts
 
@@ -327,13 +329,12 @@ jobs:
 
       - name: Build agl-image-weston with flutter
         shell: bash
-        working-directory: ../agl-lamprey-m3ulcb
+        working-directory: ../agl-master-m3ulcb
         run: |
           . ./build/agl-init-build-env
           sed -i '/IMAGE_INSTALL_append/d' ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " ivi-homescreen flutter-gallery agl-flutter-hvac"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " ivi-homescreen flutter-gallery"' >> ./conf/local.conf
           rm -rf /home/dev/artifacts/*
-          bitbake agl-flutter-hvac -c do_cleansstate
           bitbake agl-image-weston
           cp bb.environment /home/dev/artifacts
           cp tmp/deploy/images/qemux86-64/agl-image-weston-qemux86-64.wic.vmdk /home/dev/artifacts

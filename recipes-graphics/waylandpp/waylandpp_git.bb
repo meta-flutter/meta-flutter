@@ -1,25 +1,30 @@
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=7f6b13e4480850c59e176edd427d996e"
 
-SRC_URI = "git://github.com/NilsBrause/waylandpp.git;protocol=https"
-SRCREV = "19689edf6d4b40363cc013cbf8dcf4ac10c2e9df"
-
-DEPENDS_append_class-native = " pugixml-native"
-DEPENDS_append_class-target = " waylandpp-native wayland virtual/egl"
-
 REQUIRED_DISTRO_FEATURES = "wayland"
 
+SRC_URI = "git://github.com/NilsBrause/waylandpp.git;protocol=https;branch=master"
+SRCREV = "19689edf6d4b40363cc013cbf8dcf4ac10c2e9df"
+
+DEPENDS_append_class-native += "\
+    pugixml-native \
+    "
+
+DEPENDS_append_class-target += " \
+    virtual/egl \
+    wayland \
+    waylandpp-native \
+    "
 
 S = "${WORKDIR}/git"
 
-inherit cmake
+inherit cmake features_check
 
 
 EXTRA_OECMAKE_append_class-native = " \
     -DBUILD_SCANNER=ON \
     -DBUILD_LIBRARIES=OFF \
     -DBUILD_DOCUMENTATION=OFF \
-    -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_VERBOSE_MAKEFILE=TRUE \
     "
 
@@ -32,7 +37,6 @@ EXTRA_OECMAKE_append_class-target = " \
     -DOPENGL_opengl_LIBRARY=-lEGL \
     -DOPENGL_glx_LIBRARY=-lEGL \
     -DWAYLAND_SCANNERPP="${STAGING_BINDIR_NATIVE}/wayland-scanner++" \
-    -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_VERBOSE_MAKEFILE=TRUE \
     -DCMAKE_EXE_LINKER_FLAGS="-Wl,--enable-new-dtags" \
     "
