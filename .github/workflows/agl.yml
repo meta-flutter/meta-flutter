@@ -78,7 +78,7 @@ jobs:
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
           echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-debug"' >> ./conf/local.conf
           echo '** Layers *****************************'
-          bitbake-layers add-layer ../../meta-flutter ../meta-agl-demo ../meta-agl-devel ../external/meta-clang
+          bitbake-layers add-layer ../../meta-flutter ../meta-agl-demo ../external/meta-clang
           bitbake-layers show-layers
           echo '** Kernel *****************************'
           bitbake -e virtual/kernel | grep "^PV"
