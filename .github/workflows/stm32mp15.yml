@@ -87,9 +87,9 @@ jobs:
           echo 'DL_DIR = "/home/dev/dl"' >> $LOCAL_CONF
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> $LOCAL_CONF
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> $LOCAL_CONF
-          echo 'MACHINE_FEATURES_remove = "fip"\n' >> $LOCAL_CONF
-          echo 'DISTRO_FEATURES_remove = "wayland"\n' >> $LOCAL_CONF
-          echo 'DISTRO_FEATURES_remove = "x11"\n' >> $LOCAL_CONF
+          echo 'MACHINE_FEATURES_remove = "fip"' >> $LOCAL_CONF
+          echo 'DISTRO_FEATURES_remove = "wayland"' >> $LOCAL_CONF
+          echo 'DISTRO_FEATURES_remove = "x11"' >> $LOCAL_CONF
           echo 'INHERIT_remove = "uninative"' >> $LOCAL_CONF
           echo 'FLUTTER_CHANNEL = "master"' >> $LOCAL_CONF
           echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-release"' >> $LOCAL_CONF
