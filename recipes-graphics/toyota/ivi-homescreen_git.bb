@@ -3,7 +3,7 @@ DESCRIPTION = "Toyota's Flutter Embedder that communicates with Wayland composit
 AUTHOR = "joel.winarske@toyotaconnected.com"
 HOMEPAGE = "https://github.com/toyota-connected/ivi-homescreen"
 BUGTRACKER = "https://github.com/toyota-connected/ivi-homescreen/issues"
-SECTION = "connectivity"
+SECTION = "graphics"
 CVE_PRODUCT = "homescreen"
 
 LICENSE = "Apache-2.0"
@@ -19,11 +19,13 @@ DEPENDS += "\
     wayland-protocols \
     "
 
-PV .= "+${SRCPV}"
+PV = "1.0+git${SRCPV}"
 
 REQUIRED_DISTRO_FEATURES = "wayland opengl"
 
-SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=main"
+SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=main \
+           file://homescreen.service \
+          "
 
 SRCREV = "${AUTOREV}"
 
@@ -37,5 +39,11 @@ PREFERRED_PROVIDER_libgcc = "compiler-rt"
 
 EXTRA_OECMAKE += "-D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr"
 
+SYSTEMD_SERVICE_${PN} = "homescreen.service"
+SYSTEMD_AUTO_ENABLE = "enable"
+
+do_install_append() {
+    install -D -p -m0644 ${WORKDIR}/homescreen.service ${D}${systemd_system_unitdir}/homescreen.service
+}
 
 BBCLASSEXTEND = ""

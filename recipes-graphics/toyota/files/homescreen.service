@@ -1,0 +1,14 @@
+[Unit]
+Requires=weston.service
+After=weston.service
+
+[Service]
+# Placeholder configuration to run as weston user for now.
+User=weston
+Group=weston
+Environment=XDG_RUNTIME_DIR=/run/user/200
+EnvironmentFile=-/etc/default/homescreen
+ExecStart=/usr/bin/homescreen
+
+[Install]
+WantedBy=graphical.target
