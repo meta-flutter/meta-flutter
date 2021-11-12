@@ -86,22 +86,22 @@ jobs:
           echo '***************************************'
           bitbake -e > bb.environment
 
-      - name: Build agl-image-minimal
+      - name: Build agl-image-ivi
         shell: bash
         working-directory: ../agl-master-qemu
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
-          bitbake agl-image-minimal
+          bitbake agl-image-ivi
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/images/qemux86-64/agl-image-minimal-qemux86-64.wic.vmdk /home/dev/artifacts
-          cp tmp/deploy/images/qemux86-64/agl-image-minimal-qemux86-64.ext4 /home/dev/artifacts
+          cp tmp/deploy/images/qemux86-64/agl-image-ivi-qemux86-64.wic.vmdk /home/dev/artifacts
+          cp tmp/deploy/images/qemux86-64/agl-image-ivi-qemux86-64.ext4 /home/dev/artifacts
           cp tmp/deploy/images/qemux86-64/bzImage /home/dev/artifacts
 
-      - name: Publish agl-image-minimal artifacts
+      - name: Publish agl-image-ivi artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: agl-image-minimal-qemux86-64-linux
+          name: agl-image-ivi-qemux86-64-linux
           path: |
              /home/dev/artifacts/*
 
@@ -157,7 +157,7 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build agl-image-weston with flutter
+      - name: Build agl-image-ivi with flutter
         shell: bash
         working-directory: ../agl-master-qemu
         run: |
@@ -167,16 +167,16 @@ jobs:
           echo 'IMAGE_INSTALL_append = " ivi-homescreen flutter-gallery"' >> ./conf/local.conf
           rm -rf /home/dev/artifacts/*
           bitbake flutter-gallery -c do_cleansstate
-          bitbake agl-image-weston
+          bitbake agl-image-ivi
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/images/qemux86-64/agl-image-weston-qemux86-64.wic.vmdk /home/dev/artifacts
-          cp tmp/deploy/images/qemux86-64/agl-image-weston-qemux86-64.ext4 /home/dev/artifacts
+          cp tmp/deploy/images/qemux86-64/agl-image-ivi-qemux86-64.wic.vmdk /home/dev/artifacts
+          cp tmp/deploy/images/qemux86-64/agl-image-ivi-qemux86-64.ext4 /home/dev/artifacts
           cp tmp/deploy/images/qemux86-64/bzImage /home/dev/artifacts
 
-      - name: Publish agl-image-weston artifacts
+      - name: Publish agl-image-ivi artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: agl-image-weston-flutter-qemux86-64-linux
+          name: agl-image-ivi-flutter-qemux86-64-linux
           path: |
              /home/dev/artifacts/*
 
