@@ -19,8 +19,6 @@ DEPENDS += "\
     wayland-protocols \
     "
 
-PV = "1.0+git${SRCPV}"
-
 REQUIRED_DISTRO_FEATURES = "wayland opengl"
 
 SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=main \
@@ -45,5 +43,7 @@ SYSTEMD_AUTO_ENABLE = "enable"
 do_install_append() {
     install -D -p -m0644 ${WORKDIR}/homescreen.service ${D}${systemd_system_unitdir}/homescreen.service
 }
+
+FILES_${PN} += "${systemd_system_unitdir}"
 
 BBCLASSEXTEND = ""

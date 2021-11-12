@@ -142,6 +142,15 @@ jobs:
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
 
+      - name: Build flutter-gallery
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-sdk-native -c do_cleansstate
+          bitbake flutter-gallery -c do_cleansstate
+          bitbake flutter-gallery
+
       - name: Build drm gbm backend (Sony)
         shell: bash
         working-directory: ../yocto-dunfell/poky
@@ -165,12 +174,3 @@ jobs:
           . ./oe-init-build-env
           bitbake flutter-wayland-client -c do_cleansstate
           bitbake flutter-wayland-client
-
-      - name: Build flutter-gallery
-        shell: bash
-        working-directory: ../yocto-dunfell/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-gallery -c do_cleansstate
-          bitbake flutter-gallery

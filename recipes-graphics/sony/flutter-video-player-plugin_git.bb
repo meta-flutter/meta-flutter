@@ -1,16 +1,17 @@
 SUMMARY = "Embedded Linux embedding for Flutter"
-DESCRIPTION = "Flutter Embedder with external texture plugin."
+DESCRIPTION = "Flutter Embedder with video player plugin."
 AUTHOR = "Hidenori Matsubayashi"
 HOMEPAGE = "https://github.com/sony/flutter-embedded-linux"
 BUGTRACKER = "https://github.com/sony/flutter-embedded-linux/issues"
 SECTION = "graphics"
-CVE_PRODUCT = "libexternal_texture_test_plugin.so"
+CVE_PRODUCT = "libvideo_player_plugin.so"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=d45359c88eb146940e4bede4f08c821a"
 
 DEPENDS += "\
     compiler-rt \
     flutter-engine \
+    gstreamer1.0 \
     libcxx \
     libinput \
     libxkbcommon \
@@ -50,7 +51,7 @@ do_install() {
    install -d ${D}${bindir}
    install -d ${D}${libdir}
    install -m 755 ${WORKDIR}/build/flutter-client ${D}${bindir}
-   install -m 644 ${WORKDIR}/build/plugins/external_texture_test/libexternal_texture_test_plugin.so ${D}${libdir}
+   install -m 644 ${WORKDIR}/build/plugins/video_plugin_test/libvideo_player_plugin.so ${D}${libdir}
 }
 
 FILES_${PN} = "\
