@@ -57,7 +57,7 @@ jobs:
         shell: bash
         working-directory: ../agl-master-qemu
         run: |
-          . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-profile-graphical agl-devel agl-basesystem
+          . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-demo agl-devel
           echo '***************************************'
           sed -i '/rm_work/d' ./conf/local.conf
           sed -i '/DL_DIR/d' ./conf/local.conf
