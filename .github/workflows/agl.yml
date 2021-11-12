@@ -57,7 +57,7 @@ jobs:
         shell: bash
         working-directory: ../agl-master-qemu
         run: |
-          . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem
+          . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-profile-graphical agl-devel agl-basesystem
           echo '***************************************'
           sed -i '/rm_work/d' ./conf/local.conf
           sed -i '/DL_DIR/d' ./conf/local.conf
@@ -78,7 +78,7 @@ jobs:
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
           echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-debug"' >> ./conf/local.conf
           echo '** Layers *****************************'
-          bitbake-layers add-layer ../../meta-flutter ../meta-agl-demo ../external/meta-clang
+          bitbake-layers add-layer ../../meta-flutter ../external/meta-clang
           bitbake-layers show-layers
           echo '** Kernel *****************************'
           bitbake -e virtual/kernel | grep "^PV"
