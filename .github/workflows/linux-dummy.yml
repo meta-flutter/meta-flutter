@@ -134,6 +134,16 @@ jobs:
           bitbake pugixml-native -c do_cleansstate
           bitbake pugixml-native
 
+      - name: Build waylandpp
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake waylandpp -c do_cleansstate
+          bitbake waylandpp
+          bitbake waylandpp-native -c do_cleansstate
+          bitbake waylandpp-native
+
       - name: Build flutter-pi
         shell: bash
         working-directory: ../yocto-dunfell/poky
@@ -166,6 +176,14 @@ jobs:
           . ./oe-init-build-env
           bitbake flutter-external-texture-plugin -c do_cleansstate
           bitbake flutter-external-texture-plugin
+
+      - name: Build video player plugin (Sony)
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-video-player-plugin -c do_cleansstate
+          bitbake flutter-video-player-plugin
 
       - name: Build Wayland Client (Sony)
         shell: bash

@@ -170,7 +170,6 @@ jobs:
           sed -i '/IMAGE_INSTALL:append/d' ./conf/local.conf
           echo 'IMAGE_INSTALL:append = " agl-compositor ivi-homescreen flutter-gallery"' >> ./conf/local.conf
           rm -rf /home/dev/artifacts/*
-          bitbake flutter-gallery -c do_cleansstate
           bitbake agl-image-minimal
           cp bb.environment /home/dev/artifacts
           cp tmp/deploy/images/qemux86-64/agl-image-minimal-qemux86-64.wic.vmdk /home/dev/artifacts
