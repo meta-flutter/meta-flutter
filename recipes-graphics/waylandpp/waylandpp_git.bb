@@ -1,8 +1,6 @@
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=7f6b13e4480850c59e176edd427d996e"
 
-PV = "git${SRCPV}"
-
 REQUIRED_DISTRO_FEATURES = "wayland"
 
 SRC_URI = "git://github.com/NilsBrause/waylandpp.git;protocol=https;branch=master"

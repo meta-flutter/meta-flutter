@@ -15,8 +15,6 @@ DEPENDS += "\
     curl-native \
     "
 
-PV = "git${SRCPV}"
-
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 SRC_URI = "file://0001-clang-toolchain.patch \

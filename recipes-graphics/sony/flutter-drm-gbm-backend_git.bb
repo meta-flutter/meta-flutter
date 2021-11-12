@@ -20,8 +20,6 @@ DEPENDS += "\
 
 RDEPENDS_${PN} += "xkeyboard-config"
 
-PV = "git${SRCPV}"
-
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 SRC_URI = "git://github.com/sony/flutter-embedded-linux.git;protocol=https;branch=master"
