@@ -63,24 +63,23 @@ jobs:
           sed -i '/DL_DIR/d' ./conf/local.conf
           sed -i '/SSTATE_DIR/d' ./conf/local.conf
           sed -i '/SSTATE_MIRRORS/d' ./conf/local.conf
-          sed -i '/INHERIT_remove/d' ./conf/local.conf
-          sed -i '/IMAGE_INSTALL_append/d' ./conf/local.conf
+          sed -i '/INHERIT:remove/d' ./conf/local.conf
           sed -i '/IMAGE_INSTALL:append/d' ./conf/local.conf
-          sed -i '/TOOLCHAIN_HOST_TASK_append/d' ./conf/local.conf
+          sed -i '/TOOLCHAIN_HOST_TASK:append/d' ./conf/local.conf
           sed -i '/CLANGSDK/d' ./conf/local.conf
           sed -i '/FLUTTER_CHANNEL/d' ./conf/local.conf
-          sed -i '/PACKAGECONFIG_pn-flutter-engine/d' ./conf/local.conf
+          sed -i '/PACKAGECONFIG:pn-flutter-engine/d' ./conf/local.conf
           echo '***************************************'
           echo 'INHERIT += "rm_work"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://download.automotivelinux.org/sstate-mirror/${{ env.AGL_BRANCH }}/${DEFAULTTUNE}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
-          echo 'INHERIT_remove = "uninative"' >> ./conf/local.conf
-          echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> ./conf/local.conf
+          echo 'INHERIT:remove = "uninative"' >> ./conf/local.conf
+          echo 'TOOLCHAIN_HOST_TASK:append = " nativesdk-flutter-sdk"' >> ./conf/local.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-debug"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-debug"' >> ./conf/local.conf
           echo '** Layers *****************************'
           bitbake-layers add-layer ../../meta-flutter ../external/meta-clang
           bitbake-layers show-layers
@@ -90,22 +89,24 @@ jobs:
           echo '***************************************'
           bitbake -e > bb.environment
 
-      - name: Build agl-image-weston
+      - name: Build agl-image-minimal
         shell: bash
         working-directory: ../agl-master-qemu
         run: |
           . ./build/agl-init-build-env
+          sed -i '/IMAGE_INSTALL:append/d' ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = " agl-compositor"' >> ./conf/local.conf
           rm -rf /home/dev/artifacts/*
-          bitbake agl-image-weston
+          bitbake agl-image-minimal
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/images/qemux86-64/agl-image-weston-qemux86-64.wic.vmdk /home/dev/artifacts
-          cp tmp/deploy/images/qemux86-64/agl-image-weston-qemux86-64.ext4 /home/dev/artifacts
+          cp tmp/deploy/images/qemux86-64/agl-image-minimal-qemux86-64.wic.vmdk /home/dev/artifacts
+          cp tmp/deploy/images/qemux86-64/agl-image-minimal-qemux86-64.ext4 /home/dev/artifacts
           cp tmp/deploy/images/qemux86-64/bzImage /home/dev/artifacts
 
-      - name: Publish agl-image-weston artifacts
+      - name: Publish agl-image-minimal artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: agl-image-weston-qemux86-64-linux
+          name: agl-image-minimal-qemux86-64-linux
           path: |
              /home/dev/artifacts/*
 
@@ -161,43 +162,42 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build agl-image-weston with flutter
+      - name: Build agl-image-minimal with flutter
         shell: bash
         working-directory: ../agl-master-qemu
         run: |
           . ./build/agl-init-build-env
-          sed -i '/IMAGE_INSTALL_append/d' ./conf/local.conf
           sed -i '/IMAGE_INSTALL:append/d' ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " ivi-homescreen flutter-gallery"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = " agl-compositor ivi-homescreen flutter-gallery"' >> ./conf/local.conf
           rm -rf /home/dev/artifacts/*
           bitbake flutter-gallery -c do_cleansstate
-          bitbake agl-image-weston
+          bitbake agl-image-minimal
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/images/qemux86-64/agl-image-weston-qemux86-64.wic.vmdk /home/dev/artifacts
-          cp tmp/deploy/images/qemux86-64/agl-image-weston-qemux86-64.ext4 /home/dev/artifacts
+          cp tmp/deploy/images/qemux86-64/agl-image-minimal-qemux86-64.wic.vmdk /home/dev/artifacts
+          cp tmp/deploy/images/qemux86-64/agl-image-minimal-qemux86-64.ext4 /home/dev/artifacts
           cp tmp/deploy/images/qemux86-64/bzImage /home/dev/artifacts
 
-      - name: Publish agl-image-weston artifacts
+      - name: Publish agl-image-minimal artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: agl-image-weston-flutter-qemux86-64-linux
+          name: agl-image-minimal-flutter-qemux86-64-linux
           path: |
              /home/dev/artifacts/*
 
-      - name: Build agl-image-weston SDK
+      - name: Build agl-image-minimal SDK
         shell: bash
         working-directory: ../agl-master-qemu
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
-          bitbake agl-image-weston -c do_populate_sdk
+          bitbake agl-image-minimal -c do_populate_sdk
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/images/qemux86-64/agl-image-weston-qemux86-64.wic.vmdk /home/dev/artifacts
+          cp tmp/deploy/images/qemux86-64/agl-image-minimal-qemux86-64.wic.vmdk /home/dev/artifacts
           cp tmp/deploy/images/sdk/qemux86-64/*.sh /home/dev/artifacts
 
-      - name: Publish agl-image-weston SDK artifact
+      - name: Publish agl-image-minimal SDK artifact
         uses: actions/upload-artifact@v2
         with:
-          name: agl-image-weston-flutter-sdk-qemux86-64-linux
+          name: agl-image-minimal-flutter-sdk-qemux86-64-linux
           path: |
              /home/dev/artifacts/*
