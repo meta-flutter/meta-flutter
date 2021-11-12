@@ -174,11 +174,3 @@ jobs:
           . ./oe-init-build-env
           bitbake flutter-wayland-client -c do_cleansstate
           bitbake flutter-wayland-client
-
-      - name: Build video player plugin (Sony)
-        shell: bash
-        working-directory: ../yocto-dunfell/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake flutter-video-player-plugin -c do_cleansstate
-          bitbake flutter-video-player-plugin
