@@ -46,4 +46,6 @@ do_install_append() {
     install -D -p -m0644 ${WORKDIR}/homescreen.service ${D}${systemd_system_unitdir}/homescreen.service
 }
 
+FILES_${PN} += "${systemd_system_unitdir}"
+
 BBCLASSEXTEND = ""
