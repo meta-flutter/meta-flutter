@@ -77,10 +77,12 @@ jobs:
           echo 'INHERIT_remove = "uninative"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
           echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-debug"' >> ./conf/local.conf
-          echo '***************************************'
+          echo '** Layers *****************************'
           bitbake-layers add-layer ../../meta-flutter ../meta-agl-flutter ../external/meta-clang
           bitbake-layers show-layers
-          echo '***************************************'
+          echo '** Available Images *******************'
+          bitbake-layers show-recipes "*-image-*"
+          echo '** Kernel *****************************'
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
           echo '***************************************'
