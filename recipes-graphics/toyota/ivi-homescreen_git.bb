@@ -21,7 +21,7 @@ DEPENDS += "\
 
 REQUIRED_DISTRO_FEATURES = "wayland opengl"
 
-SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=agl-compositor \
+SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=main \
            file://homescreen.service \
           "
 
