@@ -1,7 +1,6 @@
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=7f6b13e4480850c59e176edd427d996e"
 
-REQUIRED_DISTRO_FEATURES = "wayland"
 
 SRC_URI = "git://github.com/NilsBrause/waylandpp.git;protocol=https;branch=master"
 SRCREV = "19689edf6d4b40363cc013cbf8dcf4ac10c2e9df"
@@ -18,7 +17,7 @@ DEPENDS_append_class-target += " \
 
 S = "${WORKDIR}/git"
 
-inherit cmake features_check
+inherit cmake
 
 
 EXTRA_OECMAKE_append_class-native = " \
