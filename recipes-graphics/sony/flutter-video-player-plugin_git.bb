@@ -12,6 +12,7 @@ DEPENDS += "\
     compiler-rt \
     flutter-engine \
     gstreamer1.0 \
+    gstreamer1.0-plugins-base \
     libcxx \
     libinput \
     libxkbcommon \
