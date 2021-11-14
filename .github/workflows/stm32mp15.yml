@@ -76,6 +76,9 @@ jobs:
           sed -i '/SSTATE_DIR/d' $LOCAL_CONF
           sed -i '/SSTATE_MIRRORS/d' $LOCAL_CONF
           sed -i '/FLUTTER_CHANNEL/d' $LOCAL_CONF
+          sed -i '/MACHINE_FEATURES_remove/d' $LOCAL_CONF
+          sed -i '/DISTRO_FEATURES_remove/d' $LOCAL_CONF
+          sed -i '/INHERIT_remove/d' $LOCAL_CONF
           sed -i '/PACKAGECONFIG/d' $LOCAL_CONF
           sed -i '/flutter-pi/d' $LOCAL_CONF
           sed -i '/flutter-gallery/d' $LOCAL_CONF
@@ -84,9 +87,12 @@ jobs:
           echo 'DL_DIR = "/home/dev/dl"' >> $LOCAL_CONF
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> $LOCAL_CONF
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> $LOCAL_CONF
+          echo 'MACHINE_FEATURES_remove = "fip"' >> $LOCAL_CONF
+          echo 'DISTRO_FEATURES_remove = "wayland x11"' >> $LOCAL_CONF
+          echo 'INHERIT_remove = "uninative"' >> $LOCAL_CONF
           echo 'FLUTTER_CHANNEL = "master"' >> $LOCAL_CONF
           echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-debug"' >> $LOCAL_CONF
-          echo 'IMAGE_INSTALL += "flutter-pi flutter-gallery"' >> $LOCAL_CONF
+          echo 'CORE_IMAGE_EXTRA_INSTALL += "flutter-pi flutter-drm-gbm-backend flutter-gallery"' >> $LOCAL_CONF
           echo '********** ./conf/local.conf **********'
           cat $LOCAL_CONF
           echo '***************************************'
@@ -99,14 +105,6 @@ jobs:
           echo '***************************************'
           bitbake -e > bb.environment
           echo '***************************************'
-          bitbake flutter-engine -c do_cleansstate
-          echo '***************************************'
-          bitbake flutter-sdk-native -c do_cleansstate
-          echo '***************************************'
-          bitbake flutter-pi -c do_cleansstate
-          echo '***************************************'
-          bitbake flutter-gallery -c do_cleansstate
-          echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
  
@@ -115,7 +113,13 @@ jobs:
         working-directory: ../stm32mp15-dunfell
         run: |
           source ./layers/meta-st/scripts/envsetup.sh --no-ui
+          bitbake flutter-engine -c do_cleansstate
+          bitbake flutter-sdk-native -c do_cleansstate
+          bitbake flutter-pi -c do_cleansstate
+          bitbake flutter-drm-gbm-backend -c do_cleansstate
+          bitbake flutter-gallery -c do_cleansstate
           bitbake st-image-core
+          ls -la tmp-glibc/deploy/images/stm32mp1-disco/*
 
       - name: Publish OS image artifact
         uses: actions/upload-artifact@v2

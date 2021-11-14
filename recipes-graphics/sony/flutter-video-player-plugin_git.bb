@@ -12,6 +12,10 @@ DEPENDS += "\
     compiler-rt \
     flutter-engine \
     gstreamer1.0 \
+    gstreamer1.0-plugins-base \
+    gstreamer1.0-plugins-base-meta \
+    gstreamer1.0-plugins-good-meta \
+    gstreamer1.0-plugins-bad-meta \
     libcxx \
     libinput \
     libxkbcommon \
@@ -22,15 +26,13 @@ DEPENDS += "\
 
 RDEPENDS_${PN} += "xkeyboard-config"
 
-REQUIRED_DISTRO_FEATURES = "wayland"
-
 SRC_URI = "git://github.com/sony/flutter-embedded-linux.git;protocol=https;branch=master"
 
 SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
-inherit pkgconfig cmake features_check
+inherit pkgconfig cmake
 
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
