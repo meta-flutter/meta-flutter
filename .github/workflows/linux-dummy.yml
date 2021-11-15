@@ -42,7 +42,7 @@ jobs:
           
       - uses: actions/checkout@v2
         with:
-          path: meta-flutter
+          path: ''
 
       - name: Fetch poky
         run: |
@@ -50,7 +50,6 @@ jobs:
           cd ../yocto-honister
           pwd
           ls -la
-          mv poky/build/sstate-cache . || true
           rm -rf poky meta-openembedded meta-clang
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded &
@@ -89,7 +88,7 @@ jobs:
           echo 'PREFERRED_PROVIDER:virtual/kernel = "linux-dummy"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-release"' >> ./conf/local.conf
-          echo 'TARGET_GCC_VERSION = "11.2.0"' >> ./conf/local.conf
+          echo 'TARGET_GCC_VERSION:pn-flutter-engine = "11.2.0"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -116,6 +115,15 @@ jobs:
           bitbake flutter-engine -c do_cleansstate
           bitbake flutter-engine
 
+      - name: Build flutter-gallery
+        shell: bash
+        working-directory: ../yocto-honister/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-sdk-native -c do_cleansstate
+          bitbake flutter-gallery -c do_cleansstate
+          bitbake flutter-gallery
+
       - name: Build ivi-homescreen
         shell: bash
         working-directory: ../yocto-honister/poky
@@ -123,14 +131,6 @@ jobs:
           . ./oe-init-build-env
           bitbake ivi-homescreen -c do_cleansstate
           bitbake ivi-homescreen
-
-      - name: Build flutter-wayland
-        shell: bash
-        working-directory: ../yocto-honister/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake flutter-wayland -c do_cleansstate
-          bitbake flutter-wayland
 
       - name: Build flutter-pi
         shell: bash
@@ -156,6 +156,14 @@ jobs:
           bitbake flutter-external-texture-plugin -c do_cleansstate
           bitbake flutter-external-texture-plugin
 
+      - name: Build video player plugin (Sony)
+        shell: bash
+        working-directory: ../yocto-honister/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-video-player-plugin -c do_cleansstate
+          bitbake flutter-video-player-plugin
+
       - name: Build Wayland Client (Sony)
         shell: bash
         working-directory: ../yocto-honister/poky
@@ -163,28 +171,3 @@ jobs:
           . ./oe-init-build-env
           bitbake flutter-wayland-client -c do_cleansstate
           bitbake flutter-wayland-client
-
-      - name: Build Weston Desktop Shell (Sony)
-        shell: bash
-        working-directory: ../yocto-honister/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake flutter-weston-desktop-shell -c do_cleansstate
-          bitbake flutter-weston-desktop-shell
-
-      - name: Build Weston Desktop Shell Virtual Keyboard (Sony)
-        shell: bash
-        working-directory: ../yocto-honister/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake flutter-weston-desktop-shell-virtual-keyboard -c do_cleansstate
-          bitbake flutter-weston-desktop-shell-virtual-keyboard
-
-      - name: Build flutter-gallery
-        shell: bash
-        working-directory: ../yocto-honister/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-gallery -c do_cleansstate
-          bitbake flutter-gallery
