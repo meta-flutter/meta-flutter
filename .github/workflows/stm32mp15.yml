@@ -42,8 +42,6 @@ jobs:
           chown -R dev:dev $HOME .
           
       - uses: actions/checkout@v2
-        with:
-          path: meta-flutter
 
       - name: Fetch poky
         run: |
@@ -100,7 +98,7 @@ jobs:
           echo '***************************************'
           env
           echo '***************************************'
-          bitbake-layers add-layer ../layers/meta-clang ../layers/meta-flutter
+          bitbake-layers add-layer ../layers/meta-clang ../../meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e > bb.environment

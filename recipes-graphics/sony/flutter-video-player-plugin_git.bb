@@ -1,6 +1,6 @@
 SUMMARY = "Embedded Linux embedding for Flutter"
 DESCRIPTION = "Flutter Embedder with video player plugin."
-AUTHOR = "Hidenori Matsubayashi"
+AUTHOR = "Sony Group Corporation"
 HOMEPAGE = "https://github.com/sony/flutter-embedded-linux"
 BUGTRACKER = "https://github.com/sony/flutter-embedded-linux/issues"
 SECTION = "graphics"
@@ -13,9 +13,6 @@ DEPENDS += "\
     flutter-engine \
     gstreamer1.0 \
     gstreamer1.0-plugins-base \
-    gstreamer1.0-plugins-base-meta \
-    gstreamer1.0-plugins-good-meta \
-    gstreamer1.0-plugins-bad-meta \
     libcxx \
     libinput \
     libxkbcommon \
@@ -24,9 +21,14 @@ DEPENDS += "\
     wayland-native \
     "
 
-RDEPENDS_${PN} += "xkeyboard-config"
+RDEPENDS_${PN} += "\
+    xkeyboard-config \
+    gstreamer1.0-plugins-good \
+    gstreamer1.0-plugins-bad \
+    "
 
-SRC_URI = "git://github.com/sony/flutter-embedded-linux.git;protocol=https;branch=master"
+SRC_URI = "git://github.com/sony/flutter-embedded-linux.git;protocol=https;branch=master \
+           file://0001-path-updates.patch"
 
 SRCREV = "${AUTOREV}"
 
@@ -53,7 +55,7 @@ do_install() {
    install -d ${D}${bindir}
    install -d ${D}${libdir}
    install -m 755 ${WORKDIR}/build/flutter-client ${D}${bindir}
-   install -m 644 ${WORKDIR}/build/plugins/video_plugin_test/libvideo_player_plugin.so ${D}${libdir}
+   install -m 644 ${WORKDIR}/build/plugins/video_player/libvideo_player_plugin.so ${D}${libdir}
 }
 
 FILES_${PN} = "\
