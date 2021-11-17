@@ -88,7 +88,7 @@ jobs:
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.DISTRO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "master"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-release"' >> ./conf/local.conf
-          echo 'TARGET_GCC_VERSION = "11.2.0"' >> ./conf/local.conf
+          echo 'TARGET_GCC_VERSION:pn-flutter-engine = "11.2.0"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-sascha-samples = "d2d"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf

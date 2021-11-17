@@ -1,10 +1,10 @@
 SUMMARY = "Embedded Linux embedding for Flutter"
-DESCRIPTION = "Sony's take on existing art around Flutter on Linux."
-AUTHOR = "Hidenori Matsubayashi"
+DESCRIPTION = "Flutter Embedder with external texture plugin."
+AUTHOR = "Sony Group Corporation"
 HOMEPAGE = "https://github.com/sony/flutter-embedded-linux"
 BUGTRACKER = "https://github.com/sony/flutter-embedded-linux/issues"
 SECTION = "graphics"
-CVE_PRODUCT = "flutter-texture"
+CVE_PRODUCT = "libexternal_texture_test_plugin.so"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=d45359c88eb146940e4bede4f08c821a"
 
@@ -23,7 +23,8 @@ RDEPENDS:${PN} += "xkeyboard-config"
 
 REQUIRED_DISTRO_FEATURES = "wayland"
 
-SRC_URI = "git://github.com/sony/flutter-embedded-linux.git;protocol=https;branch=master"
+SRC_URI = "git://github.com/sony/flutter-embedded-linux.git;protocol=https;branch=master \
+           file://0001-path-updates.patch"
 
 SRCREV = "${AUTOREV}"
 
@@ -42,10 +43,20 @@ do_configure:prepend() {
    ln -sf ${STAGING_LIBDIR}/libflutter_engine.so ${S}/build/libflutter_engine.so
 }
 
+INSANE_SKIP:${PN} += " ldflags"
+SOLIBS = ".so"
+FILES_SOLIBSDEV = ""
+
 do_install() {
    install -d ${D}${bindir}
-   mv ${WORKDIR}/build/flutter-client ${WORKDIR}/build/flutter-texture
-   install -m 755 ${WORKDIR}/build/flutter-texture ${D}${bindir}
+   install -d ${D}${libdir}
+   install -m 755 ${WORKDIR}/build/flutter-client ${D}${bindir}
+   install -m 644 ${WORKDIR}/build/plugins/external_texture_test/libexternal_texture_test_plugin.so ${D}${libdir}
 }
+
+FILES:${PN} = "\
+   ${bindir} \
+   ${libdir} \
+   "
 
 BBCLASSEXTEND = ""

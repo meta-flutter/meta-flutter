@@ -1,6 +1,6 @@
 SUMMARY = "Embedded Linux embedding for Flutter"
 DESCRIPTION = "Flutter Embedder with DRM GBM Backend."
-AUTHOR = "Hidenori Matsubayashi"
+AUTHOR = "Sony Group Corporation"
 HOMEPAGE = "https://github.com/sony/flutter-embedded-linux"
 BUGTRACKER = "https://github.com/sony/flutter-embedded-linux/issues"
 SECTION = "graphics"
@@ -22,7 +22,8 @@ RDEPENDS:${PN} += "xkeyboard-config"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
-SRC_URI = "git://github.com/sony/flutter-embedded-linux.git;protocol=https;branch=master"
+SRC_URI = "git://github.com/sony/flutter-embedded-linux.git;protocol=https;branch=master \
+           file://0001-path-updates.patch"
 
 SRCREV = "${AUTOREV}"
 
