@@ -1,6 +1,6 @@
 SUMMARY = "Embedded Linux embedding for Flutter"
 DESCRIPTION = "Flutter Embedder with external texture plugin."
-AUTHOR = "Hidenori Matsubayashi"
+AUTHOR = "Sony Group Corporation"
 HOMEPAGE = "https://github.com/sony/flutter-embedded-linux"
 BUGTRACKER = "https://github.com/sony/flutter-embedded-linux/issues"
 SECTION = "graphics"
@@ -23,7 +23,8 @@ RDEPENDS_${PN} += "xkeyboard-config"
 
 REQUIRED_DISTRO_FEATURES = "wayland"
 
-SRC_URI = "git://github.com/sony/flutter-embedded-linux.git;protocol=https;branch=master"
+SRC_URI = "git://github.com/sony/flutter-embedded-linux.git;protocol=https;branch=master \
+           file://0001-path-updates.patch"
 
 SRCREV = "${AUTOREV}"
 

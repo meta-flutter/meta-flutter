@@ -48,9 +48,11 @@ This layer includes recipes to build
 
 * rpi-64 (DRM, flutter-pi, flutter-gallery, vulkan)
 
-    RPI3 DRM - 32-bit RaspberryPi3 image - No X11/Wayland (Vulkan driver loaded and not functional)
+    RPI3 DRM - 64-bit RaspberryPi3 image - No X11/Wayland (Vulkan driver not present)
 
-    RPI4 DRM - 32-bit RaspberryPi3 image - No X11/Wayland (Mesa Vulkan Driver functional)
+    RPI4 DRM - 64-bit RaspberryPi3 image - No X11/Wayland (Mesa Vulkan Driver functional)
+
+    Zero2W - 64-bit Zero2W image - No X11/Wayland (Mesa Vulkan Driver functional)
 
 Notes: CI job sstate is cleared between builds for all meta-flutter recipes; clean builds.
 
