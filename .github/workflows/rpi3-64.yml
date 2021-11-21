@@ -65,22 +65,8 @@ jobs:
         shell: bash
         working-directory: ../rpi3-drm-honister-latest
         run: |
-          rm -rf raspberrypi3-64 || true
-          . ./setup-environment $MACHINE
-          echo '***************************************'
-          sed -i '/DL_DIR/d' ./conf/local.conf
-          sed -i '/SSTATE_DIR/d' ./conf/local.conf
-          sed -i '/SSTATE_MIRRORS/d' ./conf/local.conf
-          sed -i '/FLUTTER_CHANNEL/d' ./conf/local.conf
-          sed -i '/PACKAGECONFIG/d' ./conf/local.conf
-          sed -i '/android-tools/d' ./conf/local.conf
-          sed -i '/rpi-vk-driver/d' ./conf/local.conf
-          sed -i '/sascha-samples/d' ./conf/local.conf
-          sed -i '/vkquake3/d' ./conf/local.conf
-          sed -i '/vkrunner/d' ./conf/local.conf
-          sed -i '/vkmark/d' ./conf/local.conf
-          sed -i '/flutter-pi/d' ./conf/local.conf
-          sed -i '/flutter-gallery/d' ./conf/local.conf
+          rm -rf ${{ env.MACHINE }} || true
+          . ./setup-environment ${{ env.MACHINE }}
           echo '***************************************'
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
@@ -100,20 +86,22 @@ jobs:
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
           echo '***************************************'
+          bitbake -e core-image-minimal | grep "^DISTRO_FEATURES"
+          echo '***************************************'
           bitbake -e > bb.environment
 
       - name: Build core-image-minimal
         shell: bash
         working-directory: ../rpi3-drm-honister-latest
         run: |
-          . ./sources/poky/oe-init-build-env $MACHINE
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake core-image-minimal
 
       - name: Build flutter-engine
         shell: bash
         working-directory: ../rpi3-drm-honister-latest
         run: |
-          . ./sources/poky/oe-init-build-env $MACHINE
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake flutter-engine -c do_cleansstate
           bitbake flutter-engine
           rm -rf /home/dev/artifacts/*
@@ -130,7 +118,7 @@ jobs:
         shell: bash
         working-directory: ../rpi3-drm-honister-latest
         run: |
-          . ./sources/poky/oe-init-build-env $MACHINE
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
           rm -rf /home/dev/artifacts/*
@@ -147,7 +135,7 @@ jobs:
         shell: bash
         working-directory: ../rpi3-drm-honister-latest
         run: |
-          . ./sources/poky/oe-init-build-env $MACHINE
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-gallery -c do_cleansstate
           bitbake flutter-gallery
@@ -165,16 +153,7 @@ jobs:
         shell: bash
         working-directory: ../rpi3-drm-honister-latest
         run: |
-          . ./sources/poky/oe-init-build-env $MACHINE
-          sed -i '/android-tools/d' ./conf/local.conf
-          sed -i '/rpi-vk-driver/d' ./conf/local.conf
-          sed -i '/sascha-samples/d' ./conf/local.conf
-          sed -i '/vkcube/d' ./conf/local.conf
-          sed -i '/vkquake3/d' ./conf/local.conf
-          sed -i '/vkrunner/d' ./conf/local.conf
-          sed -i '/flutter-pi/d' ./conf/local.conf
-          sed -i '/flutter-gallery/d' ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " android-tools-adbd"' >> ./conf/local.conf
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
           bitbake core-image-minimal

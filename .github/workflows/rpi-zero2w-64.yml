@@ -74,27 +74,14 @@ jobs:
         shell: bash
         working-directory: ../zero2w-drm-honister-latest
         run: |
-          rm -rf raspberrypi4-64 || true
-          . ./setup-environment $MACHINE
-          echo '***************************************'
-          sed -i '/DL_DIR/d' ./conf/local.conf
-          sed -i '/SSTATE_DIR/d' ./conf/local.conf
-          sed -i '/SSTATE_MIRRORS/d' ./conf/local.conf
-          sed -i '/FLUTTER_CHANNEL/d' ./conf/local.conf
-          sed -i '/PACKAGECONFIG/d' ./conf/local.conf
-          sed -i '/android-tools/d' ./conf/local.conf
-          sed -i '/sascha-samples/d' ./conf/local.conf
-          sed -i '/vkcube/d' ./conf/local.conf
-          sed -i '/vkquake3/d' ./conf/local.conf
-          sed -i '/vkrunner/d' ./conf/local.conf
-          sed -i '/vkmark/d' ./conf/local.conf
-          sed -i '/flutter-pi/d' ./conf/local.conf
-          sed -i '/flutter-gallery/d' ./conf/local.conf
+          rm -rf ${{ env.MACHINE }} || true
+          . ./setup-environment ${{ env.MACHINE }}
           echo '***************************************'
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.DISTRO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
+          echo 'GPU_MEM = "64"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-release"' >> ./conf/local.conf
           echo 'TARGET_GCC_VERSION = "11.2.0"' >> ./conf/local.conf
@@ -107,13 +94,15 @@ jobs:
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
           echo '***************************************'
+          bitbake -e core-image-minimal | grep "^DISTRO_FEATURES"
+          echo '***************************************'
           bitbake -e > bb.environment
 
       - name: Build core-image-minimal
         shell: bash
         working-directory: ../zero2w-drm-honister-latest
         run: |
-          . ./sources/poky/oe-init-build-env $MACHINE
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa53/mesa-vulkan-drivers-*.rpm /home/dev/artifacts
@@ -129,7 +118,7 @@ jobs:
         shell: bash
         working-directory: ../zero2w-drm-honister-latest
         run: |
-          . ./sources/poky/oe-init-build-env $MACHINE
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake sascha-samples -c do_cleansstate
           bitbake sascha-samples
           rm -rf /home/dev/artifacts/*
@@ -146,7 +135,7 @@ jobs:
         shell: bash
         working-directory: ../zero2w-drm-honister-latest
         run: |
-          . ./sources/poky/oe-init-build-env $MACHINE
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake flutter-engine -c do_cleansstate
           bitbake flutter-engine
           rm -rf /home/dev/artifacts/*
@@ -163,7 +152,7 @@ jobs:
         shell: bash
         working-directory: ../zero2w-drm-honister-latest
         run: |
-          . ./sources/poky/oe-init-build-env $MACHINE
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
           rm -rf /home/dev/artifacts/*
@@ -180,7 +169,7 @@ jobs:
         shell: bash
         working-directory: ../zero2w-drm-honister-latest
         run: |
-          . ./sources/poky/oe-init-build-env $MACHINE
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-gallery -c do_cleansstate
           bitbake flutter-gallery
@@ -198,14 +187,16 @@ jobs:
         shell: bash
         working-directory: ../zero2w-drm-honister-latest
         run: |
-          . ./sources/poky/oe-init-build-env $MACHINE
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           sed -i '/android-tools/d' ./conf/local.conf
           sed -i '/sascha-samples/d' ./conf/local.conf
+          sed -i '/filament-samples-vk/d' ./conf/local.conf          
           sed -i '/vkquake3/d' ./conf/local.conf
           sed -i '/vkrunner/d' ./conf/local.conf
           sed -i '/flutter-pi/d' ./conf/local.conf
           sed -i '/flutter-gallery/d' ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " android-tools-adbd"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " filament-samples-vk"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkquake3"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner"' >> ./conf/local.conf
