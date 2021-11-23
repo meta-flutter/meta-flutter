@@ -60,19 +60,8 @@ jobs:
         shell: bash
         working-directory: ../yocto-honister/poky
         run: |
+          rm -rf build || true
           . ./oe-init-build-env
-          echo '***************************************'
-          sed -i '/rm_work/d' ./conf/local.conf
-          sed -i '/DL_DIR/d' ./conf/local.conf
-          sed -i '/SSTATE_DIR/d' ./conf/local.conf
-          sed -i '/SSTATE_MIRRORS/d' ./conf/local.conf
-          sed -i '/INIT_MANAGER/d' ./conf/local.conf
-          sed -i '/DISTRO_FEATURES/d' ./conf/local.conf
-          sed -i '/VIRTUAL-RUNTIME/d' ./conf/local.conf
-          sed -i '/PREFERRED_PROVIDER/d' ./conf/local.conf
-          sed -i '/IMAGE_INSTALL/d' ./conf/local.conf
-          sed -i '/FLUTTER_CHANNEL/d' ./conf/local.conf
-          sed -i '/PACKAGECONFIG_pn-flutter-engine/d' ./conf/local.conf
           echo '***************************************'
           echo 'INHERIT += "rm_work"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
@@ -97,6 +86,8 @@ jobs:
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
+          echo '***************************************'
+          bitbake -e core-image-minimal | grep "^DISTRO_FEATURES"
           echo '***************************************'
           bitbake -e > bb.environment
 
