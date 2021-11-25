@@ -193,6 +193,8 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkquake3"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vk-layer-perfdoc"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vk-extensionlayer"' >> ./conf/local.conf          
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " filament-samples-vk"' >> ./conf/local.conf
           bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
