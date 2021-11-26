@@ -148,23 +148,6 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build vkmark
-        shell: bash
-        working-directory: ../rpi4-drm-honister-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vkmark -c do_cleansstate
-          bitbake vkmark
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa72/vkmark-git*.rpm /home/dev/artifacts
-
-      - name: Publish vkmark artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: vkmark-rpi4-64
-          path: |
-             /home/dev/artifacts/*.rpm
-
       - name: Build vkquake3
         shell: bash
         working-directory: ../rpi4-drm-honister-latest
