@@ -141,27 +141,27 @@ jobs:
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa72/vkcube-git*.rpm /home/dev/artifacts
 
-      - name: Publish vkcube artifacts
+      - name: Publish vkmark artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: vkcube-rpi4-64
+          name: vkmark-rpi4-64
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build vkquake
+      - name: Build vkmark
         shell: bash
         working-directory: ../rpi4-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vkquake -c do_cleansstate
-          bitbake vkquake
+          bitbake vkmark -c do_cleansstate
+          bitbake vkmark
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa72/vkquake-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa72/vkmark-git*.rpm /home/dev/artifacts
 
-      - name: Publish vkquake artifacts
+      - name: Publish vkmark artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: vkquake-rpi4-64
+          name: vkmark-rpi4-64
           path: |
              /home/dev/artifacts/*.rpm
 
@@ -328,6 +328,7 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " filament-samples-vk"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkcube"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkmark"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkquake"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkquake3"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner"' >> ./conf/local.conf
