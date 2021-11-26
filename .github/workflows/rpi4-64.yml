@@ -206,7 +206,7 @@ jobs:
           bitbake vulkan-extensionlayer -c do_cleansstate
           bitbake vulkan-extensionlayer
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa72/vulkan-extensionlayer-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa72/vulkan-extensionlayer-1.2.182-*.rpm /home/dev/artifacts
 
       - name: Publish vulkan-extensionlayer artifacts
         uses: actions/upload-artifact@v2
@@ -223,7 +223,7 @@ jobs:
           bitbake vulkan-validationlayers -c do_cleansstate
           bitbake vulkan-validationlayers
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa72/vulkan-validationlayers-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa72/vulkan-validationlayers-1.2.182*.rpm /home/dev/artifacts
 
       - name: Publish vulkan-validationlayers artifacts
         uses: actions/upload-artifact@v2
@@ -311,8 +311,6 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " filament-samples-vk"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkcube"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkmark"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkquake"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkquake3"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vk-layer-perfdoc"' >> ./conf/local.conf
