@@ -85,6 +85,7 @@ jobs:
           echo 'PACKAGECONFIG:pn-sascha-samples = "d2d"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-release"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:pn-vkcube = "" >> ./conf/local.conf
           echo 'TARGET_GCC_VERSION = "11.2.0"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
@@ -141,10 +142,10 @@ jobs:
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa72/vkcube-git*.rpm /home/dev/artifacts
 
-      - name: Publish vkmark artifacts
+      - name: Publish vkcube artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: vkmark-rpi4-64
+          name: vkcube-rpi4-64
           path: |
              /home/dev/artifacts/*.rpm
 
@@ -212,23 +213,6 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: vulkan-extensionlayer-rpi4-64
-          path: |
-             /home/dev/artifacts/*.rpm
-
-      - name: Build vulkan-validationlayers
-        shell: bash
-        working-directory: ../rpi4-drm-honister-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vulkan-validationlayers -c do_cleansstate
-          bitbake vulkan-validationlayers
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa72/vulkan-validationlayers-1.2.182*.rpm /home/dev/artifacts
-
-      - name: Publish vulkan-validationlayers artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: vulkan-validationlayers-rpi4-64
           path: |
              /home/dev/artifacts/*.rpm
 
@@ -315,7 +299,6 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vk-layer-perfdoc"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vulkan-extensionlayer"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vulkan-validationlayers"' >> ./conf/local.conf
           bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
