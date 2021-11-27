@@ -51,6 +51,7 @@ jobs:
         run: |
           [ -d ../rpi4-drm-honister-latest ] || mkdir -p ../rpi4-drm-honister-latest
           cd ../rpi4-drm-honister-latest
+          rm -rf sources/meta-vulkan || true
           pwd
           ls -la
           git config --list
