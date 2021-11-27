@@ -115,6 +115,16 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
 
+      - name: Build vulkan-validationlayers
+        shell: bash
+        working-directory: ../rpi4-drm-honister-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake vulkan-validationlayers -c do_cleansstate
+          bitbake vulkan-validationlayers
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa72/vulkan-validationlayers-1.2.182-*.rpm /home/dev/artifacts
+
       - name: Build filament-samples-vk
         shell: bash
         working-directory: ../rpi4-drm-honister-latest
@@ -199,6 +209,7 @@ jobs:
           name: vk-layer-perfdoc-rpi4-64
           path: |
              /home/dev/artifacts/*.rpm
+
       - name: Build vulkan-extensionlayer
         shell: bash
         working-directory: ../rpi4-drm-honister-latest
