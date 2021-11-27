@@ -118,7 +118,7 @@ jobs:
 
       - name: Build vulkan-validationlayers
         shell: bash
-        working-directory: ../rpi4-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake vulkan-validationlayers -c do_cleansstate
@@ -135,7 +135,7 @@ jobs:
 
       - name: Build filament-samples-vk
         shell: bash
-        working-directory: ../rpi4-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake filament-samples-vk -c do_cleansstate
@@ -152,7 +152,7 @@ jobs:
 
       - name: Build vkcube
         shell: bash
-        working-directory: ../rpi4-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake vkcube -c do_cleansstate
@@ -169,7 +169,7 @@ jobs:
 
       - name: Build vkquake3
         shell: bash
-        working-directory: ../rpi4-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake vkquake3 -c do_cleansstate
@@ -186,7 +186,7 @@ jobs:
 
       - name: Build vkrunner
         shell: bash
-        working-directory: ../rpi4-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake vkrunner -c do_cleansstate
@@ -203,7 +203,7 @@ jobs:
 
       - name: Build vk-layer-perfdoc
         shell: bash
-        working-directory: ../rpi4-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake vk-layer-perfdoc -c do_cleansstate
@@ -220,7 +220,7 @@ jobs:
 
       - name: Build vulkan-extensionlayer
         shell: bash
-        working-directory: ../rpi4-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake vulkan-extensionlayer -c do_cleansstate
