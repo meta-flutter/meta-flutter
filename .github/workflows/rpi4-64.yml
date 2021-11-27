@@ -51,8 +51,7 @@ jobs:
         run: |
           [ -d ../rpi4-drm-honister-latest ] || mkdir -p ../rpi4-drm-honister-latest
           cd ../rpi4-drm-honister-latest
-          rm -rf sources/meta-vulkan || true
-          pwd
+          rm -rf sources || true
           ls -la
           git config --list
           git config --global user.email joel@winarske@gmail.com
@@ -83,11 +82,11 @@ jobs:
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.DISTRO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:pn-sascha-samples = "d2d"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-release"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:pn-vkcube = ""' >> ./conf/local.conf
           echo 'TARGET_GCC_VERSION = "11.2.0"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:pn-sascha-samples = "d2d"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:pn-vkcube = ""' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -125,6 +124,13 @@ jobs:
           bitbake vulkan-validationlayers
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa72/vulkan-validationlayers-1.2.182-*.rpm /home/dev/artifacts
+
+      - name: Publish vulkan-validationlayers artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: vulkan-validationlayers-rpi4-64
+          path: |
+             /home/dev/artifacts/*.rpm
 
       - name: Build filament-samples-vk
         shell: bash
