@@ -134,23 +134,6 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build filament-samples-vk
-        shell: bash
-        working-directory: ../rpi4-32-drm-honister-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake filament-samples-vk -c do_cleansstate
-          bitbake filament-samples-vk
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/filament-samples-vk-git*.rpm /home/dev/artifacts
-
-      - name: Publish filament-samples-vk artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: filament-samples-vk-rpi4-64
-          path: |
-             /home/dev/artifacts/*.rpm
-
       - name: Build vkcube
         shell: bash
         working-directory: ../rpi4-32-drm-honister-latest
@@ -312,7 +295,6 @@ jobs:
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " filament-samples-vk"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkcube"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkquake3"' >> ./conf/local.conf
