@@ -51,7 +51,7 @@ jobs:
         run: |
           [ -d ../zero2w-drm-honister-latest ] || mkdir -p ../zero2w-drm-honister-latest
           cd ../zero2w-drm-honister-latest
-          pwd
+          rm -rf sources || true
           ls -la
           git config --list
           git config --global user.email joel@winarske@gmail.com
@@ -87,6 +87,8 @@ jobs:
           echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-release"' >> ./conf/local.conf
           echo 'TARGET_GCC_VERSION = "11.2.0"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-sascha-samples = "d2d"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:pn-vkcube = ""' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:pn-vulkan-validationlayers = ""' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -112,6 +114,125 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: mesa-vulkan-drivers-zero2w-64
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build vulkan-validationlayers
+        shell: bash
+        working-directory: ../zero2w-drm-honister-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake vulkan-validationlayers -c do_cleansstate
+          bitbake vulkan-validationlayers
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa53/vulkan-validationlayers-1.2.182-*.rpm /home/dev/artifacts
+
+      - name: Publish vulkan-validationlayers artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: vulkan-validationlayers-rpi4-64
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build filament-samples-vk
+        shell: bash
+        working-directory: ../zero2w-drm-honister-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake filament-samples-vk -c do_cleansstate
+          bitbake filament-samples-vk
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa53/filament-samples-vk-git*.rpm /home/dev/artifacts
+
+      - name: Publish filament-samples-vk artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: filament-samples-vk-rpi4-64
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build vkcube
+        shell: bash
+        working-directory: ../zero2w-drm-honister-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake vkcube -c do_cleansstate
+          bitbake vkcube
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa53/vkcube-git*.rpm /home/dev/artifacts
+
+      - name: Publish vkcube artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: vkcube-rpi4-64
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build vkquake3
+        shell: bash
+        working-directory: ../zero2w-drm-honister-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake vkquake3 -c do_cleansstate
+          bitbake vkquake3
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa53/vkquake3-git*.rpm /home/dev/artifacts
+
+      - name: Publish vkquake3 artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: vkquake3-rpi4-64
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build vkrunner
+        shell: bash
+        working-directory: ../zero2w-drm-honister-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake vkrunner -c do_cleansstate
+          bitbake vkrunner
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa53/vkrunner-git*.rpm /home/dev/artifacts
+
+      - name: Publish vkrunner artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: vkrunner-rpi4-64
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build vk-layer-perfdoc
+        shell: bash
+        working-directory: ../zero2w-drm-honister-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake vk-layer-perfdoc -c do_cleansstate
+          bitbake vk-layer-perfdoc
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa53/vk-layer-perfdoc-git*.rpm /home/dev/artifacts
+
+      - name: Publish vk-layer-perfdoc artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: vk-layer-perfdoc-rpi4-64
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build vulkan-extensionlayer
+        shell: bash
+        working-directory: ../zero2w-drm-honister-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake vulkan-extensionlayer -c do_cleansstate
+          bitbake vulkan-extensionlayer
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa53/vulkan-extensionlayer-1.2.182-*.rpm /home/dev/artifacts
+
+      - name: Publish vulkan-extensionlayer artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: vulkan-extensionlayer-rpi4-64
           path: |
              /home/dev/artifacts/*.rpm
 
@@ -189,20 +310,15 @@ jobs:
         working-directory: ../zero2w-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          sed -i '/android-tools/d' ./conf/local.conf
-          sed -i '/sascha-samples/d' ./conf/local.conf
-          sed -i '/filament-samples-vk/d' ./conf/local.conf          
-          sed -i '/vkquake3/d' ./conf/local.conf
-          sed -i '/vkrunner/d' ./conf/local.conf
-          sed -i '/flutter-pi/d' ./conf/local.conf
-          sed -i '/flutter-gallery/d' ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " android-tools-adbd"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " filament-samples-vk"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkquake3"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " filament-samples-vk"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkcube"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkquake3"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vk-layer-perfdoc"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vulkan-extensionlayer"' >> ./conf/local.conf
           bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
