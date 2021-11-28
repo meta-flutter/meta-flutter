@@ -88,6 +88,7 @@ jobs:
           echo 'TARGET_GCC_VERSION = "11.2.0"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-sascha-samples = "d2d"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-vkcube = ""' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:pn-vkmark = ""' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-vulkan-validationlayers = ""' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
@@ -114,6 +115,23 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: mesa-vulkan-drivers-rpi4
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build vkmark
+        shell: bash
+        working-directory: ../rpi4-32-drm-honister-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake vkmark -c do_cleansstate
+          bitbake vkmark
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/vkmark-git-*.rpm /home/dev/artifacts
+
+      - name: Publish vkmark artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: vkmark-rpi4-32
           path: |
              /home/dev/artifacts/*.rpm
 
@@ -297,6 +315,7 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkcube"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkmark"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkquake3"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vk-layer-perfdoc"' >> ./conf/local.conf

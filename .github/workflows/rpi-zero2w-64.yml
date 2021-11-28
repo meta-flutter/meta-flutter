@@ -88,6 +88,7 @@ jobs:
           echo 'TARGET_GCC_VERSION = "11.2.0"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-sascha-samples = "d2d"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-vkcube = ""' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:pn-vkmark = ""' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-vulkan-validationlayers = ""' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
@@ -117,6 +118,23 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
 
+      - name: Build vkmark
+        shell: bash
+        working-directory: ../zero2w-drm-honister-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake vkmark -c do_cleansstate
+          bitbake vkmark
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa53/vkmark-git-*.rpm /home/dev/artifacts
+
+      - name: Publish vkmark artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: vkmark-zero2w-64
+          path: |
+             /home/dev/artifacts/*.rpm
+
       - name: Build vulkan-validationlayers
         shell: bash
         working-directory: ../zero2w-drm-honister-latest
@@ -130,7 +148,7 @@ jobs:
       - name: Publish vulkan-validationlayers artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: vulkan-validationlayers-rpi4-64
+          name: vulkan-validationlayers-zero2w-64
           path: |
              /home/dev/artifacts/*.rpm
 
@@ -147,7 +165,7 @@ jobs:
       - name: Publish filament-samples-vk artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: filament-samples-vk-rpi4-64
+          name: filament-samples-vk-zero2w-64
           path: |
              /home/dev/artifacts/*.rpm
 
@@ -164,7 +182,7 @@ jobs:
       - name: Publish vkcube artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: vkcube-rpi4-64
+          name: vkcube-zero2w-64
           path: |
              /home/dev/artifacts/*.rpm
 
@@ -181,7 +199,7 @@ jobs:
       - name: Publish vkquake3 artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: vkquake3-rpi4-64
+          name: vkquake3-zero2w-64
           path: |
              /home/dev/artifacts/*.rpm
 
@@ -198,7 +216,7 @@ jobs:
       - name: Publish vkrunner artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: vkrunner-rpi4-64
+          name: vkrunner-zero2w-64
           path: |
              /home/dev/artifacts/*.rpm
 
@@ -215,7 +233,7 @@ jobs:
       - name: Publish vk-layer-perfdoc artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: vk-layer-perfdoc-rpi4-64
+          name: vk-layer-perfdoc-zero2w-64
           path: |
              /home/dev/artifacts/*.rpm
 
@@ -232,7 +250,7 @@ jobs:
       - name: Publish vulkan-extensionlayer artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: vulkan-extensionlayer-rpi4-64
+          name: vulkan-extensionlayer-zero2w-64
           path: |
              /home/dev/artifacts/*.rpm
 
@@ -315,6 +333,7 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " filament-samples-vk"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkcube"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkmark"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkquake3"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vk-layer-perfdoc"' >> ./conf/local.conf
