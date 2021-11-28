@@ -78,7 +78,7 @@ jobs:
           echo 'TARGET_GCC_VERSION:pn-flutter-engine = "11.2.0"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-sascha-samples = "d2d"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-vkcube = ""' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:pn-vkmark = ""' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:pn-vkmark = "kms"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-vulkan-validationlayers = ""' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
