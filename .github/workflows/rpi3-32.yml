@@ -64,7 +64,7 @@ jobs:
           git reset --hard
           git checkout honister
           git checkout honister-3.4
-          git apply ../../conf/rpi64/0001-vulkan-loader-pc-file-fix.patch
+          git apply ../../conf/rpi64/0001-vulkan-loader-pc-prefix-fix.patch
           cd ../..
 
       - name: Configure build
