@@ -64,7 +64,9 @@ jobs:
           git reset --hard
           git checkout honister
           git checkout honister-3.4
-          git apply ../../conf/rpi64/0001-mesa-broadcom-vulkan.patch && cd ../..
+          git apply ../../conf/rpi64/0001-mesa-broadcom-vulkan.patch
+          git apply ../../conf/rpi64/0001-vulkan-loader-pc-prefix-fix.patch
+          cd ../..
           cd sources/meta-raspberrypi
           git reset --hard
           git checkout master
@@ -114,6 +116,23 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: mesa-vulkan-drivers-rpi4
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build vkmark
+        shell: bash
+        working-directory: ../rpi4-32-drm-honister-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake vkmark -c do_cleansstate
+          bitbake vkmark
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/vkmark-git-*.rpm /home/dev/artifacts
+
+      - name: Publish vkmark artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: vkmark-rpi4-32
           path: |
              /home/dev/artifacts/*.rpm
 
@@ -297,6 +316,7 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkcube"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkmark"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkquake3"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vk-layer-perfdoc"' >> ./conf/local.conf
