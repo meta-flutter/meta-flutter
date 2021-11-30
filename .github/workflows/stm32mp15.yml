@@ -59,6 +59,7 @@ jobs:
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           git clone -b dunfell https://github.com/kraj/meta-clang.git layers/meta-clang &
           git clone -b main https://github.com/meta-flutter/meta-flutter.git layers/meta-flutter &
+          git clone https://github.com/jwinarske/meta-stm32mp15.git layers/meta-stm32mp15 &
           wait
 
       - name: Configure build
@@ -98,7 +99,7 @@ jobs:
           echo '***************************************'
           env
           echo '***************************************'
-          bitbake-layers add-layer ../layers/meta-clang ../../meta-flutter
+          bitbake-layers add-layer ../layers/meta-clang ../../meta-flutter ../layers/meta-stm32mp15
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e > bb.environment
