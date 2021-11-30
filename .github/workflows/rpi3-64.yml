@@ -51,7 +51,7 @@ jobs:
         run: |
           [ -d ../rpi3-drm-honister-latest ] || mkdir -p ../rpi3-drm-honister-latest
           cd ../rpi3-drm-honister-latest
-          pwd
+          rm -rf sources || true
           ls -la
           git config --list
           git config --global user.email joel@winarske@gmail.com
@@ -76,9 +76,7 @@ jobs:
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-release"' >> ./conf/local.conf
           echo 'TARGET_GCC_VERSION:pn-flutter-engine = "11.2.0"' >> ./conf/local.conf
-          echo 'DISTRO_FEATURES:remove = " vulkan"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:remove = "vulkan-loader"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:remove = "vulkan-tools"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:pn-vkcube = "kms wayland"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -97,6 +95,23 @@ jobs:
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake core-image-minimal
+
+      - name: Build swiftshader
+        shell: bash
+        working-directory: ../rpi3-drm-honister-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake swiftshader -c do_cleansstate
+          bitbake swiftshader
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa53/swiftshader-git*.rpm /home/dev/artifacts
+
+      - name: Publish swiftshader artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: swiftshader-rpi3-64
+          path: |
+             /home/dev/artifacts/*.rpm
 
       - name: Build flutter-engine
         shell: bash
@@ -157,6 +172,14 @@ jobs:
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " swiftshader"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkcube"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkmark"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkquake3"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vk-layer-perfdoc"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vulkan-extensionlayer"' >> ./conf/local.conf
           bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
