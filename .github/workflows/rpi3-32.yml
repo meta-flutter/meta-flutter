@@ -60,6 +60,12 @@ jobs:
           /home/dev/bin/repo init -u https://github.com/jwinarske/manifests.git -m rpi64.xml -b $YOCTO_BRANCH
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           wait
+          cd sources/poky
+          git reset --hard
+          git checkout honister
+          git checkout honister-3.4
+          git apply ../../conf/rpi64/0001-vulkan-loader-pc-file-fix.patch
+          cd ../..
 
       - name: Configure build
         shell: bash

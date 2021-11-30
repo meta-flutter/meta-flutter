@@ -64,7 +64,9 @@ jobs:
           git reset --hard
           git checkout honister
           git checkout honister-3.4
-          git apply ../../conf/rpi64/0001-mesa-broadcom-vulkan.patch && cd ../..
+          git apply ../../conf/rpi64/0001-mesa-broadcom-vulkan.patch
+          git apply ../../conf/rpi64/0001-vulkan-loader-pc-file-fix.patch
+          cd ../..
           cd sources/meta-raspberrypi
           git reset --hard
           git checkout master
