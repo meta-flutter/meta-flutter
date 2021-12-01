@@ -89,8 +89,7 @@ jobs:
           echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-release"' >> ./conf/local.conf
           echo 'TARGET_GCC_VERSION = "11.2.0"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-sascha-samples = "d2d"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:pn-vkcube = ""' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:pn-vulkan-validationlayers = ""' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:pn-vkcube = "kms wayland"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -116,6 +115,23 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: mesa-vulkan-drivers-rpi4
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build swiftshader
+        shell: bash
+        working-directory: ../rpi4-32-drm-honister-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake swiftshader -c do_cleansstate
+          bitbake swiftshader
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/swiftshader-git-*.rpm /home/dev/artifacts
+
+      - name: Publish swiftshader artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: swiftshader-rpi4-32
           path: |
              /home/dev/artifacts/*.rpm
 
@@ -314,6 +330,7 @@ jobs:
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " swiftshader"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkcube"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkmark"' >> ./conf/local.conf
