@@ -84,22 +84,21 @@ jobs:
           bitbake-layers show-layers
           echo '***************************************'
           pushd ../layers
-          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./openembedded-core/meta/recipes-graphics/xorg-lib/libxkbcommon_0.10.0.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./meta-clang/recipes-devtools/clang/libcxx_git.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./meta-clang/recipes-devtools/clang/compiler-rt_git.bb
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./meta-st/meta-st-stm32mp/recipes-bsp/u-boot/u-boot-stm32mp_2020.10.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./meta-st/meta-st-stm32mp/recipes-extended/m4projects/m4projects-stm32mp1.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./meta-st/meta-st-openstlinux/recipes-support/libgpiod/libgpiod_1.6.2.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./meta-st/meta-st-openstlinux/recipes-st/initrd/st-initrd.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./openembedded-core/meta/recipes-graphics/xorg-lib/libxkbcommon_0.10.0.bb
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./openembedded-core/meta/recipes-extended/libidn/libidn2_2.3.0.bb
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./openembedded-core/meta/recipes-graphics/xorg-lib/libxkbcommon_0.10.0.bb
-          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./meta-st/meta-st-stm32mp/recipes-extended/m4projects/m4projects-stm32mp1.bb
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./openembedded-core/meta/recipes-kernel/kmod/kmod_git.bb
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./openembedded-core/meta/recipes-graphics/drm/libdrm_2.4.101.bb
-          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./meta-clang/recipes-devtools/clang/compiler-rt_git.bb
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./openembedded-core/meta/recipes-core/systemd/systemd_244.5.bb
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./openembedded-core/meta/recipes-core/libxml/libxml2_2.9.10.bb
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./openembedded-core/meta/recipes-graphics/wayland/libinput_1.15.2.bb
-          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./meta-flutter/recipes-graphics/flutter-engine/flutter-engine_git.bb
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./openembedded-core/meta/recipes-graphics/wayland/wayland_1.18.0.bb
-          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./meta-clang/recipes-devtools/clang/libcxx_git.bb
-          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./meta-st/meta-st-openstlinux/recipes-support/libgpiod/libgpiod_1.6.2.bb
-          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./meta-st/meta-st-openstlinux/recipes-st/initrd/st-initrd.bb
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./openembedded-core/meta/recipes-support/gnutls/gnutls_3.6.14.bb
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./openembedded-core/meta/recipes-core/glib-2.0/glib-2.0_2.62.6.bb
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./openembedded-core/meta/recipes-devtools/python/python3-dbus_1.2.16.bb
@@ -108,6 +107,7 @@ jobs:
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./openembedded-core/meta/recipes-devtools/python/python3-pygobject_3.34.0.bb
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./openembedded-core/meta/recipes-connectivity/avahi/avahi_0.7.bb
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./meta-openembedded/meta-oe/recipes-support/libiio/libiio_git.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../meta-flutter/recipes-graphics/flutter-engine/flutter-engine_git.bb
           popd
           echo '***************************************'
           bitbake -e > bb.environment
