@@ -73,6 +73,16 @@ jobs:
           echo 'FLUTTER_CHANNEL = "master"' >> $LOCAL_CONF
           echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-debug"' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL += "flutter-pi flutter-drm-gbm-backend flutter-gallery"' >> $LOCAL_CONF
+          echo '********** ./conf/local.conf **********'
+          cat $LOCAL_CONF
+          echo '***************************************'
+          source ./layers/meta-st/scripts/envsetup.sh --no-ui
+          echo '***************************************'
+          env
+          echo '***************************************'
+          bitbake-layers add-layer ../layers/meta-clang ../../meta-flutter ../layers/meta-stm32mp15
+          bitbake-layers show-layers
+          echo '***************************************'
           pushd ../layers
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./openembedded-core/meta/recipes-graphics/xorg-lib/libxkbcommon_0.10.0.bb
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./meta-st/meta-st-stm32mp/recipes-bsp/u-boot/u-boot-stm32mp_2020.10.bb
@@ -99,15 +109,6 @@ jobs:
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./openembedded-core/meta/recipes-connectivity/avahi/avahi_0.7.bb
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ./meta-openembedded/meta-oe/recipes-support/libiio/libiio_git.bb
           popd
-          echo '********** ./conf/local.conf **********'
-          cat $LOCAL_CONF
-          echo '***************************************'
-          source ./layers/meta-st/scripts/envsetup.sh --no-ui
-          echo '***************************************'
-          env
-          echo '***************************************'
-          bitbake-layers add-layer ../layers/meta-clang ../../meta-flutter ../layers/meta-stm32mp15
-          bitbake-layers show-layers
           echo '***************************************'
           bitbake -e > bb.environment
           echo '***************************************'
