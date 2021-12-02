@@ -124,11 +124,11 @@ jobs:
           bitbake flutter-drm-gbm-backend -c do_cleansstate
           bitbake flutter-gallery -c do_cleansstate
           bitbake st-image-core
-          ls -la tmp-glibc/deploy/images/stm32mp1-disco/*
+          cp -r tmp-glibc/deploy/images/stm32mp1-disco/* /home/dev/artifacts/
 
       - name: Publish OS image artifact
         uses: actions/upload-artifact@v2
         with:
-          name: stm32mp15-disco-image
+          name: stm32mp1-disco-image
           path: |
              /home/dev/artifacts/*
