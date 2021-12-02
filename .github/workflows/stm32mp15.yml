@@ -47,18 +47,11 @@ jobs:
         run: |
           [ -d ../stm32mp15-dunfell ] || mkdir -p ../stm32mp15-dunfell
           cd ../stm32mp15-dunfell
-          pwd
+          rm -rf layers
           ls -la
-          git config --list
-          git config --global user.email joel@winarske@gmail.com
-          git config --global user.name "Joel Winarske"
-          git config --list
-          rm -rf layers/meta-clang
-          rm -rf layers/meta-flutter
           /home/dev/bin/repo init -u https://github.com/STMicroelectronics/oe-manifest.git -b refs/tags/openstlinux-5.10-dunfell-mp1-21-07-21
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           git clone -b dunfell https://github.com/kraj/meta-clang.git layers/meta-clang &
-          git clone -b main https://github.com/meta-flutter/meta-flutter.git layers/meta-flutter &
           wait
 
       - name: Configure build
@@ -69,17 +62,6 @@ jobs:
           echo n | source layers/meta-st/scripts/envsetup.sh --no-ui
           echo '***************************************'
           LOCAL_CONF=./build-openstlinuxeglfs-stm32mp1-disco/conf/local.conf
-          sed -i '/ACCEPT_EULA_/d' $LOCAL_CONF
-          sed -i '/DL_DIR/d' $LOCAL_CONF
-          sed -i '/SSTATE_DIR/d' $LOCAL_CONF
-          sed -i '/SSTATE_MIRRORS/d' $LOCAL_CONF
-          sed -i '/FLUTTER_CHANNEL/d' $LOCAL_CONF
-          sed -i '/MACHINE_FEATURES_remove/d' $LOCAL_CONF
-          sed -i '/DISTRO_FEATURES_remove/d' $LOCAL_CONF
-          sed -i '/INHERIT_remove/d' $LOCAL_CONF
-          sed -i '/PACKAGECONFIG/d' $LOCAL_CONF
-          sed -i '/flutter-pi/d' $LOCAL_CONF
-          sed -i '/flutter-gallery/d' $LOCAL_CONF
           echo '***************************************'
           echo 'ACCEPT_EULA_stm32mp1-disco = "1"' >> $LOCAL_CONF
           echo 'DL_DIR = "/home/dev/dl"' >> $LOCAL_CONF
@@ -101,6 +83,31 @@ jobs:
           bitbake-layers add-layer ../layers/meta-clang ../../meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/meta-clang/recipes-devtools/clang/libcxx_git.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/meta-clang/recipes-devtools/clang/compiler-rt_git.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/meta-st/meta-st-stm32mp/recipes-bsp/u-boot/u-boot-stm32mp_2020.10.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/meta-st/meta-st-stm32mp/recipes-extended/m4projects/m4projects-stm32mp1.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/meta-st/meta-st-openstlinux/recipes-support/libgpiod/libgpiod_1.6.2.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/meta-st/meta-st-openstlinux/recipes-st/initrd/st-initrd.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/openembedded-core/meta/recipes-graphics/xorg-lib/libxkbcommon_0.10.0.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/openembedded-core/meta/recipes-extended/libidn/libidn2_2.3.0.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/openembedded-core/meta/recipes-graphics/xorg-lib/libxkbcommon_0.10.0.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/openembedded-core/meta/recipes-kernel/kmod/kmod_git.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/openembedded-core/meta/recipes-graphics/drm/libdrm_2.4.101.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/openembedded-core/meta/recipes-core/systemd/systemd_244.5.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/openembedded-core/meta/recipes-core/libxml/libxml2_2.9.10.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/openembedded-core/meta/recipes-graphics/wayland/libinput_1.15.2.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/openembedded-core/meta/recipes-graphics/wayland/wayland_1.18.0.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/openembedded-core/meta/recipes-support/gnutls/gnutls_3.6.14.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/openembedded-core/meta/recipes-core/glib-2.0/glib-2.0_2.62.6.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/openembedded-core/meta/recipes-devtools/python/python3-dbus_1.2.16.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/openembedded-core/meta/recipes-support/shared-mime-info/shared-mime-info_git.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/openembedded-core/meta/recipes-gnome/gobject-introspection/gobject-introspection_1.62.0.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/openembedded-core/meta/recipes-devtools/python/python3-pygobject_3.34.0.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/openembedded-core/meta/recipes-connectivity/avahi/avahi_0.7.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/meta-openembedded/meta-oe/recipes-support/libiio/libiio_git.bb
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../../meta-flutter/recipes-graphics/flutter-engine/flutter-engine_git.bb
+          echo '***************************************'
           bitbake -e > bb.environment
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
@@ -117,11 +124,11 @@ jobs:
           bitbake flutter-drm-gbm-backend -c do_cleansstate
           bitbake flutter-gallery -c do_cleansstate
           bitbake st-image-core
-          ls -la tmp-glibc/deploy/images/stm32mp1-disco/*
+          cp -r tmp-glibc/deploy/images/stm32mp1-disco/* /home/dev/artifacts/
 
       - name: Publish OS image artifact
         uses: actions/upload-artifact@v2
         with:
-          name: stm32mp15-disco-image
+          name: stm32mp1-disco-image
           path: |
              /home/dev/artifacts/*
