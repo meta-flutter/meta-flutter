@@ -80,7 +80,7 @@ jobs:
           echo '***************************************'
           env
           echo '***************************************'
-          bitbake-layers add-layer ../layers/meta-clang ../../meta-flutter ../layers/meta-stm32mp15
+          bitbake-layers add-layer ../layers/meta-clang ../../meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
           pushd ../layers
