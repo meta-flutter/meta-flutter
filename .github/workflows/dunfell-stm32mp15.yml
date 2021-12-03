@@ -1,4 +1,4 @@
-name: stm32mp15
+name: dunfell-stm32mp15
 
 on:
   pull_request:
