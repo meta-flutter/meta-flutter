@@ -86,6 +86,9 @@ jobs:
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
+          bitbake flutter-sdk -c do_cleansstate
+          bitbake flutter-sdk-native -c do_cleansstate
+          bitbake flutter-engine -c do_cleansstate
           bitbake agl-image-flutter
           cp bb.environment /home/dev/artifacts
           cp tmp/deploy/images/qemux86-64/agl-image-flutter-qemux86-64.wic.vmdk /home/dev/artifacts
