@@ -7,8 +7,7 @@ After=weston.service
 User=weston
 Group=weston
 Environment=XDG_RUNTIME_DIR=/run/user/200
-EnvironmentFile=-/etc/default/homescreen
-ExecStart=/usr/bin/homescreen
+ExecStart=/usr/bin/homescreen --f
 
 [Install]
 WantedBy=graphical.target
