@@ -70,3 +70,4 @@ do_install() {
 }
 
 FILES_${PN} = "${datadir}"
+FILES_${PN}-dev = ""
