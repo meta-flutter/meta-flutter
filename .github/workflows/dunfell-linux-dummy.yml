@@ -1,4 +1,4 @@
-name: linux-dummy
+name: dunfell-linux-dummy
 
 on:
   pull_request:
