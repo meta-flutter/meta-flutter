@@ -1,4 +1,4 @@
-name: rpi4-64
+name: honister-rpi4-64
 
 on:
   pull_request:
@@ -66,17 +66,12 @@ jobs:
           git checkout honister-3.4
           git apply ../../conf/rpi64/0001-mesa-broadcom-vulkan.patch
           git apply ../../conf/rpi64/0001-vulkan-loader-pc-prefix-fix.patch
-          cd ../..
-          cd sources/meta-raspberrypi
-          git reset --hard
-          git checkout master
-          git apply ../../conf/rpi64/0001-rpi-mesa-vulkan-broadcom-override.patch && cd ../..
 
       - name: Configure build
         shell: bash
         working-directory: ../rpi4-drm-honister-latest
         run: |
-          rm -rf ${{ env.MACHINE }} || true
+          rm -rf ${{ env.MACHINE }}/conf || true
           . ./setup-environment ${{ env.MACHINE }}
           echo '***************************************'
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
@@ -84,14 +79,13 @@ jobs:
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.DISTRO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
-          echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig full-dart-sdk mode-release"' >> ./conf/local.conf
-          echo 'TARGET_GCC_VERSION = "11.2.0"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-sascha-samples = "d2d"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-vkcube = "kms wayland"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
+          bitbake-layers remove-layer meta-flutter
+          bitbake-layers add-layer ../../meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
@@ -122,7 +116,6 @@ jobs:
         working-directory: ../rpi4-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake swiftshader -c do_cleansstate
           bitbake swiftshader
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa72/swiftshader-git-*.rpm /home/dev/artifacts
@@ -139,7 +132,6 @@ jobs:
         working-directory: ../rpi4-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vkmark -c do_cleansstate
           bitbake vkmark
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa72/vkmark-git-*.rpm /home/dev/artifacts
@@ -156,7 +148,6 @@ jobs:
         working-directory: ../rpi4-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vulkan-validationlayers -c do_cleansstate
           bitbake vulkan-validationlayers
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa72/vulkan-validationlayers-1.2.182-*.rpm /home/dev/artifacts
@@ -173,7 +164,6 @@ jobs:
         working-directory: ../rpi4-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake filament-samples-vk -c do_cleansstate
           bitbake filament-samples-vk
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa72/filament-samples-vk-git*.rpm /home/dev/artifacts
@@ -190,7 +180,6 @@ jobs:
         working-directory: ../rpi4-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vkcube -c do_cleansstate
           bitbake vkcube
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa72/vkcube-git*.rpm /home/dev/artifacts
@@ -207,7 +196,6 @@ jobs:
         working-directory: ../rpi4-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vkquake3 -c do_cleansstate
           bitbake vkquake3
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa72/vkquake3-git*.rpm /home/dev/artifacts
@@ -224,7 +212,6 @@ jobs:
         working-directory: ../rpi4-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vkrunner -c do_cleansstate
           bitbake vkrunner
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa72/vkrunner-git*.rpm /home/dev/artifacts
@@ -241,7 +228,6 @@ jobs:
         working-directory: ../rpi4-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vk-layer-perfdoc -c do_cleansstate
           bitbake vk-layer-perfdoc
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa72/vk-layer-perfdoc-git*.rpm /home/dev/artifacts
@@ -258,7 +244,6 @@ jobs:
         working-directory: ../rpi4-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vulkan-extensionlayer -c do_cleansstate
           bitbake vulkan-extensionlayer
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa72/vulkan-extensionlayer-1.2.182-*.rpm /home/dev/artifacts
@@ -275,7 +260,6 @@ jobs:
         working-directory: ../rpi4-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake sascha-samples -c do_cleansstate
           bitbake sascha-samples
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa72/sascha-samples-git*.rpm /home/dev/artifacts
@@ -287,55 +271,54 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build flutter-engine
+      - name: Build flutter-engine-release
         shell: bash
         working-directory: ../rpi4-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake flutter-engine -c do_cleansstate
-          bitbake flutter-engine
+          bitbake flutter-engine-release -c do_cleansstate
+          bitbake flutter-engine-release
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa72/flutter-engine-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa72/flutter-engine-release-git*.rpm /home/dev/artifacts
 
-      - name: Publish flutter-engine artifacts
+      - name: Publish flutter-engine-release artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: flutter-engine-rpi4-64
+          name: flutter-engine-release-rpi4-64
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build flutter-pi
+      - name: Build flutter-pi-release
         shell: bash
         working-directory: ../rpi4-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake flutter-pi -c do_cleansstate
-          bitbake flutter-pi
+          bitbake flutter-pi-release
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa72/flutter-pi-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa72/flutter-pi-release-git*.rpm /home/dev/artifacts
 
-      - name: Publish flutter-pi artifacts
+      - name: Publish flutter-pi-release artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: flutter-pi-rpi4-64
+          name: flutter-pi-release-rpi4-64
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build flutter-gallery
+      - name: Build flutter-gallery-release
         shell: bash
         working-directory: ../rpi4-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-gallery -c do_cleansstate
-          bitbake flutter-gallery
+          bitbake flutter-gallery-release -c do_cleansstate
+          bitbake flutter-gallery-release
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa72/flutter-gallery-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa72/flutter-gallery-release-git*.rpm /home/dev/artifacts
 
-      - name: Publish flutter-gallery artifacts
+      - name: Publish flutter-gallery-release artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: flutter-gallery-rpi4-64
+          name: flutter-gallery-release-rpi4-64
           path: |
              /home/dev/artifacts/*.rpm
 
@@ -344,8 +327,8 @@ jobs:
         working-directory: ../rpi4-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi-release"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery-release"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " swiftshader"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " filament-samples-vk"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
@@ -364,6 +347,6 @@ jobs:
       - name: Publish SD card image artifact
         uses: actions/upload-artifact@v2
         with:
-          name: rpi4-drm-honister-sdimage
+          name: rpi4-drm-flutter-release-honister-sdimage
           path: |
              /home/dev/artifacts/*

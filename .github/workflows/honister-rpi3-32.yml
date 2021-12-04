@@ -1,4 +1,4 @@
-name: rpi4-32
+name: honister-rpi3-32
 
 on:
   pull_request:
@@ -12,12 +12,12 @@ on:
 
 jobs:
 
-  honister-rpi4-drm:
+  honister-rpi3-drm:
   
     env:
       DISTRO_VERSION: 3.4
       YOCTO_BRANCH: honister
-      MACHINE: raspberrypi4
+      MACHINE: raspberrypi3
       
     runs-on: [self-hosted, linux]
     
@@ -28,8 +28,8 @@ jobs:
         --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
         --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
         -v /b/github-ci/download:/home/dev/dl:Z
-        -v /b/github-ci/sstate/yocto/honister/rpi4-32-drm/latest:/home/dev/sstate:Z
-        -v /b/github-ci/artifacts/rpi4-32/drm:/home/dev/artifacts:Z
+        -v /b/github-ci/sstate/yocto/honister/rpi3-32-drm/latest:/home/dev/sstate:Z
+        -v /b/github-ci/artifacts/rpi3-32/drm:/home/dev/artifacts:Z
 
 
     steps:
@@ -49,8 +49,8 @@ jobs:
 
       - name: Fetch poky
         run: |
-          [ -d ../rpi4-32-drm-honister-latest ] || mkdir -p ../rpi4-32-drm-honister-latest
-          cd ../rpi4-32-drm-honister-latest
+          [ -d ../rpi3-32-drm-honister-latest ] || mkdir -p ../rpi3-32-drm-honister-latest
+          cd ../rpi3-32-drm-honister-latest
           rm -rf sources || true
           ls -la
           git config --list
@@ -64,35 +64,29 @@ jobs:
           git reset --hard
           git checkout honister
           git checkout honister-3.4
-          git apply ../../conf/rpi64/0001-mesa-broadcom-vulkan.patch
           git apply ../../conf/rpi64/0001-vulkan-loader-pc-prefix-fix.patch
           cd ../..
-          cd sources/meta-raspberrypi
-          git reset --hard
-          git checkout master
-          git apply ../../conf/rpi64/0001-rpi-mesa-vulkan-broadcom-override.patch && cd ../..
 
       - name: Configure build
         shell: bash
-        working-directory: ../rpi4-32-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
-          rm -rf ${{ env.MACHINE }} || true
+          rm -rf ${{ env.MACHINE }}/conf || true
           . ./setup-environment ${{ env.MACHINE }}
           echo '***************************************'
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.DISTRO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " tzdata"' >> ./conf/local.conf
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "master"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-release"' >> ./conf/local.conf
-          echo 'TARGET_GCC_VERSION = "11.2.0"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-sascha-samples = "d2d"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-vkcube = "kms wayland"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
+          bitbake-layers remove-layer meta-flutter
+          bitbake-layers add-layer ../../meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
@@ -104,60 +98,64 @@ jobs:
 
       - name: Build core-image-minimal
         shell: bash
-        working-directory: ../rpi4-32-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake core-image-minimal
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/mesa-vulkan-drivers-*.rpm /home/dev/artifacts
-
-      - name: Publish mesa-vulkan-drivers artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: mesa-vulkan-drivers-rpi4
-          path: |
-             /home/dev/artifacts/*.rpm
 
       - name: Build swiftshader
         shell: bash
-        working-directory: ../rpi4-32-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake swiftshader -c do_cleansstate
           bitbake swiftshader
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/swiftshader-git-*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/swiftshader-git*.rpm /home/dev/artifacts
 
       - name: Publish swiftshader artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: swiftshader-rpi4-32
+          name: swiftshader-rpi3
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build rpi-vk-driver
+        shell: bash
+        working-directory: ../rpi3-32-drm-honister-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake rpi-vk-driver
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/rpi-vk-driver-git*.rpm /home/dev/artifacts
+
+      - name: Publish rpi-vk-driver artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: rpi-vk-driver-rpi3
           path: |
              /home/dev/artifacts/*.rpm
 
       - name: Build vkmark
         shell: bash
-        working-directory: ../rpi4-32-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vkmark -c do_cleansstate
           bitbake vkmark
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/vkmark-git-*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/vkmark-git*.rpm /home/dev/artifacts
 
       - name: Publish vkmark artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: vkmark-rpi4-32
+          name: vkmark-rpi3
           path: |
              /home/dev/artifacts/*.rpm
 
       - name: Build vulkan-validationlayers
         shell: bash
-        working-directory: ../rpi4-32-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vulkan-validationlayers -c do_cleansstate
           bitbake vulkan-validationlayers
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/vulkan-validationlayers-1.2.182-*.rpm /home/dev/artifacts
@@ -171,10 +169,9 @@ jobs:
 
       - name: Build vkcube
         shell: bash
-        working-directory: ../rpi4-32-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vkcube -c do_cleansstate
           bitbake vkcube
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/vkcube-git*.rpm /home/dev/artifacts
@@ -188,10 +185,9 @@ jobs:
 
       - name: Build vkquake3
         shell: bash
-        working-directory: ../rpi4-32-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vkquake3 -c do_cleansstate
           bitbake vkquake3
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/vkquake3-git*.rpm /home/dev/artifacts
@@ -205,10 +201,9 @@ jobs:
 
       - name: Build vkrunner
         shell: bash
-        working-directory: ../rpi4-32-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vkrunner -c do_cleansstate
           bitbake vkrunner
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/vkrunner-git*.rpm /home/dev/artifacts
@@ -222,10 +217,9 @@ jobs:
 
       - name: Build vk-layer-perfdoc
         shell: bash
-        working-directory: ../rpi4-32-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vk-layer-perfdoc -c do_cleansstate
           bitbake vk-layer-perfdoc
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/vk-layer-perfdoc-git*.rpm /home/dev/artifacts
@@ -239,10 +233,9 @@ jobs:
 
       - name: Build vulkan-extensionlayer
         shell: bash
-        working-directory: ../rpi4-32-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vulkan-extensionlayer -c do_cleansstate
           bitbake vulkan-extensionlayer
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/vulkan-extensionlayer-1.2.182-*.rpm /home/dev/artifacts
@@ -256,10 +249,9 @@ jobs:
              
       - name: Build sascha-samples (D2D)
         shell: bash
-        working-directory: ../rpi4-32-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake sascha-samples -c do_cleansstate
           bitbake sascha-samples
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/sascha-samples-git*.rpm /home/dev/artifacts
@@ -267,70 +259,70 @@ jobs:
       - name: Publish sascha-samples artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: sascha-samples-d2d-rpi4
+          name: sascha-samples-d2d-rpi3
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build flutter-engine
+      - name: Build flutter-engine-release
         shell: bash
-        working-directory: ../rpi4-32-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake flutter-engine -c do_cleansstate
-          bitbake flutter-engine
+          bitbake flutter-engine-release -c do_cleansstate
+          bitbake flutter-engine-release
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/flutter-engine-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/flutter-engine-release-git*.rpm /home/dev/artifacts
 
-      - name: Publish flutter-engine artifacts
+      - name: Publish flutter-engine-release artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: flutter-engine-rpi4
+          name: flutter-engine-release-rpi3
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build flutter-pi
+      - name: Build flutter-pi-release
         shell: bash
-        working-directory: ../rpi4-32-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake flutter-pi -c do_cleansstate
-          bitbake flutter-pi
+          bitbake flutter-pi-release
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/flutter-pi-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/flutter-pi-release-git*.rpm /home/dev/artifacts
 
-      - name: Publish flutter-pi artifacts
+      - name: Publish flutter-pi-release artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: flutter-pi-rpi4
+          name: flutter-pi-release-rpi3
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build flutter-gallery
+      - name: Build flutter-gallery-release
         shell: bash
-        working-directory: ../rpi4-32-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-gallery -c do_cleansstate
-          bitbake flutter-gallery
+          bitbake flutter-gallery-release -c do_cleansstate
+          bitbake flutter-gallery-release
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/flutter-gallery-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/flutter-gallery-release-git*.rpm /home/dev/artifacts
 
-      - name: Publish flutter-gallery artifacts
+      - name: Publish flutter-gallery-release artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: flutter-gallery-rpi4
+          name: flutter-gallery-release-rpi3
           path: |
              /home/dev/artifacts/*.rpm
 
       - name: Build core-image-minimal
         shell: bash
-        working-directory: ../rpi4-32-drm-honister-latest
+        working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " swiftshader"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi-release"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery-release"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " swiftshader"' >> ./conf/local.conf          
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " rpi-vk-driver"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkcube"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkmark"' >> ./conf/local.conf
@@ -341,12 +333,12 @@ jobs:
           bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/images/raspberrypi4/core-image-minimal-raspberrypi4.wic.bmap /home/dev/artifacts
-          cp tmp/deploy/images/raspberrypi4/core-image-minimal-raspberrypi4.wic.bz2 /home/dev/artifacts
+          cp tmp/deploy/images/raspberrypi3/core-image-minimal-raspberrypi3.wic.bmap /home/dev/artifacts
+          cp tmp/deploy/images/raspberrypi3/core-image-minimal-raspberrypi3.wic.bz2 /home/dev/artifacts
 
       - name: Publish SD card image artifact
         uses: actions/upload-artifact@v2
         with:
-          name: rpi4-drm-honister-sdimage
+          name: rpi3-drm-flutter-release-honister-sdimage
           path: |
              /home/dev/artifacts/*
