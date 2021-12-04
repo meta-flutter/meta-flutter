@@ -52,7 +52,7 @@ jobs:
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           wait
           cd meta-agl-devel
-          git fetch "https://gerrit.automotivelinux.org/gerrit/AGL/meta-agl-devel" refs/changes/68/26868/17 && git checkout FETCH_HEAD
+          git fetch "https://gerrit.automotivelinux.org/gerrit/AGL/meta-agl-devel" refs/changes/68/26868/19 && git checkout FETCH_HEAD
           cd ../external/meta-flutter
           git checkout dunfell
           git pull

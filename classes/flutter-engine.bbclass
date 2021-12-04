@@ -2,10 +2,11 @@
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 DEPENDS += "\
+    ca-certificates-native \
+    curl-native \
     depot-tools-native \
     fontconfig \
     zip-native \
-    curl-native \
     "
 
 S = "${WORKDIR}/src"
@@ -82,6 +83,7 @@ ARGS_GN_append_armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
 
 do_patch_prepend() {
 
+    export CURL_CA_BUNDLE=${STAGING_DIR_NATIVE}/etc/ssl/certs/ca-certificates.crt
     export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:$PATH
 
     bbnote "ARGS: ${GN_ARGS}"
@@ -92,9 +94,6 @@ do_patch_prepend() {
     bbnote "FLUTTER_CHANNEL: ${SRCREV}"
     bbnote "OUT_DIR_REL: ${OUT_DIR_REL}"
     bbnote "gclient sync --shallow --no-history -R -D --revision ${SRCREV} ${PARALLEL_MAKE} -v"
-}
-
-do_patch() {
 
     cd ${WORKDIR}
 
@@ -144,15 +143,13 @@ do_patch() {
     install -m 644 "${GCC_OBJ_DIR}/crtbeginS.o" "${CLANG_INSTALL_DIR}/"
     install -m 644 "${GCC_OBJ_DIR}/crtendS.o" "${CLANG_INSTALL_DIR}/"
 }
-do_patch[depends] += "depot-tools-native:do_populate_sysroot"
-do_patch[depends] += "fontconfig:do_populate_sysroot"
-
-do_configure_prepend() {
-
-    export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:$PATH
-}
+do_patch_prepend[depends] += "ca-certificates-native:do_populate_sysroot"
+do_patch_prepend[depends] += "depot-tools-native:do_populate_sysroot"
+do_patch_prepend[depends] += "fontconfig:do_populate_sysroot"
 
 do_configure() {
+
+    export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:$PATH
 
     cd ${S}
 
@@ -162,12 +159,9 @@ do_configure() {
 }
 do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 
-do_compile_prepend() {
+do_compile() {
 
     export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:$PATH
-}
-
-do_compile() {
 
     cd ${S}
 
