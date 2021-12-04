@@ -1,4 +1,4 @@
-name: dunfell-agl
+name: dunfell-agl-aarch64
 
 on:
   pull_request:
@@ -12,10 +12,10 @@ on:
 
 jobs:
 
-  master-qemu:
+  master-qemuarm64:
   
     env:
-      MACHINE: qemux86-64
+      MACHINE: qemuarm64
       AGL_BRANCH: master
 
     runs-on: [self-hosted, linux]
@@ -27,8 +27,8 @@ jobs:
         --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
         --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
         -v /b/github-ci/download:/home/dev/dl:Z
-        -v /b/github-ci/sstate/agl/qemu:/home/dev/sstate:Z
-        -v /b/github-ci/artifacts/agl/qemu:/home/dev/artifacts:Z
+        -v /b/github-ci/sstate/agl/qemuarm64:/home/dev/sstate:Z
+        -v /b/github-ci/artifacts/agl/qemuarm64:/home/dev/artifacts:Z
       
     steps:
     
@@ -45,21 +45,21 @@ jobs:
 
       - name: Fetch Layers
         run: |
-          [ -d ../agl-master-qemu ] || mkdir -p ../agl-master-qemu
-          cd ../agl-master-qemu
+          [ -d ../agl-master-qemuarm64 ] || mkdir -p ../agl-master-qemuarm64
+          cd ../agl-master-qemuarm64
           rm -rf .repo  bsp  external  meta-agl  meta-agl-demo  meta-agl-devel  meta-agl-flutter
           /home/dev/bin/repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           wait
           cd meta-agl-devel
-          git fetch "https://gerrit.automotivelinux.org/gerrit/AGL/meta-agl-devel" refs/changes/68/26868/14 && git checkout FETCH_HEAD
+          git fetch "https://gerrit.automotivelinux.org/gerrit/AGL/meta-agl-devel" refs/changes/68/26868/17 && git checkout FETCH_HEAD
           cd ../external/meta-flutter
           git checkout dunfell
           git pull
           
       - name: Configure AGL build
         shell: bash
-        working-directory: ../agl-master-qemu
+        working-directory: ../agl-master-qemuarm64
         run: |
           rm -rf build/conf
           . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem agl-flutter
@@ -79,32 +79,35 @@ jobs:
           bitbake -e virtual/kernel | grep "^PN"
           echo '***************************************'
           bitbake -e > bb.environment
+          echo '***************************************'
+          bitbake ca-certificates -c do_cleansstate
+          bitbake ca-certificates-native -c do_cleansstate
+          bitbake flutter-sdk -c do_cleansstate
+          bitbake flutter-sdk-native -c do_cleansstate
+          bitbake flutter-gallery -c do_cleansstate
+          bitbake flutter-engine -c do_cleansstate
 
       - name: Build agl-image-flutter
         shell: bash
-        working-directory: ../agl-master-qemu
+        working-directory: ../agl-master-qemuarm64
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
-          bitbake flutter-sdk -c do_cleansstate
-          bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-engine -c do_cleansstate
           bitbake agl-image-flutter
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/images/qemux86-64/agl-image-flutter-qemux86-64.wic.vmdk /home/dev/artifacts
-          cp tmp/deploy/images/qemux86-64/agl-image-flutter-qemux86-64.ext4 /home/dev/artifacts
-          cp tmp/deploy/images/qemux86-64/bzImage /home/dev/artifacts
+          cp tmp/deploy/images/${{ env.MACHINE }}/Image-${{ env.MACHINE }}.bin /home/dev/artifacts
+          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-${{ env.MACHINE }}.ext4 /home/dev/artifacts
 
       - name: Publish agl-image-flutter artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: agl-image-flutter-qemux86-64-linux
+          name: agl-image-flutter-qemuarm64-linux
           path: |
              /home/dev/artifacts/*
 
       - name: Build agl-image-flutter SDK
         shell: bash
-        working-directory: ../agl-master-qemu
+        working-directory: ../agl-master-qemuarm64
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
@@ -115,6 +118,42 @@ jobs:
       - name: Publish agl-image-flutter SDK artifact
         uses: actions/upload-artifact@v2
         with:
-          name: agl-image-flutter-sdk-qemux86-64-linux
+          name: agl-image-flutter-sdk-qemuarm64-linux
+          path: |
+             /home/dev/artifacts/*
+
+      - name: Build agl-image-flutterdev
+        shell: bash
+        working-directory: ../agl-master-qemuarm64
+        run: |
+          . ./build/agl-init-build-env
+          rm -rf /home/dev/artifacts/*
+          bitbake flutter-engine -c do_cleansstate
+          bitbake agl-image-flutterdev
+          cp bb.environment /home/dev/artifacts
+          cp tmp/deploy/images/${{ env.MACHINE }}/Image-${{ env.MACHINE }}.bin /home/dev/artifacts
+          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutterdev-${{ env.MACHINE }}.ext4 /home/dev/artifacts
+
+      - name: Publish agl-image-flutterdev artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: agl-image-flutterdev-qemuarm64-linux
+          path: |
+             /home/dev/artifacts/*
+
+      - name: Build agl-image-flutterdev SDK
+        shell: bash
+        working-directory: ../agl-master-qemuarm64
+        run: |
+          . ./build/agl-init-build-env
+          rm -rf /home/dev/artifacts/*
+          bitbake agl-image-flutterdev -c do_populate_sdk
+          cp bb.environment /home/dev/artifacts
+          cp tmp/deploy/sdk/poky-agl-*.sh /home/dev/artifacts
+
+      - name: Publish agl-image-flutterdev SDK artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: agl-image-flutterdev-sdk-qemuarm64-linux
           path: |
              /home/dev/artifacts/*

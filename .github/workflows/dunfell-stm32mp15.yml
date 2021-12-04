@@ -112,17 +112,21 @@ jobs:
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
+          echo '***************************************'
+          bitbake -e > bb.environment
+          echo '***************************************'
+          bitbake ca-certificates -c do_cleansstate
+          bitbake ca-certificates-native -c do_cleansstate
+          bitbake flutter-sdk -c do_cleansstate
+          bitbake flutter-sdk-native -c do_cleansstate
+          bitbake flutter-gallery -c do_cleansstate
+          bitbake flutter-engine -c do_cleansstate
  
       - name: Build st-image-core
         shell: bash
         working-directory: ../stm32mp15-dunfell
         run: |
           source ./layers/meta-st/scripts/envsetup.sh --no-ui
-          bitbake flutter-engine -c do_cleansstate
-          bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-pi -c do_cleansstate
-          bitbake flutter-drm-gbm-backend -c do_cleansstate
-          bitbake flutter-gallery -c do_cleansstate
           bitbake st-image-core
           cp -r tmp-glibc/deploy/images/stm32mp1-disco/* /home/dev/artifacts/
 
