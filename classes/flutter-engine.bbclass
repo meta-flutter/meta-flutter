@@ -95,6 +95,10 @@ do_patch_prepend() {
     bbnote "OUT_DIR_REL: ${OUT_DIR_REL}"
     bbnote "gclient sync --shallow --no-history -R -D --revision ${SRCREV} ${PARALLEL_MAKE} -v"
 
+}
+
+do_patch () {
+
     cd ${WORKDIR}
 
     echo 'solutions = [
@@ -143,9 +147,9 @@ do_patch_prepend() {
     install -m 644 "${GCC_OBJ_DIR}/crtbeginS.o" "${CLANG_INSTALL_DIR}/"
     install -m 644 "${GCC_OBJ_DIR}/crtendS.o" "${CLANG_INSTALL_DIR}/"
 }
-do_patch_prepend[depends] += "ca-certificates-native:do_populate_sysroot"
-do_patch_prepend[depends] += "depot-tools-native:do_populate_sysroot"
-do_patch_prepend[depends] += "fontconfig:do_populate_sysroot"
+do_patch[depends] += "ca-certificates-native:do_populate_sysroot"
+do_patch[depends] += "depot-tools-native:do_populate_sysroot"
+do_patch[depends] += "fontconfig:do_populate_sysroot"
 
 do_configure() {
 
