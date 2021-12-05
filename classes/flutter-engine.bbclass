@@ -25,7 +25,7 @@ COMPATIBLE_MACHINE_armv7ve = "(.*)"
 COMPATIBLE_MACHINE_x86 = "(.*)"
 COMPATIBLE_MACHINE_x86-64 = "(.*)"
 
-PACKAGECONFIG ?= "disable-desktop-embeddings \
+PACKAGECONFIG ??= "disable-desktop-embeddings \
                   embedder-for-target \
                   fontconfig \
                   mode-release \
@@ -94,7 +94,6 @@ do_patch_prepend() {
     bbnote "FLUTTER_CHANNEL: ${SRCREV}"
     bbnote "OUT_DIR_REL: ${OUT_DIR_REL}"
     bbnote "gclient sync --shallow --no-history -R -D --revision ${SRCREV} ${PARALLEL_MAKE} -v"
-
 }
 
 do_patch () {
@@ -176,22 +175,23 @@ do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
 do_install() {
 
-    install -d                                                            ${D}/${libdir}
-    install -m 644 ${S}/${OUT_DIR_REL}/so.unstripped/libflutter_engine.so ${D}/${libdir}
+    install -d ${D}${libdir}
+    install -d ${D}${includedir}
+    install -d ${D}${datadir}/flutter
+    install -d ${D}${datadir}/flutter/sdk
+    install -d ${D}${datadir}/flutter/sdk/clang_x64
 
-    install -d                                                            ${D}/${includedir}
-    install -m 644 ${S}/${OUT_DIR_REL}/flutter_embedder.h                 ${D}/${includedir}
+    install -m 644 ${S}/${OUT_DIR_REL}/so.unstripped/libflutter_engine.so ${D}${libdir}
 
-    install -d                                                            ${D}/${datadir}/flutter
-    install -m 644 ${S}/${OUT_DIR_REL}/icudtl.dat                         ${D}/${datadir}/flutter/
+    install -m 644 ${S}/${OUT_DIR_REL}/flutter_embedder.h ${D}${includedir}
+
+    install -m 644 ${S}/${OUT_DIR_REL}/icudtl.dat ${D}${datadir}/flutter/
 
     # create SDK
-    install -d                                                            ${D}/${datadir}/flutter/sdk
     echo "${SRCREV}" > ${D}/usr/share/flutter/sdk/engine.version
-    install -m 644 ${S}/${OUT_DIR_REL}/flutter_patched_sdk/*              ${D}/${datadir}/flutter/sdk/
+    install -m 644 ${S}/${OUT_DIR_REL}/flutter_patched_sdk/* ${D}${datadir}/flutter/sdk/
 
-    install -d                                                            ${D}/${datadir}/flutter/sdk/clang_x64
-    install -m 755 ${S}/${OUT_DIR_REL}/clang_x64/gen_snapshot             ${D}/${datadir}/flutter/sdk/clang_x64/
+    install -m 755 ${S}/${OUT_DIR_REL}/clang_x64/gen_snapshot ${D}${datadir}/flutter/sdk/clang_x64/
 
     cd ${D}/${datadir}/flutter
     zip -r engine_sdk.zip sdk
@@ -199,11 +199,13 @@ do_install() {
 }
 do_install[depends] += "zip-native:do_populate_sysroot"
 
-FILES_${PN} = "${libdir} \
-               ${datadir}/flutter \
-              "
+FILES_${PN} = "\
+    ${libdir} \
+    ${datadir}/flutter \
+    "
 
-FILES_${PN}-dev = "${includedir}"
+FILES_${PN}-dev = "\
+    ${includedir} \
+    "
 
 BBCLASSEXTEND = ""
-

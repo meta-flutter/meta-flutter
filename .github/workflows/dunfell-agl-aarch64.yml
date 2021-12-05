@@ -52,7 +52,7 @@ jobs:
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           wait
           cd meta-agl-devel
-          git fetch "https://gerrit.automotivelinux.org/gerrit/AGL/meta-agl-devel" refs/changes/68/26868/19 && git checkout FETCH_HEAD
+          git fetch "https://gerrit.automotivelinux.org/gerrit/AGL/meta-agl-devel" refs/changes/68/26868/20 && git checkout FETCH_HEAD
           cd ../external/meta-flutter
           git checkout dunfell
           git pull
@@ -69,8 +69,9 @@ jobs:
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://download.automotivelinux.org/sstate-mirror/${{ env.AGL_BRANCH }}/${DEFAULTTUNE}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
-          echo 'INHERIT:remove = "uninative"' >> ./conf/local.conf
+          echo 'INHERIT_remove = "uninative"' >> ./conf/local.conf
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../external/meta-clang/recipes-devtools/clang/clang_git.bb
+          echo 'IMAGE_INSTALL += "ivi-homescreen-init"' >> ./conf/local.conf
           echo '** Layers *****************************'
           bitbake-layers add-layer ../external/meta-clang
           bitbake-layers show-layers
@@ -86,6 +87,7 @@ jobs:
           bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-gallery -c do_cleansstate
           bitbake flutter-engine -c do_cleansstate
+          bitbake ivi-homescreen -c do_cleansstate
 
       - name: Build agl-image-flutter
         shell: bash
@@ -113,7 +115,7 @@ jobs:
           rm -rf /home/dev/artifacts/*
           bitbake agl-image-flutter -c do_populate_sdk
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/sdk/poky-agl-*.sh /home/dev/artifacts
+          cp tmp/deploy/sdk/poky-agl-glibc-*-agl-image-flutter-*.sh /home/dev/artifacts
 
       - name: Publish agl-image-flutter SDK artifact
         uses: actions/upload-artifact@v2
@@ -149,7 +151,7 @@ jobs:
           rm -rf /home/dev/artifacts/*
           bitbake agl-image-flutterdev -c do_populate_sdk
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/sdk/poky-agl-*.sh /home/dev/artifacts
+          cp tmp/deploy/sdk/poky-agl-glibc-*-agl-image-flutterdev-*.sh /home/dev/artifacts
 
       - name: Publish agl-image-flutterdev SDK artifact
         uses: actions/upload-artifact@v2
