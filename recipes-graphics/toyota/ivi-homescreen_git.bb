@@ -41,8 +41,8 @@ SYSTEMD_SERVICE_${PN} = "homescreen.service"
 do_install_append() {
     install -D -p -m0644 ${WORKDIR}/homescreen.service ${D}${systemd_system_unitdir}/homescreen.service
     
-    install -D /etc/systemd/system/graphical.target.wants
-    ln -sf /lib/systemd/system/homescreen.service /etc/systemd/system/graphical.target.wants/homescreen.service
+    install -D ${D}/etc/systemd/system/graphical.target.wants
+    ln -sf /lib/systemd/system/homescreen.service ${D}/etc/systemd/system/graphical.target.wants/homescreen.service
 }
 
 FILES_${PN} += "${systemd_system_unitdir}"
