@@ -41,12 +41,13 @@ RUNTIME = "llvm"
 TOOLCHAIN = "clang"
 PREFERRED_PROVIDER_libgcc = "compiler-rt"
 
-EXTRA_OECMAKE += "-D BUILD_TEXT_INPUT_PLUGIN=ON \
-                  -D BUILD_RAW_KEYBOARD_PLUGIN=ON \
-                  -D BUILD_TEST_PLUGIN=OFF \
-                  -D BUILD_OMXPLAYER_VIDEO_PLAYER_PLUGIN=ON \
-                  "
+EXTRA_OECMAKE += "\
+    -D BUILD_TEXT_INPUT_PLUGIN=ON \
+    -D BUILD_RAW_KEYBOARD_PLUGIN=ON \
+    -D BUILD_TEST_PLUGIN=OFF \
+    -D BUILD_OMXPLAYER_VIDEO_PLAYER_PLUGIN=ON \
+    "
 
-FILES_${PN} = "${bindir}"
-
-BBCLASSEXTEND = ""
+FILES_${PN} = "\
+    ${bindir} \
+    "

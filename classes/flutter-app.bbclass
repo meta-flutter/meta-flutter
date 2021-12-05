@@ -7,6 +7,7 @@
 #   TODO -> read pubspec.yml via python
 
 DEPENDS += " \
+    ca-certificates-native \
     flutter-engine \
     flutter-sdk-native \
     unzip-native \

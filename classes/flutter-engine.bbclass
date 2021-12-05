@@ -2,10 +2,11 @@
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 DEPENDS += "\
+    ca-certificates-native \
+    curl-native \
     depot-tools-native \
     fontconfig \
     zip-native \
-    curl-native \
     "
 
 S = "${WORKDIR}/src"
@@ -24,7 +25,7 @@ COMPATIBLE_MACHINE_armv7ve = "(.*)"
 COMPATIBLE_MACHINE_x86 = "(.*)"
 COMPATIBLE_MACHINE_x86-64 = "(.*)"
 
-PACKAGECONFIG ?= "disable-desktop-embeddings \
+PACKAGECONFIG ??= "disable-desktop-embeddings \
                   embedder-for-target \
                   fontconfig \
                   mode-release \
@@ -82,6 +83,7 @@ ARGS_GN_append_armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
 
 do_patch_prepend() {
 
+    export CURL_CA_BUNDLE=${STAGING_DIR_NATIVE}/etc/ssl/certs/ca-certificates.crt
     export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:$PATH
 
     bbnote "ARGS: ${GN_ARGS}"
@@ -94,7 +96,7 @@ do_patch_prepend() {
     bbnote "gclient sync --shallow --no-history -R -D --revision ${SRCREV} ${PARALLEL_MAKE} -v"
 }
 
-do_patch() {
+do_patch () {
 
     cd ${WORKDIR}
 
@@ -144,15 +146,13 @@ do_patch() {
     install -m 644 "${GCC_OBJ_DIR}/crtbeginS.o" "${CLANG_INSTALL_DIR}/"
     install -m 644 "${GCC_OBJ_DIR}/crtendS.o" "${CLANG_INSTALL_DIR}/"
 }
+do_patch[depends] += "ca-certificates-native:do_populate_sysroot"
 do_patch[depends] += "depot-tools-native:do_populate_sysroot"
 do_patch[depends] += "fontconfig:do_populate_sysroot"
 
-do_configure_prepend() {
+do_configure() {
 
     export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:$PATH
-}
-
-do_configure() {
 
     cd ${S}
 
@@ -162,12 +162,9 @@ do_configure() {
 }
 do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 
-do_compile_prepend() {
+do_compile() {
 
     export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:$PATH
-}
-
-do_compile() {
 
     cd ${S}
 
@@ -178,22 +175,23 @@ do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
 do_install() {
 
-    install -d                                                            ${D}/${libdir}
-    install -m 644 ${S}/${OUT_DIR_REL}/so.unstripped/libflutter_engine.so ${D}/${libdir}
+    install -d ${D}${libdir}
+    install -d ${D}${includedir}
+    install -d ${D}${datadir}/flutter
+    install -d ${D}${datadir}/flutter/sdk
+    install -d ${D}${datadir}/flutter/sdk/clang_x64
 
-    install -d                                                            ${D}/${includedir}
-    install -m 644 ${S}/${OUT_DIR_REL}/flutter_embedder.h                 ${D}/${includedir}
+    install -m 644 ${S}/${OUT_DIR_REL}/so.unstripped/libflutter_engine.so ${D}${libdir}
 
-    install -d                                                            ${D}/${datadir}/flutter
-    install -m 644 ${S}/${OUT_DIR_REL}/icudtl.dat                         ${D}/${datadir}/flutter/
+    install -m 644 ${S}/${OUT_DIR_REL}/flutter_embedder.h ${D}${includedir}
+
+    install -m 644 ${S}/${OUT_DIR_REL}/icudtl.dat ${D}${datadir}/flutter/
 
     # create SDK
-    install -d                                                            ${D}/${datadir}/flutter/sdk
     echo "${SRCREV}" > ${D}/usr/share/flutter/sdk/engine.version
-    install -m 644 ${S}/${OUT_DIR_REL}/flutter_patched_sdk/*              ${D}/${datadir}/flutter/sdk/
+    install -m 644 ${S}/${OUT_DIR_REL}/flutter_patched_sdk/* ${D}${datadir}/flutter/sdk/
 
-    install -d                                                            ${D}/${datadir}/flutter/sdk/clang_x64
-    install -m 755 ${S}/${OUT_DIR_REL}/clang_x64/gen_snapshot             ${D}/${datadir}/flutter/sdk/clang_x64/
+    install -m 755 ${S}/${OUT_DIR_REL}/clang_x64/gen_snapshot ${D}${datadir}/flutter/sdk/clang_x64/
 
     cd ${D}/${datadir}/flutter
     zip -r engine_sdk.zip sdk
@@ -201,11 +199,13 @@ do_install() {
 }
 do_install[depends] += "zip-native:do_populate_sysroot"
 
-FILES_${PN} = "${libdir} \
-               ${datadir}/flutter \
-              "
+FILES_${PN} = "\
+    ${libdir} \
+    ${datadir}/flutter \
+    "
 
-FILES_${PN}-dev = "${includedir}"
+FILES_${PN}-dev = "\
+    ${includedir} \
+    "
 
 BBCLASSEXTEND = ""
-
