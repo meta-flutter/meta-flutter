@@ -45,6 +45,9 @@ do_install_append() {
     ln -sf /lib/systemd/system/homescreen.service ${D}/etc/systemd/system/graphical.target.wants/homescreen.service
 }
 
-FILES_${PN} += "${systemd_system_unitdir}"
+FILES_${PN} += " \
+    ${systemd_system_unitdir} \
+    /etc/systemd/system \
+    "
 
 BBCLASSEXTEND = ""
