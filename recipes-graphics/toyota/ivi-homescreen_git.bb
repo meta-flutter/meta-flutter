@@ -28,7 +28,7 @@ SRCREV = "4a3d34fb4e1e4c1cffba11a0ce7f031998f48fb5"
 
 S = "${WORKDIR}/git"
 
-inherit cmake features_check
+inherit cmake features_check systemd
 
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
@@ -37,10 +37,12 @@ PREFERRED_PROVIDER_libgcc = "compiler-rt"
 EXTRA_OECMAKE += "-D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr"
 
 SYSTEMD_SERVICE_${PN} = "homescreen.service"
-SYSTEMD_AUTO_ENABLE_${PN} = "enable"
 
 do_install_append() {
     install -D -p -m0644 ${WORKDIR}/homescreen.service ${D}${systemd_system_unitdir}/homescreen.service
+    
+    install -D /etc/systemd/system/graphical.target.wants
+    ln -sf /lib/systemd/system/homescreen.service /etc/systemd/system/graphical.target.wants/homescreen.service
 }
 
 FILES_${PN} += "${systemd_system_unitdir}"
