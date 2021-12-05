@@ -28,21 +28,24 @@ SRCREV = "4a3d34fb4e1e4c1cffba11a0ce7f031998f48fb5"
 
 S = "${WORKDIR}/git"
 
-inherit cmake features_check
+inherit cmake features_check systemd
 
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
 PREFERRED_PROVIDER_libgcc = "compiler-rt"
 
-EXTRA_OECMAKE += "-D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr"
+EXTRA_OECMAKE += "\
+    -D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr \
+    "
 
-SYSTEMD_SERVICE_${PN} = "homescreen.service"
-SYSTEMD_AUTO_ENABLE_${PN} = "enable"
+PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'systemd', d)}"
 
 do_install_append() {
-    install -D -p -m0644 ${WORKDIR}/homescreen.service ${D}${systemd_system_unitdir}/homescreen.service
+	if ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'true', 'false', d)}; then
+        install -d ${D}${systemd_system_unitdir}
+        install -m 644 ${WORKDIR}/homescreen.service ${D}${systemd_system_unitdir}
+	fi
 }
 
-FILES_${PN} += "${systemd_system_unitdir}"
-
-BBCLASSEXTEND = ""
+SYSTEMD_SERVICE_${PN} += "${@bb.utils.contains('PACKAGECONFIG', 'systemd', 'homescreen.service', '', d)}"
+SYSTEMD_PACKAGES = "${@bb.utils.contains('PACKAGECONFIG', 'systemd', '${PN}', '', d)}"
