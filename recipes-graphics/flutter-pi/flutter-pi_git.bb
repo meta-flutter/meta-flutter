@@ -51,3 +51,5 @@ EXTRA_OECMAKE += "\
 FILES_${PN} = "\
     ${bindir} \
     "
+
+BBCLASSEXTEND = ""

@@ -11,7 +11,6 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=39ae29158ce710399736340c60147314"
 
 DEPENDS += "\
     compiler-rt \
-    flutter-engine \
     libcxx \
     virtual/egl \
     wayland \
@@ -21,10 +20,10 @@ DEPENDS += "\
 
 REQUIRED_DISTRO_FEATURES = "wayland opengl"
 
+SRCREV ??= "${AUTOREV}"
 SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=main \
-           file://homescreen.service \
+           file://homescreen.service.in \
           "
-SRCREV = "4a3d34fb4e1e4c1cffba11a0ce7f031998f48fb5"
 
 S = "${WORKDIR}/git"
 
@@ -34,17 +33,19 @@ RUNTIME = "llvm"
 TOOLCHAIN = "clang"
 PREFERRED_PROVIDER_libgcc = "compiler-rt"
 
-EXTRA_OECMAKE += "\
-    -D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr \
-    "
+EXTRA_OECMAKE += "-D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr"
 
+FLUTTER_RUNTIME ??= "release"
+SERVICE_EXEC_START ??= "/usr/bin/homescreen --f"
 PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'systemd', d)}"
 
 do_install_append() {
-	if ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'true', 'false', d)}; then
+    if ${@bb.utils.contains('PACKAGECONFIG', 'systemd', 'true', 'false', d)}; then
+        install -m 644 ${WORKDIR}/homescreen.service.in ${WORKDIR}/homescreen.service
+        sed -i "s|@ExecStart@|${SERVICE_EXEC_START}|g" ${WORKDIR}/homescreen.service
         install -d ${D}${systemd_system_unitdir}
-        install -m 644 ${WORKDIR}/homescreen.service ${D}${systemd_system_unitdir}
-	fi
+        install -m 644 ${WORKDIR}/homescreen.service ${D}${systemd_system_unitdir}/homescreen.service
+    fi
 }
 
 SYSTEMD_SERVICE_${PN} += "${@bb.utils.contains('PACKAGECONFIG', 'systemd', 'homescreen.service', '', d)}"

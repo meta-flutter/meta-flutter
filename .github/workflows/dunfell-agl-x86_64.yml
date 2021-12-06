@@ -52,9 +52,9 @@ jobs:
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           wait
           cd meta-agl-devel
-          git fetch "https://gerrit.automotivelinux.org/gerrit/AGL/meta-agl-devel" refs/changes/68/26868/20 && git checkout FETCH_HEAD
+          git fetch "https://gerrit.automotivelinux.org/gerrit/AGL/meta-agl-devel" refs/changes/68/26868/26 && git checkout FETCH_HEAD
           cd ../external/meta-flutter
-          git checkout dunfell
+          git checkout jw/distro_features
           git pull
           
       - name: Configure AGL build
@@ -84,9 +84,15 @@ jobs:
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-gallery -c do_cleansstate
-          bitbake flutter-engine -c do_cleansstate
-          bitbake ivi-homescreen -c do_cleansstate
+          bitbake flutter-engine-release -c do_cleansstate
+          bitbake flutter-engine-profile -c do_cleansstate
+          bitbake flutter-engine-debug -c do_cleansstate
+          bitbake flutter-gallery-release -c do_cleansstate
+          bitbake flutter-gallery-profile -c do_cleansstate
+          bitbake flutter-gallery-debug -c do_cleansstate
+          bitbake ivi-homescreen-release -c do_cleansstate
+          bitbake ivi-homescreen-profile -c do_cleansstate
+          bitbake ivi-homescreen-debug -c do_cleansstate
 
       - name: Build agl-image-flutter
         shell: bash
@@ -107,56 +113,57 @@ jobs:
           path: |
              /home/dev/artifacts/*
 
-      - name: Build agl-image-flutter SDK
+      - name: Build agl-image-flutter-profile
         shell: bash
         working-directory: ../agl-master-qemux86_64
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
-          bitbake agl-image-flutter -c do_populate_sdk
+          bitbake agl-image-flutter-profile
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/sdk/poky-agl-glibc-*-agl-image-flutter-*.sh /home/dev/artifacts
-
-      - name: Publish agl-image-flutter SDK artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: agl-image-flutter-sdk-qemux86-64-linux
-          path: |
-             /home/dev/artifacts/*
-
-      - name: Build agl-image-flutterdev
-        shell: bash
-        working-directory: ../agl-master-qemux86_64
-        run: |
-          . ./build/agl-init-build-env
-          rm -rf /home/dev/artifacts/*
-          bitbake flutter-engine -c do_cleansstate
-          bitbake agl-image-flutterdev
-          cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutterdev-${{ env.MACHINE }}.wic.vmdk /home/dev/artifacts
-          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutterdev-${{ env.MACHINE }}.ext4 /home/dev/artifacts
+          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-profile-${{ env.MACHINE }}.wic.vmdk /home/dev/artifacts
+          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-profile-${{ env.MACHINE }}.ext4 /home/dev/artifacts
           cp tmp/deploy/images/${{ env.MACHINE }}/bzImage /home/dev/artifacts
 
-      - name: Publish agl-image-flutterdev artifacts
+      - name: Publish agl-image-flutter-profile artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: agl-image-flutterdev-qemux86-64-linux
+          name: agl-image-flutter-profile-qemux86-64-linux
           path: |
              /home/dev/artifacts/*
 
-      - name: Build agl-image-flutterdev SDK
+      - name: Build agl-image-flutter-debug
         shell: bash
         working-directory: ../agl-master-qemux86_64
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
-          bitbake agl-image-flutterdev -c do_populate_sdk
+          bitbake agl-image-flutter-debug
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/sdk/poky-agl-glibc-*-agl-image-flutterdev-*.sh /home/dev/artifacts
+          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-debug-${{ env.MACHINE }}.wic.vmdk /home/dev/artifacts
+          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-debug-${{ env.MACHINE }}.ext4 /home/dev/artifacts
+          cp tmp/deploy/images/${{ env.MACHINE }}/bzImage /home/dev/artifacts
 
-      - name: Publish agl-image-flutterdev SDK artifact
+      - name: Publish agl-image-flutter-debug artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: agl-image-flutterdev-sdk-qemux86-64-linux
+          name: agl-image-flutter-debug-qemux86-64-linux
+          path: |
+             /home/dev/artifacts/*
+
+      - name: Build agl-image-flutter-debug SDK
+        shell: bash
+        working-directory: ../agl-master-qemux86_64
+        run: |
+          . ./build/agl-init-build-env
+          rm -rf /home/dev/artifacts/*
+          bitbake agl-image-flutter-debug -c do_populate_sdk
+          cp bb.environment /home/dev/artifacts
+          cp tmp/deploy/sdk/poky-agl-glibc-*-agl-image-flutter-debug-*.sh /home/dev/artifacts
+
+      - name: Publish agl-image-flutter-debug SDK artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: agl-image-flutter-debug-sdk-qemux86-64-linux
           path: |
              /home/dev/artifacts/*

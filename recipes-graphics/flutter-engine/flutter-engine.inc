@@ -1,3 +1,12 @@
+SUMMARY = "Flutter Engine"
+DESCRIPTION = "recipe to build Google Flutter Engine for use with Dart applications on embedded Linux"
+AUTHOR = "Joel Winarske <joel.winarske@linux.com>"
+HOMEPAGE = "https://github.com/jwinarske/meta-flutter/"
+BUGTRACKER = "https://github.com/jwinarske/meta-flutter/issues"
+SECTION = "graphics"
+LICENSE = "BSD-3-Clause"
+LIC_FILES_CHKSUM = "file://flutter/LICENSE;md5=a60894397335535eb10b54e2fff9f265"
+CVE_PRODUCT = "libflutter_engine.so"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
@@ -8,6 +17,9 @@ DEPENDS += "\
     fontconfig \
     zip-native \
     "
+
+SRC_URI = "file://0001-clang-toolchain.patch \
+           file://0002-x64-sysroot-assert.patch"
 
 S = "${WORKDIR}/src"
 
@@ -25,10 +37,12 @@ COMPATIBLE_MACHINE_armv7ve = "(.*)"
 COMPATIBLE_MACHINE_x86 = "(.*)"
 COMPATIBLE_MACHINE_x86-64 = "(.*)"
 
+FLUTTER_RUNTIME ??= "release"
+
 PACKAGECONFIG ??= "disable-desktop-embeddings \
                   embedder-for-target \
                   fontconfig \
-                  mode-release \
+                  ${FLUTTER_RUNTIME} \
                  "
 
 PACKAGECONFIG[asan] = "--asan"
@@ -41,10 +55,10 @@ PACKAGECONFIG[full-dart-debug] = "--full-dart-debug"
 PACKAGECONFIG[full-dart-sdk] = "--full-dart-sdk"
 PACKAGECONFIG[interpreter] = "--interpreter"
 PACKAGECONFIG[lsan] = "--lsan"
-PACKAGECONFIG[mode-debug] = "--runtime-mode debug"
+PACKAGECONFIG[release] = "--runtime-mode release"
+PACKAGECONFIG[profile] = "--runtime-mode profile"
+PACKAGECONFIG[debug] = "--runtime-mode debug"
 PACKAGECONFIG[mode-jit_release] = "--runtime-mode jit_release"
-PACKAGECONFIG[mode-profile] = "--runtime-mode profile"
-PACKAGECONFIG[mode-release] = "--runtime-mode release"
 PACKAGECONFIG[msan] = "--msan"
 PACKAGECONFIG[skshaper] = "--enable-skshaper"
 PACKAGECONFIG[static-analyzer] = "--clang-static-analyzer"
@@ -80,6 +94,11 @@ ARGS_GN_append_armv7 = "arm_tune = \"${@gn_get_tune_features(d)}\""
 ARGS_GN_append_armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\""
 ARGS_GN_append_armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
 
+FLUTTER_CHANNEL ??= "beta"
+FLUTTER_CLANG_VERSION ??= "12.0.0"
+TARGET_GCC_VERSION ??= "9.3.0"
+DEPOT_TOOLS ??= "${STAGING_DIR_NATIVE}/usr/share/depot_tools"
+PYTHON2_PATH ??= "bootstrap-2@3.8.9.chromium.14_bin/python/bin"
 
 do_patch_prepend() {
 
