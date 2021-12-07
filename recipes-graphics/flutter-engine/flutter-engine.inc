@@ -94,7 +94,7 @@ ARGS_GN_append_armv7 = "arm_tune = \"${@gn_get_tune_features(d)}\""
 ARGS_GN_append_armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\""
 ARGS_GN_append_armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
 
-FLUTTER_CHANNEL ??= "beta"
+FLUTTER_CHANNEL ??= "dev"
 FLUTTER_CLANG_VERSION ??= "12.0.0"
 TARGET_GCC_VERSION ??= "9.3.0"
 DEPOT_TOOLS ??= "${STAGING_DIR_NATIVE}/usr/share/depot_tools"

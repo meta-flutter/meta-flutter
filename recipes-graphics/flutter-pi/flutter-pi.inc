@@ -7,13 +7,12 @@ AUTHOR = "Hannes Winkler"
 HOMEPAGE = "https://github.com/ardera/flutter-pi"
 BUGTRACKER = "https://github.com/ardera/flutter-pi/issues"
 SECTION = "graphics"
-CVE_PRODUCT = ""
+CVE_PRODUCT = "flutter-pi"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=49fada46694956cdf2fc0292d72d888c"
 
 DEPENDS += "\
     compiler-rt \
-    flutter-engine \
     libcxx \
     libdrm \
     libinput \
@@ -22,7 +21,6 @@ DEPENDS += "\
    "
 
 RDEPENDS_${PN} += "\
-    flutter-engine \
     xkeyboard-config \
     fontconfig \
     "

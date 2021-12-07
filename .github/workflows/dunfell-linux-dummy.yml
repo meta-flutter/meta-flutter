@@ -35,7 +35,7 @@ jobs:
         run: |
           whoami
           id -u
-          
+
       - name: Set Ownership
         run: |
           chown -R dev:dev $HOME .
@@ -58,19 +58,8 @@ jobs:
         shell: bash
         working-directory: ../yocto-dunfell/poky
         run: |
+          rm -rf build/conf
           . ./oe-init-build-env
-          echo '***************************************'
-          sed -i '/rm_work/d' ./conf/local.conf
-          sed -i '/DL_DIR/d' ./conf/local.conf
-          sed -i '/SSTATE_DIR/d' ./conf/local.conf
-          sed -i '/SSTATE_MIRRORS/d' ./conf/local.conf
-          sed -i '/INIT_MANAGER/d' ./conf/local.conf
-          sed -i '/DISTRO_FEATURES/d' ./conf/local.conf
-          sed -i '/VIRTUAL-RUNTIME/d' ./conf/local.conf
-          sed -i '/PREFERRED_PROVIDER/d' ./conf/local.conf
-          sed -i '/IMAGE_INSTALL/d' ./conf/local.conf
-          sed -i '/FLUTTER_CHANNEL/d' ./conf/local.conf
-          sed -i '/PACKAGECONFIG_pn-flutter-engine/d' ./conf/local.conf
           echo '***************************************'
           echo 'INHERIT += "rm_work"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
@@ -78,14 +67,13 @@ jobs:
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
-          echo 'DISTRO_FEATURES_remove = " sysvinit x11"' >> ./conf/local.conf
-          echo 'DISTRO_FEATURES += "wayland opengl systemd"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES_remove = " sysvinit"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES += "x11 wayland opengl systemd"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES_BACKFILL_CONSIDERED = ""' >> ./conf/local.conf
           echo 'VIRTUAL-RUNTIME_init_manager = "systemd"' >> ./conf/local.conf
           echo 'VIRTUAL-RUNTIME_initscripts = ""' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-debug"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -97,7 +85,6 @@ jobs:
           echo '***************************************'
           bitbake -e > bb.environment
 
-
       - name: Build core-image-minimal
         shell: bash
         working-directory: ../yocto-dunfell/poky
@@ -105,40 +92,48 @@ jobs:
           . ./oe-init-build-env
           bitbake core-image-minimal
 
-      - name: Build flutter-engine
+      - name: Build flutter-engine-release
         shell: bash
         working-directory: ../yocto-dunfell/poky
         run: |
           . ./oe-init-build-env
-          bitbake flutter-engine -c do_cleansstate
-          bitbake flutter-engine
+          bitbake flutter-engine-release -c do_cleansstate
+          bitbake flutter-engine-release
 
-      - name: Build flutter-gallery
+      - name: Build flutter-gallery-release
         shell: bash
         working-directory: ../yocto-dunfell/poky
         run: |
           . ./oe-init-build-env
           bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-gallery -c do_cleansstate
-          bitbake flutter-gallery
+          bitbake flutter-gallery-release -c do_cleansstate
+          bitbake flutter-gallery-release
 
-      - name: Build ivi-homescreen
+      - name: Build ivi-homescreen-release
         shell: bash
         working-directory: ../yocto-dunfell/poky
         run: |
           . ./oe-init-build-env
-          bitbake ivi-homescreen -c do_cleansstate
-          bitbake ivi-homescreen
+          bitbake ivi-homescreen-release -c do_cleansstate
+          bitbake ivi-homescreen-release
 
-      - name: Build flutter-pi
+      - name: Build flutter-pi-release
         shell: bash
         working-directory: ../yocto-dunfell/poky
         run: |
           . ./oe-init-build-env
-          bitbake flutter-pi -c do_cleansstate
-          bitbake flutter-pi
+          bitbake flutter-pi-release -c do_cleansstate
+          bitbake flutter-pi-release
 
-      - name: Build drm gbm backend (Sony)
+      - name: Build drm eglstream backend
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-drm-eglstream-backend -c do_cleansstate
+          bitbake flutter-drm-eglstream-backend
+
+      - name: Build drm gbm backend
         shell: bash
         working-directory: ../yocto-dunfell/poky
         run: |
@@ -146,7 +141,7 @@ jobs:
           bitbake flutter-drm-gbm-backend -c do_cleansstate
           bitbake flutter-drm-gbm-backend
 
-      - name: Build external texture plugin (Sony)
+      - name: Build external texture plugin
         shell: bash
         working-directory: ../yocto-dunfell/poky
         run: |
@@ -154,7 +149,7 @@ jobs:
           bitbake flutter-external-texture-plugin -c do_cleansstate
           bitbake flutter-external-texture-plugin
 
-      - name: Build video player plugin (Sony)
+      - name: Build video player plugin
         shell: bash
         working-directory: ../yocto-dunfell/poky
         run: |
@@ -162,10 +157,18 @@ jobs:
           bitbake flutter-video-player-plugin -c do_cleansstate
           bitbake flutter-video-player-plugin
 
-      - name: Build Wayland Client (Sony)
+      - name: Build Wayland Client
         shell: bash
         working-directory: ../yocto-dunfell/poky
         run: |
           . ./oe-init-build-env
           bitbake flutter-wayland-client -c do_cleansstate
           bitbake flutter-wayland-client
+
+      - name: Build X11 Client
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-x11-client -c do_cleansstate
+          bitbake flutter-x11-client

@@ -54,7 +54,7 @@ jobs:
           cd meta-agl-devel
           git fetch "https://gerrit.automotivelinux.org/gerrit/AGL/meta-agl-devel" refs/changes/68/26868/26 && git checkout FETCH_HEAD
           cd ../external/meta-flutter
-          git checkout jw/distro_features
+          git checkout jw/recipe_refactor
           git pull
           
       - name: Configure AGL build

@@ -23,6 +23,7 @@ REQUIRED_DISTRO_FEATURES = "wayland opengl"
 SRCREV ??= "${AUTOREV}"
 SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=main \
            file://homescreen.service.in \
+           file://custom_devices.json \
           "
 
 S = "${WORKDIR}/git"
@@ -45,6 +46,10 @@ do_install_append() {
         sed -i "s|@ExecStart@|${SERVICE_EXEC_START}|g" ${WORKDIR}/homescreen.service
         install -d ${D}${systemd_system_unitdir}
         install -m 644 ${WORKDIR}/homescreen.service ${D}${systemd_system_unitdir}/homescreen.service
+    fi
+    if ${@bb.utils.contains('FLUTTER_RUNTIME', 'debug', 'true', 'false', d)}; then
+        install -d ${D}${datadir}/homescreen
+        install -m 644 ${WORKDIR}/custom_devices.json ${D}${datadir}/homescreen
     fi
 }
 
