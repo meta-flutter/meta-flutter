@@ -58,7 +58,7 @@ jobs:
         shell: bash
         working-directory: ../stm32mp15-dunfell
         run: |
-          rm -rf build-openstlinuxeglfs-stm32mp1-disco
+          rm -rf build-openstlinuxeglfs-stm32mp1-disco/conf
           echo n | source layers/meta-st/scripts/envsetup.sh --no-ui
           echo '***************************************'
           LOCAL_CONF=./build-openstlinuxeglfs-stm32mp1-disco/conf/local.conf
@@ -71,8 +71,7 @@ jobs:
           echo 'DISTRO_FEATURES_remove = "wayland x11"' >> $LOCAL_CONF
           echo 'INHERIT_remove = "uninative"' >> $LOCAL_CONF
           echo 'FLUTTER_CHANNEL = "master"' >> $LOCAL_CONF
-          echo 'PACKAGECONFIG_pn-flutter-engine = "embedder-for-target disable-desktop-embeddings fontconfig mode-debug"' >> $LOCAL_CONF
-          echo 'CORE_IMAGE_EXTRA_INSTALL += "flutter-pi flutter-drm-gbm-backend flutter-gallery"' >> $LOCAL_CONF
+          echo 'CORE_IMAGE_EXTRA_INSTALL += "flutter-pi-debug flutter-gallery-debug"' >> $LOCAL_CONF
           echo '********** ./conf/local.conf **********'
           cat $LOCAL_CONF
           echo '***************************************'
@@ -82,7 +81,7 @@ jobs:
           echo '***************************************'
           bitbake-layers add-layer ../layers/meta-clang ../../meta-flutter
           bitbake-layers show-layers
-          echo '***************************************'
+          echo '* Ubuntu 20 specific ******************'
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/meta-clang/recipes-devtools/clang/libcxx_git.bb
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/meta-clang/recipes-devtools/clang/compiler-rt_git.bb
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/meta-st/meta-st-stm32mp/recipes-bsp/u-boot/u-boot-stm32mp_2020.10.bb
@@ -106,9 +105,7 @@ jobs:
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/openembedded-core/meta/recipes-devtools/python/python3-pygobject_3.34.0.bb
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/openembedded-core/meta/recipes-connectivity/avahi/avahi_0.7.bb
           echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../layers/meta-openembedded/meta-oe/recipes-support/libiio/libiio_git.bb
-          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../../meta-flutter/recipes-graphics/flutter-engine/flutter-engine_git.bb
-          echo '***************************************'
-          bitbake -e > bb.environment
+          echo '_PYTHON_SYSCONFIGDATA_NAME[unexport] = "1"' >> ../../meta-flutter/recipes-graphics/flutter-engine/flutter-engine.inc
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
@@ -119,8 +116,8 @@ jobs:
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-gallery -c do_cleansstate
-          bitbake flutter-engine -c do_cleansstate
+          bitbake flutter-gallery-debug -c do_cleansstate
+          bitbake flutter-engine-debug -c do_cleansstate
  
       - name: Build st-image-core
         shell: bash

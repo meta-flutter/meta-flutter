@@ -1,51 +1,27 @@
-SUMMARY = "Embedded Linux embedding for Flutter"
 DESCRIPTION = "Flutter Embedder with Wayland Client Backend."
-AUTHOR = "Sony Group Corporation"
-HOMEPAGE = "https://github.com/sony/flutter-embedded-linux"
-BUGTRACKER = "https://github.com/sony/flutter-embedded-linux/issues"
-SECTION = "graphics"
 CVE_PRODUCT = "flutter-client"
-LICENSE = "BSD-3-Clause"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=d45359c88eb146940e4bede4f08c821a"
+
+REQUIRED_DISTRO_FEATURES = "wayland opengl"
+
+require sony-flutter.inc
+
+FLUTTER_RUNTIME = "release"
 
 DEPENDS += "\
-    compiler-rt \
-    flutter-engine \
-    libcxx \
-    libinput \
-    libxkbcommon \
-    virtual/egl \
+    flutter-engine-${FLUTTER_RUNTIME} \
     wayland \
     wayland-native \
     "
 
-RDEPENDS_${PN} += "xkeyboard-config"
-
-REQUIRED_DISTRO_FEATURES = "wayland opengl"
-
-SRC_URI = "git://github.com/sony/flutter-embedded-linux.git;protocol=https;branch=master \
-           file://0001-path-updates.patch"
-
-SRCREV = "${AUTOREV}"
-
-S = "${WORKDIR}/git"
-
-inherit pkgconfig cmake features_check
-
-RUNTIME = "llvm"
-TOOLCHAIN = "clang"
-PREFERRED_PROVIDER_libgcc = "compiler-rt"
-
-EXTRA_OECMAKE += "-D USER_PROJECT_PATH=examples/${PN}"
-
-do_configure_prepend() {
-   install -d ${S}/build
-   ln -sf ${STAGING_LIBDIR}/libflutter_engine.so ${S}/build/libflutter_engine.so
-}
+RDEPENDS_${PN} += "\
+    flutter-engine-${FLUTTER_RUNTIME} \
+    "
 
 do_install() {
    install -d ${D}${bindir}
    install -m 755 ${WORKDIR}/build/flutter-client ${D}${bindir}
 }
 
-BBCLASSEXTEND = ""
+FILES_${PN} = "\
+   ${bindir} \
+   "
