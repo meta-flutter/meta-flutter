@@ -1,12 +1,25 @@
+SUMMARY = "Flutter Engine"
+DESCRIPTION = "recipe to build Google Flutter Engine for use with Dart applications on embedded Linux"
+AUTHOR = "Joel Winarske <joel.winarske@linux.com>"
+HOMEPAGE = "https://github.com/jwinarske/meta-flutter/"
+BUGTRACKER = "https://github.com/jwinarske/meta-flutter/issues"
+SECTION = "graphics"
+LICENSE = "BSD-3-Clause"
+LIC_FILES_CHKSUM = "file://flutter/LICENSE;md5=a60894397335535eb10b54e2fff9f265"
+CVE_PRODUCT = "libflutter_engine.so"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 DEPENDS += "\
+    ca-certificates-native \
+    curl-native \
     depot-tools-native \
     fontconfig \
     zip-native \
-    curl-native \
     "
+
+SRC_URI = "file://0001-clang-toolchain.patch \
+           file://0002-x64-sysroot-assert.patch"
 
 S = "${WORKDIR}/src"
 
@@ -16,6 +29,10 @@ require conf/include/gn-utils.inc
 
 SRCREV ??= "${@gn_get_channel_commit(d)}"
 
+FLUTTER_CHANNEL ??= "dev"
+DEPOT_TOOLS ??= "${STAGING_DIR_NATIVE}/usr/share/depot_tools"
+PYTHON2_PATH ??= "bootstrap-2@3.8.9.chromium.14_bin/python/bin"
+
 COMPATIBLE_MACHINE = "(-)"
 COMPATIBLE_MACHINE:aarch64 = "(.*)"
 COMPATIBLE_MACHINE:armv7 = "(.*)"
@@ -24,10 +41,12 @@ COMPATIBLE_MACHINE:armv7ve = "(.*)"
 COMPATIBLE_MACHINE:x86 = "(.*)"
 COMPATIBLE_MACHINE:x86-64 = "(.*)"
 
-PACKAGECONFIG ?= "disable-desktop-embeddings \
+FLUTTER_RUNTIME ??= "release"
+
+PACKAGECONFIG ??= "disable-desktop-embeddings \
                   embedder-for-target \
                   fontconfig \
-                  mode-release \
+                  ${FLUTTER_RUNTIME} \
                  "
 
 PACKAGECONFIG[asan] = "--asan"
@@ -40,10 +59,10 @@ PACKAGECONFIG[full-dart-debug] = "--full-dart-debug"
 PACKAGECONFIG[full-dart-sdk] = "--full-dart-sdk"
 PACKAGECONFIG[interpreter] = "--interpreter"
 PACKAGECONFIG[lsan] = "--lsan"
-PACKAGECONFIG[mode-debug] = "--runtime-mode debug"
+PACKAGECONFIG[release] = "--runtime-mode release"
+PACKAGECONFIG[profile] = "--runtime-mode profile"
+PACKAGECONFIG[debug] = "--runtime-mode debug"
 PACKAGECONFIG[mode-jit_release] = "--runtime-mode jit_release"
-PACKAGECONFIG[mode-profile] = "--runtime-mode profile"
-PACKAGECONFIG[mode-release] = "--runtime-mode release"
 PACKAGECONFIG[msan] = "--msan"
 PACKAGECONFIG[skshaper] = "--enable-skshaper"
 PACKAGECONFIG[static-analyzer] = "--clang-static-analyzer"
@@ -55,8 +74,6 @@ PACKAGECONFIG[vulkan-validation-layers] = "--enable-vulkan-validation-layers"
 
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
 CLANG_PATH = "${WORKDIR}/src/buildtools/linux-x64/clang"
-CLANG_INSTALL_DIR = "${CLANG_PATH}/lib/clang/${FLUTTER_CLANG_VERSION}/lib/${CLANG_TOOLCHAIN_TRIPLE}"
-GCC_OBJ_DIR = "${STAGING_LIBDIR}/${TARGET_SYS}/${TARGET_GCC_VERSION}"
 
 ARGS_GN_FILE = "${WORKDIR}/src/${OUT_DIR_REL}/args.gn"
 
@@ -79,9 +96,9 @@ ARGS_GN:append:armv7 = "arm_tune = \"${@gn_get_tune_features(d)}\""
 ARGS_GN:append:armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\""
 ARGS_GN:append:armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
 
-
 do_patch:prepend() {
 
+    export CURL_CA_BUNDLE=${STAGING_DIR_NATIVE}/etc/ssl/certs/ca-certificates.crt
     export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:$PATH
 
     bbnote "ARGS: ${GN_ARGS}"
@@ -94,7 +111,7 @@ do_patch:prepend() {
     bbnote "gclient sync --shallow --no-history -R -D --revision ${SRCREV} ${PARALLEL_MAKE} -v"
 }
 
-do_patch() {
+do_patch () {
 
     cd ${WORKDIR}
 
@@ -124,6 +141,7 @@ do_patch() {
     bbnote `python -V`
     bbnote `which python`
     bbnote `which gclient`
+    bbnote "CURL_CA_BUNDLE: ${CURL_CA_BUNDLE}"
 
     #################################################################
     # --shallow:    Do a shallow clone into the cache dir
@@ -140,19 +158,19 @@ do_patch() {
     git apply ${WORKDIR}/0002-x64-sysroot-assert.patch
 
     # required object files to link
-    install -d "${CLANG_INSTALL_DIR}"
-    install -m 644 "${GCC_OBJ_DIR}/crtbeginS.o" "${CLANG_INSTALL_DIR}/"
-    install -m 644 "${GCC_OBJ_DIR}/crtendS.o" "${CLANG_INSTALL_DIR}/"
+    CLANG_VERSION=`ls ${CLANG_PATH}/lib/clang`
+    CLANG_LIB_TARGET_PATH=${CLANG_PATH}/lib/clang/${CLANG_VERSION}/lib/${CLANG_TOOLCHAIN_TRIPLE}
+    mkdir -p ${CLANG_LIB_TARGET_PATH}
+    cp ${STAGING_LIBDIR}/${TARGET_SYS}/*/crtbeginS.o ${CLANG_LIB_TARGET_PATH}/
+    cp ${STAGING_LIBDIR}/${TARGET_SYS}/*/crtendS.o ${CLANG_LIB_TARGET_PATH}/
 }
+do_patch[depends] += "ca-certificates-native:do_populate_sysroot"
 do_patch[depends] += "depot-tools-native:do_populate_sysroot"
 do_patch[depends] += "fontconfig:do_populate_sysroot"
 
-do_configure:prepend() {
+do_configure() {
 
     export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:$PATH
-}
-
-do_configure() {
 
     cd ${S}
 
@@ -162,12 +180,9 @@ do_configure() {
 }
 do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 
-do_compile:prepend() {
+do_compile() {
 
     export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:$PATH
-}
-
-do_compile() {
 
     cd ${S}
 
@@ -178,22 +193,23 @@ do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
 do_install() {
 
-    install -d                                                            ${D}/${libdir}
-    install -m 644 ${S}/${OUT_DIR_REL}/so.unstripped/libflutter_engine.so ${D}/${libdir}
+    install -d ${D}${libdir}
+    install -d ${D}${includedir}
+    install -d ${D}${datadir}/flutter
+    install -d ${D}${datadir}/flutter/sdk
+    install -d ${D}${datadir}/flutter/sdk/clang_x64
 
-    install -d                                                            ${D}/${includedir}
-    install -m 644 ${S}/${OUT_DIR_REL}/flutter_embedder.h                 ${D}/${includedir}
+    install -m 644 ${S}/${OUT_DIR_REL}/so.unstripped/libflutter_engine.so ${D}${libdir}
 
-    install -d                                                            ${D}/${datadir}/flutter
-    install -m 644 ${S}/${OUT_DIR_REL}/icudtl.dat                         ${D}/${datadir}/flutter/
+    install -m 644 ${S}/${OUT_DIR_REL}/flutter_embedder.h ${D}${includedir}
+
+    install -m 644 ${S}/${OUT_DIR_REL}/icudtl.dat ${D}${datadir}/flutter/
 
     # create SDK
-    install -d                                                            ${D}/${datadir}/flutter/sdk
     echo "${SRCREV}" > ${D}/usr/share/flutter/sdk/engine.version
-    install -m 644 ${S}/${OUT_DIR_REL}/flutter_patched_sdk/*              ${D}/${datadir}/flutter/sdk/
+    install -m 644 ${S}/${OUT_DIR_REL}/flutter_patched_sdk/* ${D}${datadir}/flutter/sdk/
 
-    install -d                                                            ${D}/${datadir}/flutter/sdk/clang_x64
-    install -m 755 ${S}/${OUT_DIR_REL}/clang_x64/gen_snapshot             ${D}/${datadir}/flutter/sdk/clang_x64/
+    install -m 755 ${S}/${OUT_DIR_REL}/clang_x64/gen_snapshot ${D}${datadir}/flutter/sdk/clang_x64/
 
     cd ${D}/${datadir}/flutter
     zip -r engine_sdk.zip sdk
@@ -201,11 +217,13 @@ do_install() {
 }
 do_install[depends] += "zip-native:do_populate_sysroot"
 
-FILES:${PN} = "${libdir} \
-               ${datadir}/flutter \
-              "
+FILES:${PN} = "\
+    ${libdir} \
+    ${datadir}/flutter \
+    "
 
-FILES:${PN}-dev = "${includedir}"
+FILES:${PN}-dev = "\
+    ${includedir} \
+    "
 
 BBCLASSEXTEND = ""
-
