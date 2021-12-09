@@ -125,7 +125,17 @@ jobs:
         run: |
           source ./layers/meta-st/scripts/envsetup.sh --no-ui
           bitbake st-image-core
-          cp -r tmp-glibc/deploy/images/stm32mp1-disco/* /home/dev/artifacts/
+          cd tmp-glibc/deploy/images/stm32mp1-disco
+          cp -r flashlayout_st-image-core /home/dev/artifacts/
+          mkdir -p /home/dev/artifacts/u-boot
+          cp u-boot/u-boot-stm32mp157c-dk2-trusted.stm32 /home/dev/artifacts/u-boot/
+          mkdir -p /home/dev/artifacts/arm-trusted-firmware
+          cp arm-trusted-firmware/tf-a-stm32mp157c-dk2-serialboot.stm32 /home/dev/artifacts/arm-trusted-firmware/
+          cp arm-trusted-firmware/tf-a-stm32mp157c-dk2-trusted.stm32 /home/dev/artifacts/arm-trusted-firmware/
+          cp st-image-bootfs-openstlinux-eglfs-stm32mp1-disco.ext4 /home/dev/artifacts/
+          cp st-image-vendorfs-openstlinux-eglfs-stm32mp1-disco.ext4 /home/dev/artifacts/
+          cp st-image-core-openstlinux-eglfs-stm32mp1-disco.ext4 /home/dev/artifacts/
+          cp st-image-userfs-openstlinux-eglfs-stm32mp1-disco.ext4 /home/dev/artifacts/
 
       - name: Publish OS image artifact
         uses: actions/upload-artifact@v2
