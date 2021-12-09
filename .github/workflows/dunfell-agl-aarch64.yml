@@ -51,11 +51,6 @@ jobs:
           /home/dev/bin/repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           wait
-          cd meta-agl-devel
-          git fetch "https://gerrit.automotivelinux.org/gerrit/AGL/meta-agl-devel" refs/changes/68/26868/26 && git checkout FETCH_HEAD
-          cd ../external/meta-flutter
-          git checkout dunfell
-          git pull
           
       - name: Configure AGL build
         shell: bash
@@ -72,7 +67,6 @@ jobs:
           echo 'INHERIT_remove = "uninative"' >> ./conf/local.conf
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../external/meta-clang/recipes-devtools/clang/clang_git.bb
           echo '** Layers *****************************'
-          bitbake-layers add-layer ../external/meta-clang
           bitbake-layers show-layers
           echo '** Kernel *****************************'
           bitbake -e virtual/kernel | grep "^PV"
