@@ -53,6 +53,7 @@ jobs:
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           git clone -b dunfell https://github.com/kraj/meta-clang.git layers/meta-clang &
           wait
+          sed -i "/xwayland=true/d" layers/meta-st/meta-st-openstlinux/recipes-graphics/wayland/weston-init/weston.ini
 
       - name: Configure build
         shell: bash
@@ -76,12 +77,15 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL_remove = " packagegroup-st-demo "' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL_remove = " gtk+3-demo "' >> $LOCAL_CONF
           echo 'FLUTTER_CHANNEL = "master"' >> $LOCAL_CONF
+          echo 'PACKAGECONFIG_pn-ivi-homescreen-debug = "gles2 context_version_2 transparency"' >> $LOCAL_CONF
           echo 'INHERIT_remove = "uninative"' >> $LOCAL_CONF
+          echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> $LOCAL_CONF
           sed -i "/GLIBC_GENERATE_LOCALES/d" $LOCAL_CONF
           echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> $LOCAL_CONF
           sed -i "/IMAGE_LINGUAS/d" $LOCAL_CONF
           echo 'IMAGE_LINGUAS = "en-us"' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL += " \
+                    weston weston-init \
                     ivi-homescreen-debug \
                     flutter-gallery-debug \
                     adwaita-icon-theme-cursors \
@@ -133,7 +137,8 @@ jobs:
           mkdir -p /home/dev/artifacts/arm-trusted-firmware
           cd tmp-glibc/deploy/images/stm32mp1-disco
           cp -r flashlayout_st-image-weston /home/dev/artifacts/
-          cp -r fip /home/dev/artifacts/fip/
+          cp -r fip /home/dev/artifacts/
+          cp -r scripts /home/dev/artifacts
           cp arm-trusted-firmware/*.stm32 /home/dev/artifacts/arm-trusted-firmware/
           cp st-image-*-openstlinux-weston-stm32mp1-disco.ext4 /home/dev/artifacts/
           ls -la /home/dev/artifacts

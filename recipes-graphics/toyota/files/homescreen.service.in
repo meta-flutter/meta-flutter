@@ -1,13 +1,12 @@
 [Unit]
-Requires=weston.service
-After=weston.service
+Requires=@Requires@
+After=@After@
 
 [Service]
-# Placeholder configuration to run as weston user for now.
-User=weston
-Group=weston
-Environment=XDG_RUNTIME_DIR=/run/user/200
+User=@User@
+Group=@Group@
+Environment=@Environment@
 ExecStart=@ExecStart@
 
 [Install]
-WantedBy=graphical.target
+WantedBy=@WantedBy@
