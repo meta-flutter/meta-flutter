@@ -15,11 +15,15 @@ DEPENDS += "\
     curl-native \
     depot-tools-native \
     fontconfig \
+    glibc \
     zip-native \
     "
 
 SRC_URI = "file://0001-clang-toolchain.patch \
-           file://0002-x64-sysroot-assert.patch"
+           file://0002-x64-sysroot-assert.patch \
+           file://0001-dart-enable-mallinfo2.patch \
+           file://0001-swiftshader-enable-mallinfo2.patch \
+           "
 
 S = "${WORKDIR}/src"
 
@@ -42,6 +46,8 @@ COMPATIBLE_MACHINE:x86 = "(.*)"
 COMPATIBLE_MACHINE:x86-64 = "(.*)"
 
 FLUTTER_RUNTIME ??= "release"
+
+FLUTTER_ENGINE_REPO_URL ??= "https://github.com/flutter/engine.git"
 
 PACKAGECONFIG ??= "disable-desktop-embeddings \
                   embedder-for-target \
@@ -119,7 +125,7 @@ do_patch () {
         {
             "managed" : False,
             "name" : "src/flutter",
-            "url" : "https://github.com/flutter/engine.git",
+            "url" : "${FLUTTER_ENGINE_REPO_URL}",
             "deps_file": "DEPS",
             "custom_vars" : {
                 "download_android_deps" : False,
@@ -186,7 +192,7 @@ do_compile() {
 
     cd ${S}
 
-    autoninja -C ${OUT_DIR_REL}
+    autoninja -C ${OUT_DIR_REL} -v
 }
 do_compile[depends] += "depot-tools-native:do_populate_sysroot"
 do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"

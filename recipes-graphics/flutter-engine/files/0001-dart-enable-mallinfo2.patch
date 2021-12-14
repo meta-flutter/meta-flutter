@@ -1,0 +1,78 @@
+From 7304df6ecca493022b1b518c47c9947e94b2cd36 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Tue, 14 Dec 2021 08:20:50 -0800
+Subject: [PATCH] default mallinfo2
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ runtime/BUILD.gn                       | 3 +++
+ runtime/runtime_args.gni               | 4 ++++
+ runtime/vm/malloc_hooks_tcmalloc.cc    | 4 ++++
+ runtime/vm/malloc_hooks_unsupported.cc | 4 ++++
+ 4 files changed, 15 insertions(+)
+
+diff --git a/runtime/BUILD.gn b/runtime/BUILD.gn
+index dd25e813dff..8b3999abcc0 100644
+--- a/runtime/BUILD.gn
++++ b/runtime/BUILD.gn
+@@ -132,6 +132,9 @@ config("dart_config") {
+     defines += [ "DART_USE_TCMALLOC" ]
+     include_dirs += [ "../third_party/tcmalloc/gperftools/src" ]
+   }
++  if (dart_use_mallinfo2) {
++    defines += [ "DART_USE_MALLINFO2" ]
++  }
+ 
+   if (dart_use_compressed_pointers) {
+     defines += [ "DART_COMPRESSED_POINTERS" ]
+diff --git a/runtime/runtime_args.gni b/runtime/runtime_args.gni
+index ae564bef7eb..121832928ea 100644
+--- a/runtime/runtime_args.gni
++++ b/runtime/runtime_args.gni
+@@ -46,6 +46,10 @@ declare_args() {
+   # the VM enables this only for Linux builds.
+   dart_use_tcmalloc = false
+ 
++  # Whether to use mallinfo2 instead of mallinfo which is deprecated starting
++  # with libc 2.33
++  dart_use_mallinfo2 = true
++
+   # Whether to link Crashpad library for crash handling. Only supported on
+   # Windows for now.
+   dart_use_crashpad = false
+diff --git a/runtime/vm/malloc_hooks_tcmalloc.cc b/runtime/vm/malloc_hooks_tcmalloc.cc
+index 438e4772c08..3dc36394852 100644
+--- a/runtime/vm/malloc_hooks_tcmalloc.cc
++++ b/runtime/vm/malloc_hooks_tcmalloc.cc
+@@ -341,7 +341,11 @@ bool MallocHooks::Active() {
+ bool MallocHooks::GetStats(intptr_t* used,
+                            intptr_t* capacity,
+                            const char** implementation) {
++#if defined(DART_USE_MALLINFO2)
++  struct mallinfo2 info = mallinfo2();
++#else
+   struct mallinfo info = mallinfo();
++#endif  // defined(DART_USE_MALLINFO2)
+   *used = info.uordblks;
+   *capacity = *used + info.fordblks;
+   *implementation = "tcmalloc";
+diff --git a/runtime/vm/malloc_hooks_unsupported.cc b/runtime/vm/malloc_hooks_unsupported.cc
+index 9650cffc6b6..5b666d177bc 100644
+--- a/runtime/vm/malloc_hooks_unsupported.cc
++++ b/runtime/vm/malloc_hooks_unsupported.cc
+@@ -70,7 +70,11 @@ bool MallocHooks::GetStats(intptr_t* used,
+   }
+ #endif
+ #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
++#if defined(DART_USE_MALLINFO2)
++  struct mallinfo2 info = mallinfo2();
++#else
+   struct mallinfo info = mallinfo();
++#endif  // defined(DART_USE_MALLINFO2)
+   *used = info.uordblks;
+   *capacity = *used + info.fordblks;
+   *implementation = "unknown";
+-- 
+2.31.1
+
+

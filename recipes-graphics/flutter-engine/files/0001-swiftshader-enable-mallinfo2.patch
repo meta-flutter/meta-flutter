@@ -1,0 +1,29 @@
+From 09a82586ee120e9ae77048b6488e7abb3e575e0f Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Tue, 14 Dec 2021 10:17:12 -0800
+Subject: [PATCH] enable mallinfo2
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ third_party/llvm-subzero/lib/Support/Unix/Process.inc | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/third_party/llvm-subzero/lib/Support/Unix/Process.inc b/third_party/llvm-subzero/lib/Support/Unix/Process.inc
+index b23904664..448d8f7d0 100644
+--- a/third_party/llvm-subzero/lib/Support/Unix/Process.inc
++++ b/third_party/llvm-subzero/lib/Support/Unix/Process.inc
+@@ -87,8 +87,8 @@ unsigned Process::getPageSize() {
+ 
+ size_t Process::GetMallocUsage() {
+ #if defined(HAVE_MALLINFO)
+-  struct mallinfo mi;
+-  mi = ::mallinfo();
++  struct mallinfo2 mi;
++  mi = ::mallinfo2();
+   return mi.uordblks;
+ #elif defined(HAVE_MALLOC_ZONE_STATISTICS) && defined(HAVE_MALLOC_MALLOC_H)
+   malloc_statistics_t Stats;
+-- 
+2.31.1
+
+

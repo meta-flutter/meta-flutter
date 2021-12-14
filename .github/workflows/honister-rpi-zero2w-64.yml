@@ -114,6 +114,57 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
 
+      - name: Build vk-flutter-engine-debug
+        shell: bash
+        working-directory: ../zero2w-drm-honister-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake vk-flutter-engine-debug -c do_cleansstate
+          bitbake vk-flutter-engine-debug
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa53/flutter-engine-debug-git*.rpm /home/dev/artifacts
+
+      - name: Publish vk-flutter-engine-debug artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: vk-flutter-engine-debug-zero2w-64
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build flutter-pi-debug
+        shell: bash
+        working-directory: ../zero2w-drm-honister-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake flutter-pi-debug
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa53/flutter-pi-debug-git*.rpm /home/dev/artifacts
+
+      - name: Publish flutter-pi-debug artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: flutter-pi-debug-zero2w-64
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build flutter-gallery-debug
+        shell: bash
+        working-directory: ../zero2w-drm-honister-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake flutter-sdk-native -c do_cleansstate
+          bitbake flutter-gallery-debug -c do_cleansstate
+          bitbake flutter-gallery-debug
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa53/flutter-gallery-debug-git*.rpm /home/dev/artifacts
+
+      - name: Publish flutter-gallery-debug artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: flutter-gallery-debug-zero2w-64
+          path: |
+             /home/dev/artifacts/*.rpm
+
       - name: Build vkmark
         shell: bash
         working-directory: ../zero2w-drm-honister-latest
@@ -274,71 +325,16 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build flutter-engine-release
-        shell: bash
-        working-directory: ../zero2w-drm-honister-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake flutter-engine-release -c do_cleansstate
-          bitbake flutter-engine-release
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa53/flutter-engine-release-git*.rpm /home/dev/artifacts
-
-      - name: Publish flutter-engine-release artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: flutter-engine-release-zero2w-64
-          path: |
-             /home/dev/artifacts/*.rpm
-
-      - name: Build flutter-pi-release
-        shell: bash
-        working-directory: ../zero2w-drm-honister-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake flutter-pi-release
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa53/flutter-pi-release-git*.rpm /home/dev/artifacts
-
-      - name: Publish flutter-pi-release artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: flutter-pi-release-zero2w-64
-          path: |
-             /home/dev/artifacts/*.rpm
-
-      - name: Build flutter-gallery-release
-        shell: bash
-        working-directory: ../zero2w-drm-honister-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-gallery-release -c do_cleansstate
-          bitbake flutter-gallery-release
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa53/flutter-gallery-release-git*.rpm /home/dev/artifacts
-
-      - name: Publish flutter-gallery-release artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: flutter-gallery-release-zero2w-64
-          path: |
-             /home/dev/artifacts/*.rpm
-
       - name: Build core-image-minimal
         shell: bash
         working-directory: ../zero2w-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vk-flutter-engine-debug"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " swiftshader"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " filament-samples-vk"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkcube"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkmark"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkquake3"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vk-layer-perfdoc"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vulkan-extensionlayer"' >> ./conf/local.conf
           bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
@@ -348,6 +344,6 @@ jobs:
       - name: Publish SD card image artifact
         uses: actions/upload-artifact@v2
         with:
-          name: zero2w-drm-flutter-release-honister-sdimage
+          name: zero2w-drm-vk-flutter-debug-honister-sdimage
           path: |
              /home/dev/artifacts/*
