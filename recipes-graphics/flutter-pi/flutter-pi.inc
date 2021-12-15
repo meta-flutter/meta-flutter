@@ -29,7 +29,7 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 
 SRC_URI = "git://github.com/ardera/flutter-pi.git;protocol=https;branch=master \
            file://0001-path-updates.patch"
-SRCREV = "e60ccd19d753674dc9481d87a073dd7e9c9bf4f9"
+SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
@@ -39,12 +39,12 @@ RUNTIME = "llvm"
 TOOLCHAIN = "clang"
 PREFERRED_PROVIDER_libgcc = "compiler-rt"
 
-EXTRA_OECMAKE += "\
-    -D BUILD_TEXT_INPUT_PLUGIN=ON \
-    -D BUILD_RAW_KEYBOARD_PLUGIN=ON \
-    -D BUILD_TEST_PLUGIN=OFF \
-    -D BUILD_OMXPLAYER_VIDEO_PLAYER_PLUGIN=ON \
-    "
+PACKAGECONFIG ??= "text_input raw_keyboard omxplayer"
+
+PACKAGECONFIG[text_input]   = "-DBUILD_TEXT_INPUT_PLUGIN=ON,             -DBUILD_TEXT_INPUT_PLUGIN=OFF"
+PACKAGECONFIG[raw_keyboard] = "-DBUILD_RAW_KEYBOARD_PLUGIN=ON,           -DBUILD_RAW_KEYBOARD_PLUGIN=OFF"
+PACKAGECONFIG[test]         = "-DBUILD_TEST_PLUGIN=ON,                   -DBUILD_TEST_PLUGIN=OFF"
+PACKAGECONFIG[omxplayer]    = "-DBUILD_OMXPLAYER_VIDEO_PLAYER_PLUGIN=ON, -DBUILD_OMXPLAYER_VIDEO_PLAYER_PLUGIN=OFF"
 
 FILES_${PN} = "\
     ${bindir} \
