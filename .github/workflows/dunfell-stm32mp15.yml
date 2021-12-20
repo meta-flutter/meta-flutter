@@ -12,11 +12,11 @@ on:
 
 jobs:
 
-  dunfell-weston:
+  dunfell-eglfs:
   
     env:
       MACHINE: stm32mp1-disco
-      DISTRO: openstlinux-weston
+      DISTRO: openstlinux-eglfs
       
     runs-on: [self-hosted, linux]
     
@@ -51,47 +51,32 @@ jobs:
           ls -la
           /home/dev/bin/repo init -u https://github.com/STMicroelectronics/oe-manifest.git -b refs/tags/openstlinux-5.10-dunfell-mp1-21-11-30
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
-          git clone -b dunfell https://github.com/kraj/meta-clang.git layers/meta-clang &
+          git clone -b jw/dunfell-clang12 https://github.com/jwinarske/meta-clang.git layers/meta-clang &
           wait
+          sed -i "/xwayland=true/d" layers/meta-st/meta-st-openstlinux/recipes-graphics/wayland/weston-init/weston.ini
 
       - name: Configure build
         shell: bash
         working-directory: ../stm32mp15-dunfell
         run: |
-          rm -rf build-openstlinuxweston-stm32mp1-disco/conf
+          rm -rf build-openstlinuxeglfs-${{ env.MACHINE }}/conf
           echo n | source layers/meta-st/scripts/envsetup.sh --no-ui
           echo '***************************************'
-          LOCAL_CONF=./build-openstlinuxweston-stm32mp1-disco/conf/local.conf
+          LOCAL_CONF=./build-openstlinuxeglfs-${{ env.MACHINE }}/conf/local.conf
           echo '***************************************'
           sed -i "/ACCEPT_EULA/d" $LOCAL_CONF
-          echo 'ACCEPT_EULA_stm32mp1-disco = "1"' >> $LOCAL_CONF
+          echo 'ACCEPT_EULA_${{ env.MACHINE }} = "1"' >> $LOCAL_CONF
           echo 'DL_DIR = "/home/dev/dl"' >> $LOCAL_CONF
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> $LOCAL_CONF
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> $LOCAL_CONF
-          echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> $LOCAL_CONF
-          echo 'DISTRO_FEATURES_remove = " x11 "' >> $LOCAL_CONF
-          echo 'CORE_IMAGE_EXTRA_INSTALL_remove = " packagegroup-framework-core "' >> $LOCAL_CONF
-          echo 'CORE_IMAGE_EXTRA_INSTALL_remove = " packagegroup-framework-tools "' >> $LOCAL_CONF
-          echo 'CORE_IMAGE_EXTRA_INSTALL_remove = " packagegroup-framework-core-extra "' >> $LOCAL_CONF
-          echo 'CORE_IMAGE_EXTRA_INSTALL_remove = " packagegroup-st-demo "' >> $LOCAL_CONF
-          echo 'CORE_IMAGE_EXTRA_INSTALL_remove = " gtk+3-demo "' >> $LOCAL_CONF
           echo 'FLUTTER_CHANNEL = "master"' >> $LOCAL_CONF
+          echo 'PACKAGECONFIG_pn-flutter-pi-debug = "text_input raw_keyboard"' >> $LOCAL_CONF
           echo 'INHERIT_remove = "uninative"' >> $LOCAL_CONF
-          sed -i "/GLIBC_GENERATE_LOCALES/d" $LOCAL_CONF
-          echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> $LOCAL_CONF
-          sed -i "/IMAGE_LINGUAS/d" $LOCAL_CONF
-          echo 'IMAGE_LINGUAS = "en-us"' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL += " \
-                    ivi-homescreen-debug \
-                    flutter-gallery-debug \
-                    adwaita-icon-theme-cursors \
-                    xdg-user-dirs \
+                    flutter-pi-debug \
                     avahi-daemon \
                     ntp ntp-tickadj \
-                    dhcp-client systemd-networkd-configuration \
-                    infos-openstlinux \
                     fbgrab \
-                    tiff libv4l rc-keymaps packagegroup-gstreamer1-0 \
                     "' >> $LOCAL_CONF
           echo '********** ./conf/local.conf **********'
           cat $LOCAL_CONF
@@ -108,39 +93,106 @@ jobs:
           echo '***************************************'
           bitbake -e > bb.environment
           echo '* DISTRO_FEATURES *********************'
-          bitbake -e st-image-weston | grep "^DISTRO_FEATURES"
+          bitbake -e st-image-core | grep "^DISTRO_FEATURES"
           echo '* CORE_IMAGE_EXTRA_INSTALL ************'
-          bitbake -e st-image-weston | grep "^CORE_IMAGE_EXTRA_INSTALL"
+          bitbake -e st-image-core | grep "^CORE_IMAGE_EXTRA_INSTALL"
           echo '* COMBINED_FEATURES *******************'
-          bitbake -e st-image-weston | grep "^COMBINED_FEATURES"
+          bitbake -e st-image-core | grep "^COMBINED_FEATURES"
           echo '* IMAGE_FEATURES **********************'
-          bitbake -e st-image-weston | grep "^IMAGE_FEATURES"
+          bitbake -e st-image-core | grep "^IMAGE_FEATURES"
           echo '***************************************'
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
-          bitbake flutter-sdk -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-gallery-debug -c do_cleansstate
           bitbake flutter-engine-debug -c do_cleansstate
- 
-      - name: Build st-image-weston
+
+      - name: Build vk-flutter-engine-debug
         shell: bash
         working-directory: ../stm32mp15-dunfell
         run: |
           source ./layers/meta-st/scripts/envsetup.sh --no-ui
-          bitbake st-image-weston
+          bitbake vk-flutter-engine-debug -c do_cleansstate
+          bitbake vk-flutter-engine-debug
+          rm -rf /home/dev/artifacts/*
+          cp tmp-glibc/deploy/deb/cortexa7t2hf-neon-vfpv4/vk-flutter-engine-debug_git-*.deb /home/dev/artifacts
+
+      - name: Publish vk-flutter-engine-debug artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: vk-flutter-engine-debug
+          path: |
+             /home/dev/artifacts/*
+
+      - name: Build vk-flutter-engine-profile
+        shell: bash
+        working-directory: ../stm32mp15-dunfell
+        run: |
+          source ./layers/meta-st/scripts/envsetup.sh --no-ui
+          bitbake vk-flutter-engine-profile -c do_cleansstate
+          bitbake vk-flutter-engine-profile
+          rm -rf /home/dev/artifacts/*
+          cp tmp-glibc/deploy/deb/cortexa7t2hf-neon-vfpv4/vk-flutter-engine-profile_git-*.deb /home/dev/artifacts
+
+      - name: Publish vk-flutter-engine-profile artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: vk-flutter-engine-profile
+          path: |
+             /home/dev/artifacts/*
+
+      - name: Build vk-flutter-engine-release
+        shell: bash
+        working-directory: ../stm32mp15-dunfell
+        run: |
+          source ./layers/meta-st/scripts/envsetup.sh --no-ui
+          bitbake vk-flutter-engine-release -c do_cleansstate
+          bitbake vk-flutter-engine-release
+          rm -rf /home/dev/artifacts/*
+          cp tmp-glibc/deploy/deb/cortexa7t2hf-neon-vfpv4/vk-flutter-engine-release_git-*.deb /home/dev/artifacts
+
+      - name: Publish vk-flutter-engine-release artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: vk-flutter-engine-release
+          path: |
+             /home/dev/artifacts/*
+
+      - name: Build st-image-core
+        shell: bash
+        working-directory: ../stm32mp15-dunfell
+        run: |
+          source ./layers/meta-st/scripts/envsetup.sh --no-ui
+          bitbake st-image-core
           rm -rf /home/dev/artifacts/*
           mkdir -p /home/dev/artifacts/arm-trusted-firmware
-          cd tmp-glibc/deploy/images/stm32mp1-disco
-          cp -r flashlayout_st-image-weston /home/dev/artifacts/
-          cp -r fip /home/dev/artifacts/fip/
+          cd tmp-glibc/deploy/images/${{ env.MACHINE }}
+          cp -r flashlayout_st-image-core /home/dev/artifacts/
+          cp -r fip /home/dev/artifacts
+          cp -r scripts /home/dev/artifacts
           cp arm-trusted-firmware/*.stm32 /home/dev/artifacts/arm-trusted-firmware/
-          cp st-image-*-openstlinux-weston-stm32mp1-disco.ext4 /home/dev/artifacts/
+          cp st-image-*-${{ env.DISTRO }}-${{ env.MACHINE }}.ext4 /home/dev/artifacts/
           ls -la /home/dev/artifacts
 
       - name: Publish OS image artifact
         uses: actions/upload-artifact@v2
         with:
-          name: stm32mp1-disco-weston-image
+          name: stm32mp1-disco-core-image
+          path: |
+             /home/dev/artifacts/*
+
+      - name: Build st-image-core-flutter-debug SDK
+        shell: bash
+        working-directory: ../stm32mp15-dunfell
+        run: |
+          source ./layers/meta-st/scripts/envsetup.sh --no-ui
+          bitbake st-image-core -c do_populate_sdk
+          rm -rf /home/dev/artifacts/*
+          cp tmp-glibc/deploy/sdk/st-image-core-openstlinux-eglfs-*.sh /home/dev/artifacts/
+
+      - name: Publish st-image-core-flutter-debug SDK artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: st-image-core-flutter-debug-sdk-linux
           path: |
              /home/dev/artifacts/*

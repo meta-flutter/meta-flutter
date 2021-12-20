@@ -72,6 +72,7 @@ jobs:
           echo 'DISTRO_FEATURES_BACKFILL_CONSIDERED = ""' >> ./conf/local.conf
           echo 'VIRTUAL-RUNTIME_init_manager = "systemd"' >> ./conf/local.conf
           echo 'VIRTUAL-RUNTIME_initscripts = ""' >> ./conf/local.conf
+          echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
@@ -91,6 +92,30 @@ jobs:
         run: |
           . ./oe-init-build-env
           bitbake core-image-minimal
+
+      - name: Build vk-flutter-engine-debug
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake vk-flutter-engine-debug -c do_cleansstate
+          bitbake vk-flutter-engine-debug
+      
+      - name: Build vk-flutter-engine-profile
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake vk-flutter-engine-profile -c do_cleansstate
+          bitbake vk-flutter-engine-profile
+
+      - name: Build vk-flutter-engine-release
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake vk-flutter-engine-release -c do_cleansstate
+          bitbake vk-flutter-engine-release
 
       - name: Build flutter-engine-release
         shell: bash
