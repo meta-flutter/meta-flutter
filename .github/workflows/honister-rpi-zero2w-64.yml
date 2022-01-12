@@ -330,6 +330,7 @@ jobs:
         working-directory: ../zero2w-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " libdrm-tests kmscube"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " swiftshader"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " filament-samples-vk"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf

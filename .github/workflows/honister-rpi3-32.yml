@@ -319,6 +319,7 @@ jobs:
         working-directory: ../rpi3-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " libdrm-tests kmscube"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi-release"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery-release"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " swiftshader"' >> ./conf/local.conf          

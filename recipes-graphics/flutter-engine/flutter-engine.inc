@@ -79,7 +79,7 @@ ARGS_GN_FILE = "${WORKDIR}/src/${OUT_DIR_REL}/args.gn"
 
 OUT_DIR_REL = "${@get_out_dir(d)}"
 
-GN_ARGS = "${PACKAGECONFIG_CONFARGS} --clang --lto --no-goma"
+GN_ARGS = "${PACKAGECONFIG_CONFARGS} --clang --lto --no-goma --no-build-glfw-shell"
 GN_ARGS:append = " --target-os linux"
 GN_ARGS:append = " --linux-cpu ${@gn_target_arch_name(d)}"
 GN_ARGS:append = " --target-sysroot ${STAGING_DIR_TARGET}"

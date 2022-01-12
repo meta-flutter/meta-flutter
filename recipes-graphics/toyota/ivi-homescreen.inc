@@ -12,6 +12,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=39ae29158ce710399736340c60147314"
 DEPENDS += "\
     compiler-rt \
     libcxx \
+    libxkbcommon \
     virtual/egl \
     wayland \
     wayland-native \
