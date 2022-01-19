@@ -14,6 +14,8 @@ DEPENDS += " \
 
 FLUTTER_RUNTIME ??= "release"
 
+FLUTTER_APPLICATION_PATH ??= ""
+
 #
 # Extract Engine SDK
 #
@@ -36,7 +38,7 @@ do_compile() {
 
     export PATH=${FLUTTER_SDK}/bin:$PATH
 
-    cd ${S}
+    cd ${S}/${FLUTTER_APPLICATION_PATH}
 
     flutter build bundle
 
