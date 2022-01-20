@@ -81,6 +81,7 @@ jobs:
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-sascha-samples = "d2d"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-vkcube = "kms wayland"' >> ./conf/local.conf
+          echo 'FLUTTER_CHANNEL = "master"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
