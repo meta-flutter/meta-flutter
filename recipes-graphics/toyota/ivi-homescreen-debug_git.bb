@@ -2,7 +2,7 @@ require ivi-homescreen.inc
 
 FLUTTER_RUNTIME = "debug"
 
-DEPENDS += "flutter-engine-${FLUTTER_RUNTIME}"
+RDEPENDS_${PN} += "flutter-engine-${FLUTTER_RUNTIME}"
 
 SERVICE_EXEC_START = "/usr/bin/homescreen --f --observatory-host 0.0.0.0 --observatory-port 1234"
 
