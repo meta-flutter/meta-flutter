@@ -14,7 +14,7 @@ DEPENDS += " \
 
 FLUTTER_RUNTIME ??= "release"
 
-FLUTTER_APPLICATION_PATH ??= ""
+FLUTTER_APPLICATION_PATH ??= "."
 
 #
 # Extract Engine SDK
@@ -75,9 +75,9 @@ do_install() {
     install -d ${D}${datadir}/${PUBSPEC_APPNAME}
     if ${@bb.utils.contains('FLUTTER_RUNTIME', 'release', 'true', 'false', d)} || \
        ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)}; then
-        cp ${S}/libapp.so ${D}${datadir}/${PUBSPEC_APPNAME}/
+        cp ${S}/${FLUTTER_APPLICATION_PATH}/libapp.so ${D}${datadir}/${PUBSPEC_APPNAME}/
     fi
-    cp -r ${S}/build/flutter_assets/* ${D}${datadir}/${PUBSPEC_APPNAME}/
+    cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/* ${D}${datadir}/${PUBSPEC_APPNAME}/
 }
 
 FILES_${PN} = "${datadir}"
