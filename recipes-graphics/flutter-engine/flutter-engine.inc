@@ -228,9 +228,15 @@ do_install() {
 }
 do_install[depends] += "zip-native:do_populate_sysroot"
 
+PACKAGES =+ "${PN}-sdk-dev"
+
 FILES_${PN} = "\
     ${libdir} \
-    ${datadir}/flutter \
+    ${datadir}/flutter/icudtl.dat \
+    "
+
+FILES_${PN}-sdk-dev = "\
+    ${datadir}/flutter/engine_sdk.zip \
     "
 
 FILES_${PN}-dev = "\
