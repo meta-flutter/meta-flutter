@@ -15,7 +15,7 @@ jobs:
   dunfell-rpi4-drm:
   
     env:
-      YOCTO_VERSION: 3.1.12
+      YOCTO_VERSION: 3.1.13
       YOCTO_BRANCH: dunfell
       MACHINE: raspberrypi4-64
       
@@ -27,9 +27,9 @@ jobs:
         --user 1018
         --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
         --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
-        -v /b/github-ci/download:/home/dev/dl:Z
-        -v /b/github-ci/sstate/yocto/dunfell/rpi4-drm/latest:/home/dev/sstate:Z
-        -v /b/github-ci/artifacts/rpi4/drm:/home/dev/artifacts:Z
+        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
+        -v /mnt/raid10/github-ci/sstate/yocto/dunfell/rpi4-drm/latest:/home/dev/sstate:Z
+        -v /mnt/raid10/github-ci/artifacts/rpi4/drm:/home/dev/artifacts:Z
 
 
     steps:
@@ -83,6 +83,7 @@ jobs:
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../sources/poky/meta/recipes-core/gettext/gettext_0.20.1.bb
+          echo 'FLUTTER_CHANNEL = "master"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
