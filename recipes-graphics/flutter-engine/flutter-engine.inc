@@ -33,7 +33,8 @@ inherit python3native features_check
 
 require conf/include/gn-utils.inc
 
-SRCREV ??= "${@gn_get_channel_commit(d)}"
+FLUTTER_SDK_TAG ??= "${AUTOREV}"
+SRCREV = "${@gn_get_engine_commit_from_sdk_tag(d)}"
 
 COMPATIBLE_MACHINE = "(-)"
 COMPATIBLE_MACHINE_aarch64 = "(.*)"
@@ -98,7 +99,6 @@ ARGS_GN_append_armv7 = "arm_tune = \"${@gn_get_tune_features(d)}\""
 ARGS_GN_append_armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\""
 ARGS_GN_append_armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
 
-FLUTTER_CHANNEL ??= "dev"
 DEPOT_TOOLS ??= "${STAGING_DIR_NATIVE}/usr/share/depot_tools"
 PYTHON2_PATH ??= "bootstrap-2@3.8.9.chromium.14_bin/python/bin"
 FLUTTER_ENGINE_REPO_URL ??= "https://github.com/flutter/engine.git"
@@ -114,7 +114,8 @@ do_patch_prepend() {
     bbnote "ARGS_GN: ${ARGS_GN}"
     bbnote "CLANG_TOOLCHAIN_TRIPLE: ${CLANG_TOOLCHAIN_TRIPLE}"
     bbnote "GCLIENT_ROOT: ${S}/.."
-    bbnote "FLUTTER_CHANNEL: ${SRCREV}"
+    bbnote "FLUTTER_SDK_TAG: ${FLUTTER_SDK_TAG}"
+    bbnote "FLUTTER_ENGINE_COMMIT: ${@gn_get_engine_commit_from_sdk_tag(d)}"
     bbnote "OUT_DIR_REL: ${OUT_DIR_REL}"
     bbnote "gclient sync --shallow --no-history -R -D ${GCLIENT_ARGS_EXTRA} ${PARALLEL_MAKE}"
     bbnote "PREBUILT_DART_SDK: ${PREBUILT_DART_SDK}"

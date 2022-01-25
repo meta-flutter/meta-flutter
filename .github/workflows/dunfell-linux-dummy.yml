@@ -26,8 +26,8 @@ jobs:
         --user 1018
         --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
         --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
-        -v /b/github-ci/download:/home/dev/dl:Z
-        -v /b/github-ci/sstate/yocto/dunfell/latest:/home/dev/sstate:Z
+        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
+        -v /mnt/raid10/github-ci/sstate/yocto/dunfell/latest:/home/dev/sstate:Z
 
     steps:
     
@@ -74,17 +74,13 @@ jobs:
           echo 'VIRTUAL-RUNTIME_initscripts = ""' >> ./conf/local.conf
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"' >> ./conf/local.conf
-          echo 'FLUTTER_CHANNEL = "dev"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
-          bitbake-layers add-layer ../../meta-openembedded/meta-oe ../../meta-clang ../../../meta-flutter
+          bitbake-layers add-layer ../../meta-openembedded/meta-oe
+          bitbake-layers add-layer ../../meta-clang
+          bitbake-layers add-layer ../../../meta-flutter
           bitbake-layers show-layers
-          echo '***************************************'
-          bitbake -e virtual/kernel | grep "^PV"
-          bitbake -e virtual/kernel | grep "^PN"
-          echo '***************************************'
-          bitbake -e > bb.environment
 
       - name: Build core-image-minimal
         shell: bash

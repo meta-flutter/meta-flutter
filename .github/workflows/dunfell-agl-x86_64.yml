@@ -26,9 +26,9 @@ jobs:
         --user 1018
         --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
         --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
-        -v /b/github-ci/download:/home/dev/dl:Z
-        -v /b/github-ci/sstate/agl/qemux86_64:/home/dev/sstate:Z
-        -v /b/github-ci/artifacts/agl/qemux86_64:/home/dev/artifacts:Z
+        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
+        -v /mnt/raid10/github-ci/sstate/agl/qemux86_64:/home/dev/sstate:Z
+        -v /mnt/raid10/github-ci/artifacts/agl/qemux86_64:/home/dev/artifacts:Z
       
     steps:
     

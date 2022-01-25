@@ -26,9 +26,9 @@ jobs:
         --user 1018
         --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
         --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
-        -v /b/github-ci/download:/home/dev/dl:Z
-        -v /b/github-ci/sstate/yocto/dunfell/stm32mp15:/home/dev/sstate:Z
-        -v /b/github-ci/artifacts/stm32mp15:/home/dev/artifacts:Z
+        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
+        -v /mnt/raid10/github-ci/sstate/yocto/dunfell/stm32mp15:/home/dev/sstate:Z
+        -v /mnt/raid10/github-ci/artifacts/stm32mp15:/home/dev/artifacts:Z
 
     steps:
     
@@ -69,7 +69,6 @@ jobs:
           echo 'DL_DIR = "/home/dev/dl"' >> $LOCAL_CONF
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> $LOCAL_CONF
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> $LOCAL_CONF
-          echo 'FLUTTER_CHANNEL = "master"' >> $LOCAL_CONF
           echo 'PACKAGECONFIG_pn-flutter-pi-debug = "text_input raw_keyboard"' >> $LOCAL_CONF
           echo 'INHERIT_remove = "uninative"' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL += " \
@@ -88,10 +87,6 @@ jobs:
           bitbake-layers add-layer ../layers/meta-clang ../../meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
-          bitbake -e virtual/kernel | grep "^PV"
-          bitbake -e virtual/kernel | grep "^PN"
-          echo '***************************************'
-          bitbake -e > bb.environment
           echo '* DISTRO_FEATURES *********************'
           bitbake -e st-image-core | grep "^DISTRO_FEATURES"
           echo '* CORE_IMAGE_EXTRA_INSTALL ************'
