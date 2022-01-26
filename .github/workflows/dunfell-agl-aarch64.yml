@@ -21,7 +21,7 @@ jobs:
     runs-on: [self-hosted, linux]
     
     container:
-      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      image: ghcr.io/meta-flutter/ubuntu-16-dev:main
       options:
         --user 1018
         --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
@@ -64,16 +64,9 @@ jobs:
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://download.automotivelinux.org/sstate-mirror/${{ env.AGL_BRANCH }}/${DEFAULTTUNE}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
-          echo 'INHERIT_remove = "uninative"' >> ./conf/local.conf
-          echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../external/meta-clang/recipes-devtools/clang/clang_git.bb
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
           echo '** Layers *****************************'
           bitbake-layers show-layers
-          echo '** Kernel *****************************'
-          bitbake -e virtual/kernel | grep "^PV"
-          bitbake -e virtual/kernel | grep "^PN"
-          echo '***************************************'
-          bitbake -e > bb.environment
           echo '***************************************'
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate

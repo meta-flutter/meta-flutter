@@ -40,7 +40,7 @@ do_compile() {
 
     cd ${S}/${FLUTTER_APPLICATION_PATH}
 
-    flutter build bundle
+    flutter build bundle ${FLUTTER_EXTRA_BUILD_ARGS}
 
     if ${@bb.utils.contains('FLUTTER_RUNTIME', 'release', 'true', 'false', d)} || \
        ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)}; then

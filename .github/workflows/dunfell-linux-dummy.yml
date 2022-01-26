@@ -15,7 +15,7 @@ jobs:
   linux-dummy:
   
     env:
-      YOCTO_VERSION: 3.1.12
+      YOCTO_VERSION: 3.1.13
       YOCTO_BRANCH: dunfell
       
     runs-on: [self-hosted, linux]
@@ -26,8 +26,8 @@ jobs:
         --user 1018
         --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
         --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
-        -v /b/github-ci/download:/home/dev/dl:Z
-        -v /b/github-ci/sstate/yocto/dunfell/latest:/home/dev/sstate:Z
+        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
+        -v /mnt/raid10/github-ci/sstate/yocto/dunfell/latest:/home/dev/sstate:Z
 
     steps:
     
@@ -38,6 +38,8 @@ jobs:
 
       - name: Set Ownership
         run: |
+          pwd
+          ls -la $HOME
           chown -R dev:dev $HOME .
           
       - uses: actions/checkout@v2

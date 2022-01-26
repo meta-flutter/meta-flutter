@@ -15,7 +15,7 @@ jobs:
   dunfell-rpi4-drm:
   
     env:
-      YOCTO_VERSION: 3.1.12
+      YOCTO_VERSION: 3.1.13
       YOCTO_BRANCH: dunfell
       MACHINE: raspberrypi4-64
       
@@ -41,6 +41,8 @@ jobs:
           
       - name: Set Ownership
         run: |
+          pwd
+          ls -la $HOME
           chown -R dev:dev $HOME .
           
       - uses: actions/checkout@v2

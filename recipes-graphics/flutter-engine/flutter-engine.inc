@@ -76,7 +76,6 @@ PACKAGECONFIG[vulkan] = "--enable-vulkan"
 PACKAGECONFIG[vulkan-validation-layers] = "--enable-vulkan-validation-layers"
 
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
-CLANG_PATH = "${WORKDIR}/src/buildtools/linux-x64/clang"
 
 ARGS_GN_FILE = "${WORKDIR}/src/${OUT_DIR_REL}/args.gn"
 
@@ -106,9 +105,6 @@ GCLIENT_ARGS_EXTRA ??= "--revision ${SRCREV}"
 
 do_patch_prepend() {
 
-    export CURL_CA_BUNDLE=${STAGING_DIR_NATIVE}/etc/ssl/certs/ca-certificates.crt
-    export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:$PATH
-
     bbnote "ARGS: ${GN_ARGS}"
     bbnote "ARGS_GN_FILE: ${ARGS_GN_FILE}"
     bbnote "ARGS_GN: ${ARGS_GN}"
@@ -119,9 +115,9 @@ do_patch_prepend() {
     bbnote "OUT_DIR_REL: ${OUT_DIR_REL}"
     bbnote "gclient sync --shallow --no-history -R -D ${GCLIENT_ARGS_EXTRA} ${PARALLEL_MAKE}"
     bbnote "PREBUILT_DART_SDK: ${PREBUILT_DART_SDK}"
-}
 
-do_patch () {
+    export CURL_CA_BUNDLE=${STAGING_DIR_NATIVE}/etc/ssl/certs/ca-certificates.crt
+    export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:$PATH
 
     cd ${WORKDIR}
 
@@ -170,16 +166,16 @@ do_patch () {
     git apply ${WORKDIR}/0002-x64-sysroot-assert.patch
 
     # required object files to link
+    CLANG_PATH = "${WORKDIR}/src/buildtools/linux-x64/clang"
     CLANG_VERSION=`ls ${CLANG_PATH}/lib/clang`
     CLANG_LIB_TARGET_PATH=${CLANG_PATH}/lib/clang/${CLANG_VERSION}/lib/${CLANG_TOOLCHAIN_TRIPLE}
     mkdir -p ${CLANG_LIB_TARGET_PATH}
     cp ${STAGING_LIBDIR}/${TARGET_SYS}/*/crtbeginS.o ${CLANG_LIB_TARGET_PATH}/
     cp ${STAGING_LIBDIR}/${TARGET_SYS}/*/crtendS.o ${CLANG_LIB_TARGET_PATH}/
 }
-do_patch[depends] += "ca-certificates-native:do_populate_sysroot"
-do_patch[depends] += "curl-native:do_populate_sysroot"
-do_patch[depends] += "depot-tools-native:do_populate_sysroot"
-do_patch[depends] += "fontconfig:do_populate_sysroot"
+do_patch_prepend[depends] += "ca-certificates-native:do_populate_sysroot"
+do_patch_prepend[depends] += "curl-native:do_populate_sysroot"
+do_patch_prepend[depends] += "depot-tools-native:do_populate_sysroot"
 
 do_configure() {
 
@@ -191,7 +187,7 @@ do_configure() {
 
     echo ${ARGS_GN} >> ${ARGS_GN_FILE}
 }
-do_configure[depends] += "depot-tools-native:do_populate_sysroot"
+#do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 
 do_compile() {
 
@@ -201,7 +197,7 @@ do_compile() {
 
     autoninja -C ${OUT_DIR_REL}
 }
-do_compile[depends] += "depot-tools-native:do_populate_sysroot"
+#do_compile[depends] += "depot-tools-native:do_populate_sysroot"
 do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
 do_install() {
@@ -227,7 +223,7 @@ do_install() {
     zip -r engine_sdk.zip sdk
     rm -rf sdk
 }
-do_install[depends] += "zip-native:do_populate_sysroot"
+#do_install[depends] += "zip-native:do_populate_sysroot"
 
 PACKAGES =+ "${PN}-sdk-dev"
 
