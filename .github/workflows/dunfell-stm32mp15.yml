@@ -26,9 +26,9 @@ jobs:
         --user 1018
         --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
         --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
-        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
-        -v /mnt/raid10/github-ci/sstate/yocto/dunfell/stm32mp15:/home/dev/sstate:Z
-        -v /mnt/raid10/github-ci/artifacts/stm32mp15:/home/dev/artifacts:Z
+        -v /b/github-ci/download:/home/dev/dl:Z
+        -v /b/github-ci/sstate/yocto/dunfell/stm32mp15:/home/dev/sstate:Z
+        -v /b/github-ci/artifacts/stm32mp15:/home/dev/artifacts:Z
 
     steps:
     
