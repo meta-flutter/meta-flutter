@@ -122,7 +122,7 @@ git clone -b dunfell https://github.com/jwinarske/meta-flutter.git
 popd
 bitbake-layers add-layer ../sources/meta-clang ../sources/meta-flutter
 echo -e 'TARGET_GCC_VERSION = "10.2.0"' >> conf/local.conf
-echo -e 'FLUTTER_CHANNEL = "dev"' >> conf/local.conf
+echo -e 'FLUTTER_CHANNEL = "master"' >> conf/local.conf
 echo -e 'IMAGE_INSTALL_append = " flutter-wayland"' >> conf/local.conf
 echo -e 'IMAGE_INSTALL_append = " flutter-gallery"' >> conf/local.conf
 bitbake fsl-image-multimedia
