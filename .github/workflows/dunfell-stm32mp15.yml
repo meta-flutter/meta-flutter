@@ -72,7 +72,9 @@ jobs:
           echo 'FLUTTER_CHANNEL = "master"' >> $LOCAL_CONF
           echo 'PACKAGECONFIG_pn-flutter-pi-debug = "text_input raw_keyboard"' >> $LOCAL_CONF
           echo 'INHERIT_remove = "uninative"' >> $LOCAL_CONF
+          echo 'LLVMVERSION = "12.0.0"' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL += " \
+                    ivi-homescreen-debug \
                     flutter-pi-debug \
                     avahi-daemon \
                     ntp ntp-tickadj \
@@ -104,59 +106,8 @@ jobs:
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-gallery-debug -c do_cleansstate
+          bitbake flutter-pi -c do_cleansstate
           bitbake flutter-engine-debug -c do_cleansstate
-
-      - name: Build vk-flutter-engine-debug
-        shell: bash
-        working-directory: ../stm32mp15-dunfell
-        run: |
-          source ./layers/meta-st/scripts/envsetup.sh --no-ui
-          bitbake vk-flutter-engine-debug -c do_cleansstate
-          bitbake vk-flutter-engine-debug
-          rm -rf /home/dev/artifacts/*
-          cp tmp-glibc/deploy/deb/cortexa7t2hf-neon-vfpv4/vk-flutter-engine-debug_git-*.deb /home/dev/artifacts
-
-      - name: Publish vk-flutter-engine-debug artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: vk-flutter-engine-debug
-          path: |
-             /home/dev/artifacts/*
-
-      - name: Build vk-flutter-engine-profile
-        shell: bash
-        working-directory: ../stm32mp15-dunfell
-        run: |
-          source ./layers/meta-st/scripts/envsetup.sh --no-ui
-          bitbake vk-flutter-engine-profile -c do_cleansstate
-          bitbake vk-flutter-engine-profile
-          rm -rf /home/dev/artifacts/*
-          cp tmp-glibc/deploy/deb/cortexa7t2hf-neon-vfpv4/vk-flutter-engine-profile_git-*.deb /home/dev/artifacts
-
-      - name: Publish vk-flutter-engine-profile artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: vk-flutter-engine-profile
-          path: |
-             /home/dev/artifacts/*
-
-      - name: Build vk-flutter-engine-release
-        shell: bash
-        working-directory: ../stm32mp15-dunfell
-        run: |
-          source ./layers/meta-st/scripts/envsetup.sh --no-ui
-          bitbake vk-flutter-engine-release -c do_cleansstate
-          bitbake vk-flutter-engine-release
-          rm -rf /home/dev/artifacts/*
-          cp tmp-glibc/deploy/deb/cortexa7t2hf-neon-vfpv4/vk-flutter-engine-release_git-*.deb /home/dev/artifacts
-
-      - name: Publish vk-flutter-engine-release artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: vk-flutter-engine-release
-          path: |
-             /home/dev/artifacts/*
 
       - name: Build st-image-core
         shell: bash
