@@ -51,7 +51,7 @@ jobs:
           ls -la
           /home/dev/bin/repo init -u https://github.com/STMicroelectronics/oe-manifest.git -b refs/tags/openstlinux-5.10-dunfell-mp1-21-11-30
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
-          git clone -b jw/dunfell-clang12 https://github.com/jwinarske/meta-clang.git layers/meta-clang &
+          git clone -b dunfell-clang12 https://github.com/kraj/meta-clang.git layers/meta-clang &
           wait
           sed -i "/xwayland=true/d" layers/meta-st/meta-st-openstlinux/recipes-graphics/wayland/weston-init/weston.ini
 
@@ -74,7 +74,6 @@ jobs:
           echo 'INHERIT_remove = "uninative"' >> $LOCAL_CONF
           echo 'LLVMVERSION = "12.0.0"' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL += " \
-                    ivi-homescreen-debug \
                     flutter-pi-debug \
                     avahi-daemon \
                     ntp ntp-tickadj \
