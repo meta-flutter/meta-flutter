@@ -72,6 +72,7 @@ jobs:
           echo 'FLUTTER_CHANNEL = "master"' >> $LOCAL_CONF
           echo 'PACKAGECONFIG_pn-flutter-pi-debug = "text_input raw_keyboard"' >> $LOCAL_CONF
           echo 'INHERIT_remove = "uninative"' >> $LOCAL_CONF
+          echo 'DISTRO_FEATURES_remove = "wifi bluetooth bluez"' >> $LOCAL_CONF
           echo 'LLVMVERSION = "12.0.0"' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL += " \
                     flutter-pi-debug \
