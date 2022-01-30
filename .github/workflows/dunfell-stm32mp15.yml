@@ -105,7 +105,7 @@ jobs:
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-pi -c do_cleansstate
+          bitbake flutter-pi-debug -c do_cleansstate
           bitbake flutter-engine-debug -c do_cleansstate
 
       - name: Build st-image-core
