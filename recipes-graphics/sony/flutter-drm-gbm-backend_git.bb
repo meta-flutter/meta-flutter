@@ -5,7 +5,7 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 
 require sony-flutter.inc
 
-FLUTTER_RUNTIME = "release"
+FLUTTER_RUNTIME ??= "release"
 
 DEPENDS += "\
     libdrm \
