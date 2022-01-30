@@ -51,7 +51,7 @@ jobs:
           ls -la
           /home/dev/bin/repo init -u https://github.com/STMicroelectronics/oe-manifest.git -b refs/tags/openstlinux-5.10-dunfell-mp1-21-11-30
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
-          git clone -b jw/dunfell-clang12 https://github.com/jwinarske/meta-clang.git layers/meta-clang &
+          git clone -b dunfell-clang12 https://github.com/kraj/meta-clang.git layers/meta-clang &
           wait
           sed -i "/xwayland=true/d" layers/meta-st/meta-st-openstlinux/recipes-graphics/wayland/weston-init/weston.ini
 
@@ -70,10 +70,14 @@ jobs:
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> $LOCAL_CONF
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> $LOCAL_CONF
           echo 'FLUTTER_CHANNEL = "master"' >> $LOCAL_CONF
+          echo 'FLUTTER_RUNTIME = "debug"' >> $LOCAL_CONF
           echo 'PACKAGECONFIG_pn-flutter-pi-debug = "text_input raw_keyboard"' >> $LOCAL_CONF
           echo 'INHERIT_remove = "uninative"' >> $LOCAL_CONF
+          echo 'DISTRO_FEATURES_remove = "wifi bluetooth bluez"' >> $LOCAL_CONF
+          echo 'LLVMVERSION = "12.0.0"' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL += " \
                     flutter-pi-debug \
+                    flutter-drm-gbm-backend \
                     avahi-daemon \
                     ntp ntp-tickadj \
                     fbgrab \
@@ -104,59 +108,9 @@ jobs:
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-gallery-debug -c do_cleansstate
+          bitbake flutter-pi-debug -c do_cleansstate
+          bitbake flutter-drm-gbm-backend -c do_cleansstate
           bitbake flutter-engine-debug -c do_cleansstate
-
-      - name: Build vk-flutter-engine-debug
-        shell: bash
-        working-directory: ../stm32mp15-dunfell
-        run: |
-          source ./layers/meta-st/scripts/envsetup.sh --no-ui
-          bitbake vk-flutter-engine-debug -c do_cleansstate
-          bitbake vk-flutter-engine-debug
-          rm -rf /home/dev/artifacts/*
-          cp tmp-glibc/deploy/deb/cortexa7t2hf-neon-vfpv4/vk-flutter-engine-debug_git-*.deb /home/dev/artifacts
-
-      - name: Publish vk-flutter-engine-debug artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: vk-flutter-engine-debug
-          path: |
-             /home/dev/artifacts/*
-
-      - name: Build vk-flutter-engine-profile
-        shell: bash
-        working-directory: ../stm32mp15-dunfell
-        run: |
-          source ./layers/meta-st/scripts/envsetup.sh --no-ui
-          bitbake vk-flutter-engine-profile -c do_cleansstate
-          bitbake vk-flutter-engine-profile
-          rm -rf /home/dev/artifacts/*
-          cp tmp-glibc/deploy/deb/cortexa7t2hf-neon-vfpv4/vk-flutter-engine-profile_git-*.deb /home/dev/artifacts
-
-      - name: Publish vk-flutter-engine-profile artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: vk-flutter-engine-profile
-          path: |
-             /home/dev/artifacts/*
-
-      - name: Build vk-flutter-engine-release
-        shell: bash
-        working-directory: ../stm32mp15-dunfell
-        run: |
-          source ./layers/meta-st/scripts/envsetup.sh --no-ui
-          bitbake vk-flutter-engine-release -c do_cleansstate
-          bitbake vk-flutter-engine-release
-          rm -rf /home/dev/artifacts/*
-          cp tmp-glibc/deploy/deb/cortexa7t2hf-neon-vfpv4/vk-flutter-engine-release_git-*.deb /home/dev/artifacts
-
-      - name: Publish vk-flutter-engine-release artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: vk-flutter-engine-release
-          path: |
-             /home/dev/artifacts/*
 
       - name: Build st-image-core
         shell: bash
