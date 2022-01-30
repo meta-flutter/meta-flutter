@@ -70,13 +70,14 @@ jobs:
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> $LOCAL_CONF
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> $LOCAL_CONF
           echo 'FLUTTER_CHANNEL = "master"' >> $LOCAL_CONF
+          echo 'FLUTTER_RUNTIME = "debug"' >> $LOCAL_CONF
           echo 'PACKAGECONFIG_pn-flutter-pi-debug = "text_input raw_keyboard"' >> $LOCAL_CONF
           echo 'INHERIT_remove = "uninative"' >> $LOCAL_CONF
           echo 'DISTRO_FEATURES_remove = "wifi bluetooth bluez"' >> $LOCAL_CONF
           echo 'LLVMVERSION = "12.0.0"' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL += " \
                     flutter-pi-debug \
-                    flutter-drm-gbm-backend-debug \
+                    flutter-drm-gbm-backend \
                     avahi-daemon \
                     ntp ntp-tickadj \
                     fbgrab \
