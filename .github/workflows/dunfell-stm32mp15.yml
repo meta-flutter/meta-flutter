@@ -76,6 +76,7 @@ jobs:
           echo 'LLVMVERSION = "12.0.0"' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL += " \
                     flutter-pi-debug \
+                    flutter-drm-gbm-backend-debug \
                     avahi-daemon \
                     ntp ntp-tickadj \
                     fbgrab \
@@ -107,6 +108,7 @@ jobs:
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-pi-debug -c do_cleansstate
+          bitbake flutter-drm-gbm-backend-debug -c do_cleansstate
           bitbake flutter-engine-debug -c do_cleansstate
 
       - name: Build st-image-core
