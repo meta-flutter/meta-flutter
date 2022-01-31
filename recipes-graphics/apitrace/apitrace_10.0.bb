@@ -5,18 +5,15 @@ HOMEPAGE = "http://apitrace.github.io"
 BUGTRACKER = "https://github.com/apitrace/apitrace/issues"
 SECTION = "graphics"
 LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=49fada46694956cdf2fc0292d72d888c"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=aeb969185a143c3c25130bc2c3ef9a50"
 
 DEPENDS += "\
-    compiler-rt \
-    libcxx \
-    libdwarf \
     libpng \
     procps \
-    virtual/egl \
-    virtual/libgles2 \
     zlib \
    "
+
+RDEPENDS += "python3"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
@@ -26,10 +23,6 @@ SRCREV = "03e4e9d2cab4f1a61d3f589785641a73dff027c5"
 S = "${WORKDIR}/git"
 
 inherit pkgconfig cmake features_check
-
-RUNTIME = "llvm"
-TOOLCHAIN = "clang"
-PREFERRED_PROVIDER_libgcc = "compiler-rt"
 
 EXTRA_OECMAKE = "-D ENABLE_GUI=FALSE"
 
