@@ -273,7 +273,6 @@ jobs:
           echo 'IMAGE_INSTALL_append = " ivi-homescreen-debug"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " flutter-pi-debug"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " adwaita-icon-theme-cursors"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " xdg-user-dirs"' >> ./conf/local.conf
           bitbake fsl-image-gui
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/images/${{ env.MACHINE }}/fsl-image-gui-${{ env.MACHINE }}-*.rootfs.wic.gz /home/dev/artifacts
