@@ -93,6 +93,14 @@ jobs:
           . ./oe-init-build-env
           bitbake core-image-minimal
 
+      - name: Build apitrace
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake apitrace -c do_cleansstate
+          bitbake apitrace
+
       - name: Build vk-flutter-engine-debug
         shell: bash
         working-directory: ../yocto-dunfell/poky
