@@ -1,3 +1,7 @@
+#
+# https://variwiki.com/index.php?title=Yocto_Build_Release&release=RELEASE_DUNFELL_V1.7_DART-MX8M-MINI
+#
+
 name: dunfell-dart-mx8m-mini
 
 on:
@@ -82,10 +86,16 @@ jobs:
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
+          sed -i "/GLIBC_GENERATE_LOCALES/d" ./conf/local.conf
+          echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> ./conf/local.conf
+          sed -i "/IMAGE_LINGUAS/d" ./conf/local.conf
+          echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "master"' >> ./conf/local.conf
+          echo 'FLUTTER_RUNTIME = "debug"' >> ./conf/local.conf
           echo 'LLVMVERSION = "12.0.0"' >> ./conf/local.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../../meta-flutter/recipes-graphics/flutter-pi/flutter-pi.inc
+          echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../../meta-flutter/recipes-graphics/toyota/ivi-homescreen.inc
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -262,6 +272,7 @@ jobs:
           echo 'IMAGE_INSTALL_append = " flutter-gallery-debug"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " ivi-homescreen-debug"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " flutter-pi-debug"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " adwaita-icon-theme-cursors"' >> ./conf/local.conf
           bitbake fsl-image-gui
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/images/${{ env.MACHINE }}/fsl-image-gui-${{ env.MACHINE }}-*.rootfs.wic.gz /home/dev/artifacts
