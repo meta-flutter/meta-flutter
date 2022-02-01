@@ -1,0 +1,259 @@
+
+name: dunfell-nvidia-jetson-nano-devkit
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, closed ]
+  release:
+    types: [ published, created, edited ]
+  workflow_dispatch:
+  schedule:
+    # daily
+    - cron:  '0 0 * * *'
+
+jobs:
+
+  dunfell-nvidia-jetson-nano-devkit:
+  
+    env:
+      YOCTO_BRANCH: dunfell
+      YOCTO_VERSION: 3.1.10
+      MACHINE: jetson-nano-devkit
+      DISTRO: tegrademo
+      
+    runs-on: [self-hosted, linux]
+    
+    container:
+      image: ghcr.io/meta-flutter/ubuntu-18-dev:main
+      options:
+        --user 1018
+        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
+        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
+        -v /mnt/raid10/github-ci/sstate/yocto/dunfell/nvidia-jetson-nano-devkit:/home/dev/sstate:Z
+        -v /mnt/raid10/github-ci/artifacts/nvidia-jetson-nano-devkit:/home/dev/artifacts:Z
+        -v /mnt/raid10/github-ci/nvidia:/home/dev/devnet:Z
+
+
+    steps:
+    
+      - name: Display UID Info
+        run: |
+          whoami
+          id -u
+          
+      - name: Set Ownership
+        run: |
+          chown -R dev:dev $HOME .
+          
+      - uses: actions/checkout@v2
+        with:
+          path: ''
+
+      - name: Fetch Source
+        run: |
+          [ -d ../${{ env.MACHINE }} ] || mkdir -p ../${{ env.MACHINE }}
+          cd ../${{ env.MACHINE }}
+          [ -d tegra-demo-distro ] || git clone -b dunfell-l4t-r32.5.0 --single-branch https://github.com/OE4T/tegra-demo-distro.git
+          cd tegra-demo-distro
+          git pull
+          git submodule update --init
+          cd repos
+          rm -rf meta-clang meta-vulkan || true
+          git clone -b dunfell-clang12 --single-branch https://github.com/kraj/meta-clang.git
+          git clone -b dunfell-no-mesa --single-branch https://github.com/jwinarske/meta-vulkan.git
+          cd ../layers
+          rm -rf meta-flutter meta-clang meta-vulkan || true
+          ln -sf ../repos/meta-clang meta-clang
+          ln -sf ../repos/meta-vulkan meta-vulkan
+          ln -sf ../../../meta-flutter meta-flutter
+          cd ..
+
+      - name: Configure build
+        shell: bash
+        working-directory: ../${{ env.MACHINE }}/tegra-demo-distro
+        run: |
+          env
+          WORKSPACE=`pwd`
+          rm -rf build/conf || true
+          . ./setup-env --machine ${{ env.MACHINE }}
+          sed -i '/MACHINE ??=/d' ./conf/local.conf
+          sed -i '/DISTRO ?=/d' ./conf/local.conf
+          sed -i '/NVIDIA_DEVNET_MIRROR/d' ./conf/local.conf
+          sed -i "/GLIBC_GENERATE_LOCALES/d" ./conf/local.conf
+          sed -i "/IMAGE_LINGUAS/d" ./conf/local.conf
+          echo "MACHINE ??= \"${{ env.MACHINE }}\"" >> ./conf/local.conf
+          echo "DISTRO ?= \"${{ env.DISTRO }}\"" >> ./conf/local.conf
+          echo 'NVIDIA_DEVNET_MIRROR ?= "file:///home/dev/devnet"' >> ./conf/local.conf
+          echo '***************************************'
+          echo 'INHERIT += "rm_work"' >> ./conf/local.conf
+          echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
+          echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
+          echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES_append = " vulkan"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES_remove = "x11"' >> ./conf/local.conf
+          echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> ./conf/local.conf
+          echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
+          echo 'FLUTTER_CHANNEL = "master"' >> ./conf/local.conf
+          echo 'FLUTTER_RUNTIME = "debug"' >> ./conf/local.conf
+          echo 'LLVMVERSION = "12.0.0"' >> ./conf/local.conf
+          echo 'CLANGSDK = "1"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_BASE_INSTALL_remove = " packagegroup-demo-vulkantests"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_BASE_INSTALL_remove = " packagegroup-demo-westontests"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_BASE_INSTALL_append = " vulkan-tools"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG_pn-sascha-samples = "wayland"' >> ./conf/local.conf
+          echo '********** ./conf/local.conf **********'
+          cat ./conf/local.conf
+          echo '***************************************'
+          bitbake-layers add-layer ${RUNNER_WORKSPACE}/${{ env.MACHINE }}/tegra-demo-distro/layers/meta-flutter $WORKSPACE/layers/meta-clang $WORKSPACE/layers/meta-vulkan
+          bitbake-layers show-layers
+          echo '***************************************'
+
+      - name: Build Base Image
+        shell: bash
+        working-directory: ../${{ env.MACHINE }}/tegra-demo-distro
+        run: |
+          . ./setup-env
+          bitbake demo-image-weston
+          rm -rf /home/dev/artifacts/*
+
+      - name: Build sascha-samples (Wayland)
+        shell: bash
+        working-directory: ../${{ env.MACHINE }}/tegra-demo-distro
+        run: |
+          . ./setup-env
+          bitbake sascha-samples
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/aarch64/sascha-samples-git*.rpm /home/dev/artifacts
+
+      - name: Publish sascha-samples artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: sascha-samples-wayland-jetson-nano-devkit
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build ivi-homescreen-debug
+        shell: bash
+        working-directory: ../${{ env.MACHINE }}/tegra-demo-distro
+        run: |
+          . ./setup-env
+          bitbake ivi-homescreen-debug -c do_cleansstate
+          bitbake ivi-homescreen-debug
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/aarch64/ivi-homescreen-debug-git*.rpm /home/dev/artifacts
+
+      - name: Publish flutter-engine-debug artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ivi-homescreen-debug-jetson-nano-devkit
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build flutter-engine-debug
+        shell: bash
+        working-directory: ../${{ env.MACHINE }}/tegra-demo-distro
+        run: |
+          . ./setup-env
+          bitbake flutter-engine-debug -c do_cleansstate
+          bitbake flutter-engine-debug
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/aarch64/flutter-engine-debug-git*.rpm /home/dev/artifacts
+
+      - name: Publish flutter-engine-debug artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: flutter-engine-debug-jetson-nano-devkit
+          path: |
+             /home/dev/artifacts/*.rpm
+      
+      - name: Build flutter-engine-profile
+        shell: bash
+        working-directory: ../${{ env.MACHINE }}/tegra-demo-distro
+        run: |
+          . ./setup-env
+          bitbake flutter-engine-profile -c do_cleansstate
+          bitbake flutter-engine-profile
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/aarch64/flutter-engine-profile-git*.rpm /home/dev/artifacts
+
+      - name: Publish flutter-engine-profile artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: flutter-engine-profile-jetson-nano-devkit
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build flutter-engine-release
+        shell: bash
+        working-directory: ../${{ env.MACHINE }}/tegra-demo-distro
+        run: |
+          . ./setup-env
+          bitbake flutter-engine-release -c do_cleansstate
+          bitbake flutter-engine-release
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/aarch64/flutter-engine-release-git*.rpm /home/dev/artifacts
+
+      - name: Publish flutter-engine-release artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: flutter-engine-release-jetson-nano-devkit
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build flutter-gallery-debug
+        shell: bash
+        working-directory: ../${{ env.MACHINE }}/tegra-demo-distro
+        run: |
+          . ./setup-env
+          bitbake flutter-sdk-native -c do_cleansstate
+          bitbake flutter-gallery-debug -c do_cleansstate
+          bitbake flutter-gallery-debug
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/aarch64/flutter-gallery-debug-git*.rpm /home/dev/artifacts
+      
+      - name: Publish flutter-gallery-debug artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: flutter-gallery-debug-jetson-nano-devkit
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build flutter-gallery-release
+        shell: bash
+        working-directory: ../${{ env.MACHINE }}/tegra-demo-distro
+        run: |
+          . ./setup-env
+          bitbake flutter-sdk-native -c do_cleansstate
+          bitbake flutter-gallery-release -c do_cleansstate
+          bitbake flutter-gallery-release
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/aarch64/flutter-gallery-release-git*.rpm /home/dev/artifacts
+      
+      - name: Publish flutter-gallery-release artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: flutter-gallery-release-jetson-nano-devkit
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build Image with Flutter
+        shell: bash
+        working-directory: ../${{ env.MACHINE }}/tegra-demo-distro
+        run: |
+          . ./setup-env
+          echo 'IMAGE_INSTALL_append = " flutter-engine-debug"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " flutter-gallery-debug"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " ivi-homescreen-debug"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " adwaita-icon-theme-cursors"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " sascha-samples"' >> ./conf/local.conf
+          bitbake demo-image-weston
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/images/${{ env.MACHINE }}/demo-image-weston-${{ env.MACHINE }}-*.tegraflash.tar.gz /home/dev/artifacts
+
+      - name: Publish bootable SD card image
+        uses: actions/upload-artifact@v2
+        with:
+          name: demo-image-weston-${{ env.MACHINE }}-flutter-sdimage
+          path: |
+             /home/dev/artifacts/*

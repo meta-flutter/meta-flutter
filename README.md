@@ -85,31 +85,16 @@ Then run:
 
     bitbake <image name> -c populate_sdk
 
+## STM32MP157x Discovery Board
+
+See dunfell-stm32mp15.yml (CI job) for more detail
+
+See Wiki for flashing image and using customdevice:
+https://github.com/meta-flutter/meta-flutter/wiki/STM32MP1-Disco-Notes
+
 ## NVIDIA Xavier/Nano
 
-local.conf changes
-
-    TARGET_GCC_VERSION = "8.3.0"
-    FLUTTER_CHANNEL = "master"
-    IMAGE_INSTALL_append = " flutter-drm-eglstream-backend"
-    IMAGE_INSTALL_append = " flutter-gallery"
-
-OR
-
-    TARGET_GCC_VERSION = "8.3.0"
-    FLUTTER_CHANNEL = "master"
-    CORE_IMAGE_EXTRA_INSTALL += "\
-        flutter-drm-eglstream-backend \
-        flutter-gallery \
-    "
-
-Build EGL image
-
-    bitbake demo-image-egl
-
-Run Flutter application on target (defaults to AOT)
-
-    FLUTTER_DRM_DEVICE=/dev/dri/card0 flutter-drm-eglstream-backend -b /usr/share/flutter-gallery/sony
+See dunfell-nvidia-jetson-nano-devkit.yml (CI job) for example usage.
 
 ## NXP i.MX 8QuadXPlus MEK
 
@@ -131,16 +116,6 @@ bitbake fsl-image-multimedia
 ## Raspberry PI 3/4 (aarch64)
 
 See honister branch README.md and CI jobs for more detail
-
-## STM32MP157x Discovery Board
-
-See stm32mp15.yml (CI job) for example build
-
-See release notes regarding "fip": https://wiki.st.com/stm32mpu/wiki/STM32MP15_OpenSTLinux_release_note
-
-Run Flutter application on target (defaults to AOT)
-
-    FLUTTER_DRM_DEVICE=/dev/dri/card0 flutter-drm-eglstream-backend -b /usr/share/flutter-gallery/sony
 
 ## General Yocto Notes
 
