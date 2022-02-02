@@ -12,15 +12,13 @@ CVE_PRODUCT = ""
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=1d84cf16c48e571923f837136633a265"
 
-FLUTTER_CHANNEL ??= "stable"
-
 DEPENDS += " ca-certificates-native curl-native unzip-native"
 RDEPENDS_${PN}-native += "ca-certificates-native curl-native perl perl-modules unzip-native"
 RDEPENDS_nativesdk-${PN} += "ca-certificates-native curl-native perl perl-modules unzip-native"
 
-SRC_URI = "git://github.com/flutter/flutter;protocol=https;branch=${FLUTTER_CHANNEL};name=repo"
-
-SRCREV = "${AUTOREV}"
+SRC_URI = "git://github.com/flutter/flutter;protocol=https;nobranch=1"
+FLUTTER_SDK_TAG ??= "${AUTOREV}"
+SRCREV ??= "${FLUTTER_SDK_TAG}"
 
 S = "${WORKDIR}/git"
 
@@ -31,15 +29,12 @@ common_compile() {
     export PATH=${S}/bin:$PATH
     export PUB_CACHE=${S}/.pub-cache
 
-    bbnote "Using Flutter SDK Channel = ${FLUTTER_CHANNEL}"
+    bbnote "Flutter SDK: ${FLUTTER_SDK_TAG}"
 
     flutter config --no-enable-android
     flutter config --no-enable-ios
     flutter config --no-enable-web
-    flutter config --enable-linux-desktop
-
-    flutter channel ${FLUTTER_CHANNEL}
-    flutter upgrade
+    flutter config --no-enable-linux-desktop
 
     bbnote `flutter doctor -v`
 }

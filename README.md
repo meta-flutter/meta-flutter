@@ -56,21 +56,20 @@ This layer includes recipes to build
 
 Notes: CI job sstate is cleared between builds for all meta-flutter recipes; clean builds.
 
-CI jobs for common targets will be added.  STM32MP157x is planned next.
 
 ### General
 
 Targets flutter-engine is known to work on
 
-* AGL QEMU images - x86_64
+* AGL QEMU images - x86_64 (CI job)
 * DragonBoard 410c - aarch64
 * Intel MinnowBoard Max (BayTrail) - intel-icore7-64
-* NVIDIA Nano Dev Kit - aarch64
-* NVIDIA Xavier NX Dev Kit - aarch64
+* NVIDIA Nano Dev Kit - aarch64 (CI job)
+* NVIDIA Xavier NX Dev Kit - aarch64 (CI job)
 * Raspberry Pi 3 / Compute - aarch64 / armv7hf (CI job)
 * Raspberry Pi 4 / Compute - aarch64 (CI job)
 * Renesas R-Car m3ulcb - aarch64
-* STM32MP157x - cortexa7t2hf
+* STM32MP157x - cortexa7t2hf (CI job)
 * etc, etc
 
 Note: 32-bit ARM builds currently require Flutter Channel = Master until commit makes it into dev->beta->stable.
@@ -106,10 +105,9 @@ pushd ../sources
 git clone -b dunfell https://github.com/jwinarske/meta-flutter.git
 popd
 bitbake-layers add-layer ../sources/meta-clang ../sources/meta-flutter
-echo -e 'TARGET_GCC_VERSION = "10.2.0"' >> conf/local.conf
-echo -e 'FLUTTER_CHANNEL = "master"' >> conf/local.conf
-echo -e 'IMAGE_INSTALL_append = " flutter-wayland"' >> conf/local.conf
-echo -e 'IMAGE_INSTALL_append = " flutter-gallery"' >> conf/local.conf
+echo -e 'FLUTTER_SDK_TAG = "2.10.0-0.2.pre"' >> conf/local.conf
+echo -e 'IMAGE_INSTALL_append = " ivi-homescreen-debug"' >> conf/local.conf
+echo -e 'IMAGE_INSTALL_append = " flutter-gallery-debug"' >> conf/local.conf
 bitbake fsl-image-multimedia
 ```
 
