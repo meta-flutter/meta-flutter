@@ -20,20 +20,14 @@ DEPENDS += "\
     zip-native \
     "
 
+SRC_URI = "file://0001-clang-toolchain.patch \
+           file://0002-x64-sysroot-assert.patch"
+
+S = "${WORKDIR}/src"
+
 inherit python3native features_check
 
 require conf/include/gn-utils.inc
-
-FLUTTER_ENGINE_REPO_URL ??= "https://github.com/flutter/engine.git"
-SRC_URI = "${@gn_get_fetcher_repo(d)};protocol=https \
-           file://0001-clang-toolchain.patch \
-           file://0002-x64-sysroot-assert.patch"
-
-FLUTTER_SDK_TAG ??= "${AUTOREV}"
-SRCREV ??= "${@gn_get_engine_commit_from_sdk_tag(d)}"
-GCLIENT_ARGS_EXTRA = "${@gn_get_gclient_engine_revision_from_srcrev(d)}"
-
-S = "${WORKDIR}/src"
 
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
@@ -102,23 +96,26 @@ ARGS_GN_append_armv7 = "arm_tune = \"${@gn_get_tune_features(d)}\""
 ARGS_GN_append_armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\""
 ARGS_GN_append_armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
 
-FLUTTER_CHANNEL ??= "stable"
 DEPOT_TOOLS ??= "${STAGING_DIR_NATIVE}/usr/share/depot_tools"
 PYTHON2_PATH ??= "bootstrap-2@3.8.9.chromium.14_bin/python/bin"
+
+FLUTTER_SDK_TAG ??= "${AUTOREV}"
+FLUTTER_ENGINE_COMMIT = "${@gn_get_engine_commit(d)}"
+GCLIENT_ARGS_EXTRA = "${@gn_get_gclient_engine_revision(d)}"
 
 do_patch_prepend() {
 
     export CURL_CA_BUNDLE=${STAGING_DIR_NATIVE}/etc/ssl/certs/ca-certificates.crt
     export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:$PATH
 
+    bbnote "FLUTTER_ENGINE_COMMIT: ${FLUTTER_ENGINE_COMMIT}"
     bbnote "ARGS: ${GN_ARGS}"
     bbnote "ARGS_GN_FILE: ${ARGS_GN_FILE}"
     bbnote "ARGS_GN: ${ARGS_GN}"
     bbnote "CLANG_TOOLCHAIN_TRIPLE: ${CLANG_TOOLCHAIN_TRIPLE}"
     bbnote "GCLIENT_ROOT: ${WORKDIR}"
-    bbnote "SRCREV: ${SRCREV}"
-    bbnote "OUT_DIR_REL: ${OUT_DIR_REL}"
     bbnote "gclient sync --shallow --no-history -R -D ${GCLIENT_ARGS_EXTRA} ${PARALLEL_MAKE}"
+    bbnote "OUT_DIR_REL: ${OUT_DIR_REL}"
 }
 
 do_patch () {
@@ -128,6 +125,7 @@ do_patch () {
     rm -rf ${WORKDIR}/.cipd
     rm -rf ${WORKDIR}/.gclient*
     
+
     echo 'solutions = [
         {
             "managed" : False,
@@ -218,10 +216,12 @@ do_install() {
     # create SDK
     install -d ${D}${datadir}/flutter/sdk
     install -d ${D}${datadir}/flutter/sdk/clang_x64
-    echo "${SRCREV}" > ${D}/usr/share/flutter/sdk/engine.version
-    install -m 644 ${S}/${OUT_DIR_REL}/flutter_patched_sdk/* ${D}${datadir}/flutter/sdk/
-
     install -m 755 ${S}/${OUT_DIR_REL}/clang_x64/gen_snapshot ${D}${datadir}/flutter/sdk/clang_x64/
+
+    # this avoids build break when SDK tag changes in middle of build
+    cd ${S}/flutter
+    echo `git rev-parse HEAD` > ${D}/usr/share/flutter/sdk/engine.version
+    echo ${FLUTTER_ENGINE_REPO_URL} >> ${D}/usr/share/flutter/sdk/engine.version
 
     cd ${D}/${datadir}/flutter
     zip -r engine_sdk.zip sdk

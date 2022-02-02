@@ -12,7 +12,12 @@ CVE_PRODUCT = ""
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=1d84cf16c48e571923f837136633a265"
 
-DEPENDS += " ca-certificates-native curl-native unzip-native"
+DEPENDS += "\
+    ca-certificates-native \
+    curl-native \
+    unzip-native \
+    "
+
 RDEPENDS_${PN}-native += "ca-certificates-native curl-native perl perl-modules unzip-native"
 RDEPENDS_nativesdk-${PN} += "ca-certificates-native curl-native perl perl-modules unzip-native"
 
@@ -21,7 +26,6 @@ FLUTTER_SDK_TAG ??= "${AUTOREV}"
 SRCREV ??= "${FLUTTER_SDK_TAG}"
 
 S = "${WORKDIR}/git"
-
 
 common_compile() {
 
@@ -35,6 +39,7 @@ common_compile() {
     flutter config --no-enable-ios
     flutter config --no-enable-web
     flutter config --no-enable-linux-desktop
+    flutter config --enable-custom-devices
 
     bbnote `flutter doctor -v`
 }

@@ -68,6 +68,7 @@ jobs:
           ln -sf ../repos/meta-vulkan meta-vulkan
           ln -sf ../../../meta-flutter meta-flutter
           cd ..
+          sed -i 's/LLVMVERSION = "10.0.1"/LLVMVERSION = "12.0.0"/g' meta-clang/conf/layer.conf
 
       - name: Configure build
         shell: bash
@@ -96,7 +97,6 @@ jobs:
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
           echo 'FLUTTER_CHANNEL = "master"' >> ./conf/local.conf
           echo 'FLUTTER_RUNTIME = "debug"' >> ./conf/local.conf
-          echo 'LLVMVERSION = "12.0.0"' >> ./conf/local.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
           echo 'CORE_IMAGE_BASE_INSTALL_remove = " packagegroup-demo-vulkantests"' >> ./conf/local.conf
           echo 'CORE_IMAGE_BASE_INSTALL_remove = " packagegroup-demo-westontests"' >> ./conf/local.conf
