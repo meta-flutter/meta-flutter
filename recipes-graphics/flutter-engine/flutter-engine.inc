@@ -20,20 +20,24 @@ DEPENDS += "\
     zip-native \
     "
 
-SRC_URI = "file://0001-clang-toolchain.patch \
+inherit python3native features_check
+
+require conf/include/gn-utils.inc
+
+FLUTTER_ENGINE_REPO_URL ??= "https://github.com/flutter/engine.git"
+SRC_URI = "${@gn_get_fetcher_repo(d)};protocol=https \
+           file://0001-clang-toolchain.patch \
            file://0002-x64-sysroot-assert.patch"
+
+FLUTTER_SDK_TAG ??= "${AUTOREV}"
+SRCREV ??= "${@gn_get_engine_commit_from_sdk_tag(d)}"
+GCLIENT_ARGS_EXTRA = "${@gn_get_gclient_engine_revision_from_srcrev(d)}"
 
 S = "${WORKDIR}/src"
 
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
 PREFERRED_PROVIDER_libgcc = "compiler-rt"
-
-inherit python3native features_check
-
-require conf/include/gn-utils.inc
-
-SRCREV ??= "${@gn_get_channel_commit(d)}"
 
 COMPATIBLE_MACHINE = "(-)"
 COMPATIBLE_MACHINE_aarch64 = "(.*)"
@@ -101,8 +105,6 @@ ARGS_GN_append_armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
 FLUTTER_CHANNEL ??= "stable"
 DEPOT_TOOLS ??= "${STAGING_DIR_NATIVE}/usr/share/depot_tools"
 PYTHON2_PATH ??= "bootstrap-2@3.8.9.chromium.14_bin/python/bin"
-FLUTTER_ENGINE_REPO_URL ??= "https://github.com/flutter/engine.git"
-GCLIENT_ARGS_EXTRA ??= "--revision ${SRCREV}"
 
 do_patch_prepend() {
 
@@ -113,11 +115,10 @@ do_patch_prepend() {
     bbnote "ARGS_GN_FILE: ${ARGS_GN_FILE}"
     bbnote "ARGS_GN: ${ARGS_GN}"
     bbnote "CLANG_TOOLCHAIN_TRIPLE: ${CLANG_TOOLCHAIN_TRIPLE}"
-    bbnote "GCLIENT_ROOT: ${S}/.."
-    bbnote "FLUTTER_CHANNEL: ${SRCREV}"
+    bbnote "GCLIENT_ROOT: ${WORKDIR}"
+    bbnote "SRCREV: ${SRCREV}"
     bbnote "OUT_DIR_REL: ${OUT_DIR_REL}"
     bbnote "gclient sync --shallow --no-history -R -D ${GCLIENT_ARGS_EXTRA} ${PARALLEL_MAKE}"
-    bbnote "PREBUILT_DART_SDK: ${PREBUILT_DART_SDK}"
 }
 
 do_patch () {

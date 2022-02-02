@@ -16,7 +16,7 @@ DEPENDS += " ca-certificates-native curl-native unzip-native"
 RDEPENDS_${PN}-native += "ca-certificates-native curl-native perl perl-modules unzip-native"
 RDEPENDS_nativesdk-${PN} += "ca-certificates-native curl-native perl perl-modules unzip-native"
 
-SRC_URI = "git://github.com/flutter/flutter;protocol=https;nobranch=1"
+SRC_URI = "git://github.com/flutter/flutter.git;protocol=https;nobranch=1"
 FLUTTER_SDK_TAG ??= "${AUTOREV}"
 SRCREV ??= "${FLUTTER_SDK_TAG}"
 
