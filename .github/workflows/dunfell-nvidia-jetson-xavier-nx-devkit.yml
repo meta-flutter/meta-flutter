@@ -1,5 +1,5 @@
 
-name: dunfell-nvidia-jetson-nano-devkit
+name: dunfell-nvidia-jetson-xavier-nx-devkit
 
 on:
   pull_request:
@@ -13,12 +13,12 @@ on:
 
 jobs:
 
-  dunfell-nvidia-jetson-nano-devkit:
+  dunfell-nvidia-jetson-xavier-nx-devkit:
   
     env:
       YOCTO_BRANCH: dunfell
       DEMO_BRANCH: dunfell-l4t-r32.5.0
-      MACHINE: jetson-nano-devkit
+      MACHINE: jetson-xavier-nx-devkit
       DISTRO: tegrademo
       
     runs-on: [self-hosted, linux]
@@ -30,8 +30,8 @@ jobs:
         --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
         --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
-        -v /mnt/raid10/github-ci/sstate/yocto/dunfell/nvidia-jetson-nano-devkit:/home/dev/sstate:Z
-        -v /mnt/raid10/github-ci/artifacts/nvidia-jetson-nano-devkit:/home/dev/artifacts:Z
+        -v /mnt/raid10/github-ci/sstate/yocto/dunfell/nvidia-jetson-xavier-nx-devkit:/home/dev/sstate:Z
+        -v /mnt/raid10/github-ci/artifacts/nvidia-jetson-xavier-nx-devkit:/home/dev/artifacts:Z
         -v /mnt/raid10/github-ci/nvidia:/home/dev/devnet:Z
 
 
