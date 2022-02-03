@@ -4,4 +4,4 @@ FLUTTER_RUNTIME = "profile"
 
 RDEPENDS_${PN} += "flutter-engine-${FLUTTER_RUNTIME}"
 
-SERVICE_EXEC_START = "/usr/bin/homescreen --f --observatory-host 0.0.0.0 --observatory-port 1234 --start-paused"
+SERVICE_EXEC_START_PARAMS = "--start-paused"

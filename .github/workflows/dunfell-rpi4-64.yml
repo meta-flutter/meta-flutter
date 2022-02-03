@@ -63,9 +63,8 @@ jobs:
           cd sources/meta-raspberrypi
           git apply ../../conf/rpi64/0001-rpi-mesa-vulkan-broadcom-override.patch
           cd ../..
-          rm -rf sources/poky/meta/recipes-graphics/mesa
-          rm -rf sources/meta-raspberrypi/recipes-graphics/mesa/mesa-demos_%.bbappend
-          sed -i 's/LLVMVERSION = "10.0.1"/LLVMVERSION = "12.0.0"/g' sources/meta-clang/conf/layer.conf
+          rm -rf sources/poky/meta/recipes-graphics/mesa || true
+          rm -rf sources/meta-raspberrypi/recipes-graphics/mesa/mesa-demos_%.bbappend || true
 
       - name: Configure build
         shell: bash
@@ -83,8 +82,8 @@ jobs:
           echo 'PREFERRED_VERSION_mesa = "21.2.%"' >> ./conf/local.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL_append = " kmscube libdrm-tests"' >> ./conf/local.conf
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../sources/poky/meta/recipes-core/gettext/gettext_0.20.1.bb
-          echo 'FLUTTER_CHANNEL = "master"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'

@@ -2,14 +2,23 @@
 
 Yocto Layer for Google Flutter related projects.
 
-Recommended development flow:
+_Updates_: 
+* FLUTTER_CHANNEL support has been deprecated.
+* FLUTTER_SDK_TAG - New approach.  Allows locking SDK and Engine to specific commit hash.
+  Valid values for FLUTTER_SDK_TAG are here:  https://github.com/flutter/flutter/tags 
+* Flutter Engine Commit
+  If FLUTTER_SDK_TAG is set to "AUTOINC", the engine commit used is master channel.  Otherwise the engine.version file in flutter/flutter is used to set the engine commit.
+
+### Recommended development flow:
 * Build Flutter application using desktop tools
-* Use Flutter Engine Runtime=Debug build confirming it works on target.  Debug as needed via `flutter attach`
-* Create Yocto Recipe for Flutter application using `flutter-gallery` as template.
+* Use Flutter Engine Runtime=Debug build confirming it works on target.  Debug as needed using customdevices
+* Create Yocto Recipe for your Flutter application using `flutter-gallery-*` as the template.
+  Nested projected are supported using FLUTTER_APPLICATION_PATH.
+  Passing Dart defines are done with FLUTTER_EXTRA_BUILD_ARGS.
 * Add flutter-gallery, selected embedder, flutter-engine runtime=Release to your release image.
 * Image device
 
-Note: If you get a gray screen running the Gallery app, chances are you don't have `LC_ALL` set.  Check `/usr/share/locale/` on your target for available locale, and set LC_ALL appropriately.  Example: `export LC_ALL=en_GB`
+Note: If you get a gray screen running the Gallery app, chances are you don't have a locale set.  Ensure your platform has a valid locale set.  See GLIBC_GENERATE_LOCALES and IMAGE_LINGUAS in one of the NVidia CI projects on how to do this.
 
 Note: In theory Swift Shader (CPU render) engine builds should work with the right build flags.  Be warned it won't work out of the box.  Select a SoC with a GPU that supports OpenGL 3.0+ and save yourself the Engineering NRE.
 
@@ -26,11 +35,12 @@ If you selecting a part go with v3.0+, ideally one with Vulkan support.
 
 This layer includes recipes to build
 
-* Toyota ivi-homescreen (Recommended embedder for Wayland)
+* flutter-sdk (channel selection, default is master if FLUTTER_SDK_TAG is not set)
+* flutter-engine (tracks engine.version from FLUTTER_SDK_TAG)
+* vk-flutter-engine (tracks engine.version from FLUTTER_SDK_TAG) Vulkan Embedder PR
+* flutter-gallery Application (debug, profile, and release) requires master
+* ivi-homescreen (Toyota/AGL - Wayland Embedder)
 * flutter-pi (DRM w/VSync - Recommended embedder for DRM)
-* flutter-engine (channel selection, default is beta)
-* flutter-sdk (channel selection, default is beta)
-* flutter-gallery Application (interpreted and AOT - requires dev channel override)
 * flutter-wayland (POC) / waylandpp/ipugxml (archived)
 * Sony embedders
 
@@ -38,30 +48,30 @@ This layer includes recipes to build
 
 ### CI Jobs
 
-* linux-dummy.yml - meta-flutter canary CI job builds all recipes against linux-dummy kernel (except x11 client)
+* dunfell-agl-aarch64.yml - AGL emaultor build that uses non-locked values.  This is used as health gate for rolling commits in AGL.  No Vulkan support.
 
-* rpi-32 (DRM, flutter-pi, flutter-gallery, vulkan)
+* dunfell-agl-x86_64.yml - AGL emaultor build that uses non-locked values.  This is used as health gate for rolling commits in AGL.  No Vulkan support.
 
-    RPI3 DRM - 32-bit RaspberryPi3 image - No X11/Wayland (Vulkan driver responds to Vulkan)
+* dunfell-dart-mx8m-mini.yml - Variscite DART-MX8M-MINI (NXP iMX8) Weston build + ivi-homescreen.  No Vulkan support.
 
-    RPI4 DRM - 32-bit RaspberryPi3 image - No X11/Wayland (Mesa Vulkan Driver functional)
+* dunfell-linux-dummy.yml - meta-flutter canary CI job builds all recipes against linux-dummy kernel
 
-* rpi-64 (DRM, flutter-pi, flutter-gallery, vulkan)
+* dunfell-nvidia-jetson-nano-devkit.yml - NVidia Jetson Nano Devkit weston build with ivi-homescreen and Vulkan suport.
 
-    RPI3 DRM - 64-bit RaspberryPi3 image - No X11/Wayland (Vulkan driver not present)
+* dunfell-nvidia-jetson-xavier-nx-devkit.yml - NVidia Jetson Xavier NX Devkit weston build with ivi-homescreen and Vulkan suport.
 
-    RPI4 DRM - 64-bit RaspberryPi3 image - No X11/Wayland (Mesa Vulkan Driver functional)
+* dunfell-rpi4-64.yml - Raspberry PI4 EGL/DRM build with Flutter-pi and Vulkan (Mesa 21.2) support.
 
-    Zero2W - 64-bit Zero2W image - No X11/Wayland (Mesa Vulkan Driver functional)
+* dunfell-stm32mp15.yml - ST Microelectronics STM32MP15 EGL and Weston builds.  EGL build has flutter-pi (currently has rendering issues), and Weston build has ivi-homescreen which works beautifully.
 
-Notes: CI job sstate is cleared between builds for all meta-flutter recipes; clean builds.
+For more Raspberry PI images see the Honister branch.
 
 
 ### General
 
-Targets flutter-engine is known to work on
+Targets flutter-engine-* is known to work on
 
-* AGL QEMU images - x86_64 (CI job)
+* AGL QEMU images - aarch64/x86_64 (CI job)
 * DragonBoard 410c - aarch64
 * Intel MinnowBoard Max (BayTrail) - intel-icore7-64
 * NVIDIA Nano Dev Kit - aarch64 (CI job)
@@ -72,7 +82,7 @@ Targets flutter-engine is known to work on
 * STM32MP157x - cortexa7t2hf (CI job)
 * etc, etc
 
-Note: 32-bit ARM builds currently require Flutter Channel = Master until commit makes it into dev->beta->stable.
+Note: 32-bit ARM builds were broken for a period, so if you have build issues only with 32-bit try moving to a newer tag.
 
 ## Include the Flutter SDK into Yocto SDK
 
@@ -91,27 +101,22 @@ See dunfell-stm32mp15.yml (CI job) for more detail
 See Wiki for flashing image and using customdevice:
 https://github.com/meta-flutter/meta-flutter/wiki/STM32MP1-Disco-Notes
 
-## NVIDIA Xavier/Nano
-
-See dunfell-nvidia-jetson-nano-devkit.yml (CI job) for example usage.
-
-## NXP i.MX 8QuadXPlus MEK
+## NXP i.MX 8QuadXPlus MEK Example
 
 ```
 repo init -u https://source.codeaurora.org/external/imx/imx-manifest -b imx-linux-gatesgarth -m imx-5.10.9-1.0.0.xml
 repo sync -j20
 DISTRO=fslc-wayland MACHINE=imx8qxpmek source setup-environment build
 pushd ../sources
-git clone -b dunfell https://github.com/jwinarske/meta-flutter.git
+git clone -b dunfell https://github.com/meta-flutter/meta-flutter.git
 popd
-bitbake-layers add-layer ../sources/meta-clang ../sources/meta-flutter
 echo -e 'FLUTTER_SDK_TAG = "2.10.0-0.2.pre"' >> conf/local.conf
-echo -e 'IMAGE_INSTALL_append = " ivi-homescreen-debug"' >> conf/local.conf
-echo -e 'IMAGE_INSTALL_append = " flutter-gallery-debug"' >> conf/local.conf
+echo -e 'IMAGE_INSTALL_append = " flutter-engine-debug ivi-homescreen-debug flutter-gallery-debug"' >> conf/local.conf
+bitbake-layers add-layer ../sources/meta-clang ../sources/meta-flutter
 bitbake fsl-image-multimedia
 ```
 
-## Raspberry PI 3/4 (aarch64)
+## Raspberry PI 3/Zero (aarch64)
 
 See honister branch README.md and CI jobs for more detail
 

@@ -1,8 +1,8 @@
 SUMMARY = "Flutter Engine"
-DESCRIPTION = "recipe to build Google Flutter Engine for use with Dart applications on embedded Linux"
-AUTHOR = "Joel Winarske <joel.winarske@linux.com>"
-HOMEPAGE = "https://github.com/jwinarske/meta-flutter/"
-BUGTRACKER = "https://github.com/jwinarske/meta-flutter/issues"
+DESCRIPTION = "Google Flutter Engine for use with Flutter applications"
+AUTHOR = "Flutter Team"
+HOMEPAGE = "https://github.com/flutter/engineflutter/"
+BUGTRACKER = "https://github.com/flutter/flutter/issues"
 SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://flutter/LICENSE;md5=a60894397335535eb10b54e2fff9f265"
@@ -101,7 +101,7 @@ PYTHON2_PATH ??= "bootstrap-2@3.8.9.chromium.14_bin/python/bin"
 
 FLUTTER_SDK_TAG ??= "${AUTOREV}"
 FLUTTER_ENGINE_REPO_URL ??= "https://github.com/flutter/engine.git"
-FLUTTER_ENGINE_COMMIT = "${@gn_get_engine_commit(d)}"
+FLUTTER_ENGINE_COMMIT ??= "${@gn_get_engine_commit(d)}"
 GCLIENT_ARGS_EXTRA = "${@gn_get_gclient_engine_revision(d)}"
 
 do_patch_prepend() {

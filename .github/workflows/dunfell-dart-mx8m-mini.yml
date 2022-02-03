@@ -1,4 +1,6 @@
 #
+# Variscite Symphony Carrier Board + Variscite DART-MX8M-MINI module
+#
 # https://variwiki.com/index.php?title=Yocto_Build_Release&release=RELEASE_DUNFELL_V1.7_DART-MX8M-MINI
 #
 
@@ -66,7 +68,6 @@ jobs:
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           git clone -b dunfell-clang12 --single-branch https://github.com/kraj/meta-clang.git sources/meta-clang &
           wait
-          sed -i 's/LLVMVERSION = "10.0.1"/LLVMVERSION = "12.0.0"/g' sources/meta-clang/conf/layer.conf
 
       - name: Configure build
         shell: bash
@@ -91,12 +92,14 @@ jobs:
           echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> ./conf/local.conf
           sed -i "/IMAGE_LINGUAS/d" ./conf/local.conf
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
-          echo 'FLUTTER_CHANNEL = "master"' >> ./conf/local.conf
           echo 'FLUTTER_RUNTIME = "debug"' >> ./conf/local.conf
-          echo 'LLVMVERSION = "12.0.0"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG_pn-ivi-homescreen-debug = "gles2 context_version_2"' >> ./conf/bblayers.conf
+          echo 'PACKAGECONFIG_pn-ivi-homescreen-profile = "gles2 context_version_2"' >> ./conf/bblayers.conf
+          echo 'PACKAGECONFIG_pn-ivi-homescreen-release = "gles2 context_version_2"' >> ./conf/bblayers.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../../meta-flutter/recipes-graphics/flutter-pi/flutter-pi.inc
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../../meta-flutter/recipes-graphics/toyota/ivi-homescreen.inc
+          echo 'IMAGE_INSTALL_append = " kmscube libdrm-tests"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -143,23 +146,6 @@ jobs:
           bitbake fsl-image-gui
           rm -rf /home/dev/artifacts/*
 
-      - name: Build ivi-homescreen-debug
-        shell: bash
-        working-directory: ../${{ env.MACHINE }}
-        run: |
-          . sources/poky/oe-init-build-env build
-          bitbake ivi-homescreen-debug -c do_cleansstate
-          bitbake ivi-homescreen-debug
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64_mx8mm/ivi-homescreen-debug-git*.rpm /home/dev/artifacts
-
-      - name: Publish flutter-engine-debug artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: ivi-homescreen-debug-imx8mm-var-dart
-          path: |
-             /home/dev/artifacts/*.rpm
-
       - name: Build flutter-engine-debug
         shell: bash
         working-directory: ../${{ env.MACHINE }}
@@ -177,6 +163,23 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
       
+      - name: Build ivi-homescreen-debug
+        shell: bash
+        working-directory: ../${{ env.MACHINE }}
+        run: |
+          . sources/poky/oe-init-build-env build
+          bitbake ivi-homescreen-debug -c do_cleansstate
+          bitbake ivi-homescreen-debug
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/aarch64_mx8mm/ivi-homescreen-debug-git*.rpm /home/dev/artifacts
+
+      - name: Publish ivi-homescreen-debug artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ivi-homescreen-debug-imx8mm-var-dart
+          path: |
+             /home/dev/artifacts/*.rpm
+
       - name: Build flutter-pi-debug
         shell: bash
         working-directory: ../${{ env.MACHINE }}
