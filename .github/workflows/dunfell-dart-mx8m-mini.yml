@@ -68,7 +68,6 @@ jobs:
           wait
           sed -i 's/LLVMVERSION = "10.0.1"/LLVMVERSION = "12.0.0"/g' sources/meta-clang/conf/layer.conf
 
-
       - name: Configure build
         shell: bash
         working-directory: ../${{ env.MACHINE }}

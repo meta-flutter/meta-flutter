@@ -100,6 +100,7 @@ DEPOT_TOOLS ??= "${STAGING_DIR_NATIVE}/usr/share/depot_tools"
 PYTHON2_PATH ??= "bootstrap-2@3.8.9.chromium.14_bin/python/bin"
 
 FLUTTER_SDK_TAG ??= "${AUTOREV}"
+FLUTTER_ENGINE_REPO_URL ??= "https://github.com/flutter/engine.git"
 FLUTTER_ENGINE_COMMIT = "${@gn_get_engine_commit(d)}"
 GCLIENT_ARGS_EXTRA = "${@gn_get_gclient_engine_revision(d)}"
 
