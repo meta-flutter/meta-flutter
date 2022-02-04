@@ -51,7 +51,7 @@ jobs:
           rm -rf poky meta-openembedded meta-clang
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded &
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git &
+          git clone -b dunfell-clang12 --single-branch https://github.com/kraj/meta-clang.git &
           wait
 
       - name: Configure build
@@ -85,6 +85,9 @@ jobs:
           bitbake -e virtual/kernel | grep "^PN"
           echo '***************************************'
           bitbake -e > bb.environment
+          bitbake ca-certificates -c do_cleansstate
+          bitbake ca-certificates-native -c do_cleansstate
+          bitbake flutter-sdk-native -c do_cleansstate
 
       - name: Build core-image-minimal
         shell: bash
@@ -92,30 +95,6 @@ jobs:
         run: |
           . ./oe-init-build-env
           bitbake core-image-minimal
-
-      - name: Build vk-flutter-engine-debug
-        shell: bash
-        working-directory: ../yocto-dunfell/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake vk-flutter-engine-debug -c do_cleansstate
-          bitbake vk-flutter-engine-debug
-      
-      - name: Build vk-flutter-engine-profile
-        shell: bash
-        working-directory: ../yocto-dunfell/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake vk-flutter-engine-profile -c do_cleansstate
-          bitbake vk-flutter-engine-profile
-
-      - name: Build vk-flutter-engine-release
-        shell: bash
-        working-directory: ../yocto-dunfell/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake vk-flutter-engine-release -c do_cleansstate
-          bitbake vk-flutter-engine-release
 
       - name: Build flutter-engine-release
         shell: bash
@@ -130,9 +109,24 @@ jobs:
         working-directory: ../yocto-dunfell/poky
         run: |
           . ./oe-init-build-env
-          bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-gallery-release -c do_cleansstate
           bitbake flutter-gallery-release
+
+      - name: Build flutter-engine-profile
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-engine-profile -c do_cleansstate
+          bitbake flutter-engine-profile
+
+      - name: Build flutter-gallery-profile
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-gallery-profile -c do_cleansstate
+          bitbake flutter-gallery-profile
 
       - name: Build ivi-homescreen-release
         shell: bash
@@ -142,6 +136,22 @@ jobs:
           bitbake ivi-homescreen-release -c do_cleansstate
           bitbake ivi-homescreen-release
 
+      - name: Build ivi-homescreen-profile
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake ivi-homescreen-profile -c do_cleansstate
+          bitbake ivi-homescreen-profile
+
+      - name: Build ivi-homescreen-debug
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake ivi-homescreen-debug -c do_cleansstate
+          bitbake ivi-homescreen-debug
+
       - name: Build flutter-pi-release
         shell: bash
         working-directory: ../yocto-dunfell/poky
@@ -150,7 +160,23 @@ jobs:
           bitbake flutter-pi-release -c do_cleansstate
           bitbake flutter-pi-release
 
-      - name: Build drm eglstream backend
+      - name: Build flutter-pi-profile
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-pi-profile -c do_cleansstate
+          bitbake flutter-pi-profile
+
+      - name: Build flutter-pi-debug
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-pi-debug -c do_cleansstate
+          bitbake flutter-pi-debug
+
+      - name: Build flutter-drm-eglstream-backend
         shell: bash
         working-directory: ../yocto-dunfell/poky
         run: |
@@ -197,3 +223,28 @@ jobs:
           . ./oe-init-build-env
           bitbake flutter-x11-client -c do_cleansstate
           bitbake flutter-x11-client
+
+
+      - name: Build vk-flutter-engine-debug
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake vk-flutter-engine-debug -c do_cleansstate
+          bitbake vk-flutter-engine-debug
+      
+      - name: Build vk-flutter-engine-profile
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake vk-flutter-engine-profile -c do_cleansstate
+          bitbake vk-flutter-engine-profile
+
+      - name: Build vk-flutter-engine-release
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake vk-flutter-engine-release -c do_cleansstate
+          bitbake vk-flutter-engine-release

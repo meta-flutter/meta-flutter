@@ -13,14 +13,33 @@ def gn_get_tune_features(d):
     tune_features = tune_features.replace("vfp ", "")
     return tune_features.replace(" ", "+")
 
-def gn_get_channel_commit(d):
-    """ Returns commit hash of selected channel """
+# gn_get_engine_commit
+#
+# if repo is not default use FLUTTER_ENGINE_COMMIT
+# otherwise use FLUTTER_SDK_TAG value
+#
+# You would need to set FLUTTER_SDK_TAG to match your custom repo
+#
+def gn_get_engine_commit(d):
+    """ Sets FLUTTER_ENGINE_COMMIT variable """
     import urllib.request
-    build_channel = d.getVar("FLUTTER_CHANNEL")
-    with urllib.request.urlopen('https://raw.githubusercontent.com/flutter/flutter/' + build_channel + '/bin/internal/engine.version') as f:
+
+    flutter_sdk_tag = d.getVar("FLUTTER_SDK_TAG")
+
+    if flutter_sdk_tag == 'AUTOINC':
+        flutter_sdk_tag = 'master'
+
+    with urllib.request.urlopen('https://raw.githubusercontent.com/flutter/flutter/' + flutter_sdk_tag + '/bin/internal/engine.version') as f:
         return f.read().decode('utf-8').strip()
 
-    bb.fatal('Unknown Error getting" "%s"' % build_channel)
+    bb.fatal('Unable to get engine commit')
+
+def gn_get_gclient_engine_revision(d):
+    """ Return Engine revision string """
+    engine_src_rev = d.getVar("FLUTTER_ENGINE_COMMIT")
+    if engine_src_rev == 'AUTOINC':
+        return ''
+    return '--revision "%s"' % engine_src_rev
 
 # GN host architecture helpers.
 #

@@ -18,9 +18,4 @@ PUBSPEC_APPNAME = "gallery"
 
 inherit flutter-app
 
-do_install_append () {
-    install -d ${D}${datadir}/homescreen/bundle
-    ln -sf /usr/share/gallery/ ${D}${datadir}/homescreen/bundle/flutter_assets
-}
-
 FILES_${PN} += "${datadir}/homescreen"
