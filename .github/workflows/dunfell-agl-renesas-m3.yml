@@ -88,6 +88,7 @@ jobs:
           echo '***************************************'
           bitbake -e > bb.environment
           echo '***************************************'
+          bitbake gles-user-module -c do_cleansstate
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk -c do_cleansstate
@@ -95,7 +96,7 @@ jobs:
           bitbake flutter-engine-debug -c do_cleansstate
           bitbake flutter-gallery-debug -c do_cleansstate
           bitbake ivi-homescreen-debug -c do_cleansstate
-          
+
       - name: Build agl-image-flutter-debug
         shell: bash
         working-directory: ${{ env.WORKSPACE }}
