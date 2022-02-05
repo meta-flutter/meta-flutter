@@ -78,7 +78,7 @@ jobs:
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
           echo 'FLUTTER_SDK_TAG = "2.8.0-3.3.pre"' >> ./conf/local.conf
           echo '** Layers *****************************'
-          bitbake-layers add-layer ../external/meta-openembedded/meta-python
+          sed -i 's|\${METADIR}/bsp/meta-renesas/meta-rcar-gen3 \\|\${METADIR}/bsp/meta-renesas/meta-rcar-gen3 \\\n  ${METADIR}/external/meta-openembedded/meta-python \\|g' conf/bblayers.conf
           bitbake-layers show-layers
           echo '** Kernel *****************************'
           bitbake -e virtual/kernel | grep "^PV"
