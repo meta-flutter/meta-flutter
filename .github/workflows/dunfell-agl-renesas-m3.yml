@@ -104,7 +104,8 @@ jobs:
           bitbake agl-image-flutter-debug
           cp bb.environment /home/dev/artifacts
           cd tmp/deploy/images/${{ env.MACHINE }}
-          ls -la
+          cp agl-image-flutter-debug-m3ulcb-*.rootfs.wic.bmap /home/dev/artifacts
+          cp agl-image-flutter-debug-m3ulcb-*.rootfs.wic.xz /home/dev/artifacts
 
       - name: Publish agl-image-flutter-debug artifacts
         uses: actions/upload-artifact@v2
