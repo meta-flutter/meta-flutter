@@ -1,4 +1,4 @@
-name: dunfell-agl-aarch64
+name: dunfell-agl-renesas-m3
 
 on:
   pull_request:
@@ -17,6 +17,7 @@ jobs:
     env:
       MACHINE: m3ulcb
       AGL_BRANCH: master
+      WORKSPACE: ../agl-master-renesas-m3
 
     runs-on: [self-hosted, linux]
     
@@ -27,8 +28,8 @@ jobs:
         --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
         --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
-        -v /mnt/raid10/github-ci/sstate/agl/qemuarm64:/home/dev/sstate:Z
-        -v /mnt/raid10/github-ci/artifacts/agl/qemuarm64:/home/dev/artifacts:Z
+        -v /mnt/raid10/github-ci/sstate/agl/m3ulcb:/home/dev/sstate:Z
+        -v /mnt/raid10/github-ci/artifacts/agl/m3ulcb:/home/dev/artifacts:Z
         -v /mnt/raid10/github-ci/rcar_dl:/github/home/Downloads/:z
 
       
@@ -47,8 +48,8 @@ jobs:
 
       - name: Fetch Layers
         run: |
-          [ -d ../agl-master-qemuarm64 ] || mkdir -p ../agl-master-qemuarm64
-          cd ../agl-master-qemuarm64
+          [ -d ${{ env.WORKSPACE }} ] || mkdir -p ${{ env.WORKSPACE }}
+          cd ${{ env.WORKSPACE }}
           rm -rf .repo  bsp  external  meta-agl  meta-agl-demo  meta-agl-devel  meta-agl-flutter
           /home/dev/bin/repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
@@ -63,7 +64,7 @@ jobs:
           
       - name: Configure AGL build
         shell: bash
-        working-directory: ../agl-master-qemuarm64
+        working-directory: ${{ env.WORKSPACE }}
         run: |
           rm -rf build/conf
           . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem agl-flutter
@@ -90,84 +91,41 @@ jobs:
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-engine-release -c do_cleansstate
-          bitbake flutter-engine-profile -c do_cleansstate
           bitbake flutter-engine-debug -c do_cleansstate
-          bitbake flutter-gallery-release -c do_cleansstate
-          bitbake flutter-gallery-profile -c do_cleansstate
           bitbake flutter-gallery-debug -c do_cleansstate
-          bitbake ivi-homescreen-release -c do_cleansstate
-          bitbake ivi-homescreen-profile -c do_cleansstate
           bitbake ivi-homescreen-debug -c do_cleansstate
-      - name: Build agl-image-flutter
-        shell: bash
-        working-directory: ../agl-master-qemuarm64
-        run: |
-          . ./build/agl-init-build-env
-          rm -rf /home/dev/artifacts/*
-          bitbake agl-image-flutter
-          cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-${{ env.MACHINE }}.manifest /home/dev/artifacts
-          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-${{ env.MACHINE }}.qemuboot.conf /home/dev/artifacts
-          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-${{ env.MACHINE }}.testdata.json /home/dev/artifacts
-          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-${{ env.MACHINE }}.ext4 /home/dev/artifacts
-          cp tmp/deploy/images/${{ env.MACHINE }}/Image /home/dev/artifacts
-      - name: Publish agl-image-flutter artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: agl-image-flutter-qemuarm64-linux
-          path: |
-             /home/dev/artifacts/*
-      - name: Build agl-image-flutter-profile
-        shell: bash
-        working-directory: ../agl-master-qemuarm64
-        run: |
-          . ./build/agl-init-build-env
-          rm -rf /home/dev/artifacts/*
-          bitbake agl-image-flutter-profile
-          cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-profile-${{ env.MACHINE }}.manifest /home/dev/artifacts
-          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-profile-${{ env.MACHINE }}.qemuboot.conf /home/dev/artifacts
-          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-profile-${{ env.MACHINE }}.testdata.json /home/dev/artifacts
-          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-profile-${{ env.MACHINE }}.ext4 /home/dev/artifacts
-          cp tmp/deploy/images/${{ env.MACHINE }}/Image /home/dev/artifacts
-      - name: Publish agl-image-flutter-profile artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: agl-image-flutter-profile-qemuarm64-linux
-          path: |
-             /home/dev/artifacts/*
+          
       - name: Build agl-image-flutter-debug
         shell: bash
-        working-directory: ../agl-master-qemuarm64
+        working-directory: ${{ env.WORKSPACE }}
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
           bitbake agl-image-flutter-debug
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-debug-${{ env.MACHINE }}.manifest /home/dev/artifacts
-          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-debug-${{ env.MACHINE }}.qemuboot.conf /home/dev/artifacts
-          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-debug-${{ env.MACHINE }}.testdata.json /home/dev/artifacts
-          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-debug-${{ env.MACHINE }}.ext4 /home/dev/artifacts
-          cp tmp/deploy/images/${{ env.MACHINE }}/Image /home/dev/artifacts
+          cd tmp/deploy/images/${{ env.MACHINE }}
+          ls -la
+
       - name: Publish agl-image-flutter-debug artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: agl-image-flutter-debug-qemuarm64-linux
+          name: agl-image-flutter-debug-m3ulcb-linux
           path: |
              /home/dev/artifacts/*
+
       - name: Build agl-image-flutter-debug SDK
         shell: bash
-        working-directory: ../agl-master-qemuarm64
+        working-directory: ${{ env.WORKSPACE }}
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
           bitbake agl-image-flutter-debug -c do_populate_sdk
           cp bb.environment /home/dev/artifacts
           cp tmp/deploy/sdk/poky-agl-glibc-*-agl-image-flutter-debug-*.sh /home/dev/artifacts
+
       - name: Publish agl-image-flutter-debug SDK artifact
         uses: actions/upload-artifact@v2
         with:
-          name: agl-image-flutter-debug-sdk-qemuarm64-linux
+          name: agl-image-flutter-debug-sdk-m3ulcb-linux
           path: |
              /home/dev/artifacts/*
