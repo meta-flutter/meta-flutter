@@ -51,14 +51,14 @@ jobs:
           /home/dev/bin/repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           wait
+          cd meta-agl-devel
+          git checkout -b jw/flutter_updates
+          cd ..
+          cd external/meta-flutter
+          git checkout -b jw/meta-flutter_roll
+          cd ../..
           pwd
           ls -la
-          sed -i 's/283f915354dcc81410b30534c1eda063d0e78888/\${AUTOREV}/g' meta-agl-devel/meta-agl-flutter/recipes-graphics/flutter-apps/flutter-app-homescreen_git.bb
-          sed -i '/SRCREV/d' meta-agl-devel/meta-agl-flutter/recipes-graphics/toyota/ivi-homescreen_aglflutter.inc
-          cd external
-          rm -rf meta-flutter || true
-          ln -sf ../../meta-flutter meta-flutter
-          cd ..
 
       - name: Configure AGL build
         shell: bash
@@ -75,7 +75,6 @@ jobs:
           echo 'INHERIT_remove = "uninative"' >> ./conf/local.conf
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../external/meta-clang/recipes-devtools/clang/clang_git.bb
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
-          echo 'FLUTTER_SDK_TAG = "2.8.0-3.3.pre"' >> ./conf/local.conf
           echo '** Layers *****************************'
           bitbake-layers show-layers
           echo '** Kernel *****************************'
