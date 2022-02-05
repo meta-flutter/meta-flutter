@@ -30,7 +30,7 @@ jobs:
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/agl/m3ulcb:/home/dev/sstate:Z
         -v /mnt/raid10/github-ci/artifacts/agl/m3ulcb:/home/dev/artifacts:Z
-        -v /mnt/raid10/github-ci/rcar_dl:/home/dev/xdg_dl/:z
+        -v /mnt/raid10/github-ci/rcar_dl:/home/dev/xdg_dl:z
 
       
     steps:
@@ -71,7 +71,7 @@ jobs:
           echo '***************************************'
           echo 'INHERIT += "rm_work"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
-          echo 'XDG_DOWNLOAD_DIR=/home/dev/xdg_dl' >> ./conf/local.conf
+          echo 'XDG_DOWNLOAD_DIR="/home/dev/xdg_dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://download.automotivelinux.org/sstate-mirror/${{ env.AGL_BRANCH }}/${DEFAULTTUNE}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
