@@ -78,6 +78,7 @@ jobs:
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../external/meta-clang/recipes-devtools/clang/clang_git.bb
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
           echo 'FLUTTER_SDK_TAG = "2.8.0-3.3.pre"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = " libdrm-tests"' >> ./conf/local.conf
           echo '** Layers *****************************'
           sed -i 's|\${METADIR}/bsp/meta-renesas/meta-rcar-gen3 \\|\${METADIR}/bsp/meta-renesas/meta-rcar-gen3 \\\n  ${METADIR}/external/meta-openembedded/meta-python \\|g' conf/bblayers.conf
           bitbake-layers show-layers
@@ -107,6 +108,13 @@ jobs:
           cd tmp/deploy/images/${{ env.MACHINE }}
           cp agl-image-flutter-debug-m3ulcb-*.rootfs.wic.bmap /home/dev/artifacts
           cp agl-image-flutter-debug-m3ulcb-*.rootfs.wic.xz /home/dev/artifacts
+          mkdir -p /home/dev/artifacts/boot
+          cp bootparam_sa0.srec /home/dev/artifacts
+          cp bl2-m3ulcb.srec /home/dev/artifacts
+          cp cert_header_sa6.srec /home/dev/artifacts
+          cp bl31-m3ulcb.srec /home/dev/artifacts
+          cp tee-m3ulcb.srec /home/dev/artifacts
+          cp u-boot-elf.srec /home/dev/artifacts
 
       - name: Publish agl-image-flutter-debug artifacts
         uses: actions/upload-artifact@v2
