@@ -114,7 +114,7 @@ jobs:
           cp cert_header_sa6.srec /home/dev/artifacts
           cp bl31-m3ulcb.srec /home/dev/artifacts
           cp tee-m3ulcb.srec /home/dev/artifacts
-          cp u-boot-elf.srec /home/dev/artifacts
+          cp u-boot-elf-m3ulcb-*.srec /home/dev/artifacts
 
       - name: Publish agl-image-flutter-debug artifacts
         uses: actions/upload-artifact@v2
