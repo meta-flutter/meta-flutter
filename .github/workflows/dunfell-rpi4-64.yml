@@ -114,57 +114,6 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build vk-flutter-engine-debug
-        shell: bash
-        working-directory: ../rpi4-drm-dunfell-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vk-flutter-engine-debug -c do_cleansstate
-          bitbake vk-flutter-engine-debug
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64/vk-flutter-engine-debug-git-*.rpm /home/dev/artifacts
-
-      - name: Publish vk-flutter-engine-debug artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: vk-flutter-engine-debug
-          path: |
-             /home/dev/artifacts/*
-
-      - name: Build vk-flutter-engine-profile
-        shell: bash
-        working-directory: ../rpi4-drm-dunfell-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vk-flutter-engine-profile -c do_cleansstate
-          bitbake vk-flutter-engine-profile
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64/vk-flutter-engine-profile-git-*.rpm /home/dev/artifacts
-
-      - name: Publish vk-flutter-engine-profile artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: vk-flutter-engine-profile
-          path: |
-             /home/dev/artifacts/*
-
-      - name: Build vk-flutter-engine-release
-        shell: bash
-        working-directory: ../rpi4-drm-dunfell-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vk-flutter-engine-release -c do_cleansstate
-          bitbake vk-flutter-engine-release
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64/vk-flutter-engine-release-git-*.rpm /home/dev/artifacts
-
-      - name: Publish vk-flutter-engine-release artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: vk-flutter-engine-release
-          path: |
-             /home/dev/artifacts/*
-
       - name: Build swiftshader
         shell: bash
         working-directory: ../rpi4-drm-dunfell-latest
