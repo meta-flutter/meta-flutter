@@ -37,7 +37,6 @@ This layer includes recipes to build
 
 * flutter-sdk (channel selection, default is master if FLUTTER_SDK_TAG is not set)
 * flutter-engine (tracks engine.version from FLUTTER_SDK_TAG)
-* vk-flutter-engine (tracks engine.version from FLUTTER_SDK_TAG) Vulkan Embedder PR
 * flutter-gallery Application (debug, profile, and release) requires master
 * ivi-homescreen (Toyota/AGL - Wayland Embedder)
 * flutter-pi (DRM w/VSync - Recommended embedder for DRM)

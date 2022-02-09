@@ -223,28 +223,3 @@ jobs:
           . ./oe-init-build-env
           bitbake flutter-x11-client -c do_cleansstate
           bitbake flutter-x11-client
-
-
-      - name: Build vk-flutter-engine-debug
-        shell: bash
-        working-directory: ../yocto-dunfell/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake vk-flutter-engine-debug -c do_cleansstate
-          bitbake vk-flutter-engine-debug
-      
-      - name: Build vk-flutter-engine-profile
-        shell: bash
-        working-directory: ../yocto-dunfell/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake vk-flutter-engine-profile -c do_cleansstate
-          bitbake vk-flutter-engine-profile
-
-      - name: Build vk-flutter-engine-release
-        shell: bash
-        working-directory: ../yocto-dunfell/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake vk-flutter-engine-release -c do_cleansstate
-          bitbake vk-flutter-engine-release
