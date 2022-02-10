@@ -69,7 +69,7 @@ jobs:
           rm -rf build/conf
           . ./meta-agl/scripts/aglsetup.sh \
             -m ${{ env.MACHINE }} \
-            agl-appfw-smack \
+            agl-app-framework \
             agl-devel \
             agl-basesystem \
             agl-flutter
