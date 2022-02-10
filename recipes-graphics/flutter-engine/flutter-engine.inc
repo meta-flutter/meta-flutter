@@ -23,7 +23,7 @@ SRC_URI = "file://0001-clang-toolchain.patch \
 
 S = "${WORKDIR}/src"
 
-inherit python3native features_check
+inherit python3native features_check pkgconfig
 
 require conf/include/gn-utils.inc
 
