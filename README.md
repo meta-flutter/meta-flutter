@@ -88,8 +88,8 @@ Then run:
 local.conf changes
 
     FLUTTER_CHANNEL = "master"
-    IMAGE_INSTALL_append = " flutter-drm-eglstream-backend"
-    IMAGE_INSTALL_append = " flutter-gallery"
+    IMAGE_INSTALL:append = " flutter-drm-eglstream-backend"
+    IMAGE_INSTALL:append = " flutter-gallery"
 
 OR
 
@@ -118,8 +118,8 @@ git clone -b dunfell https://github.com/jwinarske/meta-flutter.git
 popd
 bitbake-layers add-layer ../sources/meta-clang ../sources/meta-flutter
 echo -e 'FLUTTER_CHANNEL = "dev"' >> conf/local.conf
-echo -e 'IMAGE_INSTALL_append = " flutter-wayland"' >> conf/local.conf
-echo -e 'IMAGE_INSTALL_append = " flutter-gallery"' >> conf/local.conf
+echo -e 'IMAGE_INSTALL:append = " flutter-wayland"' >> conf/local.conf
+echo -e 'IMAGE_INSTALL:append = " flutter-gallery"' >> conf/local.conf
 bitbake fsl-image-multimedia
 ```
 
@@ -135,4 +135,4 @@ See Dunfell branch for CI job example.
 
 When building on systems with GCC version > than uninative in Yocto distro add the following to conf/local.conf
 
-    INHERIT_remove = "uninative"
+    INHERIT:remove = "uninative"
