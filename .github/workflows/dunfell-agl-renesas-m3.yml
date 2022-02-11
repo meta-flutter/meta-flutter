@@ -67,7 +67,11 @@ jobs:
         working-directory: ${{ env.WORKSPACE }}
         run: |
           rm -rf build/conf
-          . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem agl-flutter
+          . ./meta-agl/scripts/aglsetup.sh \
+            -m ${{ env.MACHINE }} \
+            agl-devel \
+            agl-basesystem \
+            agl-flutter
           echo '***************************************'
           echo 'INHERIT += "rm_work"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
@@ -107,6 +111,13 @@ jobs:
           cd tmp/deploy/images/${{ env.MACHINE }}
           cp agl-image-flutter-debug-m3ulcb-*.rootfs.wic.bmap /home/dev/artifacts
           cp agl-image-flutter-debug-m3ulcb-*.rootfs.wic.xz /home/dev/artifacts
+          mkdir -p /home/dev/artifacts/boot
+          cp bootparam_sa0.srec /home/dev/artifacts
+          cp bl2-m3ulcb.srec /home/dev/artifacts
+          cp cert_header_sa6.srec /home/dev/artifacts
+          cp bl31-m3ulcb.srec /home/dev/artifacts
+          cp tee-m3ulcb.srec /home/dev/artifacts
+          cp u-boot-elf-m3ulcb-*.srec /home/dev/artifacts
 
       - name: Publish agl-image-flutter-debug artifacts
         uses: actions/upload-artifact@v2
