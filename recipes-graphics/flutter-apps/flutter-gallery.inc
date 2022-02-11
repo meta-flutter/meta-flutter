@@ -18,4 +18,4 @@ PUBSPEC_APPNAME = "gallery"
 
 inherit flutter-app
 
-FILES_${PN} += "${datadir}/homescreen"
+FILES:${PN} += "${datadir}/homescreen"

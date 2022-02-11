@@ -28,9 +28,9 @@ do_install() {
     cp -rTv ${S}/. ${D}${datadir}/depot_tools
 }
 
-FILES_${PN}-dev = "${datadir}/depot_tools/*"
+FILES:${PN}-dev = "${datadir}/depot_tools/*"
 
-INSANE_SKIP_${PN}-dev = "already-stripped"
+INSANE_SKIP:${PN}-dev = "already-stripped"
 
 BBCLASSEXTEND += "native"
 

@@ -18,8 +18,8 @@ DEPENDS += "\
     unzip-native \
     "
 
-RDEPENDS_${PN}-native += "ca-certificates-native curl-native perl perl-modules unzip-native"
-RDEPENDS_nativesdk-${PN} += "ca-certificates-native curl-native perl perl-modules unzip-native"
+RDEPENDS:${PN}-native += "ca-certificates-native curl-native perl perl-modules unzip-native"
+RDEPENDS:nativesdk-${PN} += "ca-certificates-native curl-native perl perl-modules unzip-native"
 
 SRC_URI = "git://github.com/flutter/flutter.git;protocol=https;nobranch=1"
 FLUTTER_SDK_TAG ??= "${AUTOREV}"
@@ -44,28 +44,28 @@ common_compile() {
     bbnote `flutter doctor -v`
 }
 
-do_compile_class-native() {
+do_compile:class-native() {
     common_compile
 }
 
-do_compile_class-nativesdk() {
+do_compile:class-nativesdk() {
     common_compile
 }
 
-do_install_class-native() {
+do_install:class-native() {
     install -d ${D}${datadir}/flutter/sdk
     cp -rTv ${S}/. ${D}${datadir}/flutter/sdk
 }
-do_install_class-nativesdk() {
+do_install:class-nativesdk() {
     install -d ${D}${datadir}/flutter/sdk
     cp -rTv ${S}/. ${D}${datadir}/flutter/sdk
 }
 
 
-ALLOW_EMPTY_${PN} = "1"
+ALLOW_EMPTY:${PN} = "1"
 
-FILES_${PN} = "${datadir}/flutter/sdk"
+FILES:${PN} = "${datadir}/flutter/sdk"
 
-INSANE_SKIP_${PN} += "already-stripped file-rdeps"
+INSANE_SKIP:${PN} += "already-stripped file-rdeps"
 
 BBCLASSEXTEND = "native nativesdk"

@@ -13,7 +13,7 @@ DEPENDS += "\
     wayland-native \
     "
 
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
     flutter-engine-${FLUTTER_RUNTIME} \
     "
 
@@ -22,6 +22,6 @@ do_install() {
    install -m 755 ${WORKDIR}/build/flutter-client ${D}${bindir}
 }
 
-FILES_${PN} = "\
+FILES:${PN} = "\
    ${bindir} \
    "

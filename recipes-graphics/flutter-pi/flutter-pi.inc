@@ -20,7 +20,7 @@ DEPENDS += "\
     virtual/egl \
    "
 
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
     xkeyboard-config \
     fontconfig \
     "
@@ -46,7 +46,7 @@ PACKAGECONFIG[raw_keyboard] = "-DBUILD_RAW_KEYBOARD_PLUGIN=ON,           -DBUILD
 PACKAGECONFIG[test]         = "-DBUILD_TEST_PLUGIN=ON,                   -DBUILD_TEST_PLUGIN=OFF"
 PACKAGECONFIG[omxplayer]    = "-DBUILD_OMXPLAYER_VIDEO_PLAYER_PLUGIN=ON, -DBUILD_OMXPLAYER_VIDEO_PLAYER_PLUGIN=OFF"
 
-FILES_${PN} = "\
+FILES:${PN} = "\
     ${bindir} \
     "
 

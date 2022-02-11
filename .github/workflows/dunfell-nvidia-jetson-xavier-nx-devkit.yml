@@ -90,19 +90,19 @@ jobs:
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
-          echo 'DISTRO_FEATURES_append = " vulkan"' >> ./conf/local.conf
-          echo 'DISTRO_FEATURES_remove = "x11"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:append = " vulkan"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:remove = "x11"' >> ./conf/local.conf
           echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> ./conf/local.conf
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
           echo 'FLUTTER_RUNTIME = "debug"' >> ./conf/local.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_BASE_INSTALL_remove = " packagegroup-demo-vulkantests"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_BASE_INSTALL_remove = " packagegroup-demo-westontests"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_BASE_INSTALL_append = " vulkan-tools"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_BASE_INSTALL_append = " libdrm-tests"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG_pn-sascha-samples = "wayland"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_BASE_INSTALL:remove = " packagegroup-demo-vulkantests"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_BASE_INSTALL:remove = " packagegroup-demo-westontests"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_BASE_INSTALL:append = " vulkan-tools"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_BASE_INSTALL:append = " libdrm-tests"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:pn-sascha-samples = "wayland"' >> ./conf/local.conf
           echo 'TEGRAFLASH_SDCARD_SIZE = "32G"' >> ./conf/local.conf
-          echo 'KERNEL_ARGS_append = " quiet"' >> ./conf/local.conf
+          echo 'KERNEL_ARGS:append = " quiet"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -246,11 +246,11 @@ jobs:
         working-directory: ../${{ env.MACHINE }}/tegra-demo-distro
         run: |
           . ./setup-env
-          echo 'IMAGE_INSTALL_append = " flutter-engine-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " flutter-gallery-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " ivi-homescreen-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " adwaita-icon-theme-cursors"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " sascha-samples"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = " flutter-engine-debug"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = " flutter-gallery-debug"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = " ivi-homescreen-debug"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = " adwaita-icon-theme-cursors"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
           bitbake demo-image-weston
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/images/${{ env.MACHINE }}/demo-image-weston-${{ env.MACHINE }}-*.tegraflash.tar.gz /home/dev/artifacts

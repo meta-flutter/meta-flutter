@@ -78,12 +78,12 @@ jobs:
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG_pn-sascha-samples = "d2d"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:pn-sascha-samples = "d2d"' >> ./conf/local.conf
           echo 'PREFERRED_VERSION_mesa = "21.2.%"' >> ./conf/local.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL_append = " kmscube libdrm-tests"' >> ./conf/local.conf
-          echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../sources/poky/meta/recipes-core/gettext/gettext_0.20.1.bb
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " kmscube libdrm-tests"' >> ./conf/local.conf
+          echo 'INSANE_SKIP:${PN} += "host-user-contaminated"' >> ../sources/poky/meta/recipes-core/gettext/gettext_0.20.1.bb
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -250,12 +250,12 @@ jobs:
         working-directory: ../rpi4-drm-dunfell-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          echo 'CORE_IMAGE_EXTRA_INSTALL_append = " flutter-pi-debug"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL_append = " flutter-gallery-debug"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL_append = " swiftshader"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL_append = " sascha-samples"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL_append = " vkcube"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL_append = " vk-layer-perfdoc"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi-debug"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery-debug"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " swiftshader"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkcube"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vk-layer-perfdoc"' >> ./conf/local.conf
           bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts

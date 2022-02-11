@@ -15,13 +15,13 @@ DEPENDS += "\
     wayland-native \
     "
 
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
     flutter-engine-${FLUTTER_RUNTIME} \
     gstreamer1.0-plugins-good \
     gstreamer1.0-plugins-bad \
     "
 
-INSANE_SKIP_${PN} += " ldflags"
+INSANE_SKIP:${PN} += " ldflags"
 SOLIBS = ".so"
 FILES_SOLIBSDEV = ""
 
@@ -32,7 +32,7 @@ do_install() {
    install -m 644 ${WORKDIR}/build/plugins/video_player/libvideo_player_plugin.so ${D}${libdir}
 }
 
-FILES_${PN} = "\
+FILES:${PN} = "\
    ${bindir} \
    ${libdir} \
    "

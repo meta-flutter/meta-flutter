@@ -87,7 +87,7 @@ Note: 32-bit ARM builds were broken for a period, so if you have build issues on
 
 Add to local.conf file:
 
-    TOOLCHAIN_HOST_TASK_append = " flutter-sdk-nativesdk"
+    TOOLCHAIN_HOST_TASK:append = " flutter-sdk-nativesdk"
 
 Then run:
 
@@ -110,7 +110,7 @@ pushd ../sources
 git clone -b dunfell https://github.com/meta-flutter/meta-flutter.git
 popd
 echo -e 'FLUTTER_SDK_TAG = "2.10.0-0.2.pre"' >> conf/local.conf
-echo -e 'IMAGE_INSTALL_append = " flutter-engine-debug ivi-homescreen-debug flutter-gallery-debug"' >> conf/local.conf
+echo -e 'IMAGE_INSTALL:append = " flutter-engine-debug ivi-homescreen-debug flutter-gallery-debug"' >> conf/local.conf
 bitbake-layers add-layer ../sources/meta-clang ../sources/meta-flutter
 bitbake fsl-image-multimedia
 ```
@@ -123,4 +123,4 @@ See honister branch README.md and CI jobs for more detail
 
 When building on systems with GCC version > than uninative in Yocto distro add the following to conf/local.conf
 
-    INHERIT_remove = "uninative"
+    INHERIT:remove = "uninative"

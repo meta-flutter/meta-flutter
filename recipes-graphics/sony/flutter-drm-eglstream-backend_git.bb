@@ -12,7 +12,7 @@ DEPENDS += "\
     flutter-engine-${FLUTTER_RUNTIME} \
     "
 
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
     flutter-engine-${FLUTTER_RUNTIME} \
     "
 
@@ -21,6 +21,6 @@ do_install() {
    install -m 755 ${WORKDIR}/build/flutter-drm-eglstream-backend ${D}${bindir}
 }
 
-FILES_${PN} = "\
+FILES:${PN} = "\
    ${bindir} \
    "

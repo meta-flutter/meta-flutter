@@ -14,7 +14,7 @@ DEPENDS += "\
     virtual/egl \
     "
 
-RDEPENDS_${PN} += "xkeyboard-config"
+RDEPENDS:${PN} += "xkeyboard-config"
 
 SRC_URI = "git://github.com/sony/flutter-embedded-linux.git;protocol=https;branch=master \
            file://0001-path-updates.patch"
@@ -31,7 +31,7 @@ PREFERRED_PROVIDER_libgcc = "compiler-rt"
 
 EXTRA_OECMAKE += "-D USER_PROJECT_PATH=${S}/examples/${PN}"
 
-do_configure_prepend() {
+do_configure:prepend() {
    install -d ${S}/build
    ln -sf ${STAGING_LIBDIR}/libflutter_engine.so ${S}/build/libflutter_engine.so
 }

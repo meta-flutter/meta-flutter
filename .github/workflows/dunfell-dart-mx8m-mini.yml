@@ -93,14 +93,14 @@ jobs:
           sed -i "/IMAGE_LINGUAS/d" ./conf/local.conf
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
           echo 'FLUTTER_RUNTIME = "debug"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG_pn-ivi-homescreen-debug = "gles2 context_version_2"' >> ./conf/bblayers.conf
-          echo 'PACKAGECONFIG_pn-ivi-homescreen-profile = "gles2 context_version_2"' >> ./conf/bblayers.conf
-          echo 'PACKAGECONFIG_pn-ivi-homescreen-release = "gles2 context_version_2"' >> ./conf/bblayers.conf
+          echo 'PACKAGECONFIG:pn-ivi-homescreen-debug = "gles2 context_version_2"' >> ./conf/bblayers.conf
+          echo 'PACKAGECONFIG:pn-ivi-homescreen-profile = "gles2 context_version_2"' >> ./conf/bblayers.conf
+          echo 'PACKAGECONFIG:pn-ivi-homescreen-release = "gles2 context_version_2"' >> ./conf/bblayers.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
           echo 'FLUTTER_SDK_TAG = "2.8.0-3.3.pre"' >> ./conf/local.conf
-          echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../../meta-flutter/recipes-graphics/flutter-pi/flutter-pi.inc
-          echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../../meta-flutter/recipes-graphics/toyota/ivi-homescreen.inc
-          echo 'IMAGE_INSTALL_append = " kmscube libdrm-tests"' >> ./conf/local.conf
+          echo 'INSANE_SKIP:${PN} += "host-user-contaminated"' >> ../../meta-flutter/recipes-graphics/flutter-pi/flutter-pi.inc
+          echo 'INSANE_SKIP:${PN} += "host-user-contaminated"' >> ../../meta-flutter/recipes-graphics/toyota/ivi-homescreen.inc
+          echo 'IMAGE_INSTALL:append = " kmscube libdrm-tests"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -273,11 +273,11 @@ jobs:
         working-directory: ../${{ env.MACHINE }}
         run: |
           . sources/poky/oe-init-build-env build
-          echo 'IMAGE_INSTALL_append = " flutter-engine-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " flutter-gallery-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " ivi-homescreen-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " flutter-pi-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " adwaita-icon-theme-cursors"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = " flutter-engine-debug"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = " flutter-gallery-debug"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = " ivi-homescreen-debug"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = " flutter-pi-debug"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = " adwaita-icon-theme-cursors"' >> ./conf/local.conf
           bitbake fsl-image-gui
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/images/${{ env.MACHINE }}/fsl-image-gui-${{ env.MACHINE }}-*.rootfs.wic.gz /home/dev/artifacts

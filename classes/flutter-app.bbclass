@@ -72,7 +72,7 @@ do_compile() {
     fi
 }
 
-INSANE_SKIP_${PN} += " ldflags libdir"
+INSANE_SKIP:${PN} += " ldflags libdir"
 SOLIBS = ".so"
 FILES_SOLIBSDEV = ""
 
@@ -85,5 +85,5 @@ do_install() {
     cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/* ${D}${datadir}/${PUBSPEC_APPNAME}/
 }
 
-FILES_${PN} = "${datadir}"
-FILES_${PN}-dev = ""
+FILES:${PN} = "${datadir}"
+FILES:${PN}-dev = ""
