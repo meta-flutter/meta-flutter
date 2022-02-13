@@ -91,7 +91,6 @@ jobs:
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES_append = " vulkan"' >> ./conf/local.conf
-          echo 'DISTRO_FEATURES_remove = "x11"' >> ./conf/local.conf
           echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> ./conf/local.conf
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
@@ -100,7 +99,6 @@ jobs:
           echo 'CORE_IMAGE_BASE_INSTALL_append = " vulkan-tools"' >> ./conf/local.conf
           echo 'CORE_IMAGE_BASE_INSTALL_append = " libdrm-tests"' >> ./conf/local.conf
           echo 'PACKAGECONFIG_pn-sascha-samples = "wayland"' >> ./conf/local.conf
-          echo 'TEGRAFLASH_SDCARD_SIZE = "32G"' >> ./conf/local.conf
           echo 'KERNEL_ARGS_append = " quiet"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
@@ -250,7 +248,6 @@ jobs:
           echo 'IMAGE_INSTALL_append = " ivi-homescreen-debug"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " adwaita-icon-theme-cursors"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " sascha-samples"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " cuda-samples"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " nsight-systems-cli"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " tensorrt-samples"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " l4t-graphics-demos"' >> ./conf/local.conf
