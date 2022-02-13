@@ -93,6 +93,7 @@ jobs:
           echo 'DISTRO_FEATURES_append = " vulkan"' >> ./conf/local.conf
           echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> ./conf/local.conf
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES_remove = "x11"' >> ./conf/local.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
           echo 'CORE_IMAGE_BASE_INSTALL_remove = " packagegroup-demo-vulkantests"' >> ./conf/local.conf
           echo 'CORE_IMAGE_BASE_INSTALL_remove = " packagegroup-demo-westontests"' >> ./conf/local.conf
@@ -250,7 +251,6 @@ jobs:
           echo 'IMAGE_INSTALL_append = " sascha-samples"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " nsight-systems-cli"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " tensorrt-samples"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " l4t-graphics-demos"' >> ./conf/local.conf
           bitbake demo-image-weston
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/images/${{ env.MACHINE }}/demo-image-weston-${{ env.MACHINE }}-*.tegraflash.tar.gz /home/dev/artifacts
