@@ -211,7 +211,8 @@ def parse_args(d):
     parser.add_argument('--tsan', default=False, action='store_true')
     parser.add_argument('--ubsan', default=False, action='store_true')
 
-    return parser.parse_args(args)
+    args, unknown = parser.parse_known_args()
+	return args
 
 def get_out_dir(d):
     """Gets output directory based on the Package Configuration args."""
