@@ -229,7 +229,7 @@ def parse_args(d):
     parser.add_argument('--ubsan', default=False, action='store_true')
 
     parser.add_argument('--trace-gn', default=False, action='store_true',
-                         help='Write a GN trace log (gn_trace.json) in the Chromium tracing format in the build directory.')
+                        help='Write a GN trace log (gn_trace.json) in the Chromium tracing format in the build directory.')
 
     # Verbose output.
     parser.add_argument('--verbose', default=False, action='store_true')

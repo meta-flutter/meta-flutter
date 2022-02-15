@@ -74,10 +74,13 @@ jobs:
           echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> $LOCAL_CONF
           sed -i "/IMAGE_LINGUAS/d" $LOCAL_CONF
           echo 'IMAGE_LINGUAS = "en-us"' >> $LOCAL_CONF
-          echo 'FLUTTER_SDK_TAG = "2.10.1"' >> ./conf/local.conf
+          echo 'FLUTTER_SDK_TAG = "2.10.1"' >> $LOCAL_CONF
+          echo 'FLUTTER_RUNTIME_pn-flutter-drm-gbm-backend = "debug"' >> $LOCAL_CONF
+          echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> $LOCAL_CONF 
           echo 'PACKAGECONFIG_pn-flutter-pi-debug = "text_input raw_keyboard"' >> $LOCAL_CONF
           echo 'INHERIT_remove = "uninative"' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL += " \
+                    flutter-engine-debug \
                     flutter-pi-debug \
                     flutter-drm-gbm-backend \
                     avahi-daemon \
@@ -114,6 +117,8 @@ jobs:
           bitbake flutter-pi-debug -c do_cleansstate
           bitbake flutter-drm-gbm-backend -c do_cleansstate
           bitbake flutter-engine-debug -c do_cleansstate
+          bitbake flutter-engine-release -c do_cleansstate
+          bitbake flutter-engine-profile -c do_cleansstate
 
       - name: Build st-image-core
         shell: bash
@@ -217,7 +222,10 @@ jobs:
           echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> $LOCAL_CONF
           sed -i "/IMAGE_LINGUAS/d" $LOCAL_CONF
           echo 'IMAGE_LINGUAS = "en-us"' >> $LOCAL_CONF
-          echo 'FLUTTER_RUNTIME = "debug"' >> $LOCAL_CONF
+          echo 'FLUTTER_SDK_TAG = "2.10.1"' >> $LOCAL_CONF
+          echo 'FLUTTER_RUNTIME_pn-flutter-drm-gbm-backend = "debug"' >> $LOCAL_CONF
+          echo 'FLUTTER_RUNTIME_pn-flutter-wayland-client = "debug"' >> $LOCAL_CONF
+          echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> $LOCAL_CONF 
           echo 'PACKAGECONFIG_pn-ivi-homescreen-debug = "gles2 context_version_2"' >> $LOCAL_CONF
           echo 'PACKAGECONFIG_pn-ivi-homescreen-profile = "gles2 context_version_2"' >> $LOCAL_CONF
           echo 'PACKAGECONFIG_pn-ivi-homescreen-release = "gles2 context_version_2"' >> $LOCAL_CONF
@@ -233,12 +241,14 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL_remove = " gtk+3-demo "' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL += " \
                     weston weston-init \
+                    flutter-engine-debug \
                     ivi-homescreen-debug \
                     flutter-gallery-debug \
                     adwaita-icon-theme-cursors \
                     xdg-user-dirs \
                     flutter-pi-debug \
                     flutter-drm-gbm-backend \
+                    flutter-wayland-client \
                     avahi-daemon \
                     ntp ntp-tickadj \
                     dhcp-client systemd-networkd-configuration \
@@ -275,6 +285,8 @@ jobs:
           bitbake flutter-pi-debug -c do_cleansstate
           bitbake flutter-drm-gbm-backend -c do_cleansstate
           bitbake flutter-engine-debug -c do_cleansstate
+          bitbake flutter-engine-release -c do_cleansstate
+          bitbake flutter-engine-profile -c do_cleansstate
 
       - name: Build st-image-core
         shell: bash

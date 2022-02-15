@@ -18,6 +18,7 @@ jobs:
       MACHINE: m3ulcb
       AGL_BRANCH: master
       WORKSPACE: ../agl-master-renesas-m3
+      XDG_DOWNLOAD_DIR: /home/dev/rcar_dl
 
     runs-on: [self-hosted, linux]
     
@@ -30,7 +31,7 @@ jobs:
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/agl/m3ulcb:/home/dev/sstate:Z
         -v /mnt/raid10/github-ci/artifacts/agl/m3ulcb:/home/dev/artifacts:Z
-        -v /mnt/raid10/github-ci/rcar_dl:/github/home/Downloads:Z
+        -v /mnt/raid10/github-ci/rcar_dl:/home/dev/rcar_dl:Z
 
       
     steps:
@@ -58,9 +59,6 @@ jobs:
           rm -rf meta-flutter || true
           ln -sf ../../meta-flutter meta-flutter
           cd ..
-          cd meta-agl-devel
-          git checkout -b jw/flutter_updates
-          cd ..
           
       - name: Configure AGL build
         shell: bash
@@ -81,10 +79,10 @@ jobs:
           echo 'INHERIT_remove = "uninative"' >> ./conf/local.conf
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../external/meta-clang/recipes-devtools/clang/clang_git.bb
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
-          echo 'FLUTTER_SDK_TAG = "2.8.0-3.3.pre"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG-pn-flutter-engine-release_remove = "disable-embedder-examples"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG-pn-flutter-engine-debug_remove = "disable-embedder-examples"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG-pn-flutter-engine-profile_remove = "disable-embedder-examples"' >> ./conf/local.conf
+          echo 'FLUTTER_SDK_TAG = "2.10.1"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG-pn-flutter-engine-release = "disable-desktop-embeddings embedder-for-target fontconfig release"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG-pn-flutter-engine-debug = "disable-desktop-embeddings embedder-for-target fontconfig debug"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG-pn-flutter-engine-profile = "disable-desktop-embeddings embedder-for-target fontconfig profile"' >> ./conf/local.conf
           echo '** Layers *****************************'
           sed -i 's|\${METADIR}/bsp/meta-renesas/meta-rcar-gen3 \\|\${METADIR}/bsp/meta-renesas/meta-rcar-gen3 \\\n  ${METADIR}/external/meta-openembedded/meta-python \\|g' conf/bblayers.conf
           bitbake-layers show-layers
@@ -100,6 +98,8 @@ jobs:
           bitbake flutter-sdk -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-engine-debug -c do_cleansstate
+          bitbake flutter-engine-release -c do_cleansstate
+          bitbake flutter-engine-profile -c do_cleansstate
           bitbake flutter-gallery-debug -c do_cleansstate
           bitbake ivi-homescreen-debug -c do_cleansstate
 
