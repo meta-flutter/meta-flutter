@@ -92,12 +92,11 @@ jobs:
           echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> ./conf/local.conf
           sed -i "/IMAGE_LINGUAS/d" ./conf/local.conf
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
-          echo 'FLUTTER_RUNTIME = "debug"' >> ./conf/local.conf
           echo 'PACKAGECONFIG_pn-ivi-homescreen-debug = "gles2 context_version_2"' >> ./conf/bblayers.conf
           echo 'PACKAGECONFIG_pn-ivi-homescreen-profile = "gles2 context_version_2"' >> ./conf/bblayers.conf
           echo 'PACKAGECONFIG_pn-ivi-homescreen-release = "gles2 context_version_2"' >> ./conf/bblayers.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
-          echo 'FLUTTER_SDK_TAG = "2.8.0-3.3.pre"' >> ./conf/local.conf
+          echo 'FLUTTER_SDK_TAG = "2.10.1"' >> ./conf/local.conf
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../../meta-flutter/recipes-graphics/flutter-pi/flutter-pi.inc
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../../meta-flutter/recipes-graphics/toyota/ivi-homescreen.inc
           echo 'IMAGE_INSTALL_append = " kmscube libdrm-tests"' >> ./conf/local.conf

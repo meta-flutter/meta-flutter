@@ -84,6 +84,7 @@ jobs:
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL_append = " kmscube libdrm-tests"' >> ./conf/local.conf
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../sources/poky/meta/recipes-core/gettext/gettext_0.20.1.bb
+          echo 'FLUTTER_SDK_TAG = "2.10.1"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'

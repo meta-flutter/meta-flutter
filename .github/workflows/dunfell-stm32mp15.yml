@@ -74,7 +74,7 @@ jobs:
           echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> $LOCAL_CONF
           sed -i "/IMAGE_LINGUAS/d" $LOCAL_CONF
           echo 'IMAGE_LINGUAS = "en-us"' >> $LOCAL_CONF
-          echo 'FLUTTER_RUNTIME = "debug"' >> $LOCAL_CONF
+          echo 'FLUTTER_SDK_TAG = "2.10.1"' >> ./conf/local.conf
           echo 'PACKAGECONFIG_pn-flutter-pi-debug = "text_input raw_keyboard"' >> $LOCAL_CONF
           echo 'INHERIT_remove = "uninative"' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL += " \

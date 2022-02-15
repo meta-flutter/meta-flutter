@@ -82,6 +82,9 @@ jobs:
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../external/meta-clang/recipes-devtools/clang/clang_git.bb
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
           echo 'FLUTTER_SDK_TAG = "2.8.0-3.3.pre"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG-pn-flutter-engine-release_remove = "disable-embedder-examples"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG-pn-flutter-engine-debug_remove = "disable-embedder-examples"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG-pn-flutter-engine-profile_remove = "disable-embedder-examples"' >> ./conf/local.conf
           echo '** Layers *****************************'
           sed -i 's|\${METADIR}/bsp/meta-renesas/meta-rcar-gen3 \\|\${METADIR}/bsp/meta-renesas/meta-rcar-gen3 \\\n  ${METADIR}/external/meta-openembedded/meta-python \\|g' conf/bblayers.conf
           bitbake-layers show-layers
