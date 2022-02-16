@@ -67,6 +67,7 @@ jobs:
           /home/dev/bin/repo init -u https://github.com/varigit/variscite-bsp-platform.git -b $YOCTO_BRANCH -m default.xml
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           git clone -b dunfell-clang12 --single-branch https://github.com/kraj/meta-clang.git sources/meta-clang &
+          git clone -b dunfell --single-branch https://github.com/meta-flutter/meta-flutter-plugins.git sources/meta-flutter-plugins &
           wait
 
       - name: Configure build
@@ -98,9 +99,10 @@ jobs:
           echo 'PACKAGECONFIG_pn-ivi-homescreen-release = "gles2 context_version_2"' >> ./conf/bblayers.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
           echo 'FLUTTER_SDK_TAG = "2.8.0-3.3.pre"' >> ./conf/local.conf
+          echo 'PREFERRED_PROVIDER_libserialport = "6f9b03e"' >> ./conf/local.conf
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../../meta-flutter/recipes-graphics/flutter-pi/flutter-pi.inc
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../../meta-flutter/recipes-graphics/toyota/ivi-homescreen.inc
-          echo 'IMAGE_INSTALL_append = " kmscube libdrm-tests"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " libserialport"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -133,6 +135,7 @@ jobs:
           echo "  ${RUNNER_WORKSPACE}/${{ env.MACHINE }}/sources/meta-variscite-hab \ " >> ./conf/bblayers.conf
           echo '  \' >> ./conf/bblayers.conf
           echo "  ${RUNNER_WORKSPACE}/${{ env.MACHINE }}/sources/meta-clang \ " >> ./conf/bblayers.conf
+          echo "  ${RUNNER_WORKSPACE}/${{ env.MACHINE }}/sources/meta-flutter-plugins \ " >> ./conf/bblayers.conf
           echo "  ${GITHUB_WORKSPACE} \ " >> ./conf/bblayers.conf
           echo '"' >> ./conf/bblayers.conf
           echo '***************************************'
