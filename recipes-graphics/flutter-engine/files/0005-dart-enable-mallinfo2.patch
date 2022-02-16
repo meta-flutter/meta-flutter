@@ -1,0 +1,13 @@
+diff --git a/runtime/runtime_args.gni b/runtime/runtime_args.gni
+index dd25e813dff..8b3999abcc0 100644
+--- a/runtime/runtime_args.gni
++++ b/runtime/runtime_args.gni
+@@ -48,7 +48,7 @@
+ 
+   # Whether to use mallinfo2 instead of mallinfo which is deprecated starting
+   # with libc 2.33
+-  dart_use_mallinfo2 = false
++  dart_use_mallinfo2 = true
+ 
+   # Whether to link Crashpad library for crash handling. Only supported on
+   # Windows for now.
