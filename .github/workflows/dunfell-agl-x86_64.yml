@@ -75,7 +75,10 @@ jobs:
           echo 'INHERIT_remove = "uninative"' >> ./conf/local.conf
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../external/meta-clang/recipes-devtools/clang/clang_git.bb
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
-          echo 'FLUTTER_SDK_TAG = "2.8.0-3.3.pre"' >> ./conf/local.conf
+          echo 'FLUTTER_SDK_TAG = "2.10.1"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG-pn-flutter-engine-release = "disable-desktop-embeddings embedder-for-target fontconfig release"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG-pn-flutter-engine-debug = "disable-desktop-embeddings embedder-for-target fontconfig debug"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG-pn-flutter-engine-profile = "disable-desktop-embeddings embedder-for-target fontconfig profile"' >> ./conf/local.conf
           echo '** Layers *****************************'
           bitbake-layers show-layers
           echo '** Kernel *****************************'
