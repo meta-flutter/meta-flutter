@@ -114,6 +114,8 @@ def parse_args(d):
 
     parser.add_argument('--unoptimized', default=False, action='store_true')
 
+    parser.add_argument('--enable-unittests', action='store_true', default=False)
+
     parser.add_argument('--runtime-mode', type=str, choices=['debug', 'profile', 'release', 'jit_release'], default='debug')
     parser.add_argument('--interpreter', default=False, action='store_true')
     parser.add_argument('--dart-debug', default=False, action='store_true', help='Enables assertions in the Dart VM. ' +
@@ -123,16 +125,16 @@ def parse_args(d):
     parser.add_argument('--full-dart-debug', default=False, action='store_true', help='Implies --dart-debug ' +
         'and also disables optimizations in the Dart VM making it easier to step through VM code in the debugger.')
 
-    parser.add_argument('--target-os', type=str, choices=['android', 'ios', 'linux', 'fuchsia', 'win', 'winuwp'])
+    parser.add_argument('--target-os', type=str, choices=['android', 'ios', 'mac', 'linux', 'fuchsia', 'win', 'winuwp'])
     parser.add_argument('--android', dest='target_os', action='store_const', const='android')
     parser.add_argument('--android-cpu', type=str, choices=['arm', 'x64', 'x86', 'arm64'], default='arm')
     parser.add_argument('--ios', dest='target_os', action='store_const', const='ios')
     parser.add_argument('--ios-cpu', type=str, choices=['arm', 'arm64'], default='arm64')
+    parser.add_argument('--mac', dest='target_os', action='store_const', const='mac')
+    parser.add_argument('--mac-cpu', type=str, choices=['x64', 'arm64'], default='x64')
     parser.add_argument('--simulator', action='store_true', default=False)
     parser.add_argument('--linux', dest='target_os', action='store_const', const='linux')
     parser.add_argument('--fuchsia', dest='target_os', action='store_const', const='fuchsia')
-    parser.add_argument('--fuchsia-legacy', default=True, action='store_true')
-    parser.add_argument('--no-fuchsia-legacy', dest='fuchsia_legacy', action='store_false')
     parser.add_argument('--winuwp', dest='target_os', action='store_const', const='winuwp')
 
     parser.add_argument('--linux-cpu', type=str, choices=['x64', 'x86', 'arm64', 'arm'])
@@ -143,7 +145,7 @@ def parse_args(d):
 
     parser.add_argument('--goma', default=True, action='store_true')
     parser.add_argument('--no-goma', dest='goma', action='store_false')
-    parser.add_argument('--xcode-symlinks', action='store_true', help='Set to true for builds targetting macOS or iOS ' +
+    parser.add_argument('--xcode-symlinks', action='store_true', help='Set to true for builds targeting macOS or iOS ' +
         'when using goma. If set, symlinks to the Xcode provided sysroot and SDKs will be created in a generated ' +
         'folder, which will avoid potential backend errors in Fuchsia RBE. Instead of specifying the flag on each invocation ' +
         'the FLUTTER_GOMA_CREATE_XCODE_SYMLINKS environment variable may be set to 1 to achieve the same effect.')
@@ -196,6 +198,10 @@ def parse_args(d):
                         help='Build the GLFW shell on supported platforms where it is not built by default.')
     parser.add_argument('--no-build-glfw-shell', dest='build_glfw_shell', action='store_const', const=False,
                         help='Do not build the GLFW shell on platforms where it is built by default.')
+    parser.add_argument('--build-embedder-examples', action='store_const', const=True,
+                        help='Build the example embedders using the Embedder API.')
+    parser.add_argument('--no-build-embedder-examples', dest='build_embedder_examples', action='store_const', const=False,
+                        help='Do not build the example embedders using the Embedder API.')
 
     parser.add_argument('--bitcode', default=False, action='store_true',
                         help='Enable bitcode for iOS targets. On debug runtime modes, this will be a marker only.')
@@ -204,12 +210,29 @@ def parse_args(d):
                         help='Strip debug symbols from the output. This defaults to true and has no effect on iOS.')
     parser.add_argument('--no-stripped', dest='stripped', action='store_false')
 
+    parser.add_argument('--prebuilt-dart-sdk', default=True, action='store_true',
+                        help='Whether to use a prebuilt Dart SDK instead of building one. This defaults to ' +
+                        'true and is enabled on CI.')
+    parser.add_argument('--no-prebuilt-dart-sdk', dest='prebuilt_dart_sdk', action='store_false')
+
+    parser.add_argument('--fuchsia-target-api-level', dest='fuchsia_target_api_level')
+
+    # Impeller flags.
+    parser.add_argument('--enable-impeller-playground', default=False, action='store_true',
+                        help='Whether impeller unit tests run in playground mode')
+
     # Sanitizers.
     parser.add_argument('--asan', default=False, action='store_true')
     parser.add_argument('--lsan', default=False, action='store_true')
     parser.add_argument('--msan', default=False, action='store_true')
     parser.add_argument('--tsan', default=False, action='store_true')
     parser.add_argument('--ubsan', default=False, action='store_true')
+
+    parser.add_argument('--trace-gn', default=False, action='store_true',
+                        help='Write a GN trace log (gn_trace.json) in the Chromium tracing format in the build directory.')
+
+    # Verbose output.
+    parser.add_argument('--verbose', default=False, action='store_true')
 
     return parser.parse_known_args(args)[0]
 

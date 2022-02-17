@@ -2,12 +2,33 @@
 
 Yocto Layer for Google Flutter related projects.
 
-_Updates_: 
-* FLUTTER_CHANNEL support has been deprecated.
+_Updates_:
+
+* FLUTTER_CHANNEL support has been deprecated
+
 * FLUTTER_SDK_TAG - New approach.  Allows locking SDK and Engine to specific commit hash.
-  Valid values for FLUTTER_SDK_TAG are here:  https://github.com/flutter/flutter/tags 
+  Valid values for FLUTTER_SDK_TAG are here:  https://github.com/flutter/flutter/tags
+  
 * Flutter Engine Commit
-  If FLUTTER_SDK_TAG is set to "AUTOINC", the engine commit used is master channel.  Otherwise the engine.version file in flutter/flutter is used to set the engine commit.
+  If `FLUTTER_SDK_TAG` is set to `"AUTOINC"` or not defined in local.conf, the engine commit used is master channel.  Otherwise the engine.version file in flutter/flutter is used to set the engine commit.
+
+* build failure due to gn unknown parameter for `--no-build-embedder-examples`.  One solution to resolve this is to exclude `disable-embedder-examples` from PACKAGECONFIG in local.conf using:
+
+  ```
+  PACKAGECONFIG-pn-flutter-engine-release = "disable-desktop-embeddings embedder-for-target fontconfig release"
+  
+  PACKAGECONFIG-pn-flutter-engine-debug = "disable-desktop-embeddings embedder-for-target fontconfig debug"
+
+  PACKAGECONFIG-pn-flutter-engine-profile = "disable-desktop-embeddings embedder-for-target fontconfig profile"
+   ```
+  This issue is related to missing gn options `--build-embedder-examples` and `--no-build-embedder-examples` from certain builds.  I have `disable-embedder-examples` defined in PACKAGECONFIG by default, so if you have an engine commit that is missing this option, you need to use the PACKAGECONFIG sequence above.  Once the gn option rolls into all channels this override will no longer be needed.
+
+* When using the Sony embedders you need to specify FLUTTER_RUNTIME that matches other elements being installed, or make image will fail with package conflict. Example to avoid conflict with other recipes:
+  ```
+  echo 'FLUTTER_RUNTIME_pn-flutter-drm-gbm-backend = "debug"' >> ./conf/local.conf
+  echo 'FLUTTER_RUNTIME_pn-flutter-wayland-client = "debug"' >> ./conf/local.conf
+  ```
+
 
 ### Recommended development flow:
 * Build Flutter application using desktop tools

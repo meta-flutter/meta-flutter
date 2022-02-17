@@ -84,6 +84,8 @@ jobs:
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL_append = " kmscube libdrm-tests"' >> ./conf/local.conf
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../sources/poky/meta/recipes-core/gettext/gettext_0.20.1.bb
+          echo 'FLUTTER_SDK_TAG = "2.10.1"' >> ./conf/local.conf
+          echo 'FLUTTER_RUNTIME_pn-flutter-drm-gbm-backend = "debug"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -111,22 +113,6 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: mesa-vulkan-drivers-rpi4-64
-          path: |
-             /home/dev/artifacts/*.rpm
-
-      - name: Build swiftshader
-        shell: bash
-        working-directory: ../rpi4-drm-dunfell-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake swiftshader
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64/swiftshader-git-*.rpm /home/dev/artifacts
-
-      - name: Publish swiftshader artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: swiftshader-rpi4-64
           path: |
              /home/dev/artifacts/*.rpm
 
@@ -251,8 +237,9 @@ jobs:
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           echo 'CORE_IMAGE_EXTRA_INSTALL_append = " flutter-pi-debug"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL_append = " flutter-drm-gbm-backend"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL_append = " flutter-gallery-debug"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL_append = " swiftshader"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL_append = " kmscube libdrm-tests"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL_append = " sascha-samples"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL_append = " vkcube"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL_append = " vk-layer-perfdoc"' >> ./conf/local.conf

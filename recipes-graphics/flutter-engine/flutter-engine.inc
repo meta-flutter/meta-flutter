@@ -44,26 +44,32 @@ COMPATIBLE_MACHINE_x86-64 = "(.*)"
 FLUTTER_RUNTIME ??= "release"
 
 PACKAGECONFIG ??= "disable-desktop-embeddings \
-                  embedder-for-target \
-                  fontconfig \
-                  ${FLUTTER_RUNTIME} \
-                 "
+                   disable-embedder-examples \
+                   embedder-for-target \
+                   fontconfig \
+                   ${FLUTTER_RUNTIME} \
+                  "
 
 PACKAGECONFIG[asan] = "--asan"
 PACKAGECONFIG[coverage] = "--coverage"
 PACKAGECONFIG[dart-debug] = "--dart-debug"
+PACKAGECONFIG[debug] = "--runtime-mode debug"
 PACKAGECONFIG[disable-desktop-embeddings] = "--disable-desktop-embeddings"
+PACKAGECONFIG[disable-embedder-examples] = "--no-build-embedder-examples"
+PACKAGECONFIG[disable-glfw-shell] = "--no-build-glfw-shell"
+PACKAGECONFIG[disable-prebuilt-dart-sdk] = "--no-prebuilt-dart-sdk"
+PACKAGECONFIG[embedder-examples] = "--build-embedder-examples"
 PACKAGECONFIG[embedder-for-target] = "--embedder-for-target"
 PACKAGECONFIG[fontconfig] = "--enable-fontconfig"
 PACKAGECONFIG[full-dart-debug] = "--full-dart-debug"
 PACKAGECONFIG[full-dart-sdk] = "--full-dart-sdk"
+PACKAGECONFIG[glfw-shell] = "--build-glfw-shell"
 PACKAGECONFIG[interpreter] = "--interpreter"
+PACKAGECONFIG[jit_release] = "--runtime-mode jit_release"
 PACKAGECONFIG[lsan] = "--lsan"
-PACKAGECONFIG[release] = "--runtime-mode release"
-PACKAGECONFIG[profile] = "--runtime-mode profile"
-PACKAGECONFIG[debug] = "--runtime-mode debug"
-PACKAGECONFIG[mode-jit_release] = "--runtime-mode jit_release"
 PACKAGECONFIG[msan] = "--msan"
+PACKAGECONFIG[profile] = "--runtime-mode profile"
+PACKAGECONFIG[release] = "--runtime-mode release"
 PACKAGECONFIG[skshaper] = "--enable-skshaper"
 PACKAGECONFIG[static-analyzer] = "--clang-static-analyzer"
 PACKAGECONFIG[tsan] = "--tsan"
@@ -72,6 +78,7 @@ PACKAGECONFIG[unoptimized] = "--unoptimized"
 PACKAGECONFIG[vulkan] = "--enable-vulkan"
 PACKAGECONFIG[vulkan-validation-layers] = "--enable-vulkan-validation-layers"
 
+
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
 CLANG_PATH = "${WORKDIR}/src/buildtools/linux-x64/clang"
 
@@ -79,7 +86,7 @@ ARGS_GN_FILE = "${WORKDIR}/src/${OUT_DIR_REL}/args.gn"
 
 OUT_DIR_REL = "${@get_out_dir(d)}"
 
-GN_ARGS = "${PACKAGECONFIG_CONFARGS} --clang --lto --no-goma "
+GN_ARGS = "${PACKAGECONFIG_CONFARGS} --clang --lto --no-goma --no-stripped "
 GN_ARGS_append = " --target-os linux"
 GN_ARGS_append = " --linux-cpu ${@gn_target_arch_name(d)}"
 GN_ARGS_append = " --target-sysroot ${STAGING_DIR_TARGET}"
