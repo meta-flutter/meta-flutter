@@ -15,7 +15,7 @@ jobs:
   honister-rpi3-drm:
   
     env:
-      DISTRO_VERSION: 3.4
+      DISTRO_VERSION: 3.4.2
       YOCTO_BRANCH: honister
       MACHINE: raspberrypi3-64
       
@@ -27,9 +27,9 @@ jobs:
         --user 1018
         --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
         --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
-        -v /b/github-ci/download:/home/dev/dl:Z
-        -v /b/github-ci/sstate/yocto/honister/rpi3-drm/latest:/home/dev/sstate:Z
-        -v /b/github-ci/artifacts/rpi3/drm:/home/dev/artifacts:Z
+        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
+        -v /mnt/raid10/github-ci/sstate/yocto/honister/rpi3-drm/latest:/home/dev/sstate:Z
+        -v /mnt/raid10/github-ci/artifacts/rpi3/drm:/home/dev/artifacts:Z
 
 
     steps:
@@ -74,7 +74,7 @@ jobs:
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.DISTRO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-vkcube = "kms wayland"' >> ./conf/local.conf
-          echo 'FLUTTER_CHANNEL = "master"' >> ./conf/local.conf
+          echo 'FLUTTER_SDK_TAG = "2.10.2"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'

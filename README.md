@@ -2,14 +2,44 @@
 
 Yocto Layer for Google Flutter related projects.
 
-Recommended development flow:
+_Updates_:
+
+* FLUTTER_CHANNEL support has been deprecated
+
+* FLUTTER_SDK_TAG - New approach.  Allows locking SDK and Engine to specific commit hash.
+  Valid values for FLUTTER_SDK_TAG are here:  https://github.com/flutter/flutter/tags
+  
+* Flutter Engine Commit
+  If `FLUTTER_SDK_TAG` is set to `"AUTOINC"` or not defined in local.conf, the engine commit used is master channel.  Otherwise the engine.version file in flutter/flutter is used to set the engine commit.
+
+* build failure due to gn unknown parameter for `--no-build-embedder-examples`.  One solution to resolve this is to exclude `disable-embedder-examples` from PACKAGECONFIG in local.conf using:
+
+  ```
+  PACKAGECONFIG:pn-flutter-engine-release = "disable-desktop-embeddings embedder-for-target fontconfig release"
+  
+  PACKAGECONFIG:pn-flutter-engine-debug = "disable-desktop-embeddings embedder-for-target fontconfig debug"
+
+  PACKAGECONFIG:pn-flutter-engine-profile = "disable-desktop-embeddings embedder-for-target fontconfig profile"
+   ```
+  This issue is related to missing gn options `--build-embedder-examples` and `--no-build-embedder-examples` from certain builds.  I have `disable-embedder-examples` defined in PACKAGECONFIG by default, so if you have an engine commit that is missing this option, you need to use the PACKAGECONFIG sequence above.  Once the gn option rolls into all channels this override will no longer be needed.
+
+* When using the Sony embedders you need to specify FLUTTER_RUNTIME that matches other elements being installed, or make image will fail with package conflict. Example to avoid conflict with other recipes:
+  ```
+  echo 'FLUTTER_RUNTIME:pn-flutter-drm-gbm-backend = "debug"' >> ./conf/local.conf
+  echo 'FLUTTER_RUNTIME:pn-flutter-wayland-client = "debug"' >> ./conf/local.conf
+  ```
+
+
+### Recommended development flow:
 * Build Flutter application using desktop tools
-* Use Flutter Engine Runtime=Debug build confirming it works on target.  Debug as needed via `flutter attach`
-* Create Yocto Recipe for Flutter application using `flutter-gallery` as template.
+* Use Flutter Engine Runtime=Debug build confirming it works on target.  Debug as needed using customdevices
+* Create Yocto Recipe for your Flutter application using `flutter-gallery-*` as the template.
+  Nested projected are supported using FLUTTER_APPLICATION_PATH.
+  Passing Dart defines are done with FLUTTER_EXTRA_BUILD_ARGS.
 * Add flutter-gallery, selected embedder, flutter-engine runtime=Release to your release image.
 * Image device
 
-Note: If you get a gray screen running the Gallery app, chances are you don't have `LC_ALL` set.  Check `/usr/share/locale/` on your target for available locale, and set LC_ALL appropriately.  Example: `export LC_ALL=en_GB`
+Note: If you get a gray screen running the Gallery app, chances are you don't have a locale set.  Ensure your platform has a valid locale set.  See GLIBC_GENERATE_LOCALES and IMAGE_LINGUAS in one of the NVidia CI projects on how to do this.
 
 Note: In theory Swift Shader (CPU render) engine builds should work with the right build flags.  Be warned it won't work out of the box.  Select a SoC with a GPU that supports OpenGL 3.0+ and save yourself the Engineering NRE.
 
@@ -26,11 +56,11 @@ If you selecting a part go with v3.0+, ideally one with Vulkan support.
 
 This layer includes recipes to build
 
-* Toyota ivi-homescreen (Recommended embedder for Wayland)
+* flutter-sdk (channel selection, default is master if FLUTTER_SDK_TAG is not set)
+* flutter-engine (tracks engine.version from FLUTTER_SDK_TAG)
+* flutter-gallery Application (debug, profile, and release) requires master
+* ivi-homescreen (Toyota/AGL - Wayland Embedder)
 * flutter-pi (DRM w/VSync - Recommended embedder for DRM)
-* flutter-engine (channel selection, default is beta)
-* flutter-sdk (channel selection, default is beta)
-* flutter-gallery Application (interpreted and AOT - requires dev channel override)
 * flutter-wayland (POC) / waylandpp/ipugxml (archived)
 * Sony embedders
 
@@ -54,24 +84,21 @@ This layer includes recipes to build
 
 Notes: CI job sstate is cleared between builds for all meta-flutter recipes; clean builds.
 
-CI jobs for common targets will be added.  STM32MP157x is planned next.
 
 ### General
 
-Targets flutter-engine is known to work on
+Targets flutter-engine-* is known to work on
 
-* AGL QEMU images - x86_64
+* AGL QEMU images - aarch64/x86_64 (CI job)
 * DragonBoard 410c - aarch64
 * Intel MinnowBoard Max (BayTrail) - intel-icore7-64
-* NVIDIA Nano Dev Kit - aarch64
-* NVIDIA Xavier NX Dev Kit - aarch64
+* NVIDIA Nano Dev Kit - aarch64 (CI job)
+* NVIDIA Xavier NX Dev Kit - aarch64 (CI job)
 * Raspberry Pi 3 / Compute - aarch64 / armv7hf (CI job)
 * Raspberry Pi 4 / Compute - aarch64 (CI job)
 * Renesas R-Car m3ulcb - aarch64
-* STM32MP157x - cortexa7t2hf
+* STM32MP157x - cortexa7t2hf (CI job)
 * etc, etc
-
-Note: 32-bit ARM builds currently require Flutter Channel = Master until commit makes it into dev->beta->stable.
 
 ## Include the Flutter SDK into Yocto SDK
 
@@ -83,30 +110,6 @@ Then run:
 
     bitbake <image name> -c populate_sdk
 
-## NVIDIA Xavier/Nano
-
-local.conf changes
-
-    FLUTTER_CHANNEL = "master"
-    IMAGE_INSTALL_append = " flutter-drm-eglstream-backend"
-    IMAGE_INSTALL_append = " flutter-gallery"
-
-OR
-
-    FLUTTER_CHANNEL = "master"
-    CORE_IMAGE_EXTRA_INSTALL += "\
-        flutter-drm-eglstream-backend \
-        flutter-gallery \
-    "
-
-Build EGL image
-
-    bitbake demo-image-egl
-
-Run Flutter application on target (defaults to AOT)
-
-    FLUTTER_DRM_DEVICE=/dev/dri/card0 flutter-drm-eglstream-backend -b /usr/share/flutter-gallery/sony
-
 ## NXP i.MX 8QuadXPlus MEK
 
 ```
@@ -114,12 +117,13 @@ repo init -u https://source.codeaurora.org/external/imx/imx-manifest -b imx-linu
 repo sync -j20
 DISTRO=fslc-wayland MACHINE=imx8qxpmek source setup-environment build
 pushd ../sources
-git clone -b dunfell https://github.com/jwinarske/meta-flutter.git
+git clone -b dunfell https://github.com/meta-flutter/meta-flutter.git
 popd
 bitbake-layers add-layer ../sources/meta-clang ../sources/meta-flutter
-echo -e 'FLUTTER_CHANNEL = "dev"' >> conf/local.conf
-echo -e 'IMAGE_INSTALL_append = " flutter-wayland"' >> conf/local.conf
-echo -e 'IMAGE_INSTALL_append = " flutter-gallery"' >> conf/local.conf
+echo -e 'FLUTTER_SDK_TAG = "2.10.2"' >> conf/local.conf
+echo -e 'IMAGE_INSTALL:append = " flutter-engine-release"' >> conf/local.conf
+echo -e 'IMAGE_INSTALL:append = " ivi-homescreen-release"' >> conf/local.conf
+echo -e 'IMAGE_INSTALL:append = " flutter-gallery-release"' >> conf/local.conf
 bitbake fsl-image-multimedia
 ```
 
@@ -129,10 +133,10 @@ See rpi-32.yml/rpi-64.yml for example usage, or download build artifacts from th
 
 ## STM32MP157x Discovery Board
 
-See Dunfell branch for CI job example.
+See `dunfell` branch for CI job example.
 
 ## General Yocto Notes
 
 When building on systems with GCC version > than uninative in Yocto distro add the following to conf/local.conf
 
-    INHERIT_remove = "uninative"
+    INHERIT:remove = "uninative"
