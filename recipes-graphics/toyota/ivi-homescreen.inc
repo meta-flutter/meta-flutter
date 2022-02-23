@@ -28,7 +28,7 @@ SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;b
 
 S = "${WORKDIR}/git"
 
-inherit cmake features_check systemd
+inherit cmake features_check pkgconfig systemd
 
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
