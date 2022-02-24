@@ -61,11 +61,8 @@ jobs:
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           wait
           cd sources/poky
-          git reset --hard
-          git checkout honister
-          git checkout honister-3.4
+          git checkout honister-3.4.2
           git apply ../../conf/rpi64/0001-mesa-broadcom-vulkan.patch
-          git apply ../../conf/rpi64/0001-vulkan-loader-pc-prefix-fix.patch
 
       - name: Configure build
         shell: bash
@@ -74,14 +71,24 @@ jobs:
           rm -rf ${{ env.MACHINE }}/conf || true
           . ./setup-environment ${{ env.MACHINE }}
           echo '***************************************'
-          echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
-          echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
-          echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
-          echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.DISTRO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
-          echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:pn-sascha-samples = "d2d"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:pn-vkcube = "kms wayland"' >> ./conf/local.conf
-          echo 'FLUTTER_SDK_TAG = "2.10.2"' >> ./conf/local.conf
+          echo -e 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
+          echo -e 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
+          echo -e 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
+          echo -e 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.DISTRO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
+          echo -e 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
+          echo -e 'PACKAGECONFIG:pn-sascha-samples = "d2d"' >> ./conf/local.conf
+          echo -e 'PACKAGECONFIG:pn-vkcube = "kms wayland"' >> ./conf/local.conf
+          echo -e 'FLUTTER_SDK_TAG = "2.10.2"' >> ./conf/local.conf
+          echo -e 'PREFERRED_PROVIDER:jpeg = "libjpeg-turbo"' >> ./conf/local.conf
+          echo -e 'PREFERRED_PROVIDER:jpeg-native = "libjpeg-turbo-native"' >> ./conf/local.conf
+          echo -e '' >> ./conf/local.conf
+          echo -e 'PREFERRED_VERSION:vulkan-headers = "1.2.198.0"' >> ./conf/local.conf
+          echo -e 'PREFERRED_VERSION:vulkan-loader = "1.2.198.1"' >> ./conf/local.conf
+          echo -e 'PREFERRED_VERSION:vulkan-tools = "1.2.198.0"' >> ./conf/local.conf
+          echo -e 'PREFERRED_VERSION:glslang = "11.6.0"' >> ./conf/local.conf
+          echo -e 'PREFERRED_VERSION:vulkan-validationlayers = "1.2.198"' >> ./conf/local.conf
+          echo -e 'PREFERRED_VERSION:cmake = "3.21.1"' >> ./conf/local.conf
+          echo -e 'PREFERRED_VERSION:cmake-native = "3.21.1"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -132,22 +139,6 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: vkmark-rpi4-64
-          path: |
-             /home/dev/artifacts/*.rpm
-
-      - name: Build vulkan-validationlayers
-        shell: bash
-        working-directory: ../rpi4-drm-honister-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vulkan-validationlayers
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa72/vulkan-validationlayers-1.2.182-*.rpm /home/dev/artifacts
-
-      - name: Publish vulkan-validationlayers artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: vulkan-validationlayers-rpi4-64
           path: |
              /home/dev/artifacts/*.rpm
 
@@ -228,22 +219,6 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: vk-layer-perfdoc-rpi4-64
-          path: |
-             /home/dev/artifacts/*.rpm
-
-      - name: Build vulkan-extensionlayer
-        shell: bash
-        working-directory: ../rpi4-drm-honister-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vulkan-extensionlayer
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa72/vulkan-extensionlayer-1.2.182-*.rpm /home/dev/artifacts
-
-      - name: Publish vulkan-extensionlayer artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: vulkan-extensionlayer-rpi4-64
           path: |
              /home/dev/artifacts/*.rpm
 

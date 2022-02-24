@@ -61,8 +61,6 @@ jobs:
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           wait
           cd sources/poky
-          git reset --hard
-          git checkout honister
           git checkout honister-3.4.2
           git apply ../../conf/rpi64/0001-mesa-broadcom-vulkan.patch
 
@@ -90,8 +88,6 @@ jobs:
           echo -e 'PREFERRED_VERSION:vulkan-tools = "1.2.198.0"' >> ./conf/local.conf
           echo -e 'PREFERRED_VERSION:glslang = "11.6.0"' >> ./conf/local.conf
           echo -e 'PREFERRED_VERSION:vulkan-validationlayers = "1.2.198"' >> ./conf/local.conf
-          echo -e 'PREFERRED_VERSION:cmake = "3.21.1"' >> ./conf/local.conf
-          echo -e 'PREFERRED_VERSION:cmake-native = "3.21.1"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -209,22 +205,6 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build vulkan-extensionlayer
-        shell: bash
-        working-directory: ../rpi4-32-drm-honister-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vulkan-extensionlayer
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/vulkan-extensionlayer-1.2.182-*.rpm /home/dev/artifacts
-
-      - name: Publish vulkan-extensionlayer artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: vulkan-extensionlayer-rpi4-64
-          path: |
-             /home/dev/artifacts/*.rpm
-             
       - name: Build sascha-samples (D2D)
         shell: bash
         working-directory: ../rpi4-32-drm-honister-latest
@@ -306,7 +286,6 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkquake3"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vk-layer-perfdoc"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vulkan-extensionlayer"' >> ./conf/local.conf
           bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
