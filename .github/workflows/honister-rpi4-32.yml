@@ -105,6 +105,7 @@ jobs:
           bitbake -e core-image-minimal | grep "^DISTRO_FEATURES"
           echo '***************************************'
           bitbake -e > bb.environment
+          bitbake vulkan-loader -cdo_cleansstate
 
       - name: Build core-image-minimal
         shell: bash
@@ -134,10 +135,6 @@ jobs:
         working-directory: ../rpi4-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake cmake -cdo_cleansstate
-          bitbake cmake-native -cdo_cleansstate
-          bitbake vulkan-loader -cdo_cleansstate
-          bitbake vulkan-headers -cdo_cleansstate
           bitbake vkmark
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/vkmark-git-*.rpm /home/dev/artifacts
