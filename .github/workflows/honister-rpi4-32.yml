@@ -63,7 +63,7 @@ jobs:
           cd sources/poky
           git reset --hard
           git checkout honister
-          git checkout honister-3.4
+          git checkout honister-3.4.2
           git apply ../../conf/rpi64/0001-mesa-broadcom-vulkan.patch
           git apply ../../conf/rpi64/0001-vulkan-loader-pc-prefix-fix.patch
 
@@ -103,15 +103,6 @@ jobs:
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake core-image-minimal
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/mesa-vulkan-drivers-*.rpm /home/dev/artifacts
-
-      - name: Publish mesa-vulkan-drivers artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: mesa-vulkan-drivers-rpi4
-          path: |
-             /home/dev/artifacts/*.rpm
 
       - name: Build swiftshader
         shell: bash
