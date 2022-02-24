@@ -65,7 +65,6 @@ jobs:
           git checkout honister
           git checkout honister-3.4.2
           git apply ../../conf/rpi64/0001-mesa-broadcom-vulkan.patch
-          git apply ../../conf/rpi64/0001-vulkan-loader-pc-prefix-fix.patch
 
       - name: Configure build
         shell: bash
