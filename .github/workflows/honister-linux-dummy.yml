@@ -15,7 +15,7 @@ jobs:
   linux-dummy:
   
     env:
-      YOCTO_VERSION: 3.4.1
+      YOCTO_VERSION: 3.4.2
       YOCTO_BRANCH: honister
       
     runs-on: [self-hosted, linux]
@@ -26,8 +26,8 @@ jobs:
         --user 1018
         --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
         --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
-        -v /b/github-ci/download:/home/dev/dl:Z
-        -v /b/github-ci/sstate/yocto/dunfell/latest:/home/dev/sstate:Z
+        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
+        -v /mnt/raid10/github-ci/sstate/yocto/dunfell/latest:/home/dev/sstate:Z
 
     steps:
     
@@ -75,7 +75,6 @@ jobs:
           echo 'VIRTUAL-RUNTIME:init_manager = "systemd"' >> ./conf/local.conf
           echo 'VIRTUAL-RUNTIME:initscripts = ""' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER:virtual/kernel = "linux-dummy"' >> ./conf/local.conf
-          echo 'FLUTTER_CHANNEL = "master"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -109,9 +108,24 @@ jobs:
         working-directory: ../yocto-honister/poky
         run: |
           . ./oe-init-build-env
-          bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-gallery-release -c do_cleansstate
           bitbake flutter-gallery-release
+
+      - name: Build flutter-engine-profile
+        shell: bash
+        working-directory: ../yocto-honister/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-engine-profile -c do_cleansstate
+          bitbake flutter-engine-profile
+
+      - name: Build flutter-gallery-profile
+        shell: bash
+        working-directory: ../yocto-honister/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-gallery-profile -c do_cleansstate
+          bitbake flutter-gallery-profile
 
       - name: Build ivi-homescreen-release
         shell: bash
@@ -121,6 +135,22 @@ jobs:
           bitbake ivi-homescreen-release -c do_cleansstate
           bitbake ivi-homescreen-release
 
+      - name: Build ivi-homescreen-profile
+        shell: bash
+        working-directory: ../yocto-honister/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake ivi-homescreen-profile -c do_cleansstate
+          bitbake ivi-homescreen-profile
+
+      - name: Build ivi-homescreen-debug
+        shell: bash
+        working-directory: ../yocto-honister/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake ivi-homescreen-debug -c do_cleansstate
+          bitbake ivi-homescreen-debug
+
       - name: Build flutter-pi-release
         shell: bash
         working-directory: ../yocto-honister/poky
@@ -128,6 +158,30 @@ jobs:
           . ./oe-init-build-env
           bitbake flutter-pi-release -c do_cleansstate
           bitbake flutter-pi-release
+
+      - name: Build flutter-pi-profile
+        shell: bash
+        working-directory: ../yocto-honister/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-pi-profile -c do_cleansstate
+          bitbake flutter-pi-profile
+
+      - name: Build flutter-pi-debug
+        shell: bash
+        working-directory: ../yocto-honister/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-pi-debug -c do_cleansstate
+          bitbake flutter-pi-debug
+
+      - name: Build flutter-drm-eglstream-backend
+        shell: bash
+        working-directory: ../yocto-honister/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-drm-eglstream-backend -c do_cleansstate
+          bitbake flutter-drm-eglstream-backend
 
       - name: Build drm gbm backend
         shell: bash
@@ -161,7 +215,7 @@ jobs:
           bitbake flutter-wayland-client -c do_cleansstate
           bitbake flutter-wayland-client
 
-      - name: Build x11 Client
+      - name: Build X11 Client
         shell: bash
         working-directory: ../yocto-honister/poky
         run: |

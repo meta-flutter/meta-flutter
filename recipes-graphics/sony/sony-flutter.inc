@@ -27,7 +27,7 @@ inherit pkgconfig cmake features_check
 
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
-PREFERRED_PROVIDER_libgcc = "compiler-rt"
+PREFERRED_PROVIDER:libgcc = "compiler-rt"
 
 EXTRA_OECMAKE += "-D USER_PROJECT_PATH=${S}/examples/${PN}"
 
