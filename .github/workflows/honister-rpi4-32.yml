@@ -65,8 +65,6 @@ jobs:
           git checkout honister
           git checkout honister-3.4.2
           git apply ../../conf/rpi64/0001-mesa-broadcom-vulkan.patch
-          cd ../meta-vulkan
-          git checkout honister
 
       - name: Configure build
         shell: bash
@@ -136,6 +134,10 @@ jobs:
         working-directory: ../rpi4-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake cmake -cdo_cleansstate
+          bitbake cmake-native -cdo_cleansstate
+          bitbake vulkan-loader -cdo_cleansstate
+          bitbake vulkan-headers -cdo_cleansstate
           bitbake vkmark
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/vkmark-git-*.rpm /home/dev/artifacts
