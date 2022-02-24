@@ -145,22 +145,6 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build vulkan-validationlayers
-        shell: bash
-        working-directory: ../rpi4-32-drm-honister-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vulkan-validationlayers
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/vulkan-validationlayers-1.2.182-*.rpm /home/dev/artifacts
-
-      - name: Publish vulkan-validationlayers artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: vulkan-validationlayers-rpi4-64
-          path: |
-             /home/dev/artifacts/*.rpm
-
       - name: Build vkcube
         shell: bash
         working-directory: ../rpi4-32-drm-honister-latest
