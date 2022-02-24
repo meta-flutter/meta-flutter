@@ -105,7 +105,6 @@ jobs:
           bitbake -e core-image-minimal | grep "^DISTRO_FEATURES"
           echo '***************************************'
           bitbake -e > bb.environment
-          bitbake vulkan-loader -cdo_cleansstate
 
       - name: Build core-image-minimal
         shell: bash
