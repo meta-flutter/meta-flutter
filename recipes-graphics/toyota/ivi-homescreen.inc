@@ -28,15 +28,16 @@ SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;b
 
 S = "${WORKDIR}/git"
 
-inherit cmake features_check systemd
+inherit cmake features_check pkgconfig systemd
 
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
 PREFERRED_PROVIDER_libgcc = "compiler-rt"
 
-PACKAGECONFIG ??= "transparency ${@bb.utils.filter('DISTRO_FEATURES', 'systemd', d)}"
+PACKAGECONFIG ??= "transparency gstreamer ${@bb.utils.filter('DISTRO_FEATURES', 'systemd', d)}"
 
 PACKAGECONFIG[transparency] = "-DBUILD_EGL_TRANSPARENCY=ON, -DBUILD_EGL_TRANSPARENCY=OFF"
+PACKAGECONFIG[gstreamer] = "-DBUILD_PLUGIN_GSTREAMER=ON, -DBUILD_PLUGIN_GSTREAMER=OFF, gstreamer1.0 gstreamer1.0-plugins-base ffmpeg"
 
 EXTRA_OECMAKE += "-D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr"
 
