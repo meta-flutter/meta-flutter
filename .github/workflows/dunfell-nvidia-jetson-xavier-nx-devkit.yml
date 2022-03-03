@@ -94,7 +94,7 @@ jobs:
           echo 'DISTRO_FEATURES_remove = "x11"' >> ./conf/local.conf
           echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> ./conf/local.conf
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
-          echo 'FLUTTER_SDK_TAG = "2.10.1"' >> ./conf/local.conf
+          echo 'FLUTTER_SDK_TAG = "2.10.2"' >> ./conf/local.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
           echo 'CORE_IMAGE_BASE_INSTALL_remove = " packagegroup-demo-vulkantests"' >> ./conf/local.conf
           echo 'CORE_IMAGE_BASE_INSTALL_remove = " packagegroup-demo-westontests"' >> ./conf/local.conf
@@ -103,6 +103,20 @@ jobs:
           echo 'PACKAGECONFIG_pn-sascha-samples = "wayland"' >> ./conf/local.conf
           echo 'TEGRAFLASH_SDCARD_SIZE = "32G"' >> ./conf/local.conf
           echo 'KERNEL_ARGS_append = " quiet"' >> ./conf/local.conf
+          echo 'PREFERRED_VERSION:gstreamer1.0 = "1.16%"' >> ./conf/local.conf
+          echo 'PREFERRED_VERSION:gstreamer1.0-libav = "1.16%"' >> ./conf/local.conf
+          echo 'PREFERRED_VERSION:gstreamer1.0-plugins-bad = "1.16%"' >> ./conf/local.conf
+          echo 'PREFERRED_VERSION:gstreamer1.0-plugins-good = "1.16%"' >> ./conf/local.conf
+          echo 'PREFERRED_VERSION:gstreamer1.0-plugins-ugly = "1.16%"' >> ./conf/local.conf
+          echo 'PREFERRED_VERSION:gstreamer1.0-plugins-base = "1.16%"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:remove:pn-gstreamer1.0-plugins-bad = "vulkan"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_BASE_INSTALL_append = " \
+              gstreamer1.0-libav \
+              gstreamer1.0-plugins-bad \
+              gstreamer1.0-plugins-good \
+              gstreamer1.0-plugins-ugly \
+              "' >> ./conf/local.conf
+          echo 'LICENSE_FLAGS_WHITELIST = "commercial"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -118,6 +132,7 @@ jobs:
         working-directory: ../${{ env.MACHINE }}/tegra-demo-distro
         run: |
           . ./setup-env
+          bitbake gstreamer1.0-plugins-bad -c do_cleansstate
           bitbake demo-image-weston
           rm -rf /home/dev/artifacts/*
 
