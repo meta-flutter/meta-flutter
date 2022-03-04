@@ -17,25 +17,16 @@ DEPENDS += "\
     zip-native \
     "
 
-SRC_URI = "gn://github.com/flutter/engine.git;name=src/flutter \
-           file://0001-clang-toolchain.patch \
+SRC_URI += "file://0001-clang-toolchain.patch \
            file://0002-x64-sysroot-assert.patch"
 
-S = "${WORKDIR}/src"
+S = "${WORKDIR}/git"
 
-inherit gn python3native features_check pkgconfig
+inherit python3native features_check pkgconfig
 
 require conf/include/gn-utils.inc
 
 FLUTTER_SDK_TAG ?= "${AUTOREV}"
-# For gn.bbclass
-GN_CUSTOM_VARS ?= '\
-{\
-    "download_android_deps": False, \
-    "download_windows_deps": False, \
-    "download_linux_deps": False,   \
-}'
-EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 
 # For do_configure, do_compile
 RUNTIME = "llvm"
@@ -89,9 +80,9 @@ PACKAGECONFIG[vulkan-validation-layers] = "--enable-vulkan-validation-layers"
 
 
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
-CLANG_PATH = "${WORKDIR}/src/buildtools/linux-x64/clang"
+CLANG_PATH = "${S}/buildtools/linux-x64/clang"
 
-ARGS_GN_FILE = "${WORKDIR}/src/${OUT_DIR_REL}/args.gn"
+ARGS_GN_FILE = "${S}/${OUT_DIR_REL}/args.gn"
 
 OUT_DIR_REL = "${@get_out_dir(d)}"
 
@@ -113,6 +104,14 @@ ARGS_GN_append_armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\""
 ARGS_GN_append_armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
 
 do_configure() {
+    export http_proxy=${http_proxy}
+    export https_proxy=${https_proxy}
+    export HTTP_PROXY=${HTTP_PROXY}
+    export HTTPS_PROXY=${HTTPS_PROXY}
+    export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:${PATH}
+    export DEPOT_TOOLS_UPDATE=0
+    export GCLIENT_PY3=0
+
     cd ${S}
 
     # required object files to link
@@ -129,6 +128,14 @@ do_configure() {
 do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 
 do_compile() {
+    export http_proxy=${http_proxy}
+    export https_proxy=${https_proxy}
+    export HTTP_PROXY=${HTTP_PROXY}
+    export HTTPS_PROXY=${HTTPS_PROXY}
+    export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:${PATH}
+    export DEPOT_TOOLS_UPDATE=0
+    export GCLIENT_PY3=0
+
     cd ${S}
 
     autoninja -C ${OUT_DIR_REL}
@@ -182,8 +189,3 @@ FILES_${PN}-dev = "\
 RDEPENDS_${PN} += " liberation-fonts"
 
 BBCLASSEXTEND = ""
-
-python () {
-    import gn
-    d.setVar('SRCREV', gn.get_engine_commit(d))
-}
