@@ -94,7 +94,7 @@ jobs:
           echo 'DISTRO_FEATURES_remove = "x11"' >> ./conf/local.conf
           echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> ./conf/local.conf
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
-          echo 'FLUTTER_SDK_TAG = "2.10.2"' >> ./conf/local.conf
+          echo 'FLUTTER_SDK_TAG = "2.10.3"' >> ./conf/local.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
           echo 'CORE_IMAGE_BASE_INSTALL_remove = " packagegroup-demo-vulkantests"' >> ./conf/local.conf
           echo 'CORE_IMAGE_BASE_INSTALL_remove = " packagegroup-demo-westontests"' >> ./conf/local.conf
@@ -103,13 +103,7 @@ jobs:
           echo 'PACKAGECONFIG_pn-sascha-samples = "wayland"' >> ./conf/local.conf
           echo 'TEGRAFLASH_SDCARD_SIZE = "32G"' >> ./conf/local.conf
           echo 'KERNEL_ARGS_append = " quiet"' >> ./conf/local.conf
-          echo 'PREFERRED_VERSION:gstreamer1.0 = "1.16%"' >> ./conf/local.conf
-          echo 'PREFERRED_VERSION:gstreamer1.0-libav = "1.16%"' >> ./conf/local.conf
-          echo 'PREFERRED_VERSION:gstreamer1.0-plugins-bad = "1.16%"' >> ./conf/local.conf
-          echo 'PREFERRED_VERSION:gstreamer1.0-plugins-good = "1.16%"' >> ./conf/local.conf
-          echo 'PREFERRED_VERSION:gstreamer1.0-plugins-ugly = "1.16%"' >> ./conf/local.conf
-          echo 'PREFERRED_VERSION:gstreamer1.0-plugins-base = "1.16%"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:remove:pn-gstreamer1.0-plugins-bad = "vulkan"' >> ./conf/local.conf
+          echo 'GST_VERSION = "1.16%"' >> ./conf/local.conf
           echo 'CORE_IMAGE_BASE_INSTALL_append = " \
               gstreamer1.0-libav \
               gstreamer1.0-plugins-bad \
@@ -126,13 +120,13 @@ jobs:
             $WORKSPACE/layers/meta-vulkan
           bitbake-layers show-layers
           echo '***************************************'
+          bitbake flutter-sdk-native -c do_cleansstate
 
       - name: Build Base Image
         shell: bash
         working-directory: ../${{ env.MACHINE }}/tegra-demo-distro
         run: |
           . ./setup-env
-          bitbake gstreamer1.0-plugins-bad -c do_cleansstate
           bitbake demo-image-weston
           rm -rf /home/dev/artifacts/*
 
@@ -168,7 +162,7 @@ jobs:
           name: flutter-engine-debug-jetson-nano-devkit
           path: |
              /home/dev/artifacts/*.rpm
-      
+
       - name: Build ivi-homescreen-debug
         shell: bash
         working-directory: ../${{ env.MACHINE }}/tegra-demo-distro
@@ -186,46 +180,11 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build flutter-engine-profile
-        shell: bash
-        working-directory: ../${{ env.MACHINE }}/tegra-demo-distro
-        run: |
-          . ./setup-env
-          bitbake flutter-engine-profile -c do_cleansstate
-          bitbake flutter-engine-profile
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64/flutter-engine-profile-git*.rpm /home/dev/artifacts
-
-      - name: Publish flutter-engine-profile artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: flutter-engine-profile-jetson-nano-devkit
-          path: |
-             /home/dev/artifacts/*.rpm
-
-      - name: Build flutter-engine-release
-        shell: bash
-        working-directory: ../${{ env.MACHINE }}/tegra-demo-distro
-        run: |
-          . ./setup-env
-          bitbake flutter-engine-release -c do_cleansstate
-          bitbake flutter-engine-release
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64/flutter-engine-release-git*.rpm /home/dev/artifacts
-
-      - name: Publish flutter-engine-release artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: flutter-engine-release-jetson-nano-devkit
-          path: |
-             /home/dev/artifacts/*.rpm
-
       - name: Build flutter-gallery-debug
         shell: bash
         working-directory: ../${{ env.MACHINE }}/tegra-demo-distro
         run: |
           . ./setup-env
-          bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-gallery-debug -c do_cleansstate
           bitbake flutter-gallery-debug
           rm -rf /home/dev/artifacts/*
@@ -243,8 +202,6 @@ jobs:
         working-directory: ../${{ env.MACHINE }}/tegra-demo-distro
         run: |
           . ./setup-env
-          bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-gallery-release -c do_cleansstate
           bitbake flutter-gallery-release
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/aarch64/flutter-gallery-release-git*.rpm /home/dev/artifacts
@@ -261,11 +218,13 @@ jobs:
         working-directory: ../${{ env.MACHINE }}/tegra-demo-distro
         run: |
           . ./setup-env
-          echo 'IMAGE_INSTALL_append = " flutter-engine-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " flutter-gallery-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " ivi-homescreen-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " adwaita-icon-theme-cursors"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " sascha-samples"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " \
+              flutter-engine-debug \
+              flutter-gallery-debug \
+              ivi-homescreen-debug \
+              adwaita-icon-theme-cursors \
+              sascha-samples \
+              "' >> ./conf/local.conf
           bitbake demo-image-weston
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/images/${{ env.MACHINE }}/demo-image-weston-${{ env.MACHINE }}-*.tegraflash.tar.gz /home/dev/artifacts

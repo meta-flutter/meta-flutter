@@ -4,6 +4,40 @@ Yocto Layer for Google Flutter related projects.
 
 _Updates_:
 
+* Long Term Support (LTS) - 10 March, 2022
+  To qualify as LTS everything that is downloaded by the build needs to go through the 
+  Download (DL) Directory.  This allows rebuilding any of the recipes when any one of the 
+  public repositories are no longer available.  One of the key benefits aside from LTS, 
+  is that the build time is nearly cut in half.  No longer is the Flutter SDK/Engine
+  source being pulled from the internet on every build.  Only when the DL directory is clean.
+  This approach is accomplished using a pre-process step on the .gclient and DEPS file via
+  scripts/gclient_bitbake.py.  This step generates the baseline flutter-engine-${FLUTTER_SDK_TAG}.inc
+  file.  This eliminates a dependency on depot_tools and gclient.  On a 48-core machine build times
+  with a clean DL folder is ~10 minutes.  For a do_cleansstate + do_build with a populated
+  DL folder, build time is ~3 minutes.  Prior to this feature, build times for the later
+  was ~6 minutes.
+  
+  All source uris are now explicitly defined in conf/include/flutter-engine_${FLUTTER_SDK_TAG}.inc.
+  This enables everything to get cached to the DL folder.
+  
+  The CIPD CLI tool that is used to download the CIPD packages is built from luci-go source (infra), 
+  opposed to using the cipd shell wrapper (performs unsolicited network I/O) in depot_tools.
+  
+  The top level FLUTTER_SDK_TAG default value is defined in conf/include/flutter-common.inc.  This 
+  can still be overriden using local.conf.
+
+  If there is a Flutter SDK tag you want to build that is not present under conf/include, then
+  you need to copy scripts/gclient_bitbake.py to the root of your Flutter source tree, and run it.
+  This will generate an .inc file needs to be renamed/named per the desired pattern of
+  `flutter-engine-${FLUTTER_SDK_TAG}.inc`, and then copied to conf/include.
+
+  You are welcome to submit a PR with your new and thoroughly tested `flutter-engine-${FLUTTER_SDK_TAG}.inc`
+  file.
+
+  The 2.10.3 inc file has about eight line additional beyond what the script generates.  One is to
+  indicate the tag is LTS compliant: `FLUTTER_ENGINE_LTS = "1"`.  The others relate to downloading
+  pre-built Dart SDK artifacts.
+
 * FLUTTER_CHANNEL support has been deprecated
 
 * FLUTTER_SDK_TAG - New approach.  Allows locking SDK and Engine to specific commit hash.

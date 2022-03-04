@@ -79,7 +79,7 @@ jobs:
           echo 'INHERIT_remove = "uninative"' >> ./conf/local.conf
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../external/meta-clang/recipes-devtools/clang/clang_git.bb
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
-          echo 'FLUTTER_SDK_TAG = "2.10.2"' >> ./conf/local.conf
+          echo 'FLUTTER_SDK_TAG = "2.10.3"' >> ./conf/local.conf
           echo '** Layers *****************************'
           sed -i 's|\${METADIR}/bsp/meta-renesas/meta-rcar-gen3 \\|\${METADIR}/bsp/meta-renesas/meta-rcar-gen3 \\\n  ${METADIR}/external/meta-openembedded/meta-python \\|g' conf/bblayers.conf
           bitbake-layers show-layers
@@ -92,7 +92,6 @@ jobs:
           bitbake gles-user-module -c do_cleansstate
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
-          bitbake flutter-sdk -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-engine-debug -c do_cleansstate
           bitbake flutter-engine-release -c do_cleansstate

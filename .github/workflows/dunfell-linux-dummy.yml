@@ -84,6 +84,7 @@ jobs:
               ffmpeg \
               "' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_WHITELIST = "commercial"' >> ./conf/local.conf
+          echo 'FLUTTER_SDK_TAG = "2.10.3"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -105,6 +106,14 @@ jobs:
           . ./oe-init-build-env
           bitbake core-image-minimal
 
+      - name: Build flutter-engine-debug
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-engine-debug -c do_cleansstate
+          bitbake flutter-engine-debug
+
       - name: Build flutter-engine-release
         shell: bash
         working-directory: ../yocto-dunfell/poky
@@ -112,14 +121,6 @@ jobs:
           . ./oe-init-build-env
           bitbake flutter-engine-release -c do_cleansstate
           bitbake flutter-engine-release
-
-      - name: Build flutter-gallery-release
-        shell: bash
-        working-directory: ../yocto-dunfell/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake flutter-gallery-release -c do_cleansstate
-          bitbake flutter-gallery-release
 
       - name: Build flutter-engine-profile
         shell: bash
@@ -129,6 +130,22 @@ jobs:
           bitbake flutter-engine-profile -c do_cleansstate
           bitbake flutter-engine-profile
 
+      - name: Build flutter-gallery-debug
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-gallery-debug -c do_cleansstate
+          bitbake flutter-gallery-debug
+
+      - name: Build flutter-gallery-release
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake flutter-gallery-release -c do_cleansstate
+          bitbake flutter-gallery-release
+
       - name: Build flutter-gallery-profile
         shell: bash
         working-directory: ../yocto-dunfell/poky
@@ -136,6 +153,14 @@ jobs:
           . ./oe-init-build-env
           bitbake flutter-gallery-profile -c do_cleansstate
           bitbake flutter-gallery-profile
+
+      - name: Build ivi-homescreen-debug
+        shell: bash
+        working-directory: ../yocto-dunfell/poky
+        run: |
+          . ./oe-init-build-env
+          bitbake ivi-homescreen-debug -c do_cleansstate
+          bitbake ivi-homescreen-debug
 
       - name: Build ivi-homescreen-release
         shell: bash
@@ -153,13 +178,13 @@ jobs:
           bitbake ivi-homescreen-profile -c do_cleansstate
           bitbake ivi-homescreen-profile
 
-      - name: Build ivi-homescreen-debug
+      - name: Build flutter-pi-debug
         shell: bash
         working-directory: ../yocto-dunfell/poky
         run: |
           . ./oe-init-build-env
-          bitbake ivi-homescreen-debug -c do_cleansstate
-          bitbake ivi-homescreen-debug
+          bitbake flutter-pi-debug -c do_cleansstate
+          bitbake flutter-pi-debug
 
       - name: Build flutter-pi-release
         shell: bash
@@ -176,14 +201,6 @@ jobs:
           . ./oe-init-build-env
           bitbake flutter-pi-profile -c do_cleansstate
           bitbake flutter-pi-profile
-
-      - name: Build flutter-pi-debug
-        shell: bash
-        working-directory: ../yocto-dunfell/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake flutter-pi-debug -c do_cleansstate
-          bitbake flutter-pi-debug
 
       - name: Build flutter-drm-eglstream-backend
         shell: bash

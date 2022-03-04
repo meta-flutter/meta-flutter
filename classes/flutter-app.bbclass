@@ -1,3 +1,4 @@
+# Copyright (c) 2022 Joel Winarske. All rights reserved.
 # Helper class for building Flutter Application.
 # Assumes that:
 # - Flutter Application does not have a linux folder.  If it does it 
@@ -53,7 +54,7 @@ do_compile() {
             --packages .dart_tool/package_config.json \
             --output-dill .dart_tool/flutter_build/*/app.dill \
             --depfile .dart_tool/flutter_build/*/kernel_snapshot.d \
-            package:${PUBSPEC_APPNAME}/main.dart            
+            package:${PUBSPEC_APPNAME}/main.dart
 
         #
         # Extract Engine SDK

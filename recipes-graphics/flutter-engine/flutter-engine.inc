@@ -11,23 +11,24 @@ CVE_PRODUCT = "libflutter_engine.so"
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 DEPENDS += "\
-    ca-certificates-native \
     compiler-rt \
-    curl-native \
-    depot-tools-native \
     fontconfig \
     libcxx \
     zip-native \
     "
 
+RDEPENDS_${PN} += " liberation-fonts"
+
 SRC_URI = "file://0001-clang-toolchain.patch \
-           file://0002-x64-sysroot-assert.patch"
+           file://0002-x64-sysroot-assert.patch \
+          "
 
 S = "${WORKDIR}/src"
 
 inherit python3native features_check pkgconfig
 
-require conf/include/gn-utils.inc
+require conf/include/flutter-common.inc
+require conf/include/flutter-engine-utils.inc
 
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
@@ -40,8 +41,6 @@ COMPATIBLE_MACHINE_armv7a = "(.*)"
 COMPATIBLE_MACHINE_armv7ve = "(.*)"
 COMPATIBLE_MACHINE_x86 = "(.*)"
 COMPATIBLE_MACHINE_x86-64 = "(.*)"
-
-FLUTTER_RUNTIME ??= "release"
 
 PACKAGECONFIG ??= "disable-desktop-embeddings \
                    disable-embedder-examples \
@@ -82,8 +81,6 @@ PACKAGECONFIG[vulkan-validation-layers] = "--enable-vulkan-validation-layers"
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
 CLANG_PATH = "${WORKDIR}/src/buildtools/linux-x64/clang"
 
-ARGS_GN_FILE = "${WORKDIR}/src/${OUT_DIR_REL}/args.gn"
-
 OUT_DIR_REL = "${@get_out_dir(d)}"
 
 GN_ARGS = "${PACKAGECONFIG_CONFARGS} --clang --lto --no-goma --no-stripped "
@@ -103,111 +100,20 @@ ARGS_GN_append_armv7 = "arm_tune = \"${@gn_get_tune_features(d)}\""
 ARGS_GN_append_armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\""
 ARGS_GN_append_armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
 
-DEPOT_TOOLS ??= "${STAGING_DIR_NATIVE}/usr/share/depot_tools"
-PYTHON2_PATH ??= "bootstrap-2@3.8.9.chromium.14_bin/python/bin"
-
-FLUTTER_SDK_TAG ??= "${AUTOREV}"
-FLUTTER_ENGINE_REPO_URL ??= "https://github.com/flutter/engine.git"
-FLUTTER_ENGINE_COMMIT ??= "${@gn_get_engine_commit(d)}"
-GCLIENT_ARGS_EXTRA = "${@gn_get_gclient_engine_revision(d)}"
-
-do_patch_prepend() {
-
-    export CURL_CA_BUNDLE=${STAGING_DIR_NATIVE}/etc/ssl/certs/ca-certificates.crt
-    export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:$PATH
-
-    bbnote "FLUTTER_ENGINE_COMMIT: ${FLUTTER_ENGINE_COMMIT}"
-    bbnote "ARGS: ${GN_ARGS}"
-    bbnote "ARGS_GN_FILE: ${ARGS_GN_FILE}"
-    bbnote "ARGS_GN: ${ARGS_GN}"
-    bbnote "CLANG_TOOLCHAIN_TRIPLE: ${CLANG_TOOLCHAIN_TRIPLE}"
-    bbnote "GCLIENT_ROOT: ${WORKDIR}"
-    bbnote "gclient sync --shallow --no-history -R -D ${GCLIENT_ARGS_EXTRA} ${PARALLEL_MAKE}"
-    bbnote "OUT_DIR_REL: ${OUT_DIR_REL}"
-}
-
-do_patch () {
-
-    cd ${WORKDIR}
-
-    rm -rf ${WORKDIR}/.cipd
-    rm -rf ${WORKDIR}/.gclient*
-    
-
-    echo 'solutions = [
-        {
-            "managed" : False,
-            "name" : "src/flutter",
-            "url" : "${FLUTTER_ENGINE_REPO_URL}",
-            "deps_file": "DEPS",
-            "custom_vars" : {
-                "download_android_deps" : False,
-                "download_windows_deps" : False,
-                "download_linux_deps"   : False,
-            }
-        }
-    ]' > .gclient
-
-    ##################################
-    # depot_tools dependent variables
-    ##################################
-
-    # don't auto update...
-    export DEPOT_TOOLS_UPDATE=0
-    # force python 2
-    export GCLIENT_PY3=0
-
-    bbnote `python -V`
-    bbnote `which python`
-    bbnote `which gclient`
-
-    #################################################################
-    # --shallow:    Do a shallow clone into the cache dir
-    # --no-history: No git history to minimize download
-    # -R:           resets any local changes before updating
-    # -D:           Deletes from the working copy any dependencies that
-    #               have been removed since the last sync
-    #################################################################
-    gclient sync --shallow --no-history -R -D ${GCLIENT_ARGS_EXTRA} ${PARALLEL_MAKE}
-
-    cd ${S}
-
-    git apply ${WORKDIR}/0001-clang-toolchain.patch
-    git apply ${WORKDIR}/0002-x64-sysroot-assert.patch
-
-    # required object files to link
-    CLANG_VERSION=`ls ${CLANG_PATH}/lib/clang`
-    CLANG_LIB_TARGET_PATH=${CLANG_PATH}/lib/clang/${CLANG_VERSION}/lib/${CLANG_TOOLCHAIN_TRIPLE}
-    mkdir -p ${CLANG_LIB_TARGET_PATH}
-    cp ${STAGING_LIBDIR}/${TARGET_SYS}/*/crtbeginS.o ${CLANG_LIB_TARGET_PATH}/
-    cp ${STAGING_LIBDIR}/${TARGET_SYS}/*/crtendS.o ${CLANG_LIB_TARGET_PATH}/
-}
-do_patch[depends] += "ca-certificates-native:do_populate_sysroot"
-do_patch[depends] += "curl-native:do_populate_sysroot"
-do_patch[depends] += "depot-tools-native:do_populate_sysroot"
-do_patch[depends] += "fontconfig:do_populate_sysroot"
 
 do_configure() {
 
-    export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:$PATH
-
-    cd ${S}
-
     ./flutter/tools/gn ${GN_ARGS}
 
-    echo ${ARGS_GN} >> ${ARGS_GN_FILE}
+    echo ${ARGS_GN} >> ${WORKDIR}/src/${OUT_DIR_REL}/args.gn
 }
-do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 
 do_compile() {
 
-    export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:$PATH
-
     cd ${S}
 
-    autoninja -C ${OUT_DIR_REL}
+    ninja -C ${OUT_DIR_REL}
 }
-do_compile[depends] += "depot-tools-native:do_populate_sysroot"
 do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
 do_install() {
@@ -229,13 +135,11 @@ do_install() {
     # this avoids build break when SDK tag changes in middle of build
     cd ${S}/flutter
     echo `git rev-parse HEAD` > ${D}/usr/share/flutter/sdk/engine.version
-    echo ${FLUTTER_ENGINE_REPO_URL} >> ${D}/usr/share/flutter/sdk/engine.version
 
     cd ${D}/${datadir}/flutter
     zip -r engine_sdk.zip sdk
     rm -rf sdk
 }
-do_install[depends] += "zip-native:do_populate_sysroot"
 
 PACKAGES =+ "${PN}-sdk-dev"
 

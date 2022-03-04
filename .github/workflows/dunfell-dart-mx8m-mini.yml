@@ -100,7 +100,7 @@ jobs:
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
           echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_libserialport = "6f9b03e"' >> ./conf/local.conf
-          echo 'FLUTTER_SDK_TAG = "2.10.2"' >> ./conf/local.conf
+          echo 'FLUTTER_SDK_TAG = "2.10.3"' >> ./conf/local.conf
           echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> ./conf/local.conf 
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../../meta-flutter/recipes-graphics/flutter-pi/flutter-pi.inc
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../../meta-flutter/recipes-graphics/toyota/ivi-homescreen.inc
@@ -150,6 +150,10 @@ jobs:
           echo '***************************************'
           cat ./conf/bblayers.conf
           echo '***************************************'
+          bitbake ca-certificates -c do_cleansstate
+          bitbake ca-certificates-native -c do_cleansstate
+          bitbake flutter-sdk-native -c do_cleansstate
+
 
       - name: Build Base Image
         shell: bash
@@ -249,7 +253,6 @@ jobs:
         working-directory: ../${{ env.MACHINE }}
         run: |
           . sources/poky/oe-init-build-env build
-          bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-gallery-debug -c do_cleansstate
           bitbake flutter-gallery-debug
           rm -rf /home/dev/artifacts/*
@@ -267,7 +270,6 @@ jobs:
         working-directory: ../${{ env.MACHINE }}
         run: |
           . sources/poky/oe-init-build-env build
-          bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-gallery-release -c do_cleansstate
           bitbake flutter-gallery-release
           rm -rf /home/dev/artifacts/*
@@ -285,10 +287,12 @@ jobs:
         working-directory: ../${{ env.MACHINE }}
         run: |
           . sources/poky/oe-init-build-env build
-          echo 'IMAGE_INSTALL_append = " flutter-engine-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " flutter-gallery-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " ivi-homescreen-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " flutter-pi-debug"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " \
+              flutter-engine-debug \
+              flutter-gallery-debug \
+              ivi-homescreen-debug \
+              flutter-pi-debug \
+              "' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " adwaita-icon-theme-cursors"' >> ./conf/local.conf
           bitbake fsl-image-gui
           rm -rf /home/dev/artifacts/*

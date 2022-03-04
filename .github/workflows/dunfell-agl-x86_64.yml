@@ -75,7 +75,7 @@ jobs:
           echo 'INHERIT_remove = "uninative"' >> ./conf/local.conf
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../external/meta-clang/recipes-devtools/clang/clang_git.bb
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
-          echo 'FLUTTER_SDK_TAG = "2.10.2"' >> ./conf/local.conf
+          echo 'FLUTTER_SDK_TAG = "2.10.3"' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_WHITELIST = "commercial"' >> ./conf/local.conf
           echo '** Layers *****************************'
           bitbake-layers show-layers
@@ -87,7 +87,6 @@ jobs:
           echo '***************************************'
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
-          bitbake flutter-sdk -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-engine-release -c do_cleansstate
           bitbake flutter-engine-profile -c do_cleansstate
