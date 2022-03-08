@@ -57,9 +57,9 @@ class GN(FetchMethod):
         srcrev = d.getVar("SRCREV")
         dl_dir = d.getVar("DL_DIR")
         gndir = os.path.join(dl_dir, "gn")
-        ud.syncdir = uri.replace(":", "").replace("/", "_") + "-" + srcrev
+        ud.syncdir = uri.replace(":", "").replace("/", "_")
         ud.syncpath = os.path.join(gndir, ud.syncdir)
-        ud.localfile = ud.syncdir + ".tar.bz2"
+        ud.localfile = ud.syncdir + "-" + srcrev + ".tar.bz2"
         ud.localpath = os.path.join(gndir, ud.localfile)
 
         ud.basecmd = "export PATH=\"%s:%s:${PATH}\"; export DEPOT_TOOLS_UPDATE=0; export GCLIENT_PY3=0; \
