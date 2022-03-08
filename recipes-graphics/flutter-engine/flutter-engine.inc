@@ -184,6 +184,5 @@ RDEPENDS_${PN} += " liberation-fonts"
 BBCLASSEXTEND = ""
 
 python () {
-    import gn
-    d.setVar('SRCREV', gn.get_engine_commit(d))
+    d.setVar('SRCREV', gn_get_engine_commit(d))
 }

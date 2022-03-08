@@ -9,6 +9,7 @@ Copyright (c) 2021-2022 Woven Alpha, Inc
 
 import os
 import bb
+import multiprocessing
 import subprocess
 import urllib
 from   bb.fetch2 import FetchMethod
@@ -18,12 +19,8 @@ from   bb.fetch2 import logger
 from   bb.fetch2 import runfetchcmd
 from   bb.fetch2 import subprocess_setup
 
-FLUTTER_ENGINE_VERSION_FMT = 'https://raw.githubusercontent.com/flutter/flutter/%s/bin/internal/engine.version'
-
 class GN(FetchMethod):
     """Class to fetch urls via 'wget'"""
-    packcmd = ""
-
     def supports(self, ud, d):
         """
         Check to see if a given url can be fetched with gn.
@@ -62,10 +59,10 @@ class GN(FetchMethod):
         gndir = os.path.join(dl_dir, "gn")
         ud.syncdir = uri.replace(":", "").replace("/", "_") + "-" + srcrev
         ud.syncpath = os.path.join(gndir, ud.syncdir)
-        ud.localfile = ud.syncdir + ".tar.xz"
+        ud.localfile = ud.syncdir + ".tar.bz2"
         ud.localpath = os.path.join(gndir, ud.localfile)
 
-        self.basecmd = "export PATH=\"%s:%s:${PATH}\"; export DEPOT_TOOLS_UPDATE=0; export GCLIENT_PY3=0; \
+        ud.basecmd = "export PATH=\"%s:%s:${PATH}\"; export DEPOT_TOOLS_UPDATE=0; export GCLIENT_PY3=0; \
             export CURL_CA_BUNDLE=%s; \
             gclient.py config --spec '%s' && \
             gclient.py sync %s --revision %s %s -v" % (
@@ -74,17 +71,19 @@ class GN(FetchMethod):
                 gclient_config,
                 sync_opt, srcrev, d.getVar('PARALLEL_MAKE'))
 
-        self.packcmd = "tar -cJf %s ./" % (self.localpath(ud, d))
+        bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
+
+        ud.packcmd = "tar -I \"pbzip2 -p%s\" -cf %s ./" % (bb_number_threads, ud.localpath)
 
     def _rungnclient(self, ud, d, quiet):
         bb.utils.mkdirhier(ud.syncpath)
         os.chdir(ud.syncpath)
 
-        logger.debug(2, "Fetching %s using command '%s'" % (ud.url, self.basecmd))
-        bb.fetch2.check_network_access(d, self.basecmd, ud.url)
-        runfetchcmd(self.basecmd, d, quiet, workdir=None)
-        logger.debug(2, "Packing %s using command '%s'" % (ud.url, self.packcmd))
-        runfetchcmd(self.packcmd, d, quiet, workdir=None)
+        logger.debug(2, "Fetching %s using command '%s'" % (ud.url, ud.basecmd))
+        bb.fetch2.check_network_access(d, ud.basecmd, ud.url)
+        runfetchcmd(ud.basecmd, d, quiet, workdir=None)
+        logger.debug(2, "Packing %s using command '%s'" % (ud.url, ud.packcmd))
+        runfetchcmd(ud.packcmd, d, quiet, workdir=None)
 
     def localpath(self, ud, d):
         """
@@ -98,7 +97,7 @@ class GN(FetchMethod):
 
     def download(self, ud, d):
         """Fetch urls"""
-        # If tar.xz exists, skip
+        # If tar.bz2 exists, skip
         if os.access(ud.localpath, os.R_OK):
             return True
 
@@ -131,25 +130,4 @@ class GN(FetchMethod):
         sanity check to ensure same name and type.
         """
         return ("", '')
-
-# gn_get_engine_commit
-#
-# if repo is not default use FLUTTER_ENGINE_COMMIT
-# otherwise use FLUTTER_SDK_TAG value
-#
-# You would need to set FLUTTER_SDK_TAG to match your custom repo
-#
-def get_engine_commit(d):
-    """ Sets FLUTTER_ENGINE_COMMIT variable """
-    import urllib.request
-
-    flutter_sdk_tag = d.getVar("FLUTTER_SDK_TAG")
-
-    if flutter_sdk_tag == 'AUTOINC':
-        flutter_sdk_tag = 'master'
-
-    with urllib.request.urlopen(FLUTTER_ENGINE_VERSION_FMT % (flutter_sdk_tag)) as f:
-        return f.read().decode('utf-8').strip()
-
-    bb.fatal('Unable to get engine commit')
 

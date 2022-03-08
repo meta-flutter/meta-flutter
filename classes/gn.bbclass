@@ -11,7 +11,8 @@ DEPENDS += " \
     ninja-native \
     depot-tools-native \
     tar-native \
-    xz-native \
+    fontconfig \
+    pbzip2-native \
 "
 
 inherit python3native
@@ -26,7 +27,7 @@ do_fetch[depends] += " \
     ca-certificates-native:do_populate_sysroot \
     depot-tools-native:do_populate_sysroot \
     tar-native:do_populate_sysroot \
-    xz-native:do_populate_sysroot \
+    pbzip2-native:do_populate_sysroot \
     fontconfig:do_populate_sysroot \
 "
 
