@@ -92,7 +92,7 @@ class GN(FetchMethod):
         and duplicate code execution)
         """
         dl_dir = d.getVar("DL_DIR")
-        gndir = dl_dir + "gn"
+        gndir = os.path.join(dl_dir, "gn")
         return os.path.join(gndir, ud.localfile)
 
     def download(self, ud, d):
