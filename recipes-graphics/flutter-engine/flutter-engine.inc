@@ -26,8 +26,8 @@ S = "${WORKDIR}/src"
 inherit gn python3native features_check pkgconfig
 
 require conf/include/gn-utils.inc
+require conf/include/flutter-version.inc
 
-FLUTTER_SDK_TAG ?= "${AUTOREV}"
 # For gn.bbclass
 GN_CUSTOM_VARS ?= '\
 {\
