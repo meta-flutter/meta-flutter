@@ -21,7 +21,7 @@ CURL_CA_BUNDLE ??= "${STAGING_DIR_NATIVE}/etc/ssl/certs/ca-certificates.crt"
 DEPOT_TOOLS ??= "${STAGING_DIR_NATIVE}/usr/share/depot_tools"
 PYTHON2_PATH ??= "bootstrap-2@3.8.9.chromium.14_bin/python/bin"
 EXTRA_GN_SYNC ??= ""
-GN_CUSTOM_VARS ??= ""
+GN_CUSTOM_VARS ??= "{}"
 do_fetch[depends] += " \
     curl-native:do_populate_sysroot \
     ca-certificates-native:do_populate_sysroot \
