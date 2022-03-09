@@ -128,7 +128,7 @@ class GN(FetchMethod):
         if unpack:
             bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
             cmd = 'pbzip2 -dc -p%s %s | tar x --no-same-owner -f -' % (bb_number_threads, file)
-            unpackdir = os.path.join(os.path.join(workdir, d.getVar("S", "")), ud.destdir)
+            unpackdir = os.path.join(workdir, ud.destdir)
             bb.utils.mkdirhier(unpackdir)
             path = d.getVar('PATH')
             if path:
