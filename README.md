@@ -117,7 +117,7 @@ repo init -u https://source.codeaurora.org/external/imx/imx-manifest -b imx-linu
 repo sync -j20
 DISTRO=fslc-wayland MACHINE=imx8qxpmek source setup-environment build
 pushd ../sources
-git clone -b dunfell https://github.com/meta-flutter/meta-flutter.git
+git clone -b honister https://github.com/meta-flutter/meta-flutter.git
 popd
 bitbake-layers add-layer ../sources/meta-clang ../sources/meta-flutter
 echo -e 'FLUTTER_SDK_TAG = "2.10.2"' >> conf/local.conf
