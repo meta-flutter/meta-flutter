@@ -54,13 +54,17 @@ do_compile_class-nativesdk() {
     common_compile
 }
 
-do_install_class-native() {
+common_install() {
     install -d ${D}${datadir}/flutter/sdk
     cp -rTv ${S}/. ${D}${datadir}/flutter/sdk
+    rm -rf ${D}${datadir}/flutter/sdk/bin/cache/artifacts/*
+}
+
+do_install_class-native() {
+    common_install
 }
 do_install_class-nativesdk() {
-    install -d ${D}${datadir}/flutter/sdk
-    cp -rTv ${S}/. ${D}${datadir}/flutter/sdk
+    common_install
 }
 
 
