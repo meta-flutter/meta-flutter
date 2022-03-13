@@ -20,8 +20,11 @@ DEPENDS += "\
     zip-native \
     "
 
-SRC_URI = "file://0001-clang-toolchain.patch \
-           file://0002-x64-sysroot-assert.patch"
+SRC_URI = "\
+    file://0001-clang-toolchain.patch \
+    file://0002-x64-sysroot-assert.patch \
+    file://0001-clang-10-flags.patch \
+    "
 
 S = "${WORKDIR}/src"
 
@@ -79,8 +82,9 @@ PACKAGECONFIG[vulkan] = "--enable-vulkan"
 PACKAGECONFIG[vulkan-validation-layers] = "--enable-vulkan-validation-layers"
 
 
-CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
-CLANG_PATH = "${WORKDIR}/src/buildtools/linux-x64/clang"
+#CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
+#CLANG_PATH = "${WORKDIR}/src/buildtools/linux-x64/clang"
+CLANG_PATH = "${STAGING_DIR_NATIVE}/usr"
 
 ARGS_GN_FILE = "${WORKDIR}/src/${OUT_DIR_REL}/args.gn"
 
@@ -90,8 +94,10 @@ GN_ARGS = "${PACKAGECONFIG_CONFARGS} --clang --lto --no-goma --no-stripped "
 GN_ARGS_append = " --target-os linux"
 GN_ARGS_append = " --linux-cpu ${@gn_target_arch_name(d)}"
 GN_ARGS_append = " --target-sysroot ${STAGING_DIR_TARGET}"
-GN_ARGS_append = " --target-toolchain ${CLANG_PATH}"
-GN_ARGS_append = " --target-triple ${CLANG_TOOLCHAIN_TRIPLE}"
+GN_ARGS_append = " --target-toolchain ${STAGING_DIR_NATIVE}/usr"
+GN_ARGS_append = " --target-triple ${TARGET_SYS}"
+#GN_ARGS_append = " --target-toolchain ${CLANG_PATH}"
+#GN_ARGS_append = " --target-triple ${CLANG_TOOLCHAIN_TRIPLE}"
 
 GN_ARGS_append_armv7 = " --arm-float-abi ${TARGET_FPU}"
 GN_ARGS_append_armv7a = " --arm-float-abi ${TARGET_FPU}"
@@ -174,13 +180,7 @@ do_patch () {
 
     git apply ${WORKDIR}/0001-clang-toolchain.patch
     git apply ${WORKDIR}/0002-x64-sysroot-assert.patch
-
-    # required object files to link
-    CLANG_VERSION=`ls ${CLANG_PATH}/lib/clang`
-    CLANG_LIB_TARGET_PATH=${CLANG_PATH}/lib/clang/${CLANG_VERSION}/lib/${CLANG_TOOLCHAIN_TRIPLE}
-    mkdir -p ${CLANG_LIB_TARGET_PATH}
-    cp ${STAGING_LIBDIR}/${TARGET_SYS}/*/crtbeginS.o ${CLANG_LIB_TARGET_PATH}/
-    cp ${STAGING_LIBDIR}/${TARGET_SYS}/*/crtendS.o ${CLANG_LIB_TARGET_PATH}/
+    git apply ${WORKDIR}/0001-clang-10-flags.patch
 }
 do_patch[depends] += "ca-certificates-native:do_populate_sysroot"
 do_patch[depends] += "curl-native:do_populate_sysroot"
@@ -203,6 +203,8 @@ do_compile() {
 
     export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:$PATH
 
+    bbnote `env`
+    
     cd ${S}
 
     autoninja -C ${OUT_DIR_REL}

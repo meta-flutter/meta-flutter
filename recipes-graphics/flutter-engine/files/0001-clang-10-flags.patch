@@ -1,0 +1,33 @@
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Mon, 14 Mar 2022 10:46:52 -0700
+Subject: [PATCH] relax clang flags
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ build/config/compiler/BUILD.gn | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
+index 9b5899e..79797a3 100644
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -631,17 +631,12 @@ if (is_win) {
+ 
+   if (!use_xcode) {
+     default_warning_flags += [
+-      "-Wno-unused-but-set-parameter",
+-      "-Wno-unused-but-set-variable",
+       "-Wno-implicit-int-float-conversion",
+       "-Wno-c99-designator",
+       "-Wno-deprecated-copy",
+-      # Needed for compiling Skia with clang-12
+-      "-Wno-psabi",
+     ]
+     if (!is_fuchsia) {
+       default_warning_flags += [
+-        "-Wno-non-c-typedef-for-linkage",
+         "-Wno-range-loop-construct",
+       ]
+     }
+-- 
+2.31.1
