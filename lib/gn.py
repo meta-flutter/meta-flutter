@@ -119,25 +119,18 @@ class GN(FetchMethod):
     def unpack(self, ud, workdir, d):
         file = ud.localpath
 
-        try:
-            unpack = bb.utils.to_boolean(ud.parm.get('unpack'), True)
-        except ValueError as e:
-            bb.fatal("Invalid value for 'unpack' parameter for %s: %s" %
-                    (file, ud.parm.get('unpack')))
+        bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
+        cmd = 'pbzip2 -dc -p%s %s | tar x --no-same-owner -f -' % (bb_number_threads, file)
+        unpackdir = os.path.join(workdir, ud.destdir)
+        bb.utils.mkdirhier(unpackdir)
+        path = d.getVar('PATH')
+        if path:
+            cmd = "PATH=\"%s\" %s" % (path, cmd)
+        bb.note("Unpacking %s to %s" % (file, unpackdir))
+        ret = subprocess.call(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir)
 
-        if unpack:
-            bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
-            cmd = 'pbzip2 -dc -p%s %s | tar x --no-same-owner -f -' % (bb_number_threads, file)
-            unpackdir = os.path.join(workdir, ud.destdir)
-            bb.utils.mkdirhier(unpackdir)
-            path = d.getVar('PATH')
-            if path:
-                cmd = "PATH=\"%s\" %s" % (path, cmd)
-            bb.note("Unpacking %s to %s" % (file, unpackdir))
-            ret = subprocess.call(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir)
-
-            if ret != 0:
-                raise UnpackError("Unapck command %s failed with return value %s" % (cmd, ret), ud.url)
+        if ret != 0:
+            raise UnpackError("Unapck command %s failed with return value %s" % (cmd, ret), ud.url)
 
         return
 
