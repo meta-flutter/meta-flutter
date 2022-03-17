@@ -21,12 +21,13 @@ DEPENDS += "\
 RDEPENDS:${PN}-native += "ca-certificates-native curl-native perl perl-modules unzip-native"
 RDEPENDS:nativesdk-${PN} += "ca-certificates-native curl-native perl perl-modules unzip-native"
 
-SRC_URI = "git://github.com/flutter/flutter.git;protocol=https;nobranch=1"
-FLUTTER_SDK_TAG ??= "${AUTOREV}"
-SRCREV ??= "${FLUTTER_SDK_TAG}"
+require conf/include/flutter-version.inc
 
-S = "${WORKDIR}/git"
+SRC_URI = "https://storage.googleapis.com/flutter_infra_release/releases/${@get_flutter_archive(d)};name=flutter-sdk"
+SRC_URI[flutter-sdk.sha256sum] = "${@get_flutter_sha256(d)}"
+SRCREV ??= "${@get_flutter_hash(d)}"
 
+S = "${WORKDIR}/flutter"
 
 common_compile() {
 
@@ -53,13 +54,17 @@ do_compile:class-nativesdk() {
     common_compile
 }
 
-do_install:class-native() {
+common_install() {
     install -d ${D}${datadir}/flutter/sdk
     cp -rTv ${S}/. ${D}${datadir}/flutter/sdk
+    rm -rf ${D}${datadir}/flutter/sdk/bin/cache/artifacts/*
+}
+
+do_install:class-native() {
+    common_install
 }
 do_install:class-nativesdk() {
-    install -d ${D}${datadir}/flutter/sdk
-    cp -rTv ${S}/. ${D}${datadir}/flutter/sdk
+    common_install
 }
 
 

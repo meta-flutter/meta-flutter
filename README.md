@@ -120,7 +120,7 @@ pushd ../sources
 git clone -b honister https://github.com/meta-flutter/meta-flutter.git
 popd
 bitbake-layers add-layer ../sources/meta-clang ../sources/meta-flutter
-echo -e 'FLUTTER_SDK_TAG = "2.10.2"' >> conf/local.conf
+echo -e 'FLUTTER_SDK_TAG = "2.10.3"' >> conf/local.conf
 echo -e 'IMAGE_INSTALL:append = " flutter-engine-release"' >> conf/local.conf
 echo -e 'IMAGE_INSTALL:append = " ivi-homescreen-release"' >> conf/local.conf
 echo -e 'IMAGE_INSTALL:append = " flutter-gallery-release"' >> conf/local.conf
