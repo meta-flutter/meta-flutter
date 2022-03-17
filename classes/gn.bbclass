@@ -6,13 +6,11 @@ python () {
 }
 
 DEPENDS += " \
-    curl-native \
     ca-certificates-native \
-    ninja-native \
+    curl-native \
     depot-tools-native \
-    tar-native \
-    fontconfig \
     pbzip2-native \
+    tar-native \
 "
 
 inherit python3native
@@ -23,12 +21,11 @@ PYTHON2_PATH ??= "bootstrap-2@3.8.9.chromium.14_bin/python/bin"
 EXTRA_GN_SYNC ??= ""
 GN_CUSTOM_VARS ??= "{}"
 do_fetch[depends] += " \
-    curl-native:do_populate_sysroot \
     ca-certificates-native:do_populate_sysroot \
+    curl-native:do_populate_sysroot \
     depot-tools-native:do_populate_sysroot \
     tar-native:do_populate_sysroot \
     pbzip2-native:do_populate_sysroot \
-    fontconfig:do_populate_sysroot \
 "
 
 do_configure_prepend() {
