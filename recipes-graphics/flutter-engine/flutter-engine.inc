@@ -178,9 +178,6 @@ FILES_${PN}-dev = "\
     ${includedir} \
     "
 
-# To use flutter default fonts
-RDEPENDS_${PN} += " liberation-fonts"
-
 BBCLASSEXTEND = ""
 
 python () {
