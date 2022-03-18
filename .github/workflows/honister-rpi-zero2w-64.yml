@@ -74,7 +74,6 @@ jobs:
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.DISTRO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
           echo 'GPU_MEM = "64"' >> ./conf/local.conf
-          echo 'FLUTTER_SDK_TAG = "2.10.2"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -152,9 +151,15 @@ jobs:
         working-directory: ../zero2w-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-engine-release"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi-release"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery-release"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " \
+              flutter-engine-release \
+              flutter-pi-release \
+              flutter-gallery-release \
+              gstreamer1.0-libav \
+              gstreamer1.0-plugins-bad \
+              gstreamer1.0-plugins-good \
+              gstreamer1.0-plugins-ugly \
+              "' >> ./conf/local.conf
           bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts

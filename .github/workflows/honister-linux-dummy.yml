@@ -75,6 +75,7 @@ jobs:
           echo 'VIRTUAL-RUNTIME:init_manager = "systemd"' >> ./conf/local.conf
           echo 'VIRTUAL-RUNTIME:initscripts = ""' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER:virtual/kernel = "linux-dummy"' >> ./conf/local.conf
+          echo 'LICENSE_FLAGS_WHITELIST = "commercial"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -111,22 +112,6 @@ jobs:
           bitbake flutter-gallery-release -c do_cleansstate
           bitbake flutter-gallery-release
 
-      - name: Build flutter-engine-profile
-        shell: bash
-        working-directory: ../yocto-honister/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake flutter-engine-profile -c do_cleansstate
-          bitbake flutter-engine-profile
-
-      - name: Build flutter-gallery-profile
-        shell: bash
-        working-directory: ../yocto-honister/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake flutter-gallery-profile -c do_cleansstate
-          bitbake flutter-gallery-profile
-
       - name: Build ivi-homescreen-release
         shell: bash
         working-directory: ../yocto-honister/poky
@@ -135,22 +120,6 @@ jobs:
           bitbake ivi-homescreen-release -c do_cleansstate
           bitbake ivi-homescreen-release
 
-      - name: Build ivi-homescreen-profile
-        shell: bash
-        working-directory: ../yocto-honister/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake ivi-homescreen-profile -c do_cleansstate
-          bitbake ivi-homescreen-profile
-
-      - name: Build ivi-homescreen-debug
-        shell: bash
-        working-directory: ../yocto-honister/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake ivi-homescreen-debug -c do_cleansstate
-          bitbake ivi-homescreen-debug
-
       - name: Build flutter-pi-release
         shell: bash
         working-directory: ../yocto-honister/poky
@@ -158,22 +127,6 @@ jobs:
           . ./oe-init-build-env
           bitbake flutter-pi-release -c do_cleansstate
           bitbake flutter-pi-release
-
-      - name: Build flutter-pi-profile
-        shell: bash
-        working-directory: ../yocto-honister/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake flutter-pi-profile -c do_cleansstate
-          bitbake flutter-pi-profile
-
-      - name: Build flutter-pi-debug
-        shell: bash
-        working-directory: ../yocto-honister/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake flutter-pi-debug -c do_cleansstate
-          bitbake flutter-pi-debug
 
       - name: Build flutter-drm-eglstream-backend
         shell: bash

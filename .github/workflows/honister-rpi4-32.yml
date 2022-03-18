@@ -77,7 +77,6 @@ jobs:
           echo -e 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.DISTRO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo -e 'CORE_IMAGE_EXTRA_INSTALL:append = " tzdata"' >> ./conf/local.conf
           echo -e 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
-          echo -e 'FLUTTER_SDK_TAG = "2.10.2"' >> ./conf/local.conf
           echo -e 'PACKAGECONFIG:pn-sascha-samples = "d2d"' >> ./conf/local.conf
           echo -e 'PACKAGECONFIG:pn-vkcube = "kms wayland"' >> ./conf/local.conf
           echo -e 'PREFERRED_PROVIDER:jpeg = "libjpeg-turbo"' >> ./conf/local.conf
@@ -277,15 +276,21 @@ jobs:
         working-directory: ../rpi4-32-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi-release"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery-release"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " swiftshader"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " sascha-samples"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkcube"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkmark"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkquake3"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vkrunner"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " vk-layer-perfdoc"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " \
+              flutter-pi-release \
+              flutter-gallery-release \
+              swiftshader \
+              sascha-samples \
+              vkcube \
+              vkmark \
+              vkquake3 \
+              vkrunner \
+              vk-layer-perfdoc \
+              gstreamer1.0-libav \
+              gstreamer1.0-plugins-bad \
+              gstreamer1.0-plugins-good \
+              gstreamer1.0-plugins-ugly \
+              "' >> ./conf/local.conf
           bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
