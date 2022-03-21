@@ -23,7 +23,7 @@ SRC_URI = "gn://github.com/flutter/engine.git;name=src/flutter \
 
 S = "${WORKDIR}/src"
 
-inherit gn python3native features_check pkgconfig
+inherit gn_flutter python3native features_check pkgconfig
 
 require conf/include/gn-utils.inc
 require conf/include/flutter-version.inc
