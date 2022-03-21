@@ -29,6 +29,10 @@ SRCREV ??= "${@get_flutter_hash(d)}"
 
 S = "${WORKDIR}/flutter"
 
+do_unpack[network] = "1"
+do_patch[network] = "1"
+do_compile[network] = "1"
+
 common_compile() {
 
     export CURL_CA_BUNDLE=${STAGING_DIR_NATIVE}/etc/ssl/certs/ca-certificates.crt
