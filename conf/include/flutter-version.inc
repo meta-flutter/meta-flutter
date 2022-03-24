@@ -10,12 +10,14 @@ def get_flutter_hash(d):
     return _get_flutter_release_info(d, "hash")
 
 def _get_flutter_release_info(d, key):
-    import urllib.request
+    import requests
     import json
     ret = ""
     flutter_sdk_tag = d.getVar("FLUTTER_SDK_TAG")
-    with urllib.request.urlopen('https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json') as f:
-        releases_linux_json = json.load(f)
+    
+    response = requests.get('https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json')
+    if reponse.ok:
+        releases_linux_json = json.loads(response.content.decode('utf-8'))
         if flutter_sdk_tag == "AUTOINC":
             flutter_sdk_tag = releases_linux_json["current_release"]["dev"]
 
@@ -39,13 +41,14 @@ def _get_flutter_release_info(d, key):
 #
 def gn_get_engine_commit(d):
     """ Sets FLUTTER_ENGINE_COMMIT variable """
-    import urllib.request
+    import requests
 
     FLUTTER_ENGINE_VERSION_FMT = \
         'https://raw.githubusercontent.com/flutter/flutter/%s/bin/internal/engine.version'
     revision = get_flutter_hash(d)
 
-    with urllib.request.urlopen(FLUTTER_ENGINE_VERSION_FMT % (revision)) as f:
-        return f.read().decode('utf-8').strip()
+    response = requests.get(FLUTTER_ENGINE_VERSION_FMT % (revision))
+    if response.ok:
+        return response.content.decode('utf-8').strip()
 
     bb.fatal('Unable to get engine commit')
