@@ -10,26 +10,34 @@ def get_flutter_hash(d):
     return _get_flutter_release_info(d, "hash")
 
 def _get_flutter_release_info(d, key):
-    import requests
+    import urllib.request, urllib.error
     import json
+
     ret = ""
     flutter_sdk_tag = d.getVar("FLUTTER_SDK_TAG")
-    
-    response = requests.get('https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json')
-    if reponse.ok:
-        releases_linux_json = json.loads(response.content.decode('utf-8'))
-        if flutter_sdk_tag == "AUTOINC":
-            flutter_sdk_tag = releases_linux_json["current_release"]["dev"]
 
-        releases = releases_linux_json["releases"]
-        for r in releases:
-            if r["version"] == flutter_sdk_tag or r["hash"] == flutter_sdk_tag:
-                ret = r[key]
-                break
+    try:
+        response = urllib.request.urlopen( \
+            'https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json' \
+            )
+    except urllib.error.URLError as e:
+        bb.fatal('HTTP error: %s' % (e))
+    except (ValueError, TypeError) as e:
+        bb.fatal('JSON error: %s' % (e))
+
+    buf = response.read()
+    releases_linux_json = json.loads(buf.decode('utf-8'))
+
+    if flutter_sdk_tag == "AUTOINC":
+        flutter_sdk_tag = releases_linux_json["current_release"]["dev"]
+    releases = releases_linux_json["releases"]
+    for r in releases:
+        if r["version"] == flutter_sdk_tag or r["hash"] == flutter_sdk_tag:
+            ret = r[key]
+            break
 
     if ret == "":
         raise ValueError("Could not get flutter sdk archive url")
-
     return ret
 
 # gn_get_engine_commit
@@ -41,14 +49,14 @@ def _get_flutter_release_info(d, key):
 #
 def gn_get_engine_commit(d):
     """ Sets FLUTTER_ENGINE_COMMIT variable """
-    import requests
+    import urllib.request
 
     FLUTTER_ENGINE_VERSION_FMT = \
         'https://raw.githubusercontent.com/flutter/flutter/%s/bin/internal/engine.version'
+
     revision = get_flutter_hash(d)
 
-    response = requests.get(FLUTTER_ENGINE_VERSION_FMT % (revision))
-    if response.ok:
-        return response.content.decode('utf-8').strip()
+    with urllib.request.urlopen(FLUTTER_ENGINE_VERSION_FMT % (revision)) as f:
+        return f.read().decode('utf-8').strip()
 
     bb.fatal('Unable to get engine commit')
