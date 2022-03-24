@@ -10,7 +10,7 @@ def get_flutter_hash(d):
     return _get_flutter_release_info(d, "hash")
 
 def _get_flutter_release_info(d, key):
-    import urllib
+    import urllib.request
     import json
     ret = ""
     flutter_sdk_tag = d.getVar("FLUTTER_SDK_TAG")
