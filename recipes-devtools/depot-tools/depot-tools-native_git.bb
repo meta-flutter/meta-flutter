@@ -10,6 +10,8 @@ S = "${WORKDIR}/git"
 
 inherit native
 
+do_compile[network] = "1"
+
 do_compile() {
 
     # force bootstrap download to get python2
