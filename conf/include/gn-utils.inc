@@ -189,6 +189,10 @@ def parse_args(d):
 
     parser.add_argument('--fuchsia-target-api-level', dest='fuchsia_target_api_level')
 
+    # Flags for Dart features.
+    parser.add_argument('--use-mallinfo2', dest='use_mallinfo2', default=False, action='store_true',
+                        help='Use mallinfo2 to collect malloc stats.')
+
     # Impeller flags.
     parser.add_argument('--enable-impeller-playground', default=False, action='store_true',
                         help='Whether impeller unit tests run in playground mode')

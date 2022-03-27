@@ -95,7 +95,7 @@ ARGS_GN_FILE = "${WORKDIR}/src/${OUT_DIR_REL}/args.gn"
 
 OUT_DIR_REL = "${@get_out_dir(d)}"
 
-GN_ARGS = "${PACKAGECONFIG_CONFARGS} --clang --lto --no-goma --no-stripped "
+GN_ARGS = "${PACKAGECONFIG_CONFARGS} --use-mallinfo2 --clang --lto --no-goma --no-stripped "
 GN_ARGS:append = " --target-os linux"
 GN_ARGS:append = " --linux-cpu ${@gn_target_arch_name(d)}"
 GN_ARGS:append = " --target-sysroot ${STAGING_DIR_TARGET}"
@@ -111,6 +111,9 @@ ARGS_GN:append:aarch64 = "arm_tune = \"${@gn_get_tune_features(d)}\""
 ARGS_GN:append:armv7 = "arm_tune = \"${@gn_get_tune_features(d)}\""
 ARGS_GN:append:armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\""
 ARGS_GN:append:armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
+
+do_unpack[network] = "1"
+do_patch[network] = "1"
 
 do_configure() {
     cd ${S}
@@ -131,8 +134,10 @@ do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 do_compile() {
     cd ${S}
 
+    rm -rf fuchsia || true
     autoninja -C ${OUT_DIR_REL}
 }
+do_compile[network] = "0"
 do_compile[depends] += "depot-tools-native:do_populate_sysroot"
 do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 

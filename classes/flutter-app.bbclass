@@ -26,6 +26,7 @@ PUB_CACHE_ARCHIVE = "flutter-pub-cache-${PUBSPEC_APPNAME}-${SRCREV}.tar.bz2"
 #
 
 addtask archive_pub_cache before do_patch after do_unpack
+do_archive_pub_cache[network] = "1"
 do_archive_pub_cache[dirs] = "${WORKDIR} ${DL_DIR}"
 do_archive_pub_cache[depends] += " \
     flutter-sdk-native:do_populate_sysroot \
