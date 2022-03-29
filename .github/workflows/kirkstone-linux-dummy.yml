@@ -1,4 +1,4 @@
-name: honister-linux-dummy
+name: kirkstone-linux-dummy
 
 on:
   pull_request:
@@ -15,8 +15,7 @@ jobs:
   linux-dummy:
   
     env:
-      YOCTO_VERSION: 3.4.2
-      YOCTO_BRANCH: honister
+      YOCTO_BRANCH: kirkstone
       
     runs-on: [self-hosted, linux]
     
@@ -27,7 +26,7 @@ jobs:
         --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
         --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
-        -v /mnt/raid10/github-ci/sstate/yocto/dunfell/latest:/home/dev/sstate:Z
+        -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/latest:/home/dev/sstate:Z
 
     steps:
     
@@ -46,40 +45,40 @@ jobs:
 
       - name: Fetch poky
         run: |
-          [ -d ../yocto-honister ] || mkdir -p ../yocto-honister
-          cd ../yocto-honister
-          pwd
-          ls -la
-          rm -rf poky meta-openembedded meta-clang
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded &
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git &
+          [ -d ../yocto-kirkstone ] || mkdir -p ../yocto-kirkstone
+          cd ../yocto-kirkstone
+          rm -rf sources || true
+          /home/dev/bin/repo init -u https://gitlab.eclipse.org/eclipse/oniro-core/oniro.git -m manifests/default.xml -b $YOCTO_BRANCH
+          /home/dev/bin/repo sync -c --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           wait
+          rm meta-clang/recipes-multimedia/mediasdk/intel-mediasdk_%.bbappend || true
 
       - name: Configure build
         shell: bash
-        working-directory: ../yocto-honister/poky
+        working-directory: ../yocto-kirkstone
         run: |
           rm -rf build || true
-          . ./oe-init-build-env
+          . ./oe-core/oe-init-build-env
+          echo '***************************************'
+          sed -i '/pn-qemu-system-native/d' ./conf/local.conf
+          sed -i '/pn-nativesdk-qemu/d' ./conf/local.conf
           echo '***************************************'
           echo 'INHERIT += "rm_work"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
-          echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
-          echo 'DISTRO_FEATURES:remove = " sysvinit"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:remove = "sysvinit"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES:append = " x11 wayland opengl systemd"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES_BACKFILL_CONSIDERED = ""' >> ./conf/local.conf
           echo 'VIRTUAL-RUNTIME:init_manager = "systemd"' >> ./conf/local.conf
           echo 'VIRTUAL-RUNTIME:initscripts = ""' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER:virtual/kernel = "linux-dummy"' >> ./conf/local.conf
-          echo 'LICENSE_FLAGS_WHITELIST = "commercial"' >> ./conf/local.conf
+          echo 'LICENSE_FLAGS_ACCEPTED = "commercial"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
-          bitbake-layers add-layer ../../meta-openembedded/meta-oe ../../meta-clang ../../../meta-flutter
+          bitbake-layers add-layer ../meta-openembedded/meta-oe ../meta-clang ../../meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
@@ -91,87 +90,87 @@ jobs:
 
       - name: Build core-image-minimal
         shell: bash
-        working-directory: ../yocto-honister/poky
+        working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-init-build-env
+          . ./oe-core/oe-init-build-env
           bitbake core-image-minimal
 
       - name: Build flutter-engine-release
         shell: bash
-        working-directory: ../yocto-honister/poky
+        working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-init-build-env
+          . ./oe-core/oe-init-build-env
           bitbake flutter-engine-release -c do_cleansstate
           bitbake flutter-engine-release
 
-      - name: Build flutter-gallery-release
-        shell: bash
-        working-directory: ../yocto-honister/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake flutter-gallery-release -c do_cleansstate
-          bitbake flutter-gallery-release
-
-      - name: Build ivi-homescreen-release
-        shell: bash
-        working-directory: ../yocto-honister/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake ivi-homescreen-release -c do_cleansstate
-          bitbake ivi-homescreen-release
-
       - name: Build flutter-pi-release
         shell: bash
-        working-directory: ../yocto-honister/poky
+        working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-init-build-env
+          . ./oe-core/oe-init-build-env
           bitbake flutter-pi-release -c do_cleansstate
           bitbake flutter-pi-release
 
+      - name: Build ivi-homescreen-release
+        shell: bash
+        working-directory: ../yocto-kirkstone
+        run: |
+          . ./oe-core/oe-init-build-env
+          bitbake ivi-homescreen-release -c do_cleansstate
+          bitbake ivi-homescreen-release
+
       - name: Build flutter-drm-eglstream-backend
         shell: bash
-        working-directory: ../yocto-honister/poky
+        working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-init-build-env
+          . ./oe-core/oe-init-build-env
           bitbake flutter-drm-eglstream-backend -c do_cleansstate
           bitbake flutter-drm-eglstream-backend
 
       - name: Build drm gbm backend
         shell: bash
-        working-directory: ../yocto-honister/poky
+        working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-init-build-env
+          . ./oe-core/oe-init-build-env
           bitbake flutter-drm-gbm-backend -c do_cleansstate
           bitbake flutter-drm-gbm-backend
 
       - name: Build external texture plugin
         shell: bash
-        working-directory: ../yocto-honister/poky
+        working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-init-build-env
+          . ./oe-core/oe-init-build-env
           bitbake flutter-external-texture-plugin -c do_cleansstate
           bitbake flutter-external-texture-plugin
 
       - name: Build video player plugin
         shell: bash
-        working-directory: ../yocto-honister/poky
+        working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-init-build-env
+          . ./oe-core/oe-init-build-env
           bitbake flutter-video-player-plugin -c do_cleansstate
           bitbake flutter-video-player-plugin
 
       - name: Build Wayland Client
         shell: bash
-        working-directory: ../yocto-honister/poky
+        working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-init-build-env
+          . ./oe-core/oe-init-build-env
           bitbake flutter-wayland-client -c do_cleansstate
           bitbake flutter-wayland-client
 
       - name: Build X11 Client
         shell: bash
-        working-directory: ../yocto-honister/poky
+        working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-init-build-env
+          . ./oe-core/oe-init-build-env
           bitbake flutter-x11-client -c do_cleansstate
           bitbake flutter-x11-client
+
+      - name: Build flutter-gallery-release
+        shell: bash
+        working-directory: ../yocto-kirkstone
+        run: |
+          . ./oe-core/oe-init-build-env
+          bitbake flutter-gallery-release -c do_cleansstate
+          bitbake flutter-gallery-release

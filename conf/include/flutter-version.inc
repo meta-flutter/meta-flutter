@@ -1,4 +1,4 @@
-FLUTTER_SDK_TAG ??= "2.10.3"
+FLUTTER_SDK_TAG ??= "2.10.4"
 
 def get_flutter_archive(d):
     return _get_flutter_release_info(d, "archive")
