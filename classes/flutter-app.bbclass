@@ -123,7 +123,21 @@ do_compile() {
 
     cd ${S}/${FLUTTER_APPLICATION_PATH}
 
-    flutter build bundle ${FLUTTER_EXTRA_BUILD_ARGS}
+    if ${@bb.utils.contains('FLUTTER_APPLICATION_DELETE_LINUX_FOLDER', '1', 'true', 'false', d)}; then
+        bbnote "Removing linux folder contents"
+        [ -d "linux" ] && rm -rf linux/*
+    fi
+
+    if ${@bb.utils.contains('FLUTTER_APPLICATION_RUN_TEST', '1', 'true', 'false', d)}; then
+        bbnote "Running flutter test"
+        [ -d ../test ] && cd .. && flutter test && cd ${S}/${FLUTTER_APPLICATION_PATH}
+    fi
+
+    bbnote `pwd`
+    bbnote `ls -la`
+    bbnote `flutter config`
+
+    flutter build bundle ${FLUTTER_EXTRA_BUILD_ARGS} --verbose
 
     if ${@bb.utils.contains('FLUTTER_RUNTIME', 'release', 'true', 'false', d)} || \
        ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)}; then
@@ -170,12 +184,12 @@ SOLIBS = ".so"
 FILES_SOLIBSDEV = ""
 
 do_install() {
-    install -d ${D}${datadir}/${PUBSPEC_APPNAME}
+    install -d ${D}${datadir}/${FLUTTER_APPLICATION_INSTALL_PREFIX}/${PUBSPEC_APPNAME}
     if ${@bb.utils.contains('FLUTTER_RUNTIME', 'release', 'true', 'false', d)} || \
        ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)}; then
-        cp ${S}/${FLUTTER_APPLICATION_PATH}/libapp.so ${D}${datadir}/${PUBSPEC_APPNAME}/
+        cp ${S}/${FLUTTER_APPLICATION_PATH}/libapp.so ${D}${datadir}/${FLUTTER_APPLICATION_INSTALL_PREFIX}/${PUBSPEC_APPNAME}/
     fi
-    cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/* ${D}${datadir}/${PUBSPEC_APPNAME}/
+    cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/* ${D}${datadir}/${FLUTTER_APPLICATION_INSTALL_PREFIX}/${PUBSPEC_APPNAME}/
 }
 
 FILES_${PN} = "${datadir}"

@@ -59,6 +59,7 @@ jobs:
           git config --list
           /home/dev/bin/repo init -u https://github.com/jwinarske/manifests.git -m rpi64.xml -b $YOCTO_BRANCH
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
+          git clone -b jw/plugin-examples --single-branch https://github.com/meta-flutter/meta-flutter-plugins sources/meta-flutter-plugins &
           wait
           cd sources/meta-raspberrypi
           git apply ../../conf/rpi64/0001-rpi-mesa-vulkan-broadcom-override.patch
@@ -80,6 +81,7 @@ jobs:
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
           echo 'PACKAGECONFIG_pn-sascha-samples = "d2d"' >> ./conf/local.conf
           echo 'PREFERRED_VERSION_mesa = "21.2.%"' >> ./conf/local.conf
+          echo 'PREFERRED_VERSION_libserialport = "6f9b03e"' >> ./conf/local.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL_append = " ffmpeg kmscube libdrm-tests"' >> ./conf/local.conf
@@ -91,7 +93,7 @@ jobs:
           cat ./conf/local.conf
           echo '***************************************'
           bitbake-layers remove-layer meta-flutter
-          bitbake-layers add-layer ../../meta-flutter
+          bitbake-layers add-layer ../../meta-flutter ../sources/meta-flutter-plugins
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"

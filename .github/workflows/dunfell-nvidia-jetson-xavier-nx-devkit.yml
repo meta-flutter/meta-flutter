@@ -60,12 +60,15 @@ jobs:
           git submodule update --init
           cd repos
           rm -rf meta-clang meta-vulkan || true
-          git clone -b dunfell-clang12 --single-branch https://github.com/kraj/meta-clang.git
-          git clone -b dunfell-no-mesa --single-branch https://github.com/jwinarske/meta-vulkan.git
+          git clone -b dunfell-clang12 --single-branch https://github.com/kraj/meta-clang.git &
+          git clone -b dunfell-no-mesa --single-branch https://github.com/jwinarske/meta-vulkan.git &
+          git clone -b jw/plugin-examples --single-branch https://github.com/meta-flutter/meta-flutter-plugins &
+          wait
           cd ../layers
-          rm -rf meta-flutter meta-clang meta-vulkan || true
+          rm -rf meta-flutter meta-clang meta-vulkan meta-flutter-plugins || true
           ln -sf ../repos/meta-clang meta-clang
           ln -sf ../repos/meta-vulkan meta-vulkan
+          ln -sf ../repos/meta-flutter-plugins meta-flutter-plugins
           ln -sf ../../../meta-flutter meta-flutter
           cd ..
 
@@ -103,6 +106,7 @@ jobs:
           echo 'PACKAGECONFIG_pn-sascha-samples = "wayland"' >> ./conf/local.conf
           echo 'TEGRAFLASH_SDCARD_SIZE = "32G"' >> ./conf/local.conf
           echo 'KERNEL_ARGS_append = " quiet"' >> ./conf/local.conf
+          echo 'PREFERRED_VERSION_libserialport = "6f9b03e"' >> ./conf/local.conf
           echo 'PREFERRED_VERSION:gstreamer1.0 = "1.16%"' >> ./conf/local.conf
           echo 'PREFERRED_VERSION:gstreamer1.0-libav = "1.16%"' >> ./conf/local.conf
           echo 'PREFERRED_VERSION:gstreamer1.0-plugins-bad = "1.16%"' >> ./conf/local.conf
@@ -123,7 +127,8 @@ jobs:
           bitbake-layers add-layer \
             ${RUNNER_WORKSPACE}/${{ env.MACHINE }}/tegra-demo-distro/layers/meta-flutter \
             $WORKSPACE/layers/meta-clang \
-            $WORKSPACE/layers/meta-vulkan
+            $WORKSPACE/layers/meta-vulkan \
+            $WORKSPACE/layers/meta-flutter-plugins
           bitbake-layers show-layers
           echo '***************************************'
 

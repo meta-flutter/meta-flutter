@@ -99,13 +99,11 @@ jobs:
           echo 'PACKAGECONFIG_pn-ivi-homescreen-release = "gles2 context_version_2"' >> ./conf/bblayers.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
           echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> ./conf/local.conf
-          echo 'PREFERRED_PROVIDER_libserialport = "6f9b03e"' >> ./conf/local.conf
-          echo 'FLUTTER_SDK_TAG = "2.10.2"' >> ./conf/local.conf
+          echo 'PREFERRED_VERSION_libserialport = "6f9b03e"' >> ./conf/local.conf
           echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> ./conf/local.conf 
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../../meta-flutter/recipes-graphics/flutter-pi/flutter-pi.inc
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../../meta-flutter/recipes-graphics/toyota/ivi-homescreen.inc
           echo 'IMAGE_INSTALL_append = " \
-              libserialport \
               gstreamer1.0-libav \
               gstreamer1.0-plugins-bad \
               gstreamer1.0-plugins-good \
