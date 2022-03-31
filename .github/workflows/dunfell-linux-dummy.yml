@@ -115,6 +115,21 @@ jobs:
           bitbake flutter-engine-release -c do_cleansstate
           bitbake flutter-engine-release
 
+      - name: Build flutter-engine-profile
+        shell: bash
+        working-directory: ../yocto-dunfell
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake flutter-engine-profile -c do_cleansstate
+          bitbake flutter-engine-profile
+
+      - name: Build flutter-engine-debug
+        shell: bash
+        working-directory: ../yocto-dunfell
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake flutter-engine-debug -c do_cleansstate
+          bitbake flutter-engine-debug
 
       - name: Build packagegroup-flutter-plugin-examples-release
         shell: bash
@@ -124,6 +139,22 @@ jobs:
           bitbake packagegroup-flutter-plugin-examples-release -c do_cleansstate
           bitbake packagegroup-flutter-plugin-examples-release
 
+      - name: Build packagegroup-flutter-plugin-examples-debug
+        shell: bash
+        working-directory: ../yocto-dunfell
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake packagegroup-flutter-plugin-examples-debug -c do_cleansstate
+          bitbake packagegroup-flutter-plugin-examples-debug
+
+      - name: Build packagegroup-flutter-plugin-examples-profile
+        shell: bash
+        working-directory: ../yocto-dunfell
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake packagegroup-flutter-plugin-examples-profile -c do_cleansstate
+          bitbake packagegroup-flutter-plugin-examples-profile
+
       - name: Build flutter-gallery-release
         shell: bash
         working-directory: ../yocto-dunfell
@@ -132,14 +163,6 @@ jobs:
           bitbake flutter-gallery-release -c do_cleansstate
           bitbake flutter-gallery-release
 
-      - name: Build flutter-engine-profile
-        shell: bash
-        working-directory: ../yocto-dunfell
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-engine-profile -c do_cleansstate
-          bitbake flutter-engine-profile
-
       - name: Build flutter-gallery-profile
         shell: bash
         working-directory: ../yocto-dunfell
@@ -147,6 +170,14 @@ jobs:
           . ./poky/oe-init-build-env
           bitbake flutter-gallery-profile -c do_cleansstate
           bitbake flutter-gallery-profile
+
+      - name: Build flutter-gallery-debug
+        shell: bash
+        working-directory: ../yocto-dunfell
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake flutter-gallery-debug -c do_cleansstate
+          bitbake flutter-gallery-debug
 
       - name: Build ivi-homescreen-release
         shell: bash
