@@ -121,6 +121,7 @@ jobs:
               gstreamer1.0-plugins-ugly \
               "' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_WHITELIST = "commercial"' >> ./conf/local.conf
+          echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -266,11 +267,13 @@ jobs:
         working-directory: ../${{ env.MACHINE }}/tegra-demo-distro
         run: |
           . ./setup-env
-          echo 'IMAGE_INSTALL_append = " flutter-engine-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " flutter-gallery-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " ivi-homescreen-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " adwaita-icon-theme-cursors"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " sascha-samples"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = "\
+              flutter-engine-debug \
+              packagegroup-flutter-plugin-examples-debug \
+              flutter-gallery-debug \
+              ivi-homescreen-debug \
+              sascha-samples \
+              "' >> ./conf/local.conf
           bitbake demo-image-weston
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/images/${{ env.MACHINE }}/demo-image-weston-${{ env.MACHINE }}-*.tegraflash.tar.gz /home/dev/artifacts

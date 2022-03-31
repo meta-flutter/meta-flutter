@@ -68,7 +68,7 @@ jobs:
           /home/dev/bin/repo init -u https://github.com/varigit/variscite-bsp-platform.git -b $YOCTO_BRANCH -m default.xml
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           git clone -b dunfell-clang12 --single-branch https://github.com/kraj/meta-clang.git sources/meta-clang &
-          git clone -b dunfell --single-branch https://github.com/meta-flutter/meta-flutter-plugins.git sources/meta-flutter-plugins &
+          git clone -b jw/plugin-examples --single-branch https://github.com/meta-flutter/meta-flutter-plugins.git sources/meta-flutter-plugins &
           wait
 
       - name: Configure build
@@ -109,6 +109,7 @@ jobs:
               gstreamer1.0-plugins-good \
               gstreamer1.0-plugins-ugly \
               "' >> ./conf/local.conf
+          echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_WHITELIST = "commercial"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
@@ -283,11 +284,13 @@ jobs:
         working-directory: ../${{ env.MACHINE }}
         run: |
           . sources/poky/oe-init-build-env build
-          echo 'IMAGE_INSTALL_append = " flutter-engine-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " flutter-gallery-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " ivi-homescreen-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " flutter-pi-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " adwaita-icon-theme-cursors"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " \
+              flutter-engine-debug \
+              flutter-gallery-debug \
+              packagegroup-flutter-plugin-examples-debug \
+              ivi-homescreen-debug \
+              flutter-pi-debug \
+              "' >> ./conf/local.conf
           bitbake fsl-image-gui
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/images/${{ env.MACHINE }}/fsl-image-gui-${{ env.MACHINE }}-*.rootfs.wic.gz /home/dev/artifacts

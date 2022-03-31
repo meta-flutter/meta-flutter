@@ -86,8 +86,8 @@ jobs:
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL_append = " ffmpeg kmscube libdrm-tests"' >> ./conf/local.conf
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../sources/poky/meta/recipes-core/gettext/gettext_0.20.1.bb
-          echo 'FLUTTER_SDK_TAG = "2.10.2"' >> ./conf/local.conf
           echo 'FLUTTER_RUNTIME_pn-flutter-drm-gbm-backend = "debug"' >> ./conf/local.conf
+          echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_WHITELIST = "commercial"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
@@ -243,6 +243,7 @@ jobs:
               flutter-pi-debug \
               flutter-drm-gbm-backend \
               flutter-gallery-debug \
+              packagegroup-flutter-plugin-examples-debug \
               kmscube libdrm-tests \
               vkcube sascha-samples \
               vk-layer-perfdoc \

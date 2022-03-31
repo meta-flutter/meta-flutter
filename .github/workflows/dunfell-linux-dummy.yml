@@ -85,6 +85,7 @@ jobs:
               gstreamer1.0-plugins-ugly \
               ffmpeg \
               "' >> ./conf/local.conf
+          echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_WHITELIST = "commercial"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf

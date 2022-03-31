@@ -123,7 +123,7 @@ do_compile() {
 
     cd ${S}/${FLUTTER_APPLICATION_PATH}
 
-    if ${@bb.utils.contains('FLUTTER_APPLICATION_DELETE_LINUX_FOLDER', '1', 'true', 'false', d)}; then
+    if ${@bb.utils.contains('FLUTTER_APPLICATION_CLEAR_LINUX_FOLDER', '1', 'true', 'false', d)}; then
         bbnote "Removing linux folder contents"
         [ -d "linux" ] && rm -rf linux/*
     fi
