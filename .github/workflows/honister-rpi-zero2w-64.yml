@@ -152,9 +152,11 @@ jobs:
         working-directory: ../zero2w-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-engine-release"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-pi-release"' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " flutter-gallery-release"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " \
+              flutter-engine-release \
+              flutter-pi-release \
+              flutter-gallery-release \
+              "' >> ./conf/local.conf
           bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
