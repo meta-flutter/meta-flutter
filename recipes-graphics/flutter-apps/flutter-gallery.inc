@@ -19,3 +19,5 @@ PUBSPEC_APPNAME = "gallery"
 inherit flutter-app
 
 FILES:${PN} += "${datadir}/homescreen"
+
+do_compile[network] = "1"
