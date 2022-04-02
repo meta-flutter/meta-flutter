@@ -19,7 +19,9 @@ DEPENDS += "\
 
 SRC_URI = "gn://github.com/flutter/engine.git;name=src/flutter \
            file://0001-clang-toolchain.patch \
-           file://0002-x64-sysroot-assert.patch"
+           file://0002-x64-sysroot-assert.patch \
+           file://0001-allow-deprecated-calls.patch \
+           "
 
 S = "${WORKDIR}/src"
 
@@ -95,7 +97,7 @@ ARGS_GN_FILE = "${WORKDIR}/src/${OUT_DIR_REL}/args.gn"
 
 OUT_DIR_REL = "${@get_out_dir(d)}"
 
-GN_ARGS = "${PACKAGECONFIG_CONFARGS} --use-mallinfo2 --clang --lto --no-goma --no-stripped "
+GN_ARGS = "${PACKAGECONFIG_CONFARGS} --clang --lto --no-goma --no-stripped "
 GN_ARGS:append = " --target-os linux"
 GN_ARGS:append = " --linux-cpu ${@gn_target_arch_name(d)}"
 GN_ARGS:append = " --target-sysroot ${STAGING_DIR_TARGET}"
