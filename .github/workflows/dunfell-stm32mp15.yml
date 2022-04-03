@@ -76,7 +76,6 @@ jobs:
           echo 'IMAGE_LINGUAS = "en-us"' >> $LOCAL_CONF
           echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> $LOCAL_CONF
           echo 'CLANGSDK = "1"' >> $LOCAL_CONF
-          echo 'FLUTTER_SDK_TAG = "2.10.3"' >> $LOCAL_CONF
           echo 'FLUTTER_RUNTIME_pn-flutter-drm-gbm-backend = "debug"' >> $LOCAL_CONF
           echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> $LOCAL_CONF 
           echo 'INHERIT_remove = "uninative"' >> $LOCAL_CONF
@@ -229,7 +228,6 @@ jobs:
           echo 'IMAGE_LINGUAS = "en-us"' >> $LOCAL_CONF
           echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> $LOCAL_CONF
           echo 'CLANGSDK = "1"' >> $LOCAL_CONF
-          echo 'FLUTTER_SDK_TAG = "2.10.3"' >> $LOCAL_CONF
           echo 'FLUTTER_RUNTIME_pn-flutter-drm-gbm-backend = "debug"' >> $LOCAL_CONF
           echo 'FLUTTER_RUNTIME_pn-flutter-wayland-client = "debug"' >> $LOCAL_CONF
           echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> $LOCAL_CONF 
