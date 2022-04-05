@@ -1,4 +1,4 @@
-include flutter-gallery.inc
+include flutter-linux-plugins.inc
 
 FLUTTER_RUNTIME = "profile"
 

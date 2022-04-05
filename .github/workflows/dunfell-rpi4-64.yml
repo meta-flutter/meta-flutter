@@ -240,6 +240,7 @@ jobs:
           echo 'CORE_IMAGE_BASE_INSTALL_append = " \
               flutter-pi-debug \
               flutter-drm-gbm-backend \
+              flutter-linux-plugins-debug \
               flutter-gallery-debug \
               kmscube libdrm-tests \
               vkcube sascha-samples \
