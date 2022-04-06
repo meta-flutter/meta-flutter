@@ -262,6 +262,7 @@ jobs:
         run: |
           . ./setup-env
           echo 'IMAGE_INSTALL_append = " flutter-engine-debug"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " flutter-linux-plugins-debug"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " flutter-gallery-debug"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " ivi-homescreen-debug"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " adwaita-icon-theme-cursors"' >> ./conf/local.conf

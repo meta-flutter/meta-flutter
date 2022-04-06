@@ -245,6 +245,7 @@ jobs:
                     weston weston-init \
                     flutter-engine-debug \
                     ivi-homescreen-debug \
+                    flutter-linux-plugins-debug \
                     flutter-gallery-debug \
                     adwaita-icon-theme-cursors \
                     xdg-user-dirs \

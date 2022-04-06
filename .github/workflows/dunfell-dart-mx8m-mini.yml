@@ -286,6 +286,7 @@ jobs:
         run: |
           . sources/poky/oe-init-build-env build
           echo 'IMAGE_INSTALL_append = " flutter-engine-debug"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " flutter-linux-plugins-debug"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " flutter-gallery-debug"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " ivi-homescreen-debug"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " flutter-pi-debug"' >> ./conf/local.conf
