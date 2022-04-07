@@ -87,7 +87,12 @@ jobs:
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
-          bitbake-layers add-layer ../../meta-openembedded/meta-oe ../../meta-clang ../../../meta-flutter
+          bitbake-layers add-layer \
+              ../../meta-openembedded/meta-oe \
+              ../../meta-openembedded/meta-python \
+              ../../meta-openembedded/meta-networking \
+              ../../meta-clang \
+              ../../../meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
