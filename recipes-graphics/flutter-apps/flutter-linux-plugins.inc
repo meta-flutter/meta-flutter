@@ -11,6 +11,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=df6bd2163489eedcdea6b9406bcbe1dd"
 DEPENDS += "\
     bluez5 \
     geoclue \
+    liberation-fonts \
     libgpiod \
     libserialport \
     networkmanager \
