@@ -77,6 +77,7 @@ jobs:
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
+          echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> ./conf/local.conf
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
           echo 'PACKAGECONFIG_pn-sascha-samples = "d2d"' >> ./conf/local.conf
           echo 'PREFERRED_VERSION_mesa = "21.2.%"' >> ./conf/local.conf
