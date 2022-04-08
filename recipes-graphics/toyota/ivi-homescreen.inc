@@ -34,10 +34,11 @@ RUNTIME = "llvm"
 TOOLCHAIN = "clang"
 PREFERRED_PROVIDER_libgcc = "compiler-rt"
 
-PACKAGECONFIG ??= "transparency gstreamer ${@bb.utils.filter('DISTRO_FEATURES', 'systemd', d)}"
+PACKAGECONFIG ??= "transparency gstreamer secure_storage ${@bb.utils.filter('DISTRO_FEATURES', 'systemd', d)}"
 
 PACKAGECONFIG[transparency] = "-DBUILD_EGL_TRANSPARENCY=ON, -DBUILD_EGL_TRANSPARENCY=OFF"
 PACKAGECONFIG[gstreamer] = "-DBUILD_PLUGIN_GSTREAMER=ON, -DBUILD_PLUGIN_GSTREAMER=OFF, gstreamer1.0 gstreamer1.0-plugins-base ffmpeg"
+PACKAGECONFIG[secure_storage] = "-DBUILD_PLUGIN_SECURE_STORAGE=ON, -DBUILD_PLUGIN_SECURE_STORAGE=OFF, libsecret"
 
 EXTRA_OECMAKE += "-D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr"
 
