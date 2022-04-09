@@ -249,7 +249,6 @@ jobs:
               gstreamer1.0-plugins-good \
               gstreamer1.0-plugins-ugly \
               webthing-rust \
-              webthings-gateway \
               "' >> ./conf/local.conf
           bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
