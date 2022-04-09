@@ -248,9 +248,9 @@ jobs:
               gstreamer1.0-plugins-bad \
               gstreamer1.0-plugins-good \
               gstreamer1.0-plugins-ugly \
-              webthing-rust \
+              webthing-rust-examples \
+              webthings-gateway \
               "' >> ./conf/local.conf
-          bitbake webthing-rust -cdo_cleansstate
           bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
