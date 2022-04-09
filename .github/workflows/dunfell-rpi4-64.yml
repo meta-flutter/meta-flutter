@@ -116,6 +116,57 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
 
+      - name: Build webthings-gateway
+        shell: bash
+        working-directory: ../rpi4-drm-dunfell-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake webthings-gateway -cdo_cleansstate
+          bitbake webthings-gateway
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/aarch64/webthings-gateway-*.rpm /home/dev/artifacts
+
+      - name: Publish webthings-gateway artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: webthings-gateway-rpi4-64
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build webthings-registration-server
+        shell: bash
+        working-directory: ../rpi4-drm-dunfell-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake webthings-registration-server -cdo_cleansstate
+          bitbake webthings-registration-server
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/aarch64/webthings-registration-server-*.rpm /home/dev/artifacts
+
+      - name: Publish webthings-registration-server artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: webthings-registration-server-rpi4-64
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build webthing-rust-examples
+        shell: bash
+        working-directory: ../rpi4-drm-dunfell-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake webthing-rust-examples -cdo_cleansstate
+          bitbake webthing-rust-examples
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/aarch64/webthing-rust-examples-*.rpm /home/dev/artifacts
+
+      - name: Publish webthing-rust-examples artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: webthing-rust-examples-rpi4-64
+          path: |
+             /home/dev/artifacts/*.rpm
+             
       - name: Build vkmark
         shell: bash
         working-directory: ../rpi4-drm-dunfell-latest
@@ -248,8 +299,9 @@ jobs:
               gstreamer1.0-plugins-bad \
               gstreamer1.0-plugins-good \
               gstreamer1.0-plugins-ugly \
-              webthing-rust-examples \
               webthings-gateway \
+              webthings-registration-server \
+              webthing-rust-examples \
               "' >> ./conf/local.conf
           bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
