@@ -250,6 +250,7 @@ jobs:
               gstreamer1.0-plugins-ugly \
               webthing-rust \
               "' >> ./conf/local.conf
+          bitbake webthing-rust -cdo_cleansstate
           bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
