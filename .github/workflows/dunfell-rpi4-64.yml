@@ -63,6 +63,9 @@ jobs:
           cd sources/meta-raspberrypi
           git apply ../../conf/rpi64/0001-rpi-mesa-vulkan-broadcom-override.patch
           cd ../..
+          cd sources/poky/bitbake
+          git apply ../../../conf/rpi64/bb-fetch-speedup-npm-config.patch
+          cd ../../..
           rm -rf sources/poky/meta/recipes-graphics/mesa || true
           rm -rf sources/meta-raspberrypi/recipes-graphics/mesa/mesa-demos_%.bbappend || true
 
