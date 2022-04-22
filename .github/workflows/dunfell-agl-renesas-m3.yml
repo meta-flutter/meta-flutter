@@ -79,7 +79,20 @@ jobs:
           echo 'INHERIT_remove = "uninative"' >> ./conf/local.conf
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../external/meta-clang/recipes-devtools/clang/clang_git.bb
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
-          echo 'FLUTTER_SDK_TAG = "2.10.2"' >> ./conf/local.conf
+          echo 'FLUTTER_SDK_TAG = "AUTOINC"' >> ./conf/local.conf
+          echo 'ENABLE_BINARY_LOCALE_GENERATION = "1"' >> ./conf/local.conf
+          sed -i "/GLIBC_GENERATE_LOCALES/d" ./conf/local.conf
+          echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> ./conf/local.conf
+          sed -i "/IMAGE_LINGUAS/d" ./conf/local.conf
+          echo 'IMAGE_LINGUAS:append = " en-us es-us en-gb"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = " \
+              glibc-utils \
+              localedef \
+              tzdata-core \
+              tzdata-americas \
+              xkeyboard-config \
+              "' >> ./conf/local.conf
+          echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> ./conf/local.conf
           echo '** Layers *****************************'
           sed -i 's|\${METADIR}/bsp/meta-renesas/meta-rcar-gen3 \\|\${METADIR}/bsp/meta-renesas/meta-rcar-gen3 \\\n  ${METADIR}/external/meta-openembedded/meta-python \\|g' conf/bblayers.conf
           bitbake-layers show-layers

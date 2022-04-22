@@ -1,4 +1,4 @@
-FLUTTER_SDK_TAG ??= "2.10.4"
+FLUTTER_SDK_TAG ??= "AUTOINC"
 
 def get_flutter_archive(d):
     return _get_flutter_release_info(d, "archive")
@@ -29,7 +29,7 @@ def _get_flutter_release_info(d, key):
     releases_linux_json = json.loads(buf.decode('utf-8'))
 
     if flutter_sdk_tag == "AUTOINC":
-        flutter_sdk_tag = releases_linux_json["current_release"]["dev"]
+        flutter_sdk_tag = releases_linux_json["current_release"]["stable"]
     releases = releases_linux_json["releases"]
     for r in releases:
         if r["version"] == flutter_sdk_tag or r["hash"] == flutter_sdk_tag:

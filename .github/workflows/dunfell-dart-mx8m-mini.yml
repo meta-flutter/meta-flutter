@@ -25,7 +25,7 @@ jobs:
       YOCTO_VERSION: 3.1.10
       MACHINE: imx8mm-var-dart
       DISTRO: fslc-wayland
-      FLUTTER_SDK_TAG: 2.10.2
+      FLUTTER_SDK_TAG: 2.10.4
       
     runs-on: [self-hosted, linux]
     
@@ -90,21 +90,22 @@ jobs:
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
-          sed -i "/GLIBC_GENERATE_LOCALES/d" ./conf/local.conf
-          echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> ./conf/local.conf
-          sed -i "/IMAGE_LINGUAS/d" ./conf/local.conf
-          echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG_pn-ivi-homescreen-debug = "gles2 context_version_2"' >> ./conf/bblayers.conf
-          echo 'PACKAGECONFIG_pn-ivi-homescreen-profile = "gles2 context_version_2"' >> ./conf/bblayers.conf
-          echo 'PACKAGECONFIG_pn-ivi-homescreen-release = "gles2 context_version_2"' >> ./conf/bblayers.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
           echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_libserialport = "6f9b03e"' >> ./conf/local.conf
-          echo 'FLUTTER_SDK_TAG = "2.10.2"' >> ./conf/local.conf
-          echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> ./conf/local.conf 
+          echo 'ENABLE_BINARY_LOCALE_GENERATION = "1"' >> ./conf/local.conf
+          sed -i "/GLIBC_GENERATE_LOCALES/d" ./conf/local.conf
+          echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> ./conf/local.conf
+          sed -i "/IMAGE_LINGUAS/d" ./conf/local.conf
+          echo 'IMAGE_LINGUAS_append = " en-us es-us en-gb"' >> ./conf/local.conf
+          echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> ./conf/local.conf
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../../meta-flutter/recipes-graphics/flutter-pi/flutter-pi.inc
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../../meta-flutter/recipes-graphics/toyota/ivi-homescreen.inc
+          echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " \
+              tzdata-core \
+              tzdata-americas \
+              xkeyboard-config \
               libserialport \
               gstreamer1.0-libav \
               gstreamer1.0-plugins-bad \

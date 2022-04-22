@@ -77,8 +77,6 @@ jobs:
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
-          echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> ./conf/local.conf
-          echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
           echo 'PACKAGECONFIG_pn-sascha-samples = "d2d"' >> ./conf/local.conf
           echo 'PREFERRED_VERSION_mesa = "21.2.%"' >> ./conf/local.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
@@ -86,6 +84,12 @@ jobs:
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../sources/poky/meta/recipes-core/gettext/gettext_0.20.1.bb
           echo 'FLUTTER_RUNTIME_pn-flutter-drm-gbm-backend = "debug"' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_WHITELIST = "commercial"' >> ./conf/local.conf
+          echo 'ENABLE_BINARY_LOCALE_GENERATION = "1"' >> ./conf/local.conf
+          sed -i "/GLIBC_GENERATE_LOCALES/d" ./conf/local.conf
+          echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> ./conf/local.conf
+          sed -i "/IMAGE_LINGUAS/d" ./conf/local.conf
+          echo 'IMAGE_LINGUAS_append = " en-us es-us en-gb"' >> ./conf/local.conf
+          echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -237,6 +241,9 @@ jobs:
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           echo 'CORE_IMAGE_EXTRA_INSTALL_append = " \
+              tzdata-core \
+              tzdata-americas \
+              xkeyboard-config \
               flutter-pi-debug \
               flutter-drm-gbm-backend \
               flutter-linux-plugins-debug \
