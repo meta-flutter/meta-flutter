@@ -11,11 +11,14 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=df6bd2163489eedcdea6b9406bcbe1dd"
 DEPENDS += "\
     bluez5 \
     geoclue \
-    liberation-fonts \
     libgpiod \
     libserialport \
     networkmanager \
     xdg-user-dirs \
+    "
+
+RDEPENDS += "\
+    liberation-fonts \
     "
 
 SRC_URI = "git://github.com/meta-flutter/linux_plugins.git;lfs=1;branch=main;protocol=https;destsuffix=git"

@@ -70,18 +70,18 @@ jobs:
           echo 'DL_DIR = "/home/dev/dl"' >> $LOCAL_CONF
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> $LOCAL_CONF
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> $LOCAL_CONF
-          sed -i "/GLIBC_GENERATE_LOCALES/d" $LOCAL_CONF
-          echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> $LOCAL_CONF
           echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> $LOCAL_CONF
           echo 'CLANGSDK = "1"' >> $LOCAL_CONF
           echo 'FLUTTER_RUNTIME_pn-flutter-drm-gbm-backend = "debug"' >> $LOCAL_CONF
           echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> $LOCAL_CONF 
           echo 'INHERIT_remove = "uninative"' >> $LOCAL_CONF
+          echo 'DISTRO_FEATURES_LIBC_append = " libc-locales"' >> $LOCAL_CONF
           echo 'ENABLE_BINARY_LOCALE_GENERATION = "1"' >> $LOCAL_CONF
           echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> $LOCAL_CONF
           echo 'IMAGE_LINGUAS_append = " en-us es-us en-gb"' >> $LOCAL_CONF
           echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> $LOCAL_CONF
-          echo 'CORE_IMAGE_EXTRA_INSTALL += " \
+          echo 'CORE_IMAGE_EXTRA_INSTALL_append = " \
+                    localedef \
                     tzdata-core \
                     tzdata-americas \
                     xkeyboard-config \
@@ -120,6 +120,7 @@ jobs:
           echo '* IMAGE_FEATURES **********************'
           bitbake -e st-image-core | grep "^IMAGE_FEATURES"
           echo '***************************************'
+          bitbake glibc-locale -c do_cleansstate
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
@@ -234,21 +235,15 @@ jobs:
           echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> $LOCAL_CONF 
           echo 'INHERIT_remove = "uninative"' >> $LOCAL_CONF
           echo 'DISTRO_FEATURES_remove = " x11 "' >> $LOCAL_CONF
-          echo 'ENABLE_BINARY_LOCALE_GENERATION = "1"' >> $LOCAL_CONF
-          sed -i "/GLIBC_GENERATE_LOCALES/d" $LOCAL_CONF
-          echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> $LOCAL_CONF
-          sed -i "/IMAGE_LINGUAS/d" $LOCAL_CONF
-          echo 'IMAGE_LINGUAS_append = " en-us es-us en-gb"' >> $LOCAL_CONF
-          echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> $LOCAL_CONF
-          echo 'PACKAGECONFIG_pn-ivi-homescreen-debug = "transparency"' >> $LOCAL_CONF
-          echo 'PACKAGECONFIG_pn-ivi-homescreen-profile = "transparency"' >> $LOCAL_CONF
-          echo 'PACKAGECONFIG_pn-ivi-homescreen-release = "transparency"' >> $LOCAL_CONF
-          echo 'CORE_IMAGE_EXTRA_INSTALL_remove = " packagegroup-framework-core "' >> $LOCAL_CONF
-          echo 'CORE_IMAGE_EXTRA_INSTALL_remove = " packagegroup-framework-tools "' >> $LOCAL_CONF
-          echo 'CORE_IMAGE_EXTRA_INSTALL_remove = " packagegroup-framework-core-extra "' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL_remove = " packagegroup-st-demo "' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL_remove = " gtk+3-demo "' >> $LOCAL_CONF
-          echo 'CORE_IMAGE_EXTRA_INSTALL += " \
+          echo 'DISTRO_FEATURES_LIBC_append = " libc-locales"' >> $LOCAL_CONF
+          echo 'ENABLE_BINARY_LOCALE_GENERATION = "1"' >> $LOCAL_CONF
+          echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> $LOCAL_CONF
+          echo 'IMAGE_LINGUAS_append = " en-us es-us en-gb"' >> $LOCAL_CONF
+          echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> $LOCAL_CONF
+          echo 'CORE_IMAGE_EXTRA_INSTALL_append = " \
+                    localedef \
                     tzdata-core \
                     tzdata-americas \
                     xkeyboard-config \
@@ -257,7 +252,6 @@ jobs:
                     ivi-homescreen-debug \
                     flutter-linux-plugins-debug \
                     flutter-gallery-debug \
-                    adwaita-icon-theme-cursors \
                     xdg-user-dirs \
                     flutter-pi-debug \
                     flutter-drm-gbm-backend \
@@ -267,7 +261,8 @@ jobs:
                     dhcp-client systemd-networkd-configuration \
                     infos-openstlinux \
                     fbgrab \
-                    tiff libv4l rc-keymaps packagegroup-gstreamer1-0 \
+                    tiff libv4l \
+                    packagegroup-gstreamer1-0 \
                     gstreamer1.0-libav \
                     gstreamer1.0-plugins-bad \
                     gstreamer1.0-plugins-good \
@@ -297,6 +292,7 @@ jobs:
           echo '* IMAGE_FEATURES **********************'
           bitbake -e st-image-core | grep "^IMAGE_FEATURES"
           echo '***************************************'
+          bitbake glibc-locale -c do_cleansstate
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
