@@ -17,7 +17,7 @@ DEPENDS += "\
     xdg-user-dirs \
     "
 
-RDEPENDS += "\
+RDEPENDS_${PN} += "\
     liberation-fonts \
     "
 
