@@ -15,6 +15,7 @@ jobs:
   linux-dummy:
   
     env:
+      YOCTO_VERSION: 4.0
       YOCTO_BRANCH: kirkstone
       
     runs-on: [self-hosted, linux]
@@ -47,38 +48,51 @@ jobs:
         run: |
           [ -d ../yocto-kirkstone ] || mkdir -p ../yocto-kirkstone
           cd ../yocto-kirkstone
-          rm -rf sources || true
-          /home/dev/bin/repo init -u https://gitlab.eclipse.org/eclipse/oniro-core/oniro.git -m manifests/default.xml -b $YOCTO_BRANCH
-          /home/dev/bin/repo sync -c --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
+          pwd
+          ls -la
+          rm -rf poky meta-openembedded meta-clang
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded &
+          git clone -b ${{ env.YOCTO_BRANCH }}-clang12 --single-branch https://github.com/kraj/meta-clang.git &
           wait
-          rm meta-clang/recipes-multimedia/mediasdk/intel-mediasdk_%.bbappend || true
 
       - name: Configure build
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
-          rm -rf build || true
-          . ./oe-core/oe-init-build-env
-          echo '***************************************'
-          sed -i '/pn-qemu-system-native/d' ./conf/local.conf
-          sed -i '/pn-nativesdk-qemu/d' ./conf/local.conf
+          rm -rf build/conf
+          . ./poky/oe-init-build-env
           echo '***************************************'
           echo 'INHERIT += "rm_work"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
+          echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES:remove = "sysvinit"' >> ./conf/local.conf
-          echo 'DISTRO_FEATURES:append = " x11 wayland opengl systemd"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:append = " x11 wayland opengl"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES_BACKFILL_CONSIDERED = ""' >> ./conf/local.conf
-          echo 'VIRTUAL-RUNTIME:init_manager = "systemd"' >> ./conf/local.conf
-          echo 'VIRTUAL-RUNTIME:initscripts = ""' >> ./conf/local.conf
+          echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER:virtual/kernel = "linux-dummy"' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED = "commercial"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = " \
+              gstreamer1.0 \
+              gstreamer1.0-libav \
+              gstreamer1.0-plugins-bad \
+              gstreamer1.0-plugins-base \
+              gstreamer1.0-plugins-good \
+              gstreamer1.0-plugins-ugly \
+              ffmpeg \
+              "' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
-          bitbake-layers add-layer ../meta-openembedded/meta-oe ../meta-clang ../../meta-flutter
+          bitbake-layers add-layer \
+              ../meta-openembedded/meta-oe \
+              ../meta-openembedded/meta-python \
+              ../meta-openembedded/meta-networking \
+              ../meta-clang \
+              ../../meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
@@ -87,19 +101,22 @@ jobs:
           bitbake -e core-image-minimal | grep "^DISTRO_FEATURES"
           echo '***************************************'
           bitbake -e > bb.environment
+          bitbake ca-certificates -c do_cleansstate
+          bitbake ca-certificates-native -c do_cleansstate
+          bitbake flutter-sdk-native -c do_cleansstate
 
       - name: Build core-image-minimal
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-core/oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake core-image-minimal
 
       - name: Build flutter-engine-release
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-core/oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake flutter-engine-release -c do_cleansstate
           bitbake flutter-engine-release
 
@@ -107,7 +124,7 @@ jobs:
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-core/oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake flutter-engine-profile -c do_cleansstate
           bitbake flutter-engine-profile
 
@@ -115,7 +132,7 @@ jobs:
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-core/oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake flutter-engine-debug -c do_cleansstate
           bitbake flutter-engine-debug
 
@@ -123,7 +140,7 @@ jobs:
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-core/oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake flutter-pi-release -c do_cleansstate
           bitbake flutter-pi-release
 
@@ -131,7 +148,7 @@ jobs:
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-core/oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake flutter-pi-profile -c do_cleansstate
           bitbake flutter-pi-profile
 
@@ -139,7 +156,7 @@ jobs:
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-core/oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake flutter-pi-debug -c do_cleansstate
           bitbake flutter-pi-debug
 
@@ -147,7 +164,7 @@ jobs:
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-core/oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake ivi-homescreen-release -c do_cleansstate
           bitbake ivi-homescreen-release
 
@@ -155,7 +172,7 @@ jobs:
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-core/oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake ivi-homescreen-profile -c do_cleansstate
           bitbake ivi-homescreen-profile
 
@@ -163,7 +180,7 @@ jobs:
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-core/oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake ivi-homescreen-debug -c do_cleansstate
           bitbake ivi-homescreen-debug
 
@@ -171,7 +188,7 @@ jobs:
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-core/oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake flutter-drm-eglstream-backend -c do_cleansstate
           bitbake flutter-drm-eglstream-backend
 
@@ -179,7 +196,7 @@ jobs:
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-core/oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake flutter-drm-gbm-backend -c do_cleansstate
           bitbake flutter-drm-gbm-backend
 
@@ -187,7 +204,7 @@ jobs:
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-core/oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake flutter-external-texture-plugin -c do_cleansstate
           bitbake flutter-external-texture-plugin
 
@@ -195,7 +212,7 @@ jobs:
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-core/oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake flutter-video-player-plugin -c do_cleansstate
           bitbake flutter-video-player-plugin
 
@@ -203,7 +220,7 @@ jobs:
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-core/oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake flutter-wayland-client -c do_cleansstate
           bitbake flutter-wayland-client
 
@@ -211,7 +228,7 @@ jobs:
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-core/oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake flutter-x11-client -c do_cleansstate
           bitbake flutter-x11-client
 
@@ -219,7 +236,7 @@ jobs:
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-core/oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake flutter-gallery-release -c do_cleansstate
           bitbake flutter-gallery-release
 
@@ -227,7 +244,7 @@ jobs:
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-core/oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake flutter-gallery-profile -c do_cleansstate
           bitbake flutter-gallery-profile
 
@@ -235,6 +252,6 @@ jobs:
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
-          . ./oe-core/oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake flutter-gallery-debug -c do_cleansstate
           bitbake flutter-gallery-debug

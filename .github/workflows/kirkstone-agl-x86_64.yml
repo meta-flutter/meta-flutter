@@ -13,13 +13,13 @@ on:
 jobs:
 
   master-qemux86_64:
-  
+
     env:
       MACHINE: qemux86-64
       AGL_BRANCH: master
 
     runs-on: [self-hosted, linux]
-    
+
     container:
       image: ghcr.io/meta-flutter/ubuntu-20-dev:main
       options:
@@ -29,18 +29,18 @@ jobs:
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/agl/qemux86_64:/home/dev/sstate:Z
         -v /mnt/raid10/github-ci/artifacts/agl/qemux86_64:/home/dev/artifacts:Z
-      
+
     steps:
-    
+
       - name: Display UID Info
         run: |
           whoami
           id -u
-          
+
       - name: Set Ownership
         run: |
           chown -R dev:dev $HOME .
-          
+
       - uses: actions/checkout@v2
 
       - name: Fetch Layers
@@ -59,6 +59,9 @@ jobs:
           rm -rf meta-flutter || true
           ln -sf ../../meta-flutter meta-flutter
           cd ..
+          sed -i '/weston-ini-conf-landscape/d' meta-agl-devel/meta-agl-flutter/recipes-platform/images/agl-image-flutter-debug.bb || true
+          sed -i '/weston-ini-conf-landscape/d' meta-agl-devel/meta-agl-flutter/recipes-platform/images/agl-image-flutter-profile.bb || true
+          sed -i '/weston-ini-conf-landscape/d' meta-agl-devel/meta-agl-flutter/recipes-platform/images/agl-image-flutter.bb || true
 
       - name: Configure AGL build
         shell: bash
@@ -72,11 +75,11 @@ jobs:
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://download.automotivelinux.org/sstate-mirror/${{ env.AGL_BRANCH }}/${DEFAULTTUNE}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
-          echo 'INHERIT_remove = "uninative"' >> ./conf/local.conf
+          echo 'INHERIT:remove = "uninative"' >> ./conf/local.conf
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../external/meta-clang/recipes-devtools/clang/clang_git.bb
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
-          echo 'FLUTTER_SDK_TAG = "2.10.2"' >> ./conf/local.conf
-          echo 'LICENSE_FLAGS_WHITELIST = "commercial"' >> ./conf/local.conf
+          echo 'FLUTTER_SDK_TAG = "2.10.5"' >> ./conf/local.conf
+          echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
           echo '** Layers *****************************'
           bitbake-layers show-layers
           echo '** Kernel *****************************'
