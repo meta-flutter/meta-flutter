@@ -8,7 +8,7 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=3ac21e3d8ebe7dd79f273ca11b9e7b4e"
 
-RDEPENDS += " \
+RDEPENDS_${PN} += " \
     adwaita-icon-theme-cursors \
     "
 
