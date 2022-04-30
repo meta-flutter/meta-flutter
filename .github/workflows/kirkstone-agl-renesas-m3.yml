@@ -59,6 +59,12 @@ jobs:
           rm -rf meta-flutter || true
           ln -sf ../../meta-flutter meta-flutter
           cd ..
+          sed -i '/weston-ini-conf-landscape/d' meta-agl-devel/meta-agl-flutter/recipes-platform/images/agl-image-flutter-debug.bb
+          sed -i '/weston-ini-conf-landscape/d' meta-agl-devel/meta-agl-flutter/recipes-platform/images/agl-image-flutter-profile.bb
+          sed -i '/weston-ini-conf-landscape/d' meta-agl-devel/meta-agl-flutter/recipes-platform/images/agl-image-flutter.bb
+          rm ./bsp/meta-rcar/meta-rcar-gen3-adas/recipes-bsp/u-boot/u-boot_2020.01.bbappend || true
+          rm ./meta-agl/meta-agl-bsp/meta-rcar-gen3/recipes-bsp/u-boot/u-boot_2020.01.bbappend || true
+          rm ./bsp/meta-renesas/meta-rcar-gen3/recipes-graphics/cogl/cogl-1.0_1.%.bbappend || true
           
       - name: Configure AGL build
         shell: bash
@@ -76,10 +82,11 @@ jobs:
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://download.automotivelinux.org/sstate-mirror/${{ env.AGL_BRANCH }}/${DEFAULTTUNE}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
-          echo 'INHERIT_remove = "uninative"' >> ./conf/local.conf
+          echo 'INHERIT:remove = "uninative"' >> ./conf/local.conf
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../external/meta-clang/recipes-devtools/clang/clang_git.bb
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
-          echo 'FLUTTER_SDK_TAG = "2.10.2"' >> ./conf/local.conf
+          echo 'FLUTTER_SDK_TAG = "2.10.5"' >> ./conf/local.conf
+          echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
           echo '** Layers *****************************'
           sed -i 's|\${METADIR}/bsp/meta-renesas/meta-rcar-gen3 \\|\${METADIR}/bsp/meta-renesas/meta-rcar-gen3 \\\n  ${METADIR}/external/meta-openembedded/meta-python \\|g' conf/bblayers.conf
           bitbake-layers show-layers
@@ -89,7 +96,6 @@ jobs:
           echo '***************************************'
           bitbake -e > bb.environment
           echo '***************************************'
-          bitbake gles-user-module -c do_cleansstate
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk -c do_cleansstate

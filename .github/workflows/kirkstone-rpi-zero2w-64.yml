@@ -1,0 +1,178 @@
+name: kirkstone-rpi-zero2w-64
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, closed ]
+  release:
+    types: [ published, created, edited ]
+  workflow_dispatch:
+  schedule:
+    # daily
+    - cron:  '0 0 * * *'
+
+jobs:
+
+  kirkstone-zero2w-drm:
+  
+    env:
+      DISTRO_VERSION: 4.0
+      YOCTO_BRANCH: kirkstone
+      MACHINE: raspberrypi0-2w-64
+      
+    runs-on: [self-hosted, linux]
+    
+    container:
+      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      options:
+        --user 1018
+        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
+        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
+        -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/zero2w-drm/latest:/home/dev/sstate:Z
+        -v /mnt/raid10/github-ci/artifacts/zero2w/drm:/home/dev/artifacts:Z
+
+
+    steps:
+    
+      - name: Display UID Info
+        run: |
+          whoami
+          id -u
+          
+      - name: Set Ownership
+        run: |
+          chown -R dev:dev $HOME .
+          
+      - uses: actions/checkout@v2
+        with:
+          path: ''
+
+      - name: Fetch poky
+        run: |
+          [ -d ../zero2w-drm-kirkstone-latest ] || mkdir -p ../zero2w-drm-kirkstone-latest
+          cd ../zero2w-drm-kirkstone-latest
+          rm -rf sources || true
+          ls -la
+          git config --list
+          git config --global user.email joel@winarske@gmail.com
+          git config --global user.name "Joel Winarske"
+          git config --list
+          /home/dev/bin/repo init -u https://github.com/jwinarske/manifests.git -m rpi64.xml -b $YOCTO_BRANCH
+          /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
+          wait
+
+      - name: Configure build
+        shell: bash
+        working-directory: ../zero2w-drm-kirkstone-latest
+        run: |
+          rm -rf ${{ env.MACHINE }}/conf || true
+          . ./setup-environment ${{ env.MACHINE }}
+          echo '***************************************'
+          sed -i '/EXTRA_IMAGE_FEATURES/d' conf/local.conf || true
+          echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
+          echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
+          echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
+          echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.DISTRO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
+          echo 'ENABLE_BINARY_LOCALE_GENERATION = "1"' >> ./conf/local.conf
+          echo 'GLIBC_GENERATE_LOCALES:append = " en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> ./conf/local.conf
+          echo 'IMAGE_LINGUAS:append = " es-us"' >> ./conf/local.conf
+          echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> ./conf/local.conf
+          echo 'GPU_MEM = "64"' >> ./conf/local.conf
+          echo '********** ./conf/local.conf **********'
+          cat ./conf/local.conf
+          echo '***************************************'
+          bitbake-layers remove-layer meta-flutter
+          bitbake-layers add-layer ../../meta-flutter
+          bitbake-layers show-layers
+          echo '***************************************'
+          bitbake -e virtual/kernel | grep "^PV"
+          bitbake -e virtual/kernel | grep "^PN"
+          echo '***************************************'
+          bitbake -e core-image-minimal | grep "^DISTRO_FEATURES"
+          echo '***************************************'
+          bitbake -e > bb.environment
+
+      - name: Build core-image-weston
+        shell: bash
+        working-directory: ../zero2w-drm-kirkstone-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake core-image-weston
+
+      - name: Build flutter-engine-release
+        shell: bash
+        working-directory: ../zero2w-drm-kirkstone-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake flutter-engine-release -c do_cleansstate
+          bitbake flutter-engine-release
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa53/flutter-engine-release-git*.rpm /home/dev/artifacts
+
+      - name: Publish flutter-engine-release artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: flutter-engine-release-zero2w-64
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build flutter-pi-release
+        shell: bash
+        working-directory: ../zero2w-drm-kirkstone-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake flutter-pi-release
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa53/flutter-pi-release-git*.rpm /home/dev/artifacts
+
+      - name: Publish flutter-pi-release artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: flutter-pi-release-zero2w-64
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build flutter-gallery-release
+        shell: bash
+        working-directory: ../zero2w-drm-kirkstone-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake flutter-sdk-native -c do_cleansstate
+          bitbake flutter-gallery-release -c do_cleansstate
+          bitbake flutter-gallery-release
+          rm -rf /home/dev/artifacts/*
+          cp tmp/deploy/rpm/cortexa53/flutter-gallery-release-git*.rpm /home/dev/artifacts
+
+      - name: Publish flutter-gallery-release artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: flutter-gallery-release-zero2w-64
+          path: |
+             /home/dev/artifacts/*.rpm
+
+      - name: Build core-image-weston
+        shell: bash
+        working-directory: ../zero2w-drm-kirkstone-latest
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " \
+              flutter-engine-release \
+              flutter-pi-release \
+              flutter-gallery-release \
+              gstreamer1.0-libav \
+              gstreamer1.0-plugins-bad \
+              gstreamer1.0-plugins-good \
+              gstreamer1.0-plugins-ugly \
+              "' >> ./conf/local.conf
+          bitbake core-image-weston
+          rm -rf /home/dev/artifacts/*
+          cp bb.environment /home/dev/artifacts
+          cp tmp/deploy/images/raspberrypi0-2w-64/core-image-weston-raspberrypi0-2w-64.wic.bmap /home/dev/artifacts
+          cp tmp/deploy/images/raspberrypi0-2w-64/core-image-weston-raspberrypi0-2w-64.wic.bz2 /home/dev/artifacts
+
+      - name: Publish SD card image artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: zero2w-drm-flutter-release-kirkstone-sdimage
+          path: |
+             /home/dev/artifacts/*
