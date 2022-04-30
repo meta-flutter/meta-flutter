@@ -12,7 +12,7 @@ on:
 
 jobs:
 
-  kirkstone-zero2w-drm:
+  kirkstone-zero2w-weston:
   
     env:
       DISTRO_VERSION: 4.0
@@ -159,6 +159,7 @@ jobs:
               flutter-engine-release \
               flutter-pi-release \
               flutter-gallery-release \
+              ivi-homescreen-release \
               gstreamer1.0-libav \
               gstreamer1.0-plugins-bad \
               gstreamer1.0-plugins-good \
