@@ -68,7 +68,6 @@ jobs:
           rm -rf ${{ env.MACHINE }}/conf || true
           . ./setup-environment ${{ env.MACHINE }}
           echo '***************************************'
-          sed -i '/EXTRA_IMAGE_FEATURES/d' conf/local.conf || true
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
@@ -77,7 +76,12 @@ jobs:
           echo 'GLIBC_GENERATE_LOCALES:append = " en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> ./conf/local.conf
           echo 'IMAGE_LINGUAS:append = " es-us"' >> ./conf/local.conf
           echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> ./conf/local.conf
-          echo 'GPU_MEM = "64"' >> ./conf/local.conf
+          echo 'GPU_MEM = "256"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:append = " wifi"' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " \
+              wpa-supplicant \
+              ${MACHINE_EXTRA_RRECOMMENDS} \
+              "' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -150,7 +154,7 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build core-image-weston
+      - name: Build core-image-minimal
         shell: bash
         working-directory: ../zero2w-drm-kirkstone-latest
         run: |
@@ -165,15 +169,15 @@ jobs:
               gstreamer1.0-plugins-good \
               gstreamer1.0-plugins-ugly \
               "' >> ./conf/local.conf
-          bitbake core-image-weston
+          bitbake core-image-minimal
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/images/raspberrypi0-2w-64/core-image-weston-raspberrypi0-2w-64.wic.bmap /home/dev/artifacts
-          cp tmp/deploy/images/raspberrypi0-2w-64/core-image-weston-raspberrypi0-2w-64.wic.bz2 /home/dev/artifacts
+          cp tmp/deploy/images/raspberrypi0-2w-64/core-image-minimal-raspberrypi0-2w-64.wic.bmap /home/dev/artifacts
+          cp tmp/deploy/images/raspberrypi0-2w-64/core-image-minimal-raspberrypi0-2w-64.wic.bz2 /home/dev/artifacts
 
       - name: Publish SD card image artifact
         uses: actions/upload-artifact@v2
         with:
-          name: zero2w-drm-flutter-release-kirkstone-sdimage
+          name: zero2w-minimal-flutter-release-kirkstone-sdimage
           path: |
              /home/dev/artifacts/*
