@@ -74,9 +74,8 @@ jobs:
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.DISTRO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'ENABLE_BINARY_LOCALE_GENERATION = "1"' >> ./conf/local.conf
           echo 'GLIBC_GENERATE_LOCALES:append = " en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> ./conf/local.conf
-          echo 'IMAGE_LINGUAS:append = " es-us"' >> ./conf/local.conf
+          echo 'IMAGE_LINGUAS:append = " en-us en-gb es-us"' >> ./conf/local.conf
           echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> ./conf/local.conf
-          echo 'GPU_MEM = "256"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -87,16 +86,16 @@ jobs:
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
           echo '***************************************'
-          bitbake -e core-image-weston | grep "^DISTRO_FEATURES"
+          bitbake -e rpi-test-image | grep "^DISTRO_FEATURES"
           echo '***************************************'
           bitbake -e > bb.environment
 
-      - name: Build core-image-weston
+      - name: Build rpi-test-image
         shell: bash
         working-directory: ../zero2w-drm-kirkstone-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake core-image-weston
+          bitbake rpi-test-image
 
       - name: Build flutter-engine-release
         shell: bash
@@ -149,7 +148,7 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build core-image-weston
+      - name: Build rpi-test-image
         shell: bash
         working-directory: ../zero2w-drm-kirkstone-latest
         run: |
@@ -165,15 +164,15 @@ jobs:
               gstreamer1.0-plugins-good \
               gstreamer1.0-plugins-ugly \
               "' >> ./conf/local.conf
-          bitbake core-image-weston
+          bitbake rpi-test-image
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/images/raspberrypi0-2w-64/core-image-weston-raspberrypi0-2w-64.wic.bmap /home/dev/artifacts
-          cp tmp/deploy/images/raspberrypi0-2w-64/core-image-weston-raspberrypi0-2w-64.wic.bz2 /home/dev/artifacts
+          cp tmp/deploy/images/raspberrypi0-2w-64/rpi-test-image-raspberrypi0-2w-64.wic.bmap /home/dev/artifacts
+          cp tmp/deploy/images/raspberrypi0-2w-64/rpi-test-image-raspberrypi0-2w-64.wic.bz2 /home/dev/artifacts
 
       - name: Publish SD card image artifact
         uses: actions/upload-artifact@v2
         with:
-          name: zero2w-weston-flutter-release-kirkstone-sdimage
+          name: zero2w-rpi-test-flutter-release-kirkstone-sdimage
           path: |
              /home/dev/artifacts/*
