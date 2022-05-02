@@ -17,7 +17,6 @@ RDEPENDS_${PN} += "\
     geoclue \
     liberation-fonts \
     libgpiod \
-    libsecret \
     libserialport \
     networkmanager \
     xdg-user-dirs \
