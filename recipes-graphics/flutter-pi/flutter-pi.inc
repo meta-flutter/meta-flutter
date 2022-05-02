@@ -15,6 +15,8 @@ DEPENDS += "\
     compiler-rt \
     libcxx \
     libdrm \
+    libinput \
+    libxkbcommon \
     virtual/egl \
    "
 

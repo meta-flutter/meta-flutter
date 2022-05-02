@@ -47,6 +47,9 @@ common_compile() {
     flutter config --no-enable-linux-desktop
     flutter config --enable-custom-devices
 
+    flutter config --no-analytics
+    dart --disable-analytics
+
     bbnote `flutter doctor -v`
 }
 
