@@ -18,7 +18,7 @@ jobs:
       DISTRO_VERSION: "4.0"
       YOCTO_BRANCH: "kirkstone"
       MACHINE: raspberrypi0-2w-64
-      FLUTTER_RUNTIME: "debug"
+      FLUTTER_RUNTIME: "release"
       
     runs-on: [self-hosted, linux]
     
@@ -77,6 +77,9 @@ jobs:
           echo 'GLIBC_GENERATE_LOCALES:append = " en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> ./conf/local.conf
           echo 'IMAGE_LINGUAS:append = " en-us en-gb es-us"' >> ./conf/local.conf
           echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> ./conf/local.conf
+          echo 'PREFERRED_PROVIDER:libserialport = "6f9b03e"' >> ./conf/local.conf
+          echo 'IMAGE_FEATURES:remove = "splash"' >> ./conf/local.conf
+          echo 'RDEPENDS_packagegroup-rpi-test:remove = "connman connman-client"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -88,6 +91,7 @@ jobs:
           bitbake -e virtual/kernel | grep "^PN"
           echo '***************************************'
           bitbake -e rpi-test-image | grep "^DISTRO_FEATURES"
+          bitbake -e rpi-test-image | grep "^IMAGE_FEATURES"
           echo '***************************************'
           bitbake -e > bb.environment
 
@@ -98,7 +102,7 @@ jobs:
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake rpi-test-image
 
-      - name: Build flutter-engine-${{ env.FLUTTER_RUNTIME }}
+      - name: Build flutter-engine
         shell: bash
         working-directory: ../zero2w-drm-kirkstone-latest
         run: |
@@ -108,14 +112,14 @@ jobs:
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa53/flutter-engine-${{ env.FLUTTER_RUNTIME }}-git*.rpm /home/dev/artifacts
 
-      - name: Publish flutter-engine-${{ env.FLUTTER_RUNTIME }} artifacts
+      - name: Publish flutter-engine artifacts
         uses: actions/upload-artifact@v2
         with:
           name: flutter-engine-${{ env.FLUTTER_RUNTIME }}-zero2w-64
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build flutter-pi-${{ env.FLUTTER_RUNTIME }}
+      - name: Build flutter-pi
         shell: bash
         working-directory: ../zero2w-drm-kirkstone-latest
         run: |
@@ -124,14 +128,14 @@ jobs:
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa53/flutter-pi-${{ env.FLUTTER_RUNTIME }}-git*.rpm /home/dev/artifacts
 
-      - name: Publish flutter-pi-${{ env.FLUTTER_RUNTIME }} artifacts
+      - name: Publish flutter-pi artifacts
         uses: actions/upload-artifact@v2
         with:
           name: flutter-pi-${{ env.FLUTTER_RUNTIME }}-zero2w-64
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build flutter-gallery-${{ env.FLUTTER_RUNTIME }}
+      - name: Build flutter-gallery
         shell: bash
         working-directory: ../zero2w-drm-kirkstone-latest
         run: |
@@ -142,7 +146,7 @@ jobs:
           rm -rf /home/dev/artifacts/*
           cp tmp/deploy/rpm/cortexa53/flutter-gallery-${{ env.FLUTTER_RUNTIME }}-git*.rpm /home/dev/artifacts
 
-      - name: Publish flutter-gallery-${{ env.FLUTTER_RUNTIME }} artifacts
+      - name: Publish flutter-gallery artifacts
         uses: actions/upload-artifact@v2
         with:
           name: flutter-gallery-${{ env.FLUTTER_RUNTIME }}-zero2w-64
@@ -154,16 +158,30 @@ jobs:
         working-directory: ../zero2w-drm-kirkstone-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " \
+          echo 'IMAGE_INSTALL:append = " \
+              adwaita-icon-theme-cursors \
+              default-language-en-us-utf8 \
               flutter-engine-${{ env.FLUTTER_RUNTIME }} \
-              flutter-pi-${{ env.FLUTTER_RUNTIME }} \
               flutter-gallery-${{ env.FLUTTER_RUNTIME }} \
               flutter-linux-plugins-${{ env.FLUTTER_RUNTIME }} \
-              ivi-homescreen-${{ env.FLUTTER_RUNTIME }} \
+              flutter-pi-${{ env.FLUTTER_RUNTIME }} \
+              geoclue \
+              gsettings-desktop-schemas \
               gstreamer1.0-libav \
               gstreamer1.0-plugins-bad \
               gstreamer1.0-plugins-good \
               gstreamer1.0-plugins-ugly \
+              ivi-homescreen-${{ env.FLUTTER_RUNTIME }} \
+              liberation-fonts \
+              libgpiod \
+              libserialport \
+              networkmanager \
+              os-release \
+              tzdata-americas \
+              tzdata-core \
+              upower \
+              xdg-user-dirs \
+              xkeyboard-config \
               "' >> ./conf/local.conf
           bitbake rpi-test-image
           rm -rf /home/dev/artifacts/*

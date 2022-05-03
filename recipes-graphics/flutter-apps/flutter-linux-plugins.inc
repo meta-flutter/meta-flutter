@@ -15,14 +15,18 @@ DEPENDS += "\
 RDEPENDS_${PN} += "\
     bluez5 \
     geoclue \
+    gsettings-desktop-schemas \
     liberation-fonts \
     libgpiod \
     libserialport \
     networkmanager \
+    os-release \
+    upower \
     xdg-user-dirs \
     "
 
-SRC_URI = "git://github.com/meta-flutter/linux_plugins.git;lfs=1;branch=main;protocol=https;destsuffix=git"
+SRC_URI = "git://github.com/meta-flutter/linux_plugins.git;lfs=1;branch=main;protocol=https;destsuffix=git \
+           file://lsb-release"
 
 SRCREV = "05e7fa5c0d910ac49dadcef5af09159a37ef5c3c"
 
@@ -32,3 +36,16 @@ PUBSPEC_APPNAME = "linux_plugins"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "flutter/examples"
 
 inherit flutter-app
+
+# Plugin Plus "Package Info" looks for "/usr/bin/data/flutter_assets/version.json".
+
+# Plugin Plus "Device Info" requires "/etc/lsb-release"
+do_install:append() {
+    install -d ${D}${sysconfdir}
+    install -m 644 ${WORKDIR}/lsb-release ${D}${sysconfdir}
+    sed -i "s|@FLUTTER_SDK_TAG@|${FLUTTER_SDK_TAG}|g" ${D}${sysconfdir}/lsb-release
+}
+
+FILES:${PN} += "\
+    ${sysconfdir}/lsb-release \
+    "
