@@ -79,7 +79,10 @@ jobs:
           echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER:libserialport = "6f9b03e"' >> ./conf/local.conf
           echo 'IMAGE_FEATURES:remove = "splash"' >> ./conf/local.conf
-          echo 'RDEPENDS_packagegroup-rpi-test:remove = "connman connman-client"' >> ./conf/local.conf
+          echo 'PACKAGE_EXCLUDE = "connman connman-client"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = "networkmanager"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:append_pn-networkmanager = " modemmanager ppp"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:remove_pn-systemd = " networkd resolved"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
