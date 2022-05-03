@@ -15,9 +15,10 @@ jobs:
   kirkstone-zero2w-weston:
   
     env:
-      DISTRO_VERSION: 4.0
-      YOCTO_BRANCH: kirkstone
+      DISTRO_VERSION: "4.0"
+      YOCTO_BRANCH: "kirkstone"
       MACHINE: raspberrypi0-2w-64
+      FLUTTER_RUNTIME: "debug"
       
     runs-on: [self-hosted, linux]
     
@@ -68,16 +69,14 @@ jobs:
           rm -rf ${{ env.MACHINE }}/conf || true
           . ./setup-environment ${{ env.MACHINE }}
           echo '***************************************'
-          sed -i '/EXTRA_IMAGE_FEATURES/d' conf/local.conf || true
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.DISTRO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'ENABLE_BINARY_LOCALE_GENERATION = "1"' >> ./conf/local.conf
           echo 'GLIBC_GENERATE_LOCALES:append = " en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> ./conf/local.conf
-          echo 'IMAGE_LINGUAS:append = " es-us"' >> ./conf/local.conf
+          echo 'IMAGE_LINGUAS:append = " en-us en-gb es-us"' >> ./conf/local.conf
           echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> ./conf/local.conf
-          echo 'GPU_MEM = "64"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -88,92 +87,93 @@ jobs:
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
           echo '***************************************'
-          bitbake -e core-image-minimal | grep "^DISTRO_FEATURES"
+          bitbake -e rpi-test-image | grep "^DISTRO_FEATURES"
           echo '***************************************'
           bitbake -e > bb.environment
 
-      - name: Build core-image-weston
+      - name: Build rpi-test-image
         shell: bash
         working-directory: ../zero2w-drm-kirkstone-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake core-image-weston
+          bitbake rpi-test-image
 
-      - name: Build flutter-engine-release
+      - name: Build flutter-engine-${{ env.FLUTTER_RUNTIME }}
         shell: bash
         working-directory: ../zero2w-drm-kirkstone-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake flutter-engine-release -c do_cleansstate
-          bitbake flutter-engine-release
+          bitbake flutter-engine-${{ env.FLUTTER_RUNTIME }} -c do_cleansstate
+          bitbake flutter-engine-${{ env.FLUTTER_RUNTIME }}
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa53/flutter-engine-release-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa53/flutter-engine-${{ env.FLUTTER_RUNTIME }}-git*.rpm /home/dev/artifacts
 
-      - name: Publish flutter-engine-release artifacts
+      - name: Publish flutter-engine-${{ env.FLUTTER_RUNTIME }} artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: flutter-engine-release-zero2w-64
+          name: flutter-engine-${{ env.FLUTTER_RUNTIME }}-zero2w-64
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build flutter-pi-release
+      - name: Build flutter-pi-${{ env.FLUTTER_RUNTIME }}
         shell: bash
         working-directory: ../zero2w-drm-kirkstone-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake flutter-pi-release
+          bitbake flutter-pi-${{ env.FLUTTER_RUNTIME }}
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa53/flutter-pi-release-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa53/flutter-pi-${{ env.FLUTTER_RUNTIME }}-git*.rpm /home/dev/artifacts
 
-      - name: Publish flutter-pi-release artifacts
+      - name: Publish flutter-pi-${{ env.FLUTTER_RUNTIME }} artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: flutter-pi-release-zero2w-64
+          name: flutter-pi-${{ env.FLUTTER_RUNTIME }}-zero2w-64
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build flutter-gallery-release
+      - name: Build flutter-gallery-${{ env.FLUTTER_RUNTIME }}
         shell: bash
         working-directory: ../zero2w-drm-kirkstone-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-gallery-release -c do_cleansstate
-          bitbake flutter-gallery-release
+          bitbake flutter-gallery-${{ env.FLUTTER_RUNTIME }} -c do_cleansstate
+          bitbake flutter-gallery-${{ env.FLUTTER_RUNTIME }}
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa53/flutter-gallery-release-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa53/flutter-gallery-${{ env.FLUTTER_RUNTIME }}-git*.rpm /home/dev/artifacts
 
-      - name: Publish flutter-gallery-release artifacts
+      - name: Publish flutter-gallery-${{ env.FLUTTER_RUNTIME }} artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: flutter-gallery-release-zero2w-64
+          name: flutter-gallery-${{ env.FLUTTER_RUNTIME }}-zero2w-64
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build core-image-weston
+      - name: Build rpi-test-image
         shell: bash
         working-directory: ../zero2w-drm-kirkstone-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " \
-              flutter-engine-release \
-              flutter-pi-release \
-              flutter-gallery-release \
-              ivi-homescreen-release \
+              flutter-engine-${{ env.FLUTTER_RUNTIME }} \
+              flutter-pi-${{ env.FLUTTER_RUNTIME }} \
+              flutter-gallery-${{ env.FLUTTER_RUNTIME }} \
+              flutter-linux-plugins-${{ env.FLUTTER_RUNTIME }} \
+              ivi-homescreen-${{ env.FLUTTER_RUNTIME }} \
               gstreamer1.0-libav \
               gstreamer1.0-plugins-bad \
               gstreamer1.0-plugins-good \
               gstreamer1.0-plugins-ugly \
               "' >> ./conf/local.conf
-          bitbake core-image-weston
+          bitbake rpi-test-image
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/images/raspberrypi0-2w-64/core-image-weston-raspberrypi0-2w-64.wic.bmap /home/dev/artifacts
-          cp tmp/deploy/images/raspberrypi0-2w-64/core-image-weston-raspberrypi0-2w-64.wic.bz2 /home/dev/artifacts
+          cp tmp/deploy/images/raspberrypi0-2w-64/rpi-test-image-raspberrypi0-2w-64.wic.bmap /home/dev/artifacts
+          cp tmp/deploy/images/raspberrypi0-2w-64/rpi-test-image-raspberrypi0-2w-64.wic.bz2 /home/dev/artifacts
 
       - name: Publish SD card image artifact
         uses: actions/upload-artifact@v2
         with:
-          name: zero2w-drm-flutter-release-kirkstone-sdimage
+          name: zero2w-rpi-test-flutter-${{ env.FLUTTER_RUNTIME }}-kirkstone-sdimage
           path: |
              /home/dev/artifacts/*
