@@ -1,4 +1,4 @@
-FLUTTER_SDK_TAG ??= "2.10.4"
+FLUTTER_SDK_TAG ??= "AUTOINC"
 
 def get_flutter_archive(d):
     return _get_flutter_release_info(d, "archive")
@@ -17,7 +17,7 @@ def _get_flutter_release_info(d, key):
     with urllib.request.urlopen('https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json') as f:
         releases_linux_json = json.load(f)
         if flutter_sdk_tag == "AUTOINC":
-            flutter_sdk_tag = releases_linux_json["current_release"]["dev"]
+            flutter_sdk_tag = releases_linux_json["current_release"]["stable"]
 
         releases = releases_linux_json["releases"]
         for r in releases:
