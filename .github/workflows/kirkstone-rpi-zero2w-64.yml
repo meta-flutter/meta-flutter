@@ -77,12 +77,8 @@ jobs:
           echo 'GLIBC_GENERATE_LOCALES:append = " en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> ./conf/local.conf
           echo 'IMAGE_LINGUAS:append = " en-us en-gb es-us"' >> ./conf/local.conf
           echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> ./conf/local.conf
-          echo 'PREFERRED_PROVIDER:libserialport = "6f9b03e"' >> ./conf/local.conf
-          echo 'IMAGE_FEATURES:remove = "splash"' >> ./conf/local.conf
-          echo 'PACKAGE_EXCLUDE = "connman connman-client"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL:append = "networkmanager"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:append_pn-networkmanager = " modemmanager ppp"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:remove_pn-systemd = " networkd resolved"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = " default-language-en-us-utf8 tzdata-americas tzdata-core"' >> ./conf/local.conf
+          echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -93,108 +89,25 @@ jobs:
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
           echo '***************************************'
-          bitbake -e rpi-test-image | grep "^DISTRO_FEATURES"
-          bitbake -e rpi-test-image | grep "^IMAGE_FEATURES"
+          bitbake -e rpi-image-flutter-wayland-${{ env.FLUTTER_RUNTIME }} | grep "^DISTRO_FEATURES"
+          bitbake -e rpi-image-flutter-wayland-${{ env.FLUTTER_RUNTIME }} | grep "^IMAGE_FEATURES"
           echo '***************************************'
           bitbake -e > bb.environment
 
-      - name: Build rpi-test-image
+      - name: Build rpi-image-flutter-wayland
         shell: bash
         working-directory: ../zero2w-drm-kirkstone-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake rpi-test-image
-
-      - name: Build flutter-engine
-        shell: bash
-        working-directory: ../zero2w-drm-kirkstone-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake flutter-engine-${{ env.FLUTTER_RUNTIME }} -c do_cleansstate
-          bitbake flutter-engine-${{ env.FLUTTER_RUNTIME }}
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa53/flutter-engine-${{ env.FLUTTER_RUNTIME }}-git*.rpm /home/dev/artifacts
-
-      - name: Publish flutter-engine artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: flutter-engine-${{ env.FLUTTER_RUNTIME }}-zero2w-64
-          path: |
-             /home/dev/artifacts/*.rpm
-
-      - name: Build flutter-pi
-        shell: bash
-        working-directory: ../zero2w-drm-kirkstone-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake flutter-pi-${{ env.FLUTTER_RUNTIME }}
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa53/flutter-pi-${{ env.FLUTTER_RUNTIME }}-git*.rpm /home/dev/artifacts
-
-      - name: Publish flutter-pi artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: flutter-pi-${{ env.FLUTTER_RUNTIME }}-zero2w-64
-          path: |
-             /home/dev/artifacts/*.rpm
-
-      - name: Build flutter-gallery
-        shell: bash
-        working-directory: ../zero2w-drm-kirkstone-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-gallery-${{ env.FLUTTER_RUNTIME }} -c do_cleansstate
-          bitbake flutter-gallery-${{ env.FLUTTER_RUNTIME }}
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa53/flutter-gallery-${{ env.FLUTTER_RUNTIME }}-git*.rpm /home/dev/artifacts
-
-      - name: Publish flutter-gallery artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: flutter-gallery-${{ env.FLUTTER_RUNTIME }}-zero2w-64
-          path: |
-             /home/dev/artifacts/*.rpm
-
-      - name: Build rpi-test-image
-        shell: bash
-        working-directory: ../zero2w-drm-kirkstone-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          echo 'IMAGE_INSTALL:append = " \
-              adwaita-icon-theme-cursors \
-              default-language-en-us-utf8 \
-              flutter-engine-${{ env.FLUTTER_RUNTIME }} \
-              flutter-gallery-${{ env.FLUTTER_RUNTIME }} \
-              flutter-linux-plugins-${{ env.FLUTTER_RUNTIME }} \
-              flutter-pi-${{ env.FLUTTER_RUNTIME }} \
-              geoclue \
-              gsettings-desktop-schemas \
-              gstreamer1.0-libav \
-              gstreamer1.0-plugins-bad \
-              gstreamer1.0-plugins-good \
-              gstreamer1.0-plugins-ugly \
-              ivi-homescreen-${{ env.FLUTTER_RUNTIME }} \
-              liberation-fonts \
-              libgpiod \
-              libserialport \
-              networkmanager \
-              os-release \
-              tzdata-americas \
-              tzdata-core \
-              upower \
-              xdg-user-dirs \
-              xkeyboard-config \
-              "' >> ./conf/local.conf
-          bitbake rpi-test-image
+          bitbake rpi-image-flutter-wayland-${{ env.FLUTTER_RUNTIME }}
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/images/raspberrypi0-2w-64/rpi-test-image-raspberrypi0-2w-64.wic.bmap /home/dev/artifacts
-          cp tmp/deploy/images/raspberrypi0-2w-64/rpi-test-image-raspberrypi0-2w-64.wic.bz2 /home/dev/artifacts
+          cp tmp/deploy/images/raspberrypi0-2w-64/rpi-image-flutter-wayland-${{ env.FLUTTER_RUNTIME }}-raspberrypi0-2w-64.wic.bmap /home/dev/artifacts
+          cp tmp/deploy/images/raspberrypi0-2w-64/rpi-image-flutter-wayland-${{ env.FLUTTER_RUNTIME }}-raspberrypi0-2w-64.wic.bz2 /home/dev/artifacts
 
       - name: Publish SD card image artifact
         uses: actions/upload-artifact@v2
         with:
-          name: zero2w-rpi-test-flutter-${{ env.FLUTTER_RUNTIME }}-kirkstone-sdimage
+          name: zero2w-rpi-image-flutter-wayland-${{ env.FLUTTER_RUNTIME }}-kirkstone-sdimage
           path: |
              /home/dev/artifacts/*
