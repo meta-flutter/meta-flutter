@@ -44,7 +44,7 @@ common_compile() {
     flutter config --no-enable-android
     flutter config --no-enable-ios
     flutter config --no-enable-web
-    flutter config --no-enable-linux-desktop
+    flutter config --enable-linux-desktop
     flutter config --enable-custom-devices
 
     flutter config --no-analytics
