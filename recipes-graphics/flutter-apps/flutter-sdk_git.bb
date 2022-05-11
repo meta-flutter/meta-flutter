@@ -25,7 +25,6 @@ require conf/include/flutter-version.inc
 
 SRC_URI = "https://storage.googleapis.com/flutter_infra_release/releases/${@get_flutter_archive(d)};name=flutter-sdk"
 SRC_URI[flutter-sdk.sha256sum] = "${@get_flutter_sha256(d)}"
-SRCREV ??= "${@get_flutter_hash(d)}"
 
 S = "${WORKDIR}/flutter"
 

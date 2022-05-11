@@ -78,7 +78,15 @@ jobs:
           echo 'GLIBC_GENERATE_LOCALES:append = " en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> ./conf/local.conf
           echo 'IMAGE_LINGUAS:append = " en-us en-gb es-us"' >> ./conf/local.conf
           echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL:append = " default-language-en-us-utf8 tzdata-americas tzdata-core"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = "\
+              default-language-en-us-utf8 \
+              tzdata-americas \
+              tzdata-core \
+              flutter-gallery-release \
+              flutter-linux-plugins-release \
+              flutter-objectbox-benchapp-release \
+              membrane-dart-example \
+              "' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
@@ -94,6 +102,7 @@ jobs:
           bitbake -e rpi-image-flutter-wayland-${{ env.FLUTTER_RUNTIME }} | grep "^IMAGE_FEATURES"
           echo '***************************************'
           bitbake -e > bb.environment
+
 
       - name: Build rpi-image-flutter-wayland
         shell: bash

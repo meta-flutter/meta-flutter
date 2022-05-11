@@ -15,7 +15,6 @@ SRCREV = "9eb785cb997ff56c46e933c1c591f0a6f31454f6"
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "gallery"
+FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 inherit flutter-app
-
-FILES:${PN} += "${datadir}/homescreen"

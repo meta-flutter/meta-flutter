@@ -12,7 +12,7 @@ DEPENDS += "\
     libserialport \
     "
 
-RDEPENDS_${PN} += "\
+RDEPENDS:${PN} += "\
     bluez5 \
     geoclue \
     gsettings-desktop-schemas \
@@ -33,7 +33,7 @@ SRCREV = "05e7fa5c0d910ac49dadcef5af09159a37ef5c3c"
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "linux_plugins"
-FLUTTER_APPLICATION_INSTALL_PREFIX = "flutter/examples"
+FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 inherit flutter-app
 
