@@ -35,6 +35,9 @@ common_compile() {
     export PATH=${S}/bin:$PATH
     export PUB_CACHE=${S}/.pub-cache
 
+    export http_proxy=${http_proxy}
+    export https_proxy=${https_proxy}
+
     bbnote "Flutter SDK: ${FLUTTER_SDK_TAG}"
 
     flutter config --no-enable-android
