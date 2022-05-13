@@ -14,12 +14,16 @@ DEPENDS += " \
 
 FLUTTER_RUNTIME ??= "release"
 
+FLUTTER_PREBUILD_CMD ??= ""
 FLUTTER_APPLICATION_PATH ??= "."
-
 FLUTTER_EXTRA_BUILD_ARGS ??= ""
+FLUTTER_APPLICATION_INSTALL_PREFIX ??= ""
+FLUTTER_INSTALL_DIR = "${datadir}${FLUTTER_APPLICATION_INSTALL_PREFIX}/${PUBSPEC_APPNAME}"
 
 PUB_CACHE = "${WORKDIR}/pub_cache"
 PUB_CACHE_ARCHIVE = "flutter-pub-cache-${PUBSPEC_APPNAME}-${SRCREV}.tar.bz2"
+
+FLUTTER_SDK = "${STAGING_DIR_NATIVE}/usr/share/flutter/sdk"
 
 #
 # Archive Pub Cache
@@ -52,18 +56,22 @@ python do_archive_pub_cache() {
 
     flutter_sdk = os.path.join(d.getVar("STAGING_DIR_NATIVE"), 'usr/share/flutter/sdk')
     app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
-    
+
     pub_cache_cmd = \
         'export PUB_CACHE=%s; ' \
         '%s/bin/dart pub get --directory=%s --no-offline && ' \
         '%s/bin/dart pub get --directory=%s --offline' % \
         (pub_cache, flutter_sdk, app_root, flutter_sdk, app_root)
 
-    bb.note("Running %s in %s" % (pub_cache_cmd, workdir))
-    runfetchcmd('%s' % (pub_cache_cmd), d, quiet=False, workdir=workdir)
+    bb.note("Running %s in %s" % (pub_cache_cmd, app_root))
+    runfetchcmd('%s' % (pub_cache_cmd), d, quiet=False, workdir=app_root)
+
+    cp_cmd = 'cp -r .dart_tool %s/ | true' % (pub_cache)
+    bb.note("Running %s in %s" % (cp_cmd, app_root))
+
+    runfetchcmd('%s' % (cp_cmd), d, quiet=False, workdir=app_root)
 
     bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
-
     pack_cmd = "tar -I \"pbzip2 -p%s\" -cf %s ./" % (bb_number_threads, localpath)
 
     bb.note("Running %s in %s" % (pack_cmd, pub_cache))
@@ -109,7 +117,16 @@ python do_restore_pub_cache() {
     ret = subprocess.call(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir)
 
     if ret != 0:
-        raise UnpackError("Unapck command %s failed with return value %s" % (cmd, ret), localpath)
+        raise UnpackError("Unpack command %s failed with return value %s" % (cmd, ret), localpath)
+
+    # restore .dart_tool to app folder
+    app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
+    cmd = 'mv .dart_tool %s/ | true' % (app_root)
+    bb.note("Running %s in %s" % (cmd, unpackdir))
+    ret = subprocess.call(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir)
+
+    if ret != 0:
+        raise UnpackError("Restore .dart_tool command %s failed with return value %s" % (cmd, ret), localpath)
 }
 
 #
@@ -118,11 +135,12 @@ python do_restore_pub_cache() {
 
 do_compile() {
 
-    FLUTTER_SDK=${STAGING_DIR_NATIVE}/usr/share/flutter/sdk
-
     export PATH=${FLUTTER_SDK}/bin:$PATH
+    export PUB_CACHE=${PUB_CACHE}
 
     cd ${S}/${FLUTTER_APPLICATION_PATH}
+
+    ${FLUTTER_PREBUILD_CMD}
 
     flutter build bundle ${FLUTTER_EXTRA_BUILD_ARGS}
 
@@ -168,16 +186,16 @@ do_compile() {
 
 INSANE_SKIP:${PN} += " ldflags libdir"
 SOLIBS = ".so"
-FILES_SOLIBSDEV = ""
+FILES:SOLIBSDEV = ""
 
 do_install() {
-    install -d ${D}${datadir}/${PUBSPEC_APPNAME}
+    install -d ${D}${FLUTTER_INSTALL_DIR}
     if ${@bb.utils.contains('FLUTTER_RUNTIME', 'release', 'true', 'false', d)} || \
        ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)}; then
-        cp ${S}/${FLUTTER_APPLICATION_PATH}/libapp.so ${D}${datadir}/${PUBSPEC_APPNAME}/
+        cp ${S}/${FLUTTER_APPLICATION_PATH}/libapp.so ${D}${FLUTTER_INSTALL_DIR}/
     fi
-    cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/* ${D}${datadir}/${PUBSPEC_APPNAME}/
+    cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/* ${D}${FLUTTER_INSTALL_DIR}/
 }
 
-FILES:${PN} = "${datadir}"
+FILES:${PN} = "${FLUTTER_INSTALL_DIR}"
 FILES:${PN}-dev = ""
