@@ -8,14 +8,25 @@
 
 DEPENDS += " \
     ca-certificates-native \
+    cmake-native \
+    compiler-rt \
     flutter-sdk-native \
+    glib-2.0 \
+    gtk+3 \
+    libcxx \
+    ninja-native \
     unzip-native \
     "
+
+RUNTIME = "llvm"
+TOOLCHAIN = "clang"
+PREFERRED_PROVIDER:libgcc = "compiler-rt"
 
 FLUTTER_RUNTIME ??= "release"
 
 FLUTTER_PREBUILD_CMD ??= ""
 FLUTTER_APPLICATION_PATH ??= "."
+FLUTTER_BUILD_ARGS ??= "bundle"
 FLUTTER_EXTRA_BUILD_ARGS ??= ""
 FLUTTER_APPLICATION_INSTALL_PREFIX ??= ""
 FLUTTER_INSTALL_DIR = "${datadir}${FLUTTER_APPLICATION_INSTALL_PREFIX}/${PUBSPEC_APPNAME}"
@@ -57,11 +68,16 @@ python do_archive_pub_cache() {
     flutter_sdk = os.path.join(d.getVar("STAGING_DIR_NATIVE"), 'usr/share/flutter/sdk')
     app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
 
+    # Use the SDK PUB_CACHE as baseline
+    sdk_pub_cache = os.path.join(d.getVar("STAGING_DIR_NATIVE"), 'usr/share/flutter/sdk/.pub-cache')
+
     pub_cache_cmd = \
+        'mkdir -p %s; ' \
+        'cp -r %s/* %s/; ' \
         'export PUB_CACHE=%s; ' \
         '%s/bin/dart pub get --directory=%s --no-offline && ' \
         '%s/bin/dart pub get --directory=%s --offline' % \
-        (pub_cache, flutter_sdk, app_root, flutter_sdk, app_root)
+        (pub_cache, sdk_pub_cache, pub_cache, pub_cache, flutter_sdk, app_root, flutter_sdk, app_root)
 
     bb.note("Running %s in %s" % (pub_cache_cmd, app_root))
     runfetchcmd('%s' % (pub_cache_cmd), d, quiet=False, workdir=app_root)
@@ -142,7 +158,7 @@ do_compile() {
 
     ${FLUTTER_PREBUILD_CMD}
 
-    flutter build bundle ${FLUTTER_EXTRA_BUILD_ARGS}
+    flutter build ${FLUTTER_BUILD_ARGS} ${FLUTTER_EXTRA_BUILD_ARGS}
 
     if ${@bb.utils.contains('FLUTTER_RUNTIME', 'release', 'true', 'false', d)} || \
        ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)}; then
@@ -189,13 +205,34 @@ SOLIBS = ".so"
 FILES:SOLIBSDEV = ""
 
 do_install() {
-    install -d ${D}${FLUTTER_INSTALL_DIR}
+
+    install -d ${D}${FLUTTER_INSTALL_DIR}/flutter_assets
+    cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/* ${D}${FLUTTER_INSTALL_DIR}/flutter_assets/
+
     if ${@bb.utils.contains('FLUTTER_RUNTIME', 'release', 'true', 'false', d)} || \
        ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)}; then
-        cp ${S}/${FLUTTER_APPLICATION_PATH}/libapp.so ${D}${FLUTTER_INSTALL_DIR}/
+       install -d ${D}${FLUTTER_INSTALL_DIR}/lib
+        cp ${S}/${FLUTTER_APPLICATION_PATH}/libapp.so ${D}${FLUTTER_INSTALL_DIR}/lib/
     fi
-    cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/* ${D}${FLUTTER_INSTALL_DIR}/
+
+    if [ ${FLUTTER_BUILD_ARGS} = "linux" ]; then
+
+        if [ -n "${FLUTTER_REMOVE_LINUX_BUILD_ARTIFACTS}" ]; then
+            rm ${D}/usr/${PUBSPEC_APPNAME} | true
+            rm -rf ${D}${libdir}/*.so | true
+        else
+            # expecting default "release" build
+            mv ${D}/usr/${PUBSPEC_APPNAME} ${D}${bindir}/ | true
+            rm -rf ${D}${bindir}/${PUBSPEC_APPNAME} | true
+            rm -rf ${D}${libdir}/*.so | true
+        fi
+    fi
 }
 
-FILES:${PN} = "${FLUTTER_INSTALL_DIR}"
+FILES:${PN} = "\
+    ${bindir} \
+    ${libdir} \
+    ${FLUTTER_INSTALL_DIR} \
+    "
+
 FILES:${PN}-dev = ""

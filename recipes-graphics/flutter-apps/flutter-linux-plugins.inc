@@ -16,8 +16,10 @@ RDEPENDS:${PN} += "\
     bluez5 \
     geoclue \
     gsettings-desktop-schemas \
+    jsoncpp \
     liberation-fonts \
     libgpiod \
+    libsecret \
     libserialport \
     networkmanager \
     os-release \
@@ -35,15 +37,22 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "linux_plugins"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
+FLUTTER_PREBUILD_CMD = "dart fix --apply"
+FLUTTER_BUILD_ARGS = "linux"
+FLUTTER_EXTRA_BUILD_ARGS = "--${FLUTTER_RUNTIME}"
+FLUTTER_REMOVE_LINUX_BUILD_ARTIFACTS = "1"
+
 inherit flutter-app
+
+require conf/include/flutter-version.inc
 
 # Plugin Plus "Package Info" looks for "/usr/bin/data/flutter_assets/version.json".
 
-# Plugin Plus "Device Info" requires "/etc/lsb-release"
+# Plugin Plus "Device Info" requires "/etc/lsb-release" which is not present with Poky
 do_install:append() {
     install -d ${D}${sysconfdir}
     install -m 644 ${WORKDIR}/lsb-release ${D}${sysconfdir}
-    sed -i "s|@FLUTTER_SDK_TAG@|${FLUTTER_SDK_TAG}|g" ${D}${sysconfdir}/lsb-release
+    sed -i "s|@FLUTTER_SDK_TAG@|${@get_flutter_sdk_version(d)}|g" ${D}${sysconfdir}/lsb-release
 }
 
 FILES:${PN} += "\

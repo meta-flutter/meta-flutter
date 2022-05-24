@@ -26,6 +26,16 @@ COMPATIBLE_MACHINE:x86-64 = "(.*)"
 PUBSPEC_APPNAME = "benchapp"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
+FLUTTER_PREBUILD_CMD = "\
+    flutter pub run build_runner build --delete-conflicting-outputs; \
+    sed -i 's/TestEntityPlain()/TestEntityPlain.forIsar()/g'     lib/isar.g.dart; \
+    sed -i 's/TestEntityIndexed()/TestEntityIndexed.forIsar()/g' lib/isar.g.dart; \
+    sed -i 's/RelTargetEntity()/RelTargetEntity.forIsar()/g'     lib/isar.g.dart; \
+    "
+FLUTTER_BUILD_ARGS = "linux"
+FLUTTER_EXTRA_BUILD_ARGS = "--${FLUTTER_RUNTIME}"
+FLUTTER_REMOVE_LINUX_BUILD_ARTIFACTS = "1"
+
 inherit flutter-app python3native
 
 require conf/include/utils.inc
@@ -49,13 +59,6 @@ SRC_URI[lib_x64.sha256sum] = "b597c10607bbba71b238c935581ee7bde5ea07211d899bd458
 
 
 S = "${WORKDIR}/git"
-
-FLUTTER_PREBUILD_CMD = "\
-    flutter pub run build_runner build; \
-    sed -i 's/TestEntityPlain()/TestEntityPlain.forIsar()/g'     lib/isar.g.dart; \
-    sed -i 's/TestEntityIndexed()/TestEntityIndexed.forIsar()/g' lib/isar.g.dart; \
-    sed -i 's/RelTargetEntity()/RelTargetEntity.forIsar()/g'     lib/isar.g.dart; \
-    "
 
 do_install:append() {
     install -d ${D}${FLUTTER_INSTALL_DIR}/lib
