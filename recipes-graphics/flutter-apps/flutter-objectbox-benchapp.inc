@@ -7,11 +7,10 @@ SECTION = "graphics"
 
 LICENSE = "CLOSED"
 
-#
-# Notice: this app depends on isar-core binary.  
-# The version in this benchmark is so old I'm going to bother with it.
-# So the isar tests currently don't work.
-#
+DEPENDS += "\
+    sqlite3 \
+"
+
 RDEPENDS:${PN} += "\
     liberation-fonts \
     sqlite3 \
@@ -26,15 +25,10 @@ COMPATIBLE_MACHINE:x86-64 = "(.*)"
 PUBSPEC_APPNAME = "benchapp"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
-FLUTTER_PREBUILD_CMD = "\
-    flutter pub run build_runner build --delete-conflicting-outputs; \
-    sed -i 's/TestEntityPlain()/TestEntityPlain.forIsar()/g'     lib/isar.g.dart; \
-    sed -i 's/TestEntityIndexed()/TestEntityIndexed.forIsar()/g' lib/isar.g.dart; \
-    sed -i 's/RelTargetEntity()/RelTargetEntity.forIsar()/g'     lib/isar.g.dart; \
-    "
-FLUTTER_BUILD_ARGS = "linux"
-FLUTTER_EXTRA_BUILD_ARGS = "--${FLUTTER_RUNTIME}"
-FLUTTER_REMOVE_LINUX_BUILD_ARTIFACTS = "1"
+FLUTTER_PREBUILD_CMD = "flutter pub run build_runner build --delete-conflicting-outputs"
+FLUTTER_BUILD_ARGS = "bundle --no-pub -v"
+#FLUTTER_APP_DISABLE_NATIVE_PLUGINS = "1"
+#FLUTTER_REMOVE_LINUX_BUILD_ARTIFACTS = "1"
 
 inherit flutter-app python3native
 
@@ -43,7 +37,7 @@ require conf/include/utils.inc
 OB_REV = "0.16.0"
 OB_ARCH = "${@get_binary_pkg_arch(d)}"
 
-SRCREV = "d92306148a690854dd939acce2a6230aea3e32af"
+SRCREV = "f6fa12b7f81692f307347badcc86c17ed0a810c5"
 SRC_URI = "git://github.com/meta-flutter/objectbox-dart-performance.git;lfs=0;branch=jw/yocto;protocol=https;destsuffix=git \
            https://github.com/objectbox/objectbox-c/releases/download/v${OB_REV}/objectbox-linux-${OB_ARCH}.tar.gz;downloadfilename=objectbox-linux-${OB_ARCH}-v${OB_REV}.tar.gz;subdir=_deps/${OB_ARCH};name=lib_${OB_ARCH} \
           "
@@ -56,7 +50,6 @@ SRC_URI[lib_armv7hf.md5_sum] = "b885f6bdad35782211c14dc4b5873537"
 SRC_URI[lib_armv7hf.sha256sum] = "55b9a55ddd78a28e3751a21d1f4be6689df0bdfb4ff2588972ed86433773700c"
 SRC_URI[lib_x64.md5_sum] = "e45a201afa8c98a9238b6887ef89d353"
 SRC_URI[lib_x64.sha256sum] = "b597c10607bbba71b238c935581ee7bde5ea07211d899bd4581685e495da01f8"
-
 
 S = "${WORKDIR}/git"
 

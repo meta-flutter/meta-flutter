@@ -8,15 +8,16 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=df6bd2163489eedcdea6b9406bcbe1dd"
 
+# Flutter Linux Plugins do not cross compile, hence -native reference
 DEPENDS += "\
-    libserialport \
+    jsoncpp \
+    libsecret \
     "
 
 RDEPENDS:${PN} += "\
     bluez5 \
     geoclue \
     gsettings-desktop-schemas \
-    jsoncpp \
     liberation-fonts \
     libgpiod \
     libsecret \
@@ -27,20 +28,19 @@ RDEPENDS:${PN} += "\
     xdg-user-dirs \
     "
 
+SRCREV = "ecf66fe5511d8f329d38417d8407e67eb21c6638"
 SRC_URI = "git://github.com/meta-flutter/linux_plugins.git;lfs=1;branch=main;protocol=https;destsuffix=git \
            file://lsb-release"
-
-SRCREV = "514180d25684397f7d4cc1447fb78f25821e222c"
 
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "linux_plugins"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
-FLUTTER_PREBUILD_CMD = "dart fix --apply"
-FLUTTER_BUILD_ARGS = "linux"
-FLUTTER_EXTRA_BUILD_ARGS = "--${FLUTTER_RUNTIME}"
-FLUTTER_REMOVE_LINUX_BUILD_ARTIFACTS = "1"
+FLUTTER_BUILD_ARGS = "bundle --no-pub -v"
+#FLUTTER_APP_DISABLE_NATIVE_PLUGINS = "1"
+#FLUTTER_REMOVE_LINUX_BUILD_ARTIFACTS = "1"
+
 
 inherit flutter-app
 

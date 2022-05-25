@@ -10,13 +10,14 @@ DEPENDS += " \
     ca-certificates-native \
     cmake-native \
     compiler-rt \
+    flutter-engine-${FLUTTER_RUNTIME} \
     flutter-sdk-native \
-    glib-2.0 \
-    gtk+3 \
+    glib-2.0 gtk+3 \
     libcxx \
     ninja-native \
     unzip-native \
     "
+
 
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
@@ -26,10 +27,13 @@ FLUTTER_RUNTIME ??= "release"
 
 FLUTTER_PREBUILD_CMD ??= ""
 FLUTTER_APPLICATION_PATH ??= "."
-FLUTTER_BUILD_ARGS ??= "bundle"
-FLUTTER_EXTRA_BUILD_ARGS ??= ""
+FLUTTER_BUILD_ARGS ??= "bundle --no-pub -v"
 FLUTTER_APPLICATION_INSTALL_PREFIX ??= ""
 FLUTTER_INSTALL_DIR = "${datadir}${FLUTTER_APPLICATION_INSTALL_PREFIX}/${PUBSPEC_APPNAME}"
+
+FLUTTER_APP_DISABLE_NATIVE_PLUGINS ??= ""
+
+FLUTTER_PUB_CMD ??= "get"
 
 PUB_CACHE = "${WORKDIR}/pub_cache"
 PUB_CACHE_ARCHIVE = "flutter-pub-cache-${PUBSPEC_APPNAME}-${SRCREV}.tar.bz2"
@@ -67,22 +71,28 @@ python do_archive_pub_cache() {
 
     flutter_sdk = os.path.join(d.getVar("STAGING_DIR_NATIVE"), 'usr/share/flutter/sdk')
     app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
-
-    # Use the SDK PUB_CACHE as baseline
-    sdk_pub_cache = os.path.join(d.getVar("STAGING_DIR_NATIVE"), 'usr/share/flutter/sdk/.pub-cache')
+    pub_cmd = d.getVar("FLUTTER_PUB_CMD")
 
     pub_cache_cmd = \
-        'mkdir -p %s; ' \
-        'cp -r %s/* %s/; ' \
         'export PUB_CACHE=%s; ' \
-        '%s/bin/dart pub get --directory=%s --no-offline && ' \
-        '%s/bin/dart pub get --directory=%s --offline' % \
-        (pub_cache, sdk_pub_cache, pub_cache, pub_cache, flutter_sdk, app_root, flutter_sdk, app_root)
+        '%s/bin/flutter pub get;' \
+        '%s/bin/flutter pub get --offline' % \
+        (pub_cache, flutter_sdk, flutter_sdk)
 
     bb.note("Running %s in %s" % (pub_cache_cmd, app_root))
     runfetchcmd('%s' % (pub_cache_cmd), d, quiet=False, workdir=app_root)
 
-    cp_cmd = 'cp -r .dart_tool %s/ | true' % (pub_cache)
+    cp_cmd = \
+        'mkdir -p %s/.project | true; ' \
+        'cp -r .dart_tool %s/.project/ | true; ' \
+        'cp -r .packages %s/.project/ | true; ' \
+        'cp -r .dart_tool %s/.project/ | true; ' \
+        'cp -r .flutter-plugins %s/.project/ | true; ' \
+        'cp -r .flutter-plugins-dependencies %s/.project/ | true; ' \
+        'cp -r .metadata %s/.project/ | true; ' \
+        'cp -r .packages %s/.project/ | true; ' \
+        % (pub_cache, pub_cache, pub_cache, pub_cache, pub_cache, pub_cache, pub_cache, pub_cache)
+
     bb.note("Running %s in %s" % (cp_cmd, app_root))
 
     runfetchcmd('%s' % (cp_cmd), d, quiet=False, workdir=app_root)
@@ -135,9 +145,17 @@ python do_restore_pub_cache() {
     if ret != 0:
         raise UnpackError("Unpack command %s failed with return value %s" % (cmd, ret), localpath)
 
-    # restore .dart_tool to app folder
+    # restore flutter pub get artifacts
     app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
-    cmd = 'mv .dart_tool %s/ | true' % (app_root)
+    cmd = \
+        'mv .project/.dart_tool %s/ | true; ' \
+        'mv .project/.packages %s/ | true; ' \
+        'mv .project/.dart_tool %s/ | true; ' \
+        'mv .project/.flutter-plugins %s/ | true; ' \
+        'mv .project/.flutter-plugins-dependencies %s/ | true; ' \
+        'mv .project/.metadata %s/ | true; ' \
+        'mv .project/.packages %s/ | true; ' \
+        'rm -rf .project' % (app_root, app_root, app_root, app_root, app_root, app_root, app_root)
     bb.note("Running %s in %s" % (cmd, unpackdir))
     ret = subprocess.call(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir)
 
@@ -153,12 +171,15 @@ do_compile() {
 
     export PATH=${FLUTTER_SDK}/bin:$PATH
     export PUB_CACHE=${PUB_CACHE}
+    export PKG_CONFIG_PATH=${STAGING_DIR_TARGET}/usr/lib/pkgconfig:${STAGING_DIR_TARGET}/usr/share/pkgconfig:${PKG_CONFIG_PATH}
+
+    bbnote `env`
 
     cd ${S}/${FLUTTER_APPLICATION_PATH}
 
     ${FLUTTER_PREBUILD_CMD}
 
-    flutter build ${FLUTTER_BUILD_ARGS} ${FLUTTER_EXTRA_BUILD_ARGS}
+    flutter build ${FLUTTER_BUILD_ARGS}
 
     if ${@bb.utils.contains('FLUTTER_RUNTIME', 'release', 'true', 'false', d)} || \
        ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)}; then
@@ -215,7 +236,8 @@ do_install() {
         cp ${S}/${FLUTTER_APPLICATION_PATH}/libapp.so ${D}${FLUTTER_INSTALL_DIR}/lib/
     fi
 
-    if [ ${FLUTTER_BUILD_ARGS} = "linux" ]; then
+       
+    if [[ "${FLUTTER_BUILD_ARGS}" =~ .*"linux".* ]]; then
 
         if [ -n "${FLUTTER_REMOVE_LINUX_BUILD_ARTIFACTS}" ]; then
             rm ${D}/usr/${PUBSPEC_APPNAME} | true
