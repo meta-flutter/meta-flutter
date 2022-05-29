@@ -112,6 +112,14 @@ jobs:
           . ./poky/oe-init-build-env
           bitbake core-image-minimal
 
+      - name: Build libyuv
+        shell: bash
+        working-directory: ../yocto-kirkstone
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake libyuv -c do_cleansstate
+          bitbake libyuv
+
       - name: Build flutter-engine-release
         shell: bash
         working-directory: ../yocto-kirkstone

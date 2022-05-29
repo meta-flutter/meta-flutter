@@ -78,7 +78,7 @@ jobs:
           echo 'INHERIT:remove = "uninative"' >> ./conf/local.conf
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../external/meta-clang/recipes-devtools/clang/clang_git.bb
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
-          echo 'FLUTTER_SDK_TAG = "2.10.5"' >> ./conf/local.conf
+          echo 'FLUTTER_SDK_TAG = "3.0.1"' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
           echo '** Layers *****************************'
           bitbake-layers show-layers

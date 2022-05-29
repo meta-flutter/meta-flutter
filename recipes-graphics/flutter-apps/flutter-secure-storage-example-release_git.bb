@@ -9,12 +9,12 @@ LICENSE = "CLOSED"
 
 FLUTTER_RUNTIME = "release"
 
-DEPENDS += "\
-    jsoncpp \
-    libsecret \
-    util-linux \
-    xz \
-    "
+# DEPENDS += "\
+#    jsoncpp \
+#    libsecret \
+#    util-linux \
+#    xz \
+#    "
 
 SRCREV = "c371ea0c2d127b62316bbac52666254ad8cac844"
 SRC_URI = "git://github.com/meta-flutter/flutter_secure_storage.git;lfs=0;branch=jw/yocto;protocol=https;destsuffix=git"

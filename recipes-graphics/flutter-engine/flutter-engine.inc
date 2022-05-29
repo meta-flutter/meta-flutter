@@ -55,8 +55,7 @@ COMPATIBLE_MACHINE:x86-64 = "(.*)"
 
 FLUTTER_RUNTIME ??= "release"
 
-PACKAGECONFIG ??= "desktop-embeddings \
-                   embedder-for-target \
+PACKAGECONFIG ??= "embedder-for-target \
                    prebuilt-dart-sdk \
                    fontconfig \
                    ${FLUTTER_RUNTIME} \
