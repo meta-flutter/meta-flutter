@@ -84,8 +84,10 @@ jobs:
               tzdata-americas \
               tzdata-core \
               flutter-gallery-release \
-              flutter-linux-plugins-release \
+              flutter-secure-storage-example-release \
               flutter-objectbox-benchapp-release \
+              flutter-linux-plugins-release \
+              flutter-video-player-example-release \
               membrane-dart-example \
               "' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
@@ -103,6 +105,11 @@ jobs:
           bitbake -e rpi-image-flutter-wayland-${{ env.FLUTTER_RUNTIME }} | grep "^IMAGE_FEATURES"
           echo '***************************************'
           bitbake -e > bb.environment
+          bitbake -c do_cleansstate flutter-engine-release
+          bitbake -c do_cleansstate flutter-gallery-release
+          bitbake -c do_cleansstate flutter-linux-plugins-release
+          bitbake -c do_cleansstate flutter-objectbox-benchapp-release
+          bitbake -c do_cleansstate flutter-secure-storage-example-release
 
 
       - name: Build rpi-image-flutter-wayland

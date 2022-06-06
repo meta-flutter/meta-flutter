@@ -40,15 +40,13 @@ common_compile() {
 
     bbnote "Flutter SDK: ${FLUTTER_SDK_TAG}"
 
-    flutter config --no-enable-android
-    flutter config --no-enable-ios
-    flutter config --no-enable-web
+    flutter config --clear-features
     flutter config --enable-linux-desktop
     flutter config --enable-custom-devices
-
     flutter config --no-analytics
     dart --disable-analytics
 
+    bbnote `flutter config`
     bbnote `flutter doctor -v`
 }
 

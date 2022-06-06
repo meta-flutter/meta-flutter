@@ -97,7 +97,7 @@ def parse_args(d):
     parser.add_argument('--full-dart-debug', default=False, action='store_true', help='Implies --dart-debug ' +
         'and also disables optimizations in the Dart VM making it easier to step through VM code in the debugger.')
 
-    parser.add_argument('--target-os', type=str, choices=['android', 'ios', 'mac', 'linux', 'fuchsia', 'win', 'winuwp'])
+    parser.add_argument('--target-os', type=str, choices=['android', 'ios', 'mac', 'linux', 'fuchsia', 'wasm', 'win'])
     parser.add_argument('--android', dest='target_os', action='store_const', const='android')
     parser.add_argument('--android-cpu', type=str, choices=['arm', 'x64', 'x86', 'arm64'], default='arm')
     parser.add_argument('--ios', dest='target_os', action='store_const', const='ios')
@@ -107,11 +107,12 @@ def parse_args(d):
     parser.add_argument('--simulator', action='store_true', default=False)
     parser.add_argument('--linux', dest='target_os', action='store_const', const='linux')
     parser.add_argument('--fuchsia', dest='target_os', action='store_const', const='fuchsia')
-    parser.add_argument('--winuwp', dest='target_os', action='store_const', const='winuwp')
+    parser.add_argument('--wasm', dest='target_os', action='store_const', const='wasm')
+    parser.add_argument('--windows', dest='target_os', action='store_const', const='win')
 
     parser.add_argument('--linux-cpu', type=str, choices=['x64', 'x86', 'arm64', 'arm'])
     parser.add_argument('--fuchsia-cpu', type=str, choices=['x64', 'arm64'], default = 'x64')
-    parser.add_argument('--windows-cpu', type=str, choices=['x64', 'arm64'], default = 'x64')
+    parser.add_argument('--windows-cpu', type=str, choices=['x64', 'arm64', 'x86'], default = 'x64')
     parser.add_argument('--simulator-cpu', type=str, choices=['x64', 'arm64'], default = 'x64')
     parser.add_argument('--arm-float-abi', type=str, choices=['hard', 'soft', 'softfp'])
 
@@ -154,7 +155,10 @@ def parse_args(d):
 
     parser.add_argument('--coverage', default=False, action='store_true')
 
-    parser.add_argument('--out-dir', default='', type=str)
+    parser.add_argument('--out-dir', default='', type=str,
+                        help='Root out directory. Target specific gn files will be generated in ${out-dir}/')
+    parser.add_argument('--target-dir', default='', type=str,
+                        help='Use the specified name for target out directory. By default this tool determines one.')
 
     parser.add_argument('--full-dart-sdk', default=False, action='store_true',
                         help='include trained dart2js and dartdevc snapshots. Enable only on steps that create an SDK')
@@ -163,6 +167,9 @@ def parse_args(d):
     parser.add_argument('--ide', default='', type=str,
                         help='The IDE files to generate using GN. Use `gn gen help` and look for the --ide flag to' +
                         ' see supported IDEs. If this flag is not specified, a platform specific default is selected.')
+
+    parser.add_argument('--allow-deprecated-api-calls', action='store_true', default=False,
+                        help='Turns off warnings about the usage of deprecated APIs.')
 
     parser.add_argument('--disable-desktop-embeddings', default=False, action='store_true',
                         help='Do not include desktop embeddings in the build.')
@@ -189,13 +196,20 @@ def parse_args(d):
 
     parser.add_argument('--fuchsia-target-api-level', dest='fuchsia_target_api_level')
 
+    parser.add_argument('--support-fractional-translation', dest='support_fractional_translation', default=False,
+                        action='store_true', help='Whether to allow layers to render at fraction pixel '
+                        'boundaries.')
+
     # Flags for Dart features.
     parser.add_argument('--use-mallinfo2', dest='use_mallinfo2', default=False, action='store_true',
                         help='Use mallinfo2 to collect malloc stats.')
 
     # Impeller flags.
     parser.add_argument('--enable-impeller-playground', default=False, action='store_true',
-                        help='Whether impeller unit tests run in playground mode')
+                        help='Whether impeller unit tests run in playground mode.')
+    parser.add_argument('--prebuilt-impellerc', default=None, type=str,
+                        help='Absolute path to a prebuilt impellerc. ' +
+                        'Do not use this outside of CI or with impellerc from a different engine version.')
 
     # Sanitizers.
     parser.add_argument('--asan', default=False, action='store_true')
@@ -223,8 +237,6 @@ def get_out_dir(d):
     else:
         target_dir = ['host']
 
-    runtime_mode = args.runtime_mode
-
     target_dir.append(args.runtime_mode)
 
     if args.simulator:
@@ -242,6 +254,9 @@ def get_out_dir(d):
     if args.ios_cpu != 'arm64':
         target_dir.append(args.ios_cpu)
 
+    if args.mac_cpu != 'x64':
+        target_dir.append(args.mac_cpu)
+
     if args.simulator_cpu != 'x64':
         target_dir.append(args.simulator_cpu)
 
@@ -254,10 +269,16 @@ def get_out_dir(d):
     if args.target_os == 'fuchsia' and args.fuchsia_cpu is not None:
       target_dir.append(args.fuchsia_cpu)
 
-    if args.enable_vulkan:
-        target_dir.append('vulkan')
+    if args.support_fractional_translation:
+      target_dir.append('fractional')
 
+    # This exists for backwards compatibility of tests that are being run
+    # on LUCI. This can be removed in coordination with a LUCI change:
+    # https://github.com/flutter/flutter/issues/76547
     if args.macos_enable_metal:
       target_dir.append('metal')
+
+    if args.target_dir != '':
+      target_dir = [args.target_dir]
 
     return os.path.join(args.out_dir, 'out', '_'.join(target_dir))
