@@ -112,13 +112,13 @@ jobs:
           . ./poky/oe-init-build-env
           bitbake core-image-minimal
 
-      - name: Build libyuv
+      - name: Build membrane-dart-example
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
           . ./poky/oe-init-build-env
-          bitbake libyuv -c do_cleansstate
-          bitbake libyuv
+          bitbake membrane-dart-example -c do_cleansstate
+          bitbake membrane-dart-example
 
       - name: Build flutter-engine-release
         shell: bash

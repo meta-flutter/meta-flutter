@@ -87,6 +87,7 @@ jobs:
               flutter-secure-storage-example-release \
               flutter-objectbox-benchapp-release \
               flutter-linux-plugins-release \
+              flutter-video-player-example-release \
               membrane-dart-example \
               "' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
