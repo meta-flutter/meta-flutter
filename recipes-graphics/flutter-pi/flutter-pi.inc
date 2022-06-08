@@ -53,6 +53,9 @@ PACKAGECONFIG[asan]         = "-DENABLE_ASAN=ON,                         -DENABL
 PACKAGECONFIG[ubsan]        = "-DENABLE_UBSAN=ON,                        -DENABLE_UBSAN=OFF"
 PACKAGECONFIG[mtrace]       = "-DENABLE_MTRACE=ON,                       -DENABLE_MTRACE=OFF"
 
+# prevent use of network to pull header
+EXTRA_OECMAKE += "-D FLUTTER_EMBEDDER_HEADER=${STAGING_DIR_TARGET}/include/flutter_embedder.h"
+
 FILES_${PN} = "\
     ${bindir} \
     "

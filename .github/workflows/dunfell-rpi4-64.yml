@@ -237,10 +237,8 @@ jobs:
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           echo 'CORE_IMAGE_EXTRA_INSTALL_append = " \
-              flutter-pi-debug \
-              flutter-drm-gbm-backend \
-              flutter-linux-plugins-debug \
-              flutter-gallery-debug \
+              flutter-pi-release \
+              flutter-gallery-release \
               kmscube libdrm-tests \
               vkcube sascha-samples \
               vk-layer-perfdoc \

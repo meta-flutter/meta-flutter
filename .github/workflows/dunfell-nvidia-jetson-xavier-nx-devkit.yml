@@ -94,7 +94,6 @@ jobs:
           echo 'DISTRO_FEATURES_remove = "x11"' >> ./conf/local.conf
           echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> ./conf/local.conf
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
-          echo 'FLUTTER_SDK_TAG = "2.10.2"' >> ./conf/local.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
           echo 'CORE_IMAGE_BASE_INSTALL_remove = " packagegroup-demo-vulkantests"' >> ./conf/local.conf
           echo 'CORE_IMAGE_BASE_INSTALL_remove = " packagegroup-demo-westontests"' >> ./conf/local.conf
@@ -261,10 +260,9 @@ jobs:
         working-directory: ../${{ env.MACHINE }}/tegra-demo-distro
         run: |
           . ./setup-env
-          echo 'IMAGE_INSTALL_append = " flutter-engine-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " flutter-linux-plugins-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " flutter-gallery-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " ivi-homescreen-debug"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " flutter-engine-release"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " flutter-gallery-release"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " ivi-homescreen-release"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " adwaita-icon-theme-cursors"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " sascha-samples"' >> ./conf/local.conf
           bitbake demo-image-weston

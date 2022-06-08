@@ -134,30 +134,6 @@ jobs:
           bitbake flutter-engine-profile -c do_cleansstate
           bitbake flutter-engine-profile
 
-      - name: Build flutter-linux-plugins-debug
-        shell: bash
-        working-directory: ../yocto-dunfell/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake flutter-linux-plugins-debug -c do_cleansstate
-          bitbake flutter-linux-plugins-debug
-
-      - name: Build flutter-linux-plugins-profile
-        shell: bash
-        working-directory: ../yocto-dunfell/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake flutter-linux-plugins-profile -c do_cleansstate
-          bitbake flutter-linux-plugins-profile
-
-      - name: Build flutter-linux-plugins-release
-        shell: bash
-        working-directory: ../yocto-dunfell/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake flutter-linux-plugins-release -c do_cleansstate
-          bitbake flutter-linux-plugins-release
-
       - name: Build flutter-gallery-profile
         shell: bash
         working-directory: ../yocto-dunfell/poky
