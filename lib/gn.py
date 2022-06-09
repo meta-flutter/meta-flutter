@@ -130,7 +130,7 @@ class GN(FetchMethod):
         ret = subprocess.call(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir)
 
         if ret != 0:
-            raise UnpackError("Unapck command %s failed with return value %s" % (cmd, ret), ud.url)
+            raise UnpackError("Unpack command %s failed with return value %s" % (cmd, ret), ud.url)
 
         return
 

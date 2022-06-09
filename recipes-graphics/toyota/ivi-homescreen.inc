@@ -34,11 +34,23 @@ RUNTIME = "llvm"
 TOOLCHAIN = "clang"
 PREFERRED_PROVIDER_libgcc = "compiler-rt"
 
-PACKAGECONFIG ??= "transparency gstreamer secure_storage ${@bb.utils.filter('DISTRO_FEATURES', 'systemd', d)}"
+PACKAGECONFIG ??= "gstreamer mouse-cursor package-info secure-storage text-input transparency url-launcher"
 
-PACKAGECONFIG[transparency] = "-DBUILD_EGL_TRANSPARENCY=ON, -DBUILD_EGL_TRANSPARENCY=OFF"
+PACKAGECONFIG[accessibility] = "-DBUILD_PLUGIN_ACCESSIBILITY=ON, -DBUILD_PLUGIN_ACCESSIBILITY=OFF"
 PACKAGECONFIG[gstreamer] = "-DBUILD_PLUGIN_GSTREAMER=ON, -DBUILD_PLUGIN_GSTREAMER=OFF, gstreamer1.0 gstreamer1.0-plugins-base ffmpeg"
-PACKAGECONFIG[secure_storage] = "-DBUILD_PLUGIN_SECURE_STORAGE=ON, -DBUILD_PLUGIN_SECURE_STORAGE=OFF, libsecret"
+PACKAGECONFIG[isolate] = "-DBUILD_PLUGIN_ISOLATE=ON, -DBUILD_PLUGIN_ISOLATE=OFF"
+PACKAGECONFIG[mouse-cursor] = "-DBUILD_PLUGIN_MOUSE_CURSOR=ON, -DBUILD_PLUGIN_MOUSE_CURSOR=OFF"
+PACKAGECONFIG[navigation] = "-DBUILD_PLUGIN_NAVIGATION=ON, -DBUILD_PLUGIN_NAVIGATION=OFF"
+PACKAGECONFIG[opengl-texture] = "-DBUILD_PLUGIN_OPENGL_TEXTURE=ON, -DBUILD_PLUGIN_OPENGL_TEXTURE=OFF"
+PACKAGECONFIG[package-info] = "-DBUILD_PLUGIN_PACKAGE_INFO=ON, -DBUILD_PLUGIN_PACKAGE_INFO=OFF"
+PACKAGECONFIG[platform] = "-DBUILD_PLUGIN_PLATFORM=ON, -DBUILD_PLUGIN_PLATFORM=OFF"
+PACKAGECONFIG[platform-view] = "-DBUILD_PLUGIN_PLATFORM_VIEW=ON, -DBUILD_PLUGIN_PLATFORM_VIEW=OFF"
+PACKAGECONFIG[restoration] = "-DBUILD_PLUGIN_RESTORATION=ON, -DBUILD_PLUGIN_RESTORATION=OFF"
+PACKAGECONFIG[secure-storage] = "-DBUILD_PLUGIN_SECURE_STORAGE=ON, -DBUILD_PLUGIN_SECURE_STORAGE=OFF, libsecret"
+PACKAGECONFIG[text-input] = "-DBUILD_PLUGIN_TEXT_INPUT=ON, -DBUILD_PLUGIN_TEXT_INPUT=OFF"
+PACKAGECONFIG[transparency] = "-DBUILD_EGL_TRANSPARENCY=ON, -DBUILD_EGL_TRANSPARENCY=OFF"
+PACKAGECONFIG[url-launcher] = "-DBUILD_PLUGIN_URL_LAUNCHER=ON, -DBUILD_PLUGIN_URL_LAUNCHER=OFF"
+
 
 EXTRA_OECMAKE += "-D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr"
 
@@ -50,15 +62,15 @@ IVI_HOMESCREEN_APP_OVERRIDE ??= ""
 SERVICE_EXEC_START_PARAMS ??= ""
 
 SERVICE_UNIT        ??= "Requires=weston@root.service\nAfter=weston@root.service\n"
-SERVICE_USER_GROUP  ??= "User=root\nGroup=root"
+SERVICE_USER_GROUP  ??= "User=weston\nGroup=weston"
 SERVICE_RESTART     ??= "Restart=on-failure\nRestartSec=1"
-SERVICE_ENVIRONMENT ??= "Environment=HOME=/home/root\nEnvironment=XDG_RUNTIME_DIR=/run/user/0"
+SERVICE_ENVIRONMENT ??= "Environment=HOME=/home/weston\nEnvironment=XDG_RUNTIME_DIR=/run/user/1000"
 SERVICE_EXEC_START  ??= "ExecStart=/usr/bin/homescreen --f ${IVI_HOMESCREEN_APP_OVERRIDE} ${SERVICE_EXEC_START_PARAMS}"
 SERVICE_SERVICE     ??= "${SERVICE_USER_GROUP}\n${SERVICE_RESTART}\n${SERVICE_ENVIRONMENT}\n${SERVICE_EXEC_START}\n"
 SERVICE_INSTALL     ??= "WantedBy=graphical.target\n"
 
 do_install_append() {
-    if ${@bb.utils.contains('PACKAGECONFIG', 'systemd', 'true', 'false', d)}; then
+    if ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'true', 'false', d)}; then
         install -m 644 ${WORKDIR}/homescreen.service.in ${WORKDIR}/homescreen.service
         sed -i "s|@ServiceUnit@|${SERVICE_UNIT}|g" ${WORKDIR}/homescreen.service
         sed -i "s|@ServiceService@|${SERVICE_SERVICE}|g" ${WORKDIR}/homescreen.service
@@ -68,5 +80,5 @@ do_install_append() {
     fi
 }
 
-SYSTEMD_SERVICE_${PN} += "${@bb.utils.contains('PACKAGECONFIG', 'systemd', 'homescreen.service', '', d)}"
-SYSTEMD_PACKAGES = "${@bb.utils.contains('PACKAGECONFIG', 'systemd', '${PN}', '', d)}"
+SYSTEMD_SERVICE_${PN} += "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'homescreen.service', '', d)}"
+SYSTEMD_PACKAGES = "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '${PN}', '', d)}"

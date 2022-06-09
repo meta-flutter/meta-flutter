@@ -8,24 +8,34 @@
 
 DEPENDS += " \
     ca-certificates-native \
+    flutter-engine-${FLUTTER_RUNTIME} \
     flutter-sdk-native \
     unzip-native \
     "
 
 FLUTTER_RUNTIME ??= "release"
 
+FLUTTER_PREBUILD_CMD ??= ""
 FLUTTER_APPLICATION_PATH ??= "."
+FLUTTER_BUILD_ARGS ??= "bundle --no-pub -v"
+FLUTTER_APPLICATION_INSTALL_PREFIX ??= ""
+FLUTTER_INSTALL_DIR = "${datadir}${FLUTTER_APPLICATION_INSTALL_PREFIX}/${PUBSPEC_APPNAME}"
 
-FLUTTER_EXTRA_BUILD_ARGS ??= ""
+FLUTTER_APP_DISABLE_NATIVE_PLUGINS ??= ""
+
+FLUTTER_PUB_CMD ??= "get"
 
 PUB_CACHE = "${WORKDIR}/pub_cache"
 PUB_CACHE_ARCHIVE = "flutter-pub-cache-${PUBSPEC_APPNAME}-${SRCREV}.tar.bz2"
+
+FLUTTER_SDK = "${STAGING_DIR_NATIVE}/usr/share/flutter/sdk"
 
 #
 # Archive Pub Cache
 #
 
 addtask archive_pub_cache before do_patch after do_unpack
+do_archive_pub_cache[network] = "1"
 do_archive_pub_cache[dirs] = "${WORKDIR} ${DL_DIR}"
 do_archive_pub_cache[depends] += " \
     flutter-sdk-native:do_populate_sysroot \
@@ -51,18 +61,33 @@ python do_archive_pub_cache() {
 
     flutter_sdk = os.path.join(d.getVar("STAGING_DIR_NATIVE"), 'usr/share/flutter/sdk')
     app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
-    
+    pub_cmd = d.getVar("FLUTTER_PUB_CMD")
+
     pub_cache_cmd = \
         'export PUB_CACHE=%s; ' \
-        '%s/bin/dart pub get --directory=%s --no-offline && ' \
-        '%s/bin/dart pub get --directory=%s --offline' % \
-        (pub_cache, flutter_sdk, app_root, flutter_sdk, app_root)
+        '%s/bin/flutter pub get;' \
+        '%s/bin/flutter pub get --offline' % \
+        (pub_cache, flutter_sdk, flutter_sdk)
 
-    bb.note("Running %s in %s" % (pub_cache_cmd, workdir))
-    runfetchcmd('%s' % (pub_cache_cmd), d, quiet=False, workdir=workdir)
+    bb.note("Running %s in %s" % (pub_cache_cmd, app_root))
+    runfetchcmd('%s' % (pub_cache_cmd), d, quiet=False, workdir=app_root)
+
+    cp_cmd = \
+        'mkdir -p %s/.project | true; ' \
+        'cp -r .dart_tool %s/.project/ | true; ' \
+        'cp -r .packages %s/.project/ | true; ' \
+        'cp -r .dart_tool %s/.project/ | true; ' \
+        'cp -r .flutter-plugins %s/.project/ | true; ' \
+        'cp -r .flutter-plugins-dependencies %s/.project/ | true; ' \
+        'cp -r .metadata %s/.project/ | true; ' \
+        'cp -r .packages %s/.project/ | true; ' \
+        % (pub_cache, pub_cache, pub_cache, pub_cache, pub_cache, pub_cache, pub_cache, pub_cache)
+
+    bb.note("Running %s in %s" % (cp_cmd, app_root))
+
+    runfetchcmd('%s' % (cp_cmd), d, quiet=False, workdir=app_root)
 
     bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
-
     pack_cmd = "tar -I \"pbzip2 -p%s\" -cf %s ./" % (bb_number_threads, localpath)
 
     bb.note("Running %s in %s" % (pack_cmd, pub_cache))
@@ -108,7 +133,24 @@ python do_restore_pub_cache() {
     ret = subprocess.call(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir)
 
     if ret != 0:
-        raise UnpackError("Unapck command %s failed with return value %s" % (cmd, ret), localpath)
+        raise UnpackError("Unpack command %s failed with return value %s" % (cmd, ret), localpath)
+
+    # restore flutter pub get artifacts
+    app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
+    cmd = \
+        'mv .project/.dart_tool %s/ | true; ' \
+        'mv .project/.packages %s/ | true; ' \
+        'mv .project/.dart_tool %s/ | true; ' \
+        'mv .project/.flutter-plugins %s/ | true; ' \
+        'mv .project/.flutter-plugins-dependencies %s/ | true; ' \
+        'mv .project/.metadata %s/ | true; ' \
+        'mv .project/.packages %s/ | true; ' \
+        'rm -rf .project' % (app_root, app_root, app_root, app_root, app_root, app_root, app_root)
+    bb.note("Running %s in %s" % (cmd, unpackdir))
+    ret = subprocess.call(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir)
+
+    if ret != 0:
+        raise UnpackError("Restore .dart_tool command %s failed with return value %s" % (cmd, ret), localpath)
 }
 
 #
@@ -117,13 +159,17 @@ python do_restore_pub_cache() {
 
 do_compile() {
 
-    FLUTTER_SDK=${STAGING_DIR_NATIVE}/usr/share/flutter/sdk
-
     export PATH=${FLUTTER_SDK}/bin:$PATH
+    export PUB_CACHE=${PUB_CACHE}
+    export PKG_CONFIG_PATH=${STAGING_DIR_TARGET}/usr/lib/pkgconfig:${STAGING_DIR_TARGET}/usr/share/pkgconfig:${PKG_CONFIG_PATH}
+
+    bbnote `env`
 
     cd ${S}/${FLUTTER_APPLICATION_PATH}
 
-    flutter build bundle ${FLUTTER_EXTRA_BUILD_ARGS}
+    ${FLUTTER_PREBUILD_CMD}
+
+    flutter build ${FLUTTER_BUILD_ARGS}
 
     if ${@bb.utils.contains('FLUTTER_RUNTIME', 'release', 'true', 'false', d)} || \
        ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)}; then
@@ -170,13 +216,31 @@ SOLIBS = ".so"
 FILES_SOLIBSDEV = ""
 
 do_install() {
-    install -d ${D}${datadir}/${PUBSPEC_APPNAME}
+
+    install -d ${D}${FLUTTER_INSTALL_DIR}/flutter_assets
+    cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/* ${D}${FLUTTER_INSTALL_DIR}/flutter_assets/
+
     if ${@bb.utils.contains('FLUTTER_RUNTIME', 'release', 'true', 'false', d)} || \
        ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)}; then
-        cp ${S}/${FLUTTER_APPLICATION_PATH}/libapp.so ${D}${datadir}/${PUBSPEC_APPNAME}/
+       install -d ${D}${FLUTTER_INSTALL_DIR}/lib
+        cp ${S}/${FLUTTER_APPLICATION_PATH}/libapp.so ${D}${FLUTTER_INSTALL_DIR}/lib/
     fi
-    cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/* ${D}${datadir}/${PUBSPEC_APPNAME}/
+
+       
+    if [[ "${FLUTTER_BUILD_ARGS}" =~ .*"linux".* ]]; then
+
+        if [ -n "${FLUTTER_REMOVE_LINUX_BUILD_ARTIFACTS}" ]; then
+            rm ${D}/usr/${PUBSPEC_APPNAME} | true
+            rm -rf ${D}${libdir}/*.so | true
+        else
+            # expecting default "release" build
+            mv ${D}/usr/${PUBSPEC_APPNAME} ${D}${bindir}/ | true
+            rm -rf ${D}${bindir}/${PUBSPEC_APPNAME} | true
+            rm -rf ${D}${libdir}/*.so | true
+        fi
+    fi
 }
 
-FILES_${PN} = "${datadir}"
+FILES_${PN} = "${FLUTTER_INSTALL_DIR}"
+
 FILES_${PN}-dev = ""

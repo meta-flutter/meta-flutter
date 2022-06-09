@@ -1,0 +1,37 @@
+From 9d2da8e950759c467f1368f2754572456101773d Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Sun, 29 May 2022 10:23:33 -0700
+Subject: [PATCH] prevent redefinition of glib_autoptr_clear_AtkObject
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ flutter/shell/platform/linux/fl_accessible_node.h | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/flutter/shell/platform/linux/fl_accessible_node.h b/shell/platform/linux/fl_accessible_node.h
+index 20cf498a5a..bacd646f59 100644
+--- a/flutter/shell/platform/linux/fl_accessible_node.h
++++ b/flutter/shell/platform/linux/fl_accessible_node.h
+@@ -5,17 +5,14 @@
+ #ifndef FLUTTER_SHELL_PLATFORM_LINUX_FL_ACCESSIBLE_NODE_H_
+ #define FLUTTER_SHELL_PLATFORM_LINUX_FL_ACCESSIBLE_NODE_H_
+ 
+-#include <gtk/gtk.h>
++#include <gio/gio.h>
++#include <atk/atk.h>
+ 
+ #include "flutter/shell/platform/embedder/embedder.h"
+ #include "flutter/shell/platform/linux/public/flutter_linux/fl_engine.h"
+ 
+ G_BEGIN_DECLS
+ 
+-// ATK doesn't have the g_autoptr macros, so add them manually.
+-// https://gitlab.gnome.org/GNOME/atk/-/issues/10
+-G_DEFINE_AUTOPTR_CLEANUP_FUNC(AtkObject, g_object_unref)
+-
+ G_DECLARE_FINAL_TYPE(FlAccessibleNode,
+                      fl_accessible_node,
+                      FL,
+-- 
+2.34.3
+

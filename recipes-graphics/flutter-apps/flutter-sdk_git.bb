@@ -25,9 +25,12 @@ require conf/include/flutter-version.inc
 
 SRC_URI = "https://storage.googleapis.com/flutter_infra_release/releases/${@get_flutter_archive(d)};name=flutter-sdk"
 SRC_URI[flutter-sdk.sha256sum] = "${@get_flutter_sha256(d)}"
-SRCREV ??= "${@get_flutter_hash(d)}"
 
 S = "${WORKDIR}/flutter"
+
+do_unpack[network] = "1"
+do_patch[network] = "1"
+do_compile[network] = "1"
 
 common_compile() {
 
@@ -40,15 +43,13 @@ common_compile() {
 
     bbnote "Flutter SDK: ${FLUTTER_SDK_TAG}"
 
-    flutter config --no-enable-android
-    flutter config --no-enable-ios
-    flutter config --no-enable-web
-    flutter config --no-enable-linux-desktop
+    flutter config --clear-features
+    flutter config --enable-linux-desktop
     flutter config --enable-custom-devices
-
     flutter config --no-analytics
     dart --disable-analytics
 
+    bbnote `flutter config`
     bbnote `flutter doctor -v`
 }
 

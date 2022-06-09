@@ -28,6 +28,7 @@ do_fetch[depends] += " \
     pbzip2-native:do_populate_sysroot \
 "
 
+do_configure[network] = "1"
 do_configure_prepend() {
     export http_proxy=${http_proxy}
     export https_proxy=${https_proxy}
@@ -38,6 +39,7 @@ do_configure_prepend() {
     export GCLIENT_PY3=0
 }
 
+do_compile[network] = "1"
 do_compile_prepend() {
     export http_proxy=${http_proxy}
     export https_proxy=${https_proxy}

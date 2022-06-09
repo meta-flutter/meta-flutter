@@ -25,7 +25,6 @@ jobs:
       YOCTO_VERSION: 3.1.10
       MACHINE: imx8mm-var-dart
       DISTRO: fslc-wayland
-      FLUTTER_SDK_TAG: 2.10.2
       
     runs-on: [self-hosted, linux]
     
@@ -100,7 +99,6 @@ jobs:
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
           echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_libserialport = "6f9b03e"' >> ./conf/local.conf
-          echo 'FLUTTER_SDK_TAG = "2.10.2"' >> ./conf/local.conf
           echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> ./conf/local.conf 
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../../meta-flutter/recipes-graphics/flutter-pi/flutter-pi.inc
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../../meta-flutter/recipes-graphics/toyota/ivi-homescreen.inc
@@ -285,11 +283,10 @@ jobs:
         working-directory: ../${{ env.MACHINE }}
         run: |
           . sources/poky/oe-init-build-env build
-          echo 'IMAGE_INSTALL_append = " flutter-engine-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " flutter-linux-plugins-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " flutter-gallery-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " ivi-homescreen-debug"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " flutter-pi-debug"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " flutter-engine-release"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " flutter-gallery-release"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " ivi-homescreen-release"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " flutter-pi-release"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " adwaita-icon-theme-cursors"' >> ./conf/local.conf
           bitbake fsl-image-gui
           rm -rf /home/dev/artifacts/*
@@ -298,7 +295,7 @@ jobs:
       - name: Publish bootable SD card image
         uses: actions/upload-artifact@v2
         with:
-          name: fsl-image-gui-${{ env.MACHINE }}-flutter-${{ env.FLUTTER_SDK_TAG }}-debug-sdimage
+          name: fsl-image-gui-${{ env.MACHINE }}-flutter-debug-sdimage
           path: |
              /home/dev/artifacts/*
 
@@ -314,6 +311,6 @@ jobs:
       - name: Publish fsl-image-gui SDK artifact
         uses: actions/upload-artifact@v2
         with:
-          name: fsl-image-gui-${{ env.MACHINE }}-flutter-${{ env.FLUTTER_SDK_TAG }}-debug-sdk-linux
+          name: fsl-image-gui-${{ env.MACHINE }}-flutter-debug-sdk-linux
           path: |
              /home/dev/artifacts/*
