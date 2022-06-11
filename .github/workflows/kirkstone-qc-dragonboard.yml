@@ -238,7 +238,7 @@ jobs:
           cp bb.environment ${ARTIFACTS}
           cd tmp-rpb_wayland-glibc/deploy/images/${{ env.MACHINE }}
           ${WORKSPACE}/conf/db820c/gen_flat_build_folder.sh ${{ env.MACHINE }} emmc ${{ env.BOOT_VERSION }} ${{ env.BOOT_MD5 }}
-          cp flat_build_ufs.tar.gz ${ARTIFACTS}
+          cp flat_build_emmc.tar.gz ${ARTIFACTS}
           cp ${{ env.IMAGE }}-${{ env.MACHINE }}.tar.xz ${ARTIFACTS}
           ls -la ${ARTIFACTS}
 
