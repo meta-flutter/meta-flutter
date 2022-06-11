@@ -1,0 +1,155 @@
+name: kirkstone-qc-dragonboard
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, closed ]
+  release:
+    types: [ published, created, edited ]
+  workflow_dispatch:
+  schedule:
+    # daily
+    - cron:  '0 0 * * *'
+
+jobs:
+
+  kirkstone-db820c-rpb-wayland:
+  
+    env:
+      DISTRO_VERSION: "4.0"
+      YOCTO_BRANCH: "kirkstone"
+      MACHINE: dragonboard-820c
+      DISTRO: rpb-wayland
+      FLUTTER_RUNTIME: "release"
+      
+    runs-on: [self-hosted, linux]
+    
+    container:
+      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      options:
+        --user 1018
+        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
+        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
+        -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/db820c:/home/dev/sstate:Z
+        -v /mnt/raid10/github-ci/artifacts/db820c:/home/dev/artifacts:Z
+        -v /mnt/raid10/github-ci/qc/apq8096:/lib/firmware/qcom/apq8096
+
+    steps:
+    
+      - name: Display UID Info
+        run: |
+          whoami
+          id -u
+          
+      - name: Set Ownership
+        run: |
+          chown -R dev:dev $HOME .
+          
+      - uses: actions/checkout@v2
+        with:
+          path: ''
+
+      - name: Fetch poky
+        run: |
+          [ -d ../db820c-kirkstone ] || mkdir -p ../db820c-kirkstone
+          cd ../db820c-kirkstone
+          rm -rf sources || true
+          ls -la
+          git config --list
+          git config --global user.email joel@winarske@gmail.com
+          git config --global user.name "Joel Winarske"
+          git config --list
+          /home/dev/bin/repo init -u https://github.com/jwinarske/manifests.git -m db820c.xml -b kirkstone
+          /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo`
+
+      - name: Configure build
+        shell: bash
+        working-directory: ../db820c-kirkstone
+        run: |
+          rm -rf ${{ env.MACHINE }}/conf || true
+          DISTRO=${{ env.DISTRO }} . ./setup-environment ${{ env.MACHINE }}
+          echo '***************************************'
+          echo "ACCEPT_EULA_dragonboard-820c = \"1\"" >> conf/auto.conf
+          echo '***************************************'
+          echo 'DL_DIR = "/home/dev/dl"' >> conf/local.conf
+          echo 'SSTATE_DIR = "/home/dev/sstate"' >> conf/local.conf
+          echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> conf/local.conf
+          echo 'INIT_MANAGER = "systemd"' >> conf/local.conf
+          echo 'DISTRO_FEATURES:remove = "sysvinit x11 usbgadget"' >> conf/local.conf
+          echo 'DISTRO_FEATURES:append = " alsa bluetooth usbhost opengl vulkan wifi wayland security"' >> conf/local.conf
+          echo 'DISTRO_FEATURES:append = " acl xattr pam selinux audit"' >> conf/local.conf
+          echo 'PREFERRED_PROVIDER_virtual/refpolicy = "refpolicy-mls"' >> conf/local.conf
+          echo 'DISTRO_FEATURES:append = " seccomp"' >> conf/local.conf
+          echo 'ENABLE_BINARY_LOCALE_GENERATION = "1"' >> conf/local.conf
+          echo 'GLIBC_GENERATE_LOCALES:append = " en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> conf/local.conf
+          echo 'IMAGE_LINGUAS:append = " en-us en-gb es-us"' >> conf/local.conf
+          echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> conf/local.conf
+          echo 'PACKAGECONFIG:append:pn-ffmpeg = " openssl"' >> conf/local.conf
+          echo 'IMAGE_INSTALL:append = "\
+              tzdata-americas \
+              tzdata-core \
+              libcamera \
+              ivi-homescreen-release \
+              flutter-gallery-release \
+              flutter-secure-storage-example-release \
+              flutter-video-player-example-release \
+              flutter-linux-plugins-release \
+              flutter-objectbox-benchapp-release \
+              membrane-dart-example \
+              i2c-tools can-utils \
+              kernel-module-bridge bridge-utils openvpn \
+              systemd-analyze \
+              systemd-bash-completion \
+              coreutils \
+              curl zip \
+              iproute2 nftables lsof \
+              ntp ntp-tickadj \
+              procps sysfsutils tcpdump \
+              util-linux util-linux-blkid \
+              perl-modules python3-modules \
+              strace bpftrace \
+              "' >> conf/local.conf
+          echo 'COMBINED_FEATURES += "alsa "' >> conf/local.conf
+          echo 'CMDLINE_DEBUG = "quiet"' >> conf/local.conf
+          echo 'PREFERRED_PROVIDER:libserialport = "6f9b03e"' >> conf/local.conf
+          echo 'PREFERRED_PROVIDER:jpeg = "libjpeg-turbo"' >> conf/local.conf
+          echo 'PREFERRED_PROVIDER:jpeg-native = "libjpeg-turbo-native"' >> conf/local.conf
+          echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> conf/local.conf
+          echo '********** conf/local.conf **********'
+          cat conf/local.conf
+          echo '***************************************'
+          bitbake-layers remove-layer meta-flutter | true
+          bitbake-layers add-layer ../../meta-flutter
+          bitbake-layers show-layers
+          echo '***************************************'
+          bitbake -e virtual/kernel | grep "^PV"
+          bitbake -e virtual/kernel | grep "^PN"
+          echo '***************************************'
+          bitbake -e rpb-minimal-image | grep "^DISTRO_FEATURES"
+          bitbake -e rpb-minimal-image | grep "^IMAGE_FEATURES"
+          echo '***************************************'
+          bitbake -e > bb.environment
+          bitbake -c do_cleansstate flutter-sdk-native
+          bitbake -c do_cleansstate flutter-engine-release
+          bitbake -c do_cleansstate flutter-gallery-release
+          bitbake -c do_cleansstate flutter-linux-plugins-release
+          bitbake -c do_cleansstate flutter-objectbox-benchapp-release
+          bitbake -c do_cleansstate flutter-secure-storage-example-release
+
+
+      - name: Build rpb-minimal-image
+        shell: bash
+        working-directory: ../db820c-kirkstone
+        run: |
+          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake rpb-minimal-image
+          rm -rf /home/dev/artifacts/*
+          cp bb.environment /home/dev/artifacts
+          ls -la /home/dev/artifacts
+
+      - name: Publish SD card image artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: qc-db820c-kirkstone-sdimage
+          path: |
+             /home/dev/artifacts/*
