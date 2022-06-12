@@ -113,15 +113,18 @@ jobs:
         working-directory: ../db820c-kirkstone
         run: |
           WORKSPACE=`pwd`
-          . ./setup-environment ${{ env.MACHINE }}
-          bitbake ${{ env.IMAGE }}
+          IMAGE=${{ env.IMAGE }}
+          MACHINE=${{ env.MACHINE }}
           ARTIFACTS=/home/dev/artifacts
+          . ./setup-environment $MACHINE
+          bitbake $IMAGE
           rm -rf ${ARTIFACTS}/*
-          cp bb.environment ${ARTIFACTS}
-          cd tmp-rpb_wayland-glibc/deploy/images/${{ env.MACHINE }}
-          ${WORKSPACE}/conf/db820c/gen_flat_build_folder.sh ${{ env.MACHINE }} ufs ${{ env.BOOT_VERSION }} ${{ env.BOOT_MD5 }}
-          cp flat_build_ufs.tar.gz ${ARTIFACTS}
-          cp ${{ env.IMAGE }}-${{ env.MACHINE }}.tar.xz ${ARTIFACTS}
+          cp bb.environment $ARTIFACTS
+          cd tmp-rpb_wayland-glibc/deploy/images/$MACHINE
+          ${WORKSPACE}/conf/db820c/gen_flat_build_folder.sh $MACHINE ufs ${{ env.BOOT_VERSION }} ${{ env.BOOT_MD5 }}
+          cp flat_build_ufs.tar.gz $ARTIFACTS
+          cp boot-${MACHINE}.img $ARTIFACTS
+          cp ${IMAGE}-${MACHINE}.tar.xz $ARTIFACTS
           ls -la ${ARTIFACTS}
 
       - name: Publish SD card image artifact
@@ -231,14 +234,17 @@ jobs:
         working-directory: ../db410c-kirkstone
         run: |
           WORKSPACE=`pwd`
-          . ./setup-environment ${{ env.MACHINE }}
-          bitbake ${{ env.IMAGE }}
+          IMAGE=${{ env.IMAGE }}
+          MACHINE=${{ env.MACHINE }}
           ARTIFACTS=/home/dev/artifacts
+          . ./setup-environment $MACHINE
+          bitbake $IMAGE
           rm -rf ${ARTIFACTS}/*
-          cp bb.environment ${ARTIFACTS}
-          cd tmp-rpb_wayland-glibc/deploy/images/${{ env.MACHINE }}
-          ${WORKSPACE}/conf/db820c/gen_flat_build_folder.sh ${{ env.MACHINE }} emmc ${{ env.BOOT_VERSION }} ${{ env.BOOT_MD5 }}
-          cp flat_build_emmc.tar.gz ${ARTIFACTS}
+          cp bb.environment $ARTIFACTS
+          cd tmp-rpb_wayland-glibc/deploy/images/${MACHINE}
+          ${WORKSPACE}/conf/db820c/gen_flat_build_folder.sh $MACHINE emmc ${{ env.BOOT_VERSION }} ${{ env.BOOT_MD5 }}
+          cp flat_build_emmc.tar.gz $ARTIFACTS
+          ls -la ${ARTIFACTS}
 
       - name: Publish SD card image artifact
         uses: actions/upload-artifact@v2
