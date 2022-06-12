@@ -190,7 +190,7 @@ jobs:
         run: |
           MACHINE=${{ env.MACHINE }} DISTRO=${{ env.DISTRO }} . ./setup-environment ${{ env.MACHINE }}
           echo '***************************************'
-          echo "ACCEPT_EULA_dragonboard-820c = \"1\"" >> conf/auto.conf
+          echo "ACCEPT_EULA_dragonboard-410c = \"1\"" >> conf/auto.conf
           echo '***************************************'
           echo 'DL_DIR = "/home/dev/dl"' >> conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> conf/local.conf
