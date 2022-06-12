@@ -85,8 +85,6 @@ jobs:
               tzdata-core \
               flutter-gallery-release \
               flutter-secure-storage-example-release \
-              flutter-objectbox-benchapp-release \
-              flutter-linux-plugins-release \
               flutter-video-player-example-release \
               membrane-dart-example \
               "' >> ./conf/local.conf
