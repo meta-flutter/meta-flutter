@@ -36,6 +36,7 @@ S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "linux_plugins"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
+FLUTTER_PREBUILD_CMD = "flutter pub get"
 
 inherit flutter-app
 

@@ -27,5 +27,6 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "flutter_secure_storage_example"
 FLUTTER_APPLICATION_PATH = "flutter_secure_storage/example"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
+FLUTTER_PREBUILD_CMD = "flutter pub get"
 
 inherit flutter-app
