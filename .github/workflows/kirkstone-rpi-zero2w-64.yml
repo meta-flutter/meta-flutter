@@ -83,9 +83,12 @@ jobs:
               default-language-en-us-utf8 \
               tzdata-americas \
               tzdata-core \
+              ivi-homescreen-release \
               flutter-gallery-release \
               flutter-secure-storage-example-release \
               flutter-video-player-example-release \
+              flutter-linux-plugins-release \
+              flutter-objectbox-benchapp-release \
               membrane-dart-example \
               "' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf

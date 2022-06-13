@@ -28,8 +28,4 @@ PUBSPEC_APPNAME = "flutter_secure_storage_example"
 FLUTTER_APPLICATION_PATH = "flutter_secure_storage/example"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
-FLUTTER_BUILD_ARGS = "bundle --no-pub -v"
-#FLUTTER_APP_DISABLE_NATIVE_PLUGINS = "1"
-#FLUTTER_REMOVE_LINUX_BUILD_ARTIFACTS = "1"
-
 inherit flutter-app

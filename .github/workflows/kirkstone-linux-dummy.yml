@@ -240,26 +240,62 @@ jobs:
           bitbake flutter-x11-client -c do_cleansstate
           bitbake flutter-x11-client
 
-      - name: Build flutter-gallery-release
+      - name: Build flutter-gallery
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-gallery-release -c do_cleansstate
-          bitbake flutter-gallery-release
-
-      - name: Build flutter-gallery-profile
-        shell: bash
-        working-directory: ../yocto-kirkstone
-        run: |
-          . ./poky/oe-init-build-env
           bitbake flutter-gallery-profile -c do_cleansstate
+          bitbake flutter-gallery-debug -c do_cleansstate
+          bitbake flutter-gallery-release
           bitbake flutter-gallery-profile
+          bitbake flutter-gallery-debug
 
-      - name: Build flutter-gallery-debug
+      - name: Build flutter-secure-storage-example
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
           . ./poky/oe-init-build-env
-          bitbake flutter-gallery-debug -c do_cleansstate
-          bitbake flutter-gallery-debug
+          bitbake flutter-secure-storage-example-release -c do_cleansstate
+          bitbake flutter-secure-storage-example-profile -c do_cleansstate
+          bitbake flutter-secure-storage-example-debug -c do_cleansstate
+          bitbake flutter-secure-storage-example-release
+          bitbake flutter-secure-storage-example-profile
+          bitbake flutter-secure-storage-example-debug
+
+      - name: Build flutter-video-player-example
+        shell: bash
+        working-directory: ../yocto-kirkstone
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake flutter-video-player-example-release -c do_cleansstate
+          bitbake flutter-video-player-example-profile -c do_cleansstate
+          bitbake flutter-video-player-example-debug -c do_cleansstate
+          bitbake flutter-video-player-example-release
+          bitbake flutter-video-player-example-profile
+          bitbake flutter-video-player-example-debug
+
+      - name: Build flutter-objectbox-benchapp
+        shell: bash
+        working-directory: ../yocto-kirkstone
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake flutter-linux-plugins-release -c do_cleansstate
+          bitbake flutter-linux-plugins-profile -c do_cleansstate
+          bitbake flutter-linux-plugins-debug -c do_cleansstate
+          bitbake flutter-linux-plugins-release
+          bitbake flutter-linux-plugins-profile
+          bitbake flutter-linux-plugins-debug
+
+      - name: Build flutter-linux-plugins
+        shell: bash
+        working-directory: ../yocto-kirkstone
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake flutter-objectbox-benchapp-release -c do_cleansstate
+          bitbake flutter-objectbox-benchapp-profile -c do_cleansstate
+          bitbake flutter-objectbox-benchapp-debug -c do_cleansstate
+          bitbake flutter-objectbox-benchapp-release
+          bitbake flutter-objectbox-benchapp-profile
+          bitbake flutter-objectbox-benchapp-debug

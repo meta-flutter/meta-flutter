@@ -37,11 +37,6 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "linux_plugins"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
-FLUTTER_BUILD_ARGS = "bundle --no-pub -v"
-#FLUTTER_APP_DISABLE_NATIVE_PLUGINS = "1"
-#FLUTTER_REMOVE_LINUX_BUILD_ARTIFACTS = "1"
-
-
 inherit flutter-app
 
 require conf/include/flutter-version.inc

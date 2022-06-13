@@ -26,9 +26,6 @@ PUBSPEC_APPNAME = "benchapp"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 FLUTTER_PREBUILD_CMD = "flutter pub run build_runner build --delete-conflicting-outputs"
-FLUTTER_BUILD_ARGS = "bundle --no-pub -v"
-#FLUTTER_APP_DISABLE_NATIVE_PLUGINS = "1"
-#FLUTTER_REMOVE_LINUX_BUILD_ARTIFACTS = "1"
 
 inherit flutter-app python3native
 

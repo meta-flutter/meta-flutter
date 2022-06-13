@@ -27,7 +27,7 @@ FLUTTER_RUNTIME ??= "release"
 
 FLUTTER_PREBUILD_CMD ??= ""
 FLUTTER_APPLICATION_PATH ??= "."
-FLUTTER_BUILD_ARGS ??= "bundle --no-pub -v"
+FLUTTER_BUILD_ARGS ??= "bundle -v"
 FLUTTER_APPLICATION_INSTALL_PREFIX ??= ""
 FLUTTER_INSTALL_DIR = "${datadir}${FLUTTER_APPLICATION_INSTALL_PREFIX}/${PUBSPEC_APPNAME}"
 
@@ -166,7 +166,7 @@ python do_restore_pub_cache() {
 #
 # Build flutter_assets folder and AOT (libapp.so)
 #
-
+do_compile[network] = "1"
 do_compile() {
 
     export PATH=${FLUTTER_SDK}/bin:$PATH
