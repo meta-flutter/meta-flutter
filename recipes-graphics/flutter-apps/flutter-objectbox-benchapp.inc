@@ -25,7 +25,7 @@ COMPATIBLE_MACHINE_x86-64 = "(.*)"
 PUBSPEC_APPNAME = "benchapp"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
-FLUTTER_PREBUILD_CMD = "flutter pub run build_runner build --delete-conflicting-outputs"
+FLUTTER_PREBUILD_CMD = "flutter pub get; flutter pub run build_runner build --delete-conflicting-outputs"
 
 inherit flutter-app python3native
 

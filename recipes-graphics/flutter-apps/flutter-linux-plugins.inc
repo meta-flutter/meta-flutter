@@ -8,6 +8,11 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=df6bd2163489eedcdea6b9406bcbe1dd"
 
+# Flutter Linux Plugins do not cross compile, hence -native reference
+DEPENDS += "\
+    jsoncpp \
+    libsecret \
+    "
 RDEPENDS_${PN} += "\
     bluez5 \
     geoclue \
@@ -30,6 +35,7 @@ S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "linux_plugins"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
+FLUTTER_PREBUILD_CMD = "flutter pub get"
 
 inherit flutter-app
 

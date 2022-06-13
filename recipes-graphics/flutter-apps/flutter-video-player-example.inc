@@ -18,5 +18,6 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "video_player_example"
 FLUTTER_APPLICATION_PATH = "packages/video_player/video_player/example"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
+FLUTTER_PREBUILD_CMD = "flutter pub get"
 
 inherit flutter-app
