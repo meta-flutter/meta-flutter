@@ -10,15 +10,6 @@ LIC_FILES_CHKSUM = "\
     file://LICENSE;md5=ad4a5a1c16c771bac65521dacef3900e \
 "
 
-FLUTTER_RUNTIME = "release"
-
-# DEPENDS += "\
-#    jsoncpp \
-#    libsecret \
-#    util-linux \
-#    xz \
-#    "
-
 SRCREV = "e716593352b80330e05729486eade7c2167d3c71"
 SRC_URI = "git://github.com/mogol/flutter_secure_storage.git;lfs=0;branch=develop;protocol=https;destsuffix=git"
 

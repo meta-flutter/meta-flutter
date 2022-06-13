@@ -10,8 +10,6 @@ LIC_FILES_CHKSUM = "\
     file://${COREBASE}/meta/files/common-licenses/BSD-3-Clause;md5=550794465ba0ec5312d6919e203a55f9 \
 "
 
-FLUTTER_RUNTIME = "release"
-
 SRCREV = "f781b036c830952fc84a85ffa37f2f51328fa0a4"
 SRC_URI = "git://github.com/flutter/plugins.git;lfs=0;branch=main;protocol=https;destsuffix=git"
 
