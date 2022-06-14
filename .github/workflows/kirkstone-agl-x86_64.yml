@@ -53,7 +53,6 @@ jobs:
           wait
           pwd
           ls -la
-          sed -i 's/283f915354dcc81410b30534c1eda063d0e78888/\${AUTOREV}/g' meta-agl-devel/meta-agl-flutter/recipes-graphics/flutter-apps/flutter-app-homescreen_git.bb
           sed -i '/SRCREV/d' meta-agl-devel/meta-agl-flutter/recipes-graphics/toyota/ivi-homescreen_aglflutter.inc
           cd external
           rm -rf meta-flutter || true
