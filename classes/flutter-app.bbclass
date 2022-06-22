@@ -221,7 +221,7 @@ do_compile() {
     fi
 }
 
-INSANE_SKIP:${PN} += " ldflags libdir"
+INSANE_SKIP:${PN} += " dev-so ldflags libdir"
 SOLIBS = ".so"
 FILES:SOLIBSDEV = ""
 
@@ -234,6 +234,7 @@ do_install() {
        ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)}; then
        install -d ${D}${FLUTTER_INSTALL_DIR}/lib
         cp ${S}/${FLUTTER_APPLICATION_PATH}/libapp.so ${D}${FLUTTER_INSTALL_DIR}/lib/
+        ln -s ../lib/libapp.so ${D}${FLUTTER_INSTALL_DIR}/flutter_assets/
     fi
 
        
