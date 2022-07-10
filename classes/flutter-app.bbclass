@@ -227,12 +227,12 @@ FILES:SOLIBSDEV = ""
 
 do_install() {
 
-    install -d ${D}${FLUTTER_INSTALL_DIR}/flutter_assets
-    cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/* ${D}${FLUTTER_INSTALL_DIR}/flutter_assets/
+    install -d ${D}${FLUTTER_INSTALL_DIR}/data/flutter_assets
+    cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/* ${D}${FLUTTER_INSTALL_DIR}/data/flutter_assets/
 
     if ${@bb.utils.contains('FLUTTER_RUNTIME', 'release', 'true', 'false', d)} || \
-       ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)}; then
-       install -d ${D}${FLUTTER_INSTALL_DIR}/lib
+        ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)}; then
+        install -d ${D}${FLUTTER_INSTALL_DIR}/lib
         cp ${S}/${FLUTTER_APPLICATION_PATH}/libapp.so ${D}${FLUTTER_INSTALL_DIR}/lib/
     fi
 
