@@ -34,7 +34,7 @@ RUNTIME = "llvm"
 TOOLCHAIN = "clang"
 PREFERRED_PROVIDER:libgcc = "compiler-rt"
 
-PACKAGECONFIG ??= "gstreamer mouse-cursor package-info secure-storage text-input transparency url-launcher"
+PACKAGECONFIG ??= "gstreamer mouse-cursor package-info secure-storage text-input transparency url-launcher texture-test-egl"
 
 PACKAGECONFIG[accessibility] = "-DBUILD_PLUGIN_ACCESSIBILITY=ON, -DBUILD_PLUGIN_ACCESSIBILITY=OFF"
 PACKAGECONFIG[gstreamer] = "-DBUILD_PLUGIN_GSTREAMER_EGL=ON, -DBUILD_PLUGIN_GSTREAMER_EGL=OFF, gstreamer1.0 gstreamer1.0-plugins-base ffmpeg"
@@ -56,7 +56,7 @@ EXTRA_OECMAKE += "-D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr"
 
 FLUTTER_RUNTIME ??= "release"
 
-# Use pattern "--a={absolute path to flutter_assets}"
+# Use pattern "--b={absolute path to flutter_assets}"
 IVI_HOMESCREEN_APP_OVERRIDE ??= ""
 # parameters to pass to homescreen app and Dart VM
 SERVICE_EXEC_START_PARAMS ??= ""
