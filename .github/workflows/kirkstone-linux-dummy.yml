@@ -87,6 +87,7 @@ jobs:
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
+          bitbake-layers show-layers
           bitbake-layers add-layer \
               ../meta-openembedded/meta-oe \
               ../meta-openembedded/meta-python \
@@ -120,76 +121,64 @@ jobs:
           bitbake membrane-dart-example -c do_cleansstate
           bitbake membrane-dart-example
 
-      - name: Build flutter-engine-release
+      - name: Build agl-flutter-igalia-homescreen
+        shell: bash
+        working-directory: ../yocto-kirkstone
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake agl-flutter-igalia-homescreen-debug -c do_cleansstate
+          bitbake agl-flutter-igalia-homescreen-profile -c do_cleansstate
+          bitbake agl-flutter-igalia-homescreen-release -c do_cleansstate
+          bitbake agl-flutter-igalia-homescreen-debug
+          bitbake agl-flutter-igalia-homescreen-profile
+          bitbake agl-flutter-igalia-homescreen-release
+
+      - name: Build agl-flutter-pumped-fuel-ped
+        shell: bash
+        working-directory: ../yocto-kirkstone
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake agl-flutter-pumped-fuel-ped-debug -c do_cleansstate
+          bitbake agl-flutter-pumped-fuel-ped-profile -c do_cleansstate
+          bitbake agl-flutter-pumped-fuel-ped-release -c do_cleansstate
+          bitbake agl-flutter-pumped-fuel-ped-debug
+          bitbake agl-flutter-pumped-fuel-ped-profile
+          bitbake agl-flutter-pumped-fuel-ped-release
+
+      - name: Build flutter-engine
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-engine-release -c do_cleansstate
-          bitbake flutter-engine-release
-
-      - name: Build flutter-engine-profile
-        shell: bash
-        working-directory: ../yocto-kirkstone
-        run: |
-          . ./poky/oe-init-build-env
           bitbake flutter-engine-profile -c do_cleansstate
-          bitbake flutter-engine-profile
-
-      - name: Build flutter-engine-debug
-        shell: bash
-        working-directory: ../yocto-kirkstone
-        run: |
-          . ./poky/oe-init-build-env
           bitbake flutter-engine-debug -c do_cleansstate
+          bitbake flutter-engine-release
+          bitbake flutter-engine-profile
           bitbake flutter-engine-debug
 
-      - name: Build flutter-pi-release
+      - name: Build flutter-pi
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-pi-release -c do_cleansstate
-          bitbake flutter-pi-release
-
-      - name: Build flutter-pi-profile
-        shell: bash
-        working-directory: ../yocto-kirkstone
-        run: |
-          . ./poky/oe-init-build-env
           bitbake flutter-pi-profile -c do_cleansstate
-          bitbake flutter-pi-profile
-
-      - name: Build flutter-pi-debug
-        shell: bash
-        working-directory: ../yocto-kirkstone
-        run: |
-          . ./poky/oe-init-build-env
           bitbake flutter-pi-debug -c do_cleansstate
+          bitbake flutter-pi-release
+          bitbake flutter-pi-profile
           bitbake flutter-pi-debug
 
-      - name: Build ivi-homescreen-release
+      - name: Build ivi-homescreen
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
           . ./poky/oe-init-build-env
           bitbake ivi-homescreen-release -c do_cleansstate
-          bitbake ivi-homescreen-release
-
-      - name: Build ivi-homescreen-profile
-        shell: bash
-        working-directory: ../yocto-kirkstone
-        run: |
-          . ./poky/oe-init-build-env
           bitbake ivi-homescreen-profile -c do_cleansstate
-          bitbake ivi-homescreen-profile
-
-      - name: Build ivi-homescreen-debug
-        shell: bash
-        working-directory: ../yocto-kirkstone
-        run: |
-          . ./poky/oe-init-build-env
           bitbake ivi-homescreen-debug -c do_cleansstate
+          bitbake ivi-homescreen-release
+          bitbake ivi-homescreen-profile
           bitbake ivi-homescreen-debug
 
       - name: Build flutter-drm-eglstream-backend
@@ -252,50 +241,50 @@ jobs:
           bitbake flutter-gallery-profile
           bitbake flutter-gallery-debug
 
-      - name: Build flutter-secure-storage-example
+      - name: Build flutter-test-plugins
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
           . ./poky/oe-init-build-env
-          bitbake flutter-secure-storage-example-release -c do_cleansstate
-          bitbake flutter-secure-storage-example-profile -c do_cleansstate
-          bitbake flutter-secure-storage-example-debug -c do_cleansstate
-          bitbake flutter-secure-storage-example-release
-          bitbake flutter-secure-storage-example-profile
-          bitbake flutter-secure-storage-example-debug
+          bitbake flutter-test-plugins-release -c do_cleansstate
+          bitbake flutter-test-plugins-profile -c do_cleansstate
+          bitbake flutter-test-plugins-debug -c do_cleansstate
+          bitbake flutter-test-plugins-release
+          bitbake flutter-test-plugins-profile
+          bitbake flutter-test-plugins-debug
 
-      - name: Build flutter-video-player-example
+      - name: Build flutter-test-secure-storage
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
           . ./poky/oe-init-build-env
-          bitbake flutter-video-player-example-release -c do_cleansstate
-          bitbake flutter-video-player-example-profile -c do_cleansstate
-          bitbake flutter-video-player-example-debug -c do_cleansstate
-          bitbake flutter-video-player-example-release
-          bitbake flutter-video-player-example-profile
-          bitbake flutter-video-player-example-debug
+          bitbake flutter-test-secure-storage-release -c do_cleansstate
+          bitbake flutter-test-secure-storage-profile -c do_cleansstate
+          bitbake flutter-test-secure-storage-debug -c do_cleansstate
+          bitbake flutter-test-secure-storage-release
+          bitbake flutter-test-secure-storage-profile
+          bitbake flutter-test-secure-storage-debug
 
-      - name: Build flutter-objectbox-benchapp
+      - name: Build flutter-test-texture-egl
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
           . ./poky/oe-init-build-env
-          bitbake flutter-linux-plugins-release -c do_cleansstate
-          bitbake flutter-linux-plugins-profile -c do_cleansstate
-          bitbake flutter-linux-plugins-debug -c do_cleansstate
-          bitbake flutter-linux-plugins-release
-          bitbake flutter-linux-plugins-profile
-          bitbake flutter-linux-plugins-debug
+          bitbake flutter-test-texture-egl-release -c do_cleansstate
+          bitbake flutter-test-texture-egl-profile -c do_cleansstate
+          bitbake flutter-test-texture-egl-debug -c do_cleansstate
+          bitbake flutter-test-texture-egl-release
+          bitbake flutter-test-texture-egl-profile
+          bitbake flutter-test-texture-egl-debug
 
-      - name: Build flutter-linux-plugins
+      - name: Build flutter-test-video-player
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
           . ./poky/oe-init-build-env
-          bitbake flutter-objectbox-benchapp-release -c do_cleansstate
-          bitbake flutter-objectbox-benchapp-profile -c do_cleansstate
-          bitbake flutter-objectbox-benchapp-debug -c do_cleansstate
-          bitbake flutter-objectbox-benchapp-release
-          bitbake flutter-objectbox-benchapp-profile
-          bitbake flutter-objectbox-benchapp-debug
+          bitbake flutter-test-video-player-release -c do_cleansstate
+          bitbake flutter-test-video-player-profile -c do_cleansstate
+          bitbake flutter-test-video-player-debug -c do_cleansstate
+          bitbake flutter-test-video-player-release
+          bitbake flutter-test-video-player-profile
+          bitbake flutter-test-video-player-debug

@@ -8,7 +8,6 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=df6bd2163489eedcdea6b9406bcbe1dd"
 
-# Flutter Linux Plugins do not cross compile, hence -native reference
 DEPENDS += "\
     jsoncpp \
     libsecret \
@@ -28,13 +27,14 @@ RDEPENDS:${PN} += "\
     xdg-user-dirs \
     "
 
-SRCREV = "ecf66fe5511d8f329d38417d8407e67eb21c6638"
-SRC_URI = "git://github.com/meta-flutter/linux_plugins.git;lfs=1;branch=main;protocol=https;destsuffix=git \
+SRCREV = "da096d27ee8e5e74c18eb97f91ac03021363ef5b"
+SRC_URI = "git://github.com/meta-flutter/tests.git;lfs=1;branch=main;protocol=https;destsuffix=git \
            file://lsb-release"
 
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "linux_plugins"
+FLUTTER_APPLICATION_PATH = "plugins"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 FLUTTER_PREBUILD_CMD = "flutter pub get"
 

@@ -85,16 +85,16 @@ jobs:
               tzdata-core \
               ivi-homescreen-release \
               flutter-gallery-release \
-              flutter-secure-storage-example-release \
-              flutter-video-player-example-release \
-              flutter-linux-plugins-release \
-              flutter-objectbox-benchapp-release \
-              membrane-dart-example \
+              flutter-test-secure-storage-release \
+              flutter-test-video-player-release \
+              flutter-test-plugins-release \
+              flutter-test-texture-egl-release \
               "' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
+          bitbake-layers show-layers
           bitbake-layers remove-layer meta-flutter
           bitbake-layers add-layer ../../meta-flutter
           bitbake-layers show-layers
@@ -108,10 +108,10 @@ jobs:
           bitbake -e > bb.environment
           bitbake -c do_cleansstate flutter-engine-release
           bitbake -c do_cleansstate flutter-gallery-release
-          bitbake -c do_cleansstate flutter-linux-plugins-release
-          bitbake -c do_cleansstate flutter-objectbox-benchapp-release
-          bitbake -c do_cleansstate flutter-secure-storage-example-release
-
+          bitbake -c do_cleansstate flutter-test-plugins-release
+          bitbake -c do_cleansstate flutter-test-secure-storage-release
+          bitbake -c do_cleansstate flutter-test-texture-egl-release
+          bitbake -c do_cleansstate flutter-test-video-player-release
 
       - name: Build rpi-image-flutter-wayland
         shell: bash
