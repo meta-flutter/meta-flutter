@@ -86,6 +86,8 @@ SRC_URI += " \
     crate://crates.io/serde/1.0.137 \
     crate://crates.io/serde_bytes/0.11.6 \
     crate://crates.io/serde_derive/1.0.137 \
+    crate://crates.io/serde_generate/0.23.0 \
+    crate://crates.io/serde_reflection/0.3.6 \
     crate://crates.io/serde_yaml/0.8.24 \
     crate://crates.io/signal-hook-registry/1.4.0 \
     crate://crates.io/slab/0.4.6 \
@@ -120,8 +122,6 @@ SRC_URI += " \
     crate://crates.io/windows_x86_64_gnu/0.36.1 \
     crate://crates.io/windows_x86_64_msvc/0.36.1 \
     crate://crates.io/yaml-rust/0.4.5 \
-    git://github.com/jerel/serde-reflection;protocol=https;branch=main;name=serde-reflection;destsuffix=serde-reflection \
-    git://github.com/jerel/serde-reflection;protocol=https;branch=main;name=serde-generate;destsuffix=serde-generate \
 "
 
 SRCREV_serde-reflection = "bde96ef4a0a2765aa5d65964cd5eee420e003525"
