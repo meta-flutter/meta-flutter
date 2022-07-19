@@ -5,10 +5,7 @@ REQUIRED_DISTRO_FEATURES = "wayland opengl"
 
 require sony-flutter.inc
 
-FLUTTER_RUNTIME ??= "release"
-
 DEPENDS += "\
-    flutter-engine-${FLUTTER_RUNTIME} \
     gstreamer1.0 \
     gstreamer1.0-plugins-base \
     wayland \
@@ -16,7 +13,6 @@ DEPENDS += "\
     "
 
 RDEPENDS:${PN} += "\
-    flutter-engine-${FLUTTER_RUNTIME} \
     gstreamer1.0-plugins-good \
     gstreamer1.0-plugins-bad \
     "

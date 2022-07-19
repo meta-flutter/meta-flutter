@@ -5,15 +5,8 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 
 require sony-flutter.inc
 
-FLUTTER_RUNTIME ??= "release"
-
 DEPENDS += "\
     libdrm \
-    flutter-engine-${FLUTTER_RUNTIME} \
-    "
-
-RDEPENDS:${PN} += "\
-    flutter-engine-${FLUTTER_RUNTIME} \
     "
 
 do_install() {

@@ -30,6 +30,8 @@ S = "${WORKDIR}/git"
 
 inherit cmake features_check pkgconfig systemd
 
+require conf/include/flutter-runtime.inc
+
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
 PREFERRED_PROVIDER:libgcc = "compiler-rt"
@@ -52,7 +54,10 @@ PACKAGECONFIG[transparency] = "-DBUILD_EGL_TRANSPARENCY=ON, -DBUILD_EGL_TRANSPAR
 PACKAGECONFIG[url-launcher] = "-DBUILD_PLUGIN_URL_LAUNCHER=ON, -DBUILD_PLUGIN_URL_LAUNCHER=OFF"
 
 
-EXTRA_OECMAKE += "-D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr"
+EXTRA_OECMAKE += "\
+    -D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr \
+    -D CMAKE_BUILD_TYPE=Debug \
+"
 
 FLUTTER_RUNTIME ??= "release"
 
@@ -82,3 +87,7 @@ do_install:append() {
 
 SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'homescreen.service', '', d)}"
 SYSTEMD_PACKAGES = "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '${PN}', '', d)}"
+
+
+BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"
+RDEPENDS:${PN} += "flutter-engine-${@gn_get_flutter_runtime_name(d)}"
