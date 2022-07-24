@@ -30,6 +30,9 @@ inherit gn-for-flutter python3native features_check pkgconfig
 
 require conf/include/gn-utils.inc
 require conf/include/flutter-version.inc
+require conf/include/flutter-runtime.inc
+
+BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"
 
 # For gn.bbclass
 GN_CUSTOM_VARS ?= '\
@@ -52,8 +55,6 @@ COMPATIBLE_MACHINE:armv7a = "(.*)"
 COMPATIBLE_MACHINE:armv7ve = "(.*)"
 COMPATIBLE_MACHINE:x86 = "(.*)"
 COMPATIBLE_MACHINE:x86-64 = "(.*)"
-
-FLUTTER_RUNTIME ??= "release"
 
 PACKAGECONFIG ??= "embedder-for-target \
                    prebuilt-dart-sdk \
@@ -186,8 +187,8 @@ FILES:${PN}-dev = "\
     ${includedir} \
     "
 
-BBCLASSEXTEND = ""
-
 python () {
     d.setVar('SRCREV', gn_get_engine_commit(d))
 }
+
+RPROVIDES:${PN} = "flutter-engine-${@gn_get_flutter_runtime_name(d)}"

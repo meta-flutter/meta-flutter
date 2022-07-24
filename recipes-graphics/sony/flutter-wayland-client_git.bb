@@ -5,16 +5,9 @@ REQUIRED_DISTRO_FEATURES = "wayland opengl"
 
 require sony-flutter.inc
 
-FLUTTER_RUNTIME ??= "release"
-
 DEPENDS += "\
-    flutter-engine-${FLUTTER_RUNTIME} \
     wayland \
     wayland-native \
-    "
-
-RDEPENDS:${PN} += "\
-    flutter-engine-${FLUTTER_RUNTIME} \
     "
 
 do_install() {
