@@ -91,15 +91,15 @@ jobs:
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-engine-release -c do_cleansstate
-          bitbake flutter-engine-profile -c do_cleansstate
-          bitbake flutter-engine-debug -c do_cleansstate
-          bitbake flutter-gallery-release -c do_cleansstate
-          bitbake flutter-gallery-profile -c do_cleansstate
-          bitbake flutter-gallery-debug -c do_cleansstate
-          bitbake ivi-homescreen-release -c do_cleansstate
-          bitbake ivi-homescreen-profile -c do_cleansstate
-          bitbake ivi-homescreen-debug -c do_cleansstate
+          bitbake flutter-engine-runtimerelease -c do_cleansstate
+          bitbake flutter-engine-runtimeprofile -c do_cleansstate
+          bitbake flutter-engine-runtimedebug -c do_cleansstate
+          bitbake flutter-gallery-runtimerelease -c do_cleansstate
+          bitbake flutter-gallery-runtimeprofile -c do_cleansstate
+          bitbake flutter-gallery-runtimedebug -c do_cleansstate
+          bitbake ivi-homescreen-runtimerelease -c do_cleansstate
+          bitbake ivi-homescreen-runtimeprofile -c do_cleansstate
+          bitbake ivi-homescreen-runtimedebug -c do_cleansstate
 
       - name: Build agl-image-flutter
         shell: bash

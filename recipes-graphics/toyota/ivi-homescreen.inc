@@ -21,7 +21,7 @@ DEPENDS += "\
 
 REQUIRED_DISTRO_FEATURES = "wayland opengl"
 
-SRCREV ??= "e0ede14ab7fbb013f37a2e62b655c8bedacb0c63"
+SRCREV ??= "7f3f913ec5bea1d94c04f8a029db659c33e56dbf"
 SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=main \
            file://homescreen.service.in \
           "
@@ -29,6 +29,8 @@ SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;b
 S = "${WORKDIR}/git"
 
 inherit cmake features_check pkgconfig systemd
+
+require conf/include/flutter-runtime.inc
 
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
@@ -52,9 +54,9 @@ PACKAGECONFIG[transparency] = "-DBUILD_EGL_TRANSPARENCY=ON, -DBUILD_EGL_TRANSPAR
 PACKAGECONFIG[url-launcher] = "-DBUILD_PLUGIN_URL_LAUNCHER=ON, -DBUILD_PLUGIN_URL_LAUNCHER=OFF"
 
 
-EXTRA_OECMAKE += "-D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr"
-
-FLUTTER_RUNTIME ??= "release"
+EXTRA_OECMAKE += "\
+    -D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr \
+    "
 
 # Use pattern "--b={absolute path to flutter_assets}"
 IVI_HOMESCREEN_APP_OVERRIDE ??= ""
@@ -82,3 +84,6 @@ do_install:append() {
 
 SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'homescreen.service', '', d)}"
 SYSTEMD_PACKAGES = "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '${PN}', '', d)}"
+
+BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"
+RDEPENDS:${PN} += "flutter-engine-${@gn_get_flutter_runtime_name(d)}"

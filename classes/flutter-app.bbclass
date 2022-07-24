@@ -6,11 +6,15 @@
 # - PUBSPEC_APPNAME is defined correctly.  This is the name value from pubspec.yml.
 #
 
+require conf/include/flutter-runtime.inc
+
+BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"
+
 DEPENDS += " \
     ca-certificates-native \
     cmake-native \
     compiler-rt \
-    flutter-engine-${FLUTTER_RUNTIME} \
+    flutter-engine-${@gn_get_flutter_runtime_name(d)} \
     flutter-sdk-native \
     glib-2.0 gtk+3 \
     libcxx \
@@ -18,12 +22,9 @@ DEPENDS += " \
     unzip-native \
     "
 
-
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
 PREFERRED_PROVIDER:libgcc = "compiler-rt"
-
-FLUTTER_RUNTIME ??= "release"
 
 FLUTTER_PREBUILD_CMD ??= ""
 FLUTTER_APPLICATION_PATH ??= "."
