@@ -54,5 +54,3 @@ do_install:append() {
 FILES:${PN} += "\
     ${sysconfdir}/lsb-release \
     "
-
-BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"

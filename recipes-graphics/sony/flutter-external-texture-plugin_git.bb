@@ -5,8 +5,6 @@ REQUIRED_DISTRO_FEATURES = "wayland opengl"
 
 require sony-flutter.inc
 
-FLUTTER_RUNTIME ??= "release"
-
 DEPENDS += "\
     wayland \
     wayland-native \

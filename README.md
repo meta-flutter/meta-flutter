@@ -2,6 +2,12 @@
 
 Yocto Layer for Google Flutter related projects.
 
+[![kirkstone-linux-dummy](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-linux-dummy.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-linux-dummy.yml)
+
+[![kirkstone-rpi-zero2w-64](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-rpi-zero2w-64.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-rpi-zero2w-64.yml)
+
+[![kirkstone-qc-dragonboard](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-qc-dragonboard.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-qc-dragonboard.yml)
+
 _Updates_:
 
 * Breaking Change
@@ -32,13 +38,6 @@ _Updates_:
   PACKAGECONFIG:pn-flutter-engine-runtimeprofile = "disable-desktop-embeddings embedder-for-target fontconfig profile"
    ```
   This issue is related to missing gn options `--build-embedder-examples` and `--no-build-embedder-examples` from certain builds.  I have `disable-embedder-examples` defined in PACKAGECONFIG by default, so if you have an engine commit that is missing this option, you need to use the PACKAGECONFIG sequence above.  Once the gn option rolls into all channels this override will no longer be needed.
-
-* When using the Sony embedders you need to specify FLUTTER_RUNTIME that matches other elements being installed, or make image will fail with package conflict. Example to avoid conflict with other recipes:
-  ```
-  echo 'FLUTTER_RUNTIME:pn-flutter-drm-gbm-backend = "debug"' >> ./conf/local.conf
-  echo 'FLUTTER_RUNTIME:pn-flutter-wayland-client = "debug"' >> ./conf/local.conf
-  ```
-
 
 ### Recommended development flow:
 * Build Flutter application using desktop tools

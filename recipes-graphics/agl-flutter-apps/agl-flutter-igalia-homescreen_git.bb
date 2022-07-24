@@ -20,5 +20,3 @@ FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 FLUTTER_BUILD_ARGS = "bundle -v"
 
 inherit flutter-app
-
-BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"

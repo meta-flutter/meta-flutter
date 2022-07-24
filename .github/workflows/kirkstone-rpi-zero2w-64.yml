@@ -18,7 +18,7 @@ jobs:
       DISTRO_VERSION: "4.0"
       YOCTO_BRANCH: "kirkstone"
       MACHINE: raspberrypi0-2w-64
-      FLUTTER_RUNTIME: "release"
+      RUNTIME: "release"
       
     runs-on: [self-hosted, linux]
     
@@ -102,8 +102,8 @@ jobs:
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
           echo '***************************************'
-          bitbake -e rpi-image-flutter-wayland-${{ env.FLUTTER_RUNTIME }} | grep "^DISTRO_FEATURES"
-          bitbake -e rpi-image-flutter-wayland-${{ env.FLUTTER_RUNTIME }} | grep "^IMAGE_FEATURES"
+          bitbake -e rpi-image-flutter-wayland-${{ env.RUNTIME }} | grep "^DISTRO_FEATURES"
+          bitbake -e rpi-image-flutter-wayland-${{ env.RUNTIME }} | grep "^IMAGE_FEATURES"
           echo '***************************************'
           bitbake -e > bb.environment
           bitbake -c do_cleansstate flutter-engine-runtimerelease
@@ -118,15 +118,15 @@ jobs:
         working-directory: ../zero2w-drm-kirkstone-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake rpi-image-flutter-wayland-${{ env.FLUTTER_RUNTIME }}
+          bitbake rpi-image-flutter-wayland-${{ env.RUNTIME }}
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/images/raspberrypi0-2w-64/rpi-image-flutter-wayland-${{ env.FLUTTER_RUNTIME }}-raspberrypi0-2w-64.wic.bmap /home/dev/artifacts
-          cp tmp/deploy/images/raspberrypi0-2w-64/rpi-image-flutter-wayland-${{ env.FLUTTER_RUNTIME }}-raspberrypi0-2w-64.wic.bz2 /home/dev/artifacts
+          cp tmp/deploy/images/raspberrypi0-2w-64/rpi-image-flutter-wayland-${{ env.RUNTIME }}-raspberrypi0-2w-64.wic.bmap /home/dev/artifacts
+          cp tmp/deploy/images/raspberrypi0-2w-64/rpi-image-flutter-wayland-${{ env.RUNTIME }}-raspberrypi0-2w-64.wic.bz2 /home/dev/artifacts
 
       - name: Publish SD card image artifact
         uses: actions/upload-artifact@v2
         with:
-          name: zero2w-rpi-image-flutter-wayland-${{ env.FLUTTER_RUNTIME }}-kirkstone-sdimage
+          name: zero2w-rpi-image-flutter-wayland-${{ env.RUNTIME }}-kirkstone-sdimage
           path: |
              /home/dev/artifacts/*

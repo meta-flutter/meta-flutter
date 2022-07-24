@@ -8,6 +8,8 @@
 
 require conf/include/flutter-runtime.inc
 
+BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"
+
 DEPENDS += " \
     ca-certificates-native \
     cmake-native \
@@ -20,12 +22,9 @@ DEPENDS += " \
     unzip-native \
     "
 
-
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
 PREFERRED_PROVIDER:libgcc = "compiler-rt"
-
-FLUTTER_RUNTIME ??= "release"
 
 FLUTTER_PREBUILD_CMD ??= ""
 FLUTTER_APPLICATION_PATH ??= "."

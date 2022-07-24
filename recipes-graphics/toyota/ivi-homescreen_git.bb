@@ -56,8 +56,6 @@ PACKAGECONFIG[url-launcher] = "-DBUILD_PLUGIN_URL_LAUNCHER=ON, -DBUILD_PLUGIN_UR
 
 EXTRA_OECMAKE += "-D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr"
 
-FLUTTER_RUNTIME ??= "release"
-
 # Use pattern "--b={absolute path to flutter_assets}"
 IVI_HOMESCREEN_APP_OVERRIDE ??= ""
 # parameters to pass to homescreen app and Dart VM
@@ -84,7 +82,6 @@ do_install:append() {
 
 SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'homescreen.service', '', d)}"
 SYSTEMD_PACKAGES = "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '${PN}', '', d)}"
-
 
 BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"
 RDEPENDS:${PN} += "flutter-engine-${@gn_get_flutter_runtime_name(d)}"

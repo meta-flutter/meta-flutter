@@ -17,5 +17,3 @@ PUBSPEC_APPNAME = "gallery"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 inherit flutter-app
-
-BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"

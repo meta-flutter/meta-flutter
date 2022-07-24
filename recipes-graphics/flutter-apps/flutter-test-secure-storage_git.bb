@@ -21,5 +21,3 @@ FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 FLUTTER_PREBUILD_CMD = "flutter pub get"
 
 inherit flutter-app
-
-BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"
