@@ -9,10 +9,10 @@ Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
  1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/src/flutter-pi.c b/src/flutter-pi.c
-index 128fe2d..6131e8d 100644
+index 49b57bd..5984457 100644
 --- a/src/flutter-pi.c
 +++ b/src/flutter-pi.c
-@@ -2267,24 +2267,24 @@ static bool setup_paths(void) {
+@@ -2298,24 +2298,24 @@ static bool setup_paths(void) {
          return false;
      }
  
@@ -27,7 +27,7 @@ index 128fe2d..6131e8d 100644
 +            LOG_ERROR("Could not find \"kernel.blob\" file inside \"%s/data/flutter_assets/\", which is required for debug mode.\n", flutterpi.flutter.asset_bundle_path);
              return false;
          }
-     } else if (flutterpi.flutter.runtime_mode == kRelease) {
+     } else if ((flutterpi.flutter.runtime_mode == kRelease) || (flutterpi.flutter.runtime_mode == kProfile)) {
          if (!PATH_EXISTS(app_elf_path)) {
 -            LOG_ERROR("Could not find \"app.so\" file inside \"%s\", which is required for release and profile mode.\n", flutterpi.flutter.asset_bundle_path);
 +            LOG_ERROR("Could not find \"libapp.so\" file inside \"%s/lib/\", which is required for release and profile mode.\n", flutterpi.flutter.asset_bundle_path);
