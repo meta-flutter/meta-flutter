@@ -83,12 +83,12 @@ jobs:
               default-language-en-us-utf8 \
               tzdata-americas \
               tzdata-core \
-              ivi-homescreen-release \
-              flutter-gallery-release \
-              flutter-test-secure-storage-release \
-              flutter-test-video-player-release \
-              flutter-test-plugins-release \
-              flutter-test-texture-egl-release \
+              ivi-homescreen-runtimerelease \
+              flutter-gallery-runtimerelease \
+              flutter-test-secure-storage-runtimerelease \
+              flutter-test-video-player-runtimerelease \
+              flutter-test-plugins-runtimerelease \
+              flutter-test-texture-egl-runtimerelease \
               "' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
@@ -106,12 +106,12 @@ jobs:
           bitbake -e rpi-image-flutter-wayland-${{ env.FLUTTER_RUNTIME }} | grep "^IMAGE_FEATURES"
           echo '***************************************'
           bitbake -e > bb.environment
-          bitbake -c do_cleansstate flutter-engine-release
-          bitbake -c do_cleansstate flutter-gallery-release
-          bitbake -c do_cleansstate flutter-test-plugins-release
-          bitbake -c do_cleansstate flutter-test-secure-storage-release
-          bitbake -c do_cleansstate flutter-test-texture-egl-release
-          bitbake -c do_cleansstate flutter-test-video-player-release
+          bitbake -c do_cleansstate flutter-engine-runtimerelease
+          bitbake -c do_cleansstate flutter-gallery-runtimerelease
+          bitbake -c do_cleansstate flutter-test-plugins-runtimerelease
+          bitbake -c do_cleansstate flutter-test-secure-storage-runtimerelease
+          bitbake -c do_cleansstate flutter-test-texture-egl-runtimerelease
+          bitbake -c do_cleansstate flutter-test-video-player-runtimerelease
 
       - name: Build rpi-image-flutter-wayland
         shell: bash

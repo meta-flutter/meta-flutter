@@ -30,6 +30,7 @@ inherit gn-for-flutter python3native features_check pkgconfig
 
 require conf/include/gn-utils.inc
 require conf/include/flutter-version.inc
+require conf/include/flutter-runtime.inc
 
 # For gn.bbclass
 GN_CUSTOM_VARS ?= '\
@@ -186,8 +187,10 @@ FILES:${PN}-dev = "\
     ${includedir} \
     "
 
-BBCLASSEXTEND = ""
-
 python () {
     d.setVar('SRCREV', gn_get_engine_commit(d))
 }
+
+BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"
+
+RPROVIDES:${PN} = "flutter-engine-${@gn_get_flutter_runtime_name(d)}"

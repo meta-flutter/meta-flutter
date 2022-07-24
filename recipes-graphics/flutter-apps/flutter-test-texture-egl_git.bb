@@ -18,3 +18,5 @@ FLUTTER_APPLICATION_PATH = "textures/test_egl"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 inherit flutter-app
+
+BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"

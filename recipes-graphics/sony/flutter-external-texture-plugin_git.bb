@@ -8,13 +8,8 @@ require sony-flutter.inc
 FLUTTER_RUNTIME ??= "release"
 
 DEPENDS += "\
-    flutter-engine-${FLUTTER_RUNTIME} \
     wayland \
     wayland-native \
-    "
-
-RDEPENDS:${PN} += "\
-    flutter-engine-${FLUTTER_RUNTIME} \
     "
 
 INSANE_SKIP:${PN} += " ldflags"
