@@ -11,10 +11,8 @@ DEPENDS += "\
     "
 
 do_install() {
-   install -d ${D}${bindir}
-   install -m 755 ${WORKDIR}/build/flutter-client ${D}${bindir}
+    install -D -m0755 ${WORKDIR}/build/flutter-client \
+        ${D}${bindir}/flutter-client
 }
 
-FILES:${PN} = "\
-   ${bindir} \
-   "
+FILES:${PN} = "${bindir}"

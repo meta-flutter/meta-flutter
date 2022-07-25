@@ -36,7 +36,7 @@ EXTRA_OECMAKE += "\
     "
 
 do_configure:prepend() {
-   install -d ${S}/build
+   mkdir -p ${S}/build | true
    ln -sf ${STAGING_LIBDIR}/libflutter_engine.so ${S}/build/libflutter_engine.so
 }
 

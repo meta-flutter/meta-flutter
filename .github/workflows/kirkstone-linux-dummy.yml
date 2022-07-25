@@ -312,3 +312,15 @@ jobs:
           bitbake flutter-test-video-player-runtimerelease
           bitbake flutter-test-video-player-runtimeprofile
           bitbake flutter-test-video-player-runtimedebug
+
+      - name: Build flutter-test-localization
+        shell: bash
+        working-directory: ../yocto-kirkstone
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake flutter-test-localization-runtimerelease -c do_cleansstate
+          bitbake flutter-test-localization-runtimeprofile -c do_cleansstate
+          bitbake flutter-test-localization-runtimedebug -c do_cleansstate
+          bitbake flutter-test-localization-runtimerelease
+          bitbake flutter-test-localization-runtimeprofile
+          bitbake flutter-test-localization-runtimedebug

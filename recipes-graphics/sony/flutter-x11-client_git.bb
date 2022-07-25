@@ -6,10 +6,8 @@ REQUIRED_DISTRO_FEATURES = "x11 opengl"
 require sony-flutter.inc
 
 do_install() {
-   install -d ${D}${bindir}
-   install -m 755 ${WORKDIR}/build/flutter-x11-client ${D}${bindir}
+    install -D -m0755 ${WORKDIR}/build/flutter-x11-client \
+        ${D}${bindir}/flutter-x11-client
 }
 
-FILES:${PN} = "\
-   ${bindir} \
-   "
+FILES:${PN} = "${bindir}"

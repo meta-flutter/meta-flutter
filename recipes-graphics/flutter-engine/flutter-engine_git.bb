@@ -34,6 +34,8 @@ require conf/include/flutter-runtime.inc
 
 BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"
 
+PREFERRED_PROVIDER:${PN} = "${PN}"
+
 # For gn.bbclass
 GN_CUSTOM_VARS ?= '\
 {\
@@ -145,23 +147,23 @@ do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
 do_install() {
 
-    install -d ${D}${libdir}
-    install -m 644 ${S}/${OUT_DIR_REL}/so.unstripped/libflutter_engine.so ${D}${libdir}
+    install -D -m0644 ${S}/${OUT_DIR_REL}/so.unstripped/libflutter_engine.so \
+        ${D}${libdir}/libflutter_engine.so
+    
     if ${@bb.utils.contains('PACKAGECONFIG', 'desktop-embeddings', 'true', 'false', d)}; then
-        install -m 644 ${S}/${OUT_DIR_REL}/so.unstripped/libflutter_linux_gtk.so ${D}${libdir}
+        install -m0644 ${S}/${OUT_DIR_REL}/so.unstripped/libflutter_linux_gtk.so ${D}${libdir}
     fi
 
-    install -d ${D}${includedir}
-    install -m 644 ${S}/${OUT_DIR_REL}/flutter_embedder.h ${D}${includedir}
+    install -D -m0644 ${S}/${OUT_DIR_REL}/flutter_embedder.h \
+        ${D}${includedir}/flutter_embedder.h
 
-    install -d ${D}${datadir}
-    install -d ${D}${datadir}/flutter/
-    install -m 644 ${S}/${OUT_DIR_REL}/icudtl.dat ${D}${datadir}/flutter/
+    install -D -m0644 ${S}/${OUT_DIR_REL}/icudtl.dat \
+        ${D}${datadir}/flutter/icudtl.dat
 
     # create SDK
-    install -d ${D}${datadir}/flutter/sdk
-    install -d ${D}${datadir}/flutter/sdk/clang_x64
-    install -m 755 ${S}/${OUT_DIR_REL}/clang_x64/gen_snapshot ${D}${datadir}/flutter/sdk/clang_x64/
+    install -D -m0755 ${S}/${OUT_DIR_REL}/clang_x64/gen_snapshot \
+        ${D}${datadir}/flutter/sdk/clang_x64/gen_snapshot
+    
     cd ${S}/flutter
     echo `git rev-parse HEAD` > ${D}${datadir}/flutter/sdk/engine.version
     echo ${FLUTTER_ENGINE_REPO_URL} >> ${D}${datadir}/flutter/sdk/engine.version
