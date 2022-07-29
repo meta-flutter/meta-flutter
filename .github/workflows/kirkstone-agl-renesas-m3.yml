@@ -59,12 +59,11 @@ jobs:
           rm -rf meta-flutter || true
           ln -sf ../../meta-flutter meta-flutter
           cd ..
-          sed -i '/weston-ini-conf-landscape/d' meta-agl-devel/meta-agl-flutter/recipes-platform/images/agl-image-flutter-debug.bb
-          sed -i '/weston-ini-conf-landscape/d' meta-agl-devel/meta-agl-flutter/recipes-platform/images/agl-image-flutter-profile.bb
-          sed -i '/weston-ini-conf-landscape/d' meta-agl-devel/meta-agl-flutter/recipes-platform/images/agl-image-flutter.bb
-          rm ./bsp/meta-rcar/meta-rcar-gen3-adas/recipes-bsp/u-boot/u-boot_2020.01.bbappend || true
-          rm ./meta-agl/meta-agl-bsp/meta-rcar-gen3/recipes-bsp/u-boot/u-boot_2020.01.bbappend || true
-          rm ./bsp/meta-renesas/meta-rcar-gen3/recipes-graphics/cogl/cogl-1.0_1.%.bbappend || true
+          rm -rf meta-agl-devel
+          git clone https://github.com/meta-flutter/meta-agl-devel.git
+          # rm ./bsp/meta-rcar/meta-rcar-gen3-adas/recipes-bsp/u-boot/u-boot_2020.01.bbappend || true
+          # rm ./meta-agl/meta-agl-bsp/meta-rcar-gen3/recipes-bsp/u-boot/u-boot_2020.01.bbappend || true
+          # rm ./bsp/meta-renesas/meta-rcar-gen3/recipes-graphics/cogl/cogl-1.0_1.%.bbappend || true
           
       - name: Configure AGL build
         shell: bash
@@ -110,17 +109,17 @@ jobs:
           bitbake ivi-homescreen-runtimerelease -c do_cleansstate
           bitbake ivi-homescreen-runtimeprofile -c do_cleansstate
 
-      - name: Build agl-image-flutter-debug
+      - name: Build agl-image-flutter-runtimedebug
         shell: bash
         working-directory: ${{ env.WORKSPACE }}
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
-          bitbake agl-image-flutter-debug
+          bitbake agl-image-flutter-runtimedebug
           cp bb.environment /home/dev/artifacts
           cd tmp/deploy/images/${{ env.MACHINE }}
-          cp agl-image-flutter-debug-m3ulcb-*.rootfs.wic.bmap /home/dev/artifacts
-          cp agl-image-flutter-debug-m3ulcb-*.rootfs.wic.xz /home/dev/artifacts
+          cp agl-image-flutter-runtimedebug-m3ulcb-*.rootfs.wic.bmap /home/dev/artifacts
+          cp agl-image-flutter-runtimedebug-m3ulcb-*.rootfs.wic.xz /home/dev/artifacts
           mkdir -p /home/dev/artifacts/boot
           cp bootparam_sa0.srec /home/dev/artifacts
           cp bl2-m3ulcb.srec /home/dev/artifacts
@@ -136,15 +135,15 @@ jobs:
           path: |
              /home/dev/artifacts/*
 
-      - name: Build agl-image-flutter-debug SDK
+      - name: Build agl-image-flutter-runtimedebug SDK
         shell: bash
         working-directory: ${{ env.WORKSPACE }}
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
-          bitbake agl-image-flutter-debug -c do_populate_sdk
+          bitbake agl-image-flutter-runtimedebug -c do_populate_sdk
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/sdk/poky-agl-glibc-*-agl-image-flutter-debug-*.sh /home/dev/artifacts
+          cp tmp/deploy/sdk/poky-agl-glibc-*-agl-image-flutter-runtimedebug-*.sh /home/dev/artifacts
 
       - name: Publish agl-image-flutter-runtimedebug SDK artifact
         uses: actions/upload-artifact@v2

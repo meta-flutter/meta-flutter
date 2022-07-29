@@ -21,14 +21,12 @@ DEPENDS += "\
 
 REQUIRED_DISTRO_FEATURES = "wayland opengl"
 
-SRCREV ??= "7f3f913ec5bea1d94c04f8a029db659c33e56dbf"
-SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=main \
-           file://homescreen.service.in \
-          "
+SRCREV ??= "e45815f118532794196dc939e5edfab1fdc6ed65"
+SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=main"
 
 S = "${WORKDIR}/git"
 
-inherit cmake features_check pkgconfig systemd
+inherit cmake features_check pkgconfig 
 
 require conf/include/flutter-runtime.inc
 
@@ -36,54 +34,41 @@ RUNTIME = "llvm"
 TOOLCHAIN = "clang"
 PREFERRED_PROVIDER:libgcc = "compiler-rt"
 
-PACKAGECONFIG ??= "gstreamer mouse-cursor package-info secure-storage text-input transparency url-launcher texture-test-egl"
+PACKAGECONFIG ??= "\
+    ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'backend-vulkan', 'backend-egl', d)} \
+    gstreamer \
+    mouse-cursor \
+    package-info \
+    secure-storage \
+    text-input \
+    texture-test-egl \
+    transparency \
+    url-launcher \
+    "
 
 PACKAGECONFIG[accessibility] = "-DBUILD_PLUGIN_ACCESSIBILITY=ON, -DBUILD_PLUGIN_ACCESSIBILITY=OFF"
+PACKAGECONFIG[backend-egl] = "-DBUILD_BACKEND_WAYLAND_EGL=ON -DBUILD_BACKEND_WAYLAND_VULKAN=OFF"
+PACKAGECONFIG[backend-vulkan] = "-DBUILD_BACKEND_WAYLAND_VULKAN=ON -DBUILD_BACKEND_WAYLAND_EGL=OFF"
 PACKAGECONFIG[gstreamer] = "-DBUILD_PLUGIN_GSTREAMER_EGL=ON, -DBUILD_PLUGIN_GSTREAMER_EGL=OFF, gstreamer1.0 gstreamer1.0-plugins-base ffmpeg"
 PACKAGECONFIG[isolate] = "-DBUILD_PLUGIN_ISOLATE=ON, -DBUILD_PLUGIN_ISOLATE=OFF"
 PACKAGECONFIG[mouse-cursor] = "-DBUILD_PLUGIN_MOUSE_CURSOR=ON, -DBUILD_PLUGIN_MOUSE_CURSOR=OFF"
 PACKAGECONFIG[navigation] = "-DBUILD_PLUGIN_NAVIGATION=ON, -DBUILD_PLUGIN_NAVIGATION=OFF"
-PACKAGECONFIG[texture-test-egl] = "-DBUILD_TEXTURE_TEST_EGL=ON, -DBUILD_TEXTURE_TEST_EGL=OFF"
 PACKAGECONFIG[package-info] = "-DBUILD_PLUGIN_PACKAGE_INFO=ON, -DBUILD_PLUGIN_PACKAGE_INFO=OFF"
 PACKAGECONFIG[platform] = "-DBUILD_PLUGIN_PLATFORM=ON, -DBUILD_PLUGIN_PLATFORM=OFF"
 PACKAGECONFIG[platform-view] = "-DBUILD_PLUGIN_PLATFORM_VIEW=ON, -DBUILD_PLUGIN_PLATFORM_VIEW=OFF"
 PACKAGECONFIG[restoration] = "-DBUILD_PLUGIN_RESTORATION=ON, -DBUILD_PLUGIN_RESTORATION=OFF"
 PACKAGECONFIG[secure-storage] = "-DBUILD_PLUGIN_SECURE_STORAGE=ON, -DBUILD_PLUGIN_SECURE_STORAGE=OFF, libsecret"
 PACKAGECONFIG[text-input] = "-DBUILD_PLUGIN_TEXT_INPUT=ON, -DBUILD_PLUGIN_TEXT_INPUT=OFF"
+PACKAGECONFIG[texture-test-egl] = "-DBUILD_TEXTURE_TEST_EGL=ON, -DBUILD_TEXTURE_TEST_EGL=OFF"
 PACKAGECONFIG[transparency] = "-DBUILD_EGL_TRANSPARENCY=ON, -DBUILD_EGL_TRANSPARENCY=OFF"
 PACKAGECONFIG[url-launcher] = "-DBUILD_PLUGIN_URL_LAUNCHER=ON, -DBUILD_PLUGIN_URL_LAUNCHER=OFF"
 
 
-EXTRA_OECMAKE += "\
-    -D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr \
-    "
+EXTRA_OECMAKE += " -D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr"
 
-# Use pattern "--b={absolute path to flutter_assets}"
-IVI_HOMESCREEN_APP_OVERRIDE ??= ""
-# parameters to pass to homescreen app and Dart VM
-SERVICE_EXEC_START_PARAMS ??= ""
-
-SERVICE_UNIT        ??= "Requires=weston@root.service\nAfter=weston@root.service\n"
-SERVICE_USER_GROUP  ??= "User=weston\nGroup=weston"
-SERVICE_RESTART     ??= "Restart=on-failure\nRestartSec=1"
-SERVICE_ENVIRONMENT ??= "Environment=HOME=/home/weston\nEnvironment=XDG_RUNTIME_DIR=/run/user/1000"
-SERVICE_EXEC_START  ??= "ExecStart=/usr/bin/homescreen --f ${IVI_HOMESCREEN_APP_OVERRIDE} ${SERVICE_EXEC_START_PARAMS}"
-SERVICE_SERVICE     ??= "${SERVICE_USER_GROUP}\n${SERVICE_RESTART}\n${SERVICE_ENVIRONMENT}\n${SERVICE_EXEC_START}\n"
-SERVICE_INSTALL     ??= "WantedBy=graphical.target\n"
-
-do_install:append() {
-    if ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'true', 'false', d)}; then
-        install -m 644 ${WORKDIR}/homescreen.service.in ${WORKDIR}/homescreen.service
-        sed -i "s|@ServiceUnit@|${SERVICE_UNIT}|g" ${WORKDIR}/homescreen.service
-        sed -i "s|@ServiceService@|${SERVICE_SERVICE}|g" ${WORKDIR}/homescreen.service
-        sed -i "s|@ServiceInstall@|${SERVICE_INSTALL}|g" ${WORKDIR}/homescreen.service
-        install -d ${D}${systemd_system_unitdir}
-        install -m 644 ${WORKDIR}/homescreen.service ${D}${systemd_system_unitdir}/homescreen.service
-    fi
+cmake_do_install:append() {
+    rm -rf ${D}${libdir}
 }
 
-SYSTEMD_SERVICE:${PN} += "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'homescreen.service', '', d)}"
-SYSTEMD_PACKAGES = "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '${PN}', '', d)}"
-
 BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"
-RDEPENDS:${PN} += "flutter-engine-${@gn_get_flutter_runtime_name(d)}"
+RDEPENDS:${PN} += " flutter-engine-${@gn_get_flutter_runtime_name(d)}"

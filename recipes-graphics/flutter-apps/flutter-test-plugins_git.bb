@@ -46,8 +46,8 @@ require conf/include/flutter-version.inc
 
 # Plugin Plus "Device Info" requires "/etc/lsb-release" which is not present with Poky
 do_install:append() {
-    install -d ${D}${sysconfdir}
-    install -m 644 ${WORKDIR}/lsb-release ${D}${sysconfdir}
+    install -D -m0644 ${WORKDIR}/lsb-release \
+        ${D}${sysconfdir}/lsb-release
     sed -i "s|@FLUTTER_SDK_TAG@|${@get_flutter_sdk_version(d)}|g" ${D}${sysconfdir}/lsb-release
 }
 

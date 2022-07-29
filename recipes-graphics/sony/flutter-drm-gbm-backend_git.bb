@@ -5,15 +5,11 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 
 require sony-flutter.inc
 
-DEPENDS += "\
-    libdrm \
-    "
+DEPENDS += "libdrm"
 
 do_install() {
-   install -d ${D}${bindir}
-   install -m 755 ${WORKDIR}/build/flutter-drm-gbm-backend ${D}${bindir}
+    install -D -m0755 ${WORKDIR}/build/flutter-drm-gbm-backend \
+        ${D}${bindir}/flutter-drm-gbm-backend
 }
 
-FILES:${PN} = "\
-   ${bindir} \
-   "
+FILES:${PN} = "${bindir}"
