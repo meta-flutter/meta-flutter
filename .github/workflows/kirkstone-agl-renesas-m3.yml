@@ -105,9 +105,9 @@ jobs:
           bitbake flutter-gallery-runtimedebug -c do_cleansstate
           bitbake flutter-gallery-runtimerelease -c do_cleansstate
           bitbake flutter-gallery-runtimeprofile -c do_cleansstate
-          bitbake ivi-homescreen-runtimedebug -c do_cleansstate
-          bitbake ivi-homescreen-runtimerelease -c do_cleansstate
-          bitbake ivi-homescreen-runtimeprofile -c do_cleansstate
+          bitbake flutter-auto-runtimedebug -c do_cleansstate
+          bitbake flutter-auto-runtimerelease -c do_cleansstate
+          bitbake flutter-auto-runtimeprofile -c do_cleansstate
 
       - name: Build agl-image-flutter-runtimedebug
         shell: bash

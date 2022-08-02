@@ -1,2 +1,10 @@
 __pycache__
 .pyc
+
+tools/.config
+tools/.pub_cache
+tools/.flutter-auto
+tools/setup_env.sh
+tools/flutter
+tools/app
+tools/flutter_*.log
