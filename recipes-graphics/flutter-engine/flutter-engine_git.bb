@@ -167,6 +167,7 @@ do_install() {
     cd ${S}/flutter
     echo `git rev-parse HEAD` > ${D}${datadir}/flutter/sdk/engine.version
     echo ${FLUTTER_ENGINE_REPO_URL} >> ${D}${datadir}/flutter/sdk/engine.version
+    echo "@get_flutter_sdk_version(d)}" > ${D}${datadir}/flutter/sdk/flutter_sdk.version
 
     cd ${D}/${datadir}/flutter
     zip -r engine_sdk.zip sdk
