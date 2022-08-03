@@ -1,10 +1,10 @@
-SUMMARY = "Toyota IVI Homescreen"
-DESCRIPTION = "Toyota's Flutter Embedder that communicates with AGL-compositor/Wayland compositors"
+SUMMARY = "Flutter Auto"
+DESCRIPTION = "Toyota's Flutter Auto that communicates with AGL-compositor/Wayland compositors"
 AUTHOR = "joel.winarske@toyotaconnected.com"
 HOMEPAGE = "https://github.com/toyota-connected/ivi-homescreen"
 BUGTRACKER = "https://github.com/toyota-connected/ivi-homescreen/issues"
 SECTION = "graphics"
-CVE_PRODUCT = "homescreen"
+CVE_PRODUCT = "flutter-auto"
 
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=39ae29158ce710399736340c60147314"
@@ -21,8 +21,8 @@ DEPENDS += "\
 
 REQUIRED_DISTRO_FEATURES = "wayland opengl"
 
-SRCREV ??= "e45815f118532794196dc939e5edfab1fdc6ed65"
-SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=main"
+SRCREV ??= "ca9450f5d883c96326f064b2db9977d1566fdc85"
+SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=agl"
 
 S = "${WORKDIR}/git"
 
@@ -62,6 +62,7 @@ PACKAGECONFIG[text-input] = "-DBUILD_PLUGIN_TEXT_INPUT=ON, -DBUILD_PLUGIN_TEXT_I
 PACKAGECONFIG[texture-test-egl] = "-DBUILD_TEXTURE_TEST_EGL=ON, -DBUILD_TEXTURE_TEST_EGL=OFF"
 PACKAGECONFIG[transparency] = "-DBUILD_EGL_TRANSPARENCY=ON, -DBUILD_EGL_TRANSPARENCY=OFF"
 PACKAGECONFIG[url-launcher] = "-DBUILD_PLUGIN_URL_LAUNCHER=ON, -DBUILD_PLUGIN_URL_LAUNCHER=OFF"
+PACKAGECONFIG[verbose] = "-DCMAKE_BUILD_TYPE=Debug"
 
 
 EXTRA_OECMAKE += " -D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr"

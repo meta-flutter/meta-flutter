@@ -1,0 +1,100 @@
+{
+	"flutter-version": "master",
+	"platforms": [{
+			"id": "desktop-auto",
+			"type": "host",
+			"arch": "x86_64",
+			"flutter_runtime": "debug",
+			"enforce_runtime_packages": false,
+			"custom-device": {
+				"id": "desktop-auto",
+				"label": "Toyota flutter-auto",
+				"sdkNameAndVersion": "flutter-auto x86_64",
+				"platform": "linux-x64",
+				"enabled": true,
+				"ping": ["bash", "-c", "loginctl show-session $(awk '/tty/ {print $1}' <(loginctl)) -p Type"],
+				"pingSuccessRegex": "Type=wayland",
+				"postBuild": ["bash", "-c", "source $FLUTTER_WORKSPACE/.flutter-auto/post_build.sh", "${appName}", "${localPath}"],
+				"install": ["cp", "-r", "${localPath}/*", "/tmp/${appName}"],
+				"uninstall": ["rm", "-rf", "tmp/${appName}"],
+				"runDebug": ["flutter-auto", "--j=$FLUTTER_WORKSPACE/.flutter-auto/default_config.json", "--b=/tmp/${appName}"],
+				"forwardPort": null,
+				"forwardPortSuccessRegex": null,
+				"screenshot": null
+			}
+		},
+		{
+			"id": "AGL-qemu",
+			"type": "qemu",
+			"arch": "x86_64",
+			"flutter_runtime": "debug",
+			"image": "$HOME/development/.agl/agl-image-flutter-runtimedebug-qemux86-64.wic.vmdk",
+			"launch_app": "qemu-system-x86_64",
+			"launch_args": "-enable-kvm -m 2048 -bios ${OVMF_PATH} -hda ${QEMU_IMAGE} -cpu kvm64 -cpu qemu64,+ssse3,+sse4.1,+sse4.2,+popcnt -vga virtio -show-cursor -device virtio-rng-pci -serial mon:stdio -serial null -soundhw hda -net nic -netdev user,id=net0,hostfwd=tcp::2222-:22",
+			"ovmf_path": "/usr/share/ovmf/OVMF.fd",
+			"overwrite-existing": true,
+			"custom-device": {
+				"id": "AGL-qemu",
+				"label": "AGL x86_64 QEMU Image",
+				"sdkNameAndVersion": "agl-image-flutter-runtimedebug-qemux86-64.wic.vmdk",
+				"platform": "linux-x64",
+				"enabled": true,
+				"ping": ["bash", "-c", "(echo >/dev/tcp/localhost/2222) &>/dev/null && echo \"open 2222\" || echo \"close 2222\""],
+				"pingSuccessRegex": "open 2222",
+				"postBuild": ["bash", "-c", "source $FLUTTER_WORKSPACE/.flutter-auto/post_build.sh ${appName} ${localPath}"],
+				"install": ["scp", "-P 2222", "-r", "-o", "BatchMode=yes", "${localPath}", "agl-driver@localhost:/tmp/${appName}"],
+				"uninstall": ["ssh", "-p 2222", "-o", "BatchMode=yes", "agl-driver@localhost", "rm -rf \"/tmp/${appName}\""],
+				"runDebug": ["ssh", "-p 2222", "-t -t", "-o", "BatchMode=yes", "agl-driver@localhost", "/usr/bin/flutter-auto --j=/usr/share/flutter/default.json --b=/tmp/${appName}"],
+				"forwardPort": null,
+				"forwardPortSuccessRegex": null,
+				"screenshot": null
+			}
+		},
+		{
+			"id": "pi",
+			"type": "target",
+			"arch": "aarch64",
+			"flutter_runtime": "debug",
+			"target_user": "pi",
+			"target_address": "192.168.178.11",
+			"overwrite-existing": true,
+			"custom-device": {
+				"id": "pi",
+				"label": "Raspberry Pi",
+				"sdkNameAndVersion": "Raspberry Pi 4 Model B+ 4",
+				"platform": null,
+				"enabled": true,
+				"ping": ["ping", "-n", "1", "-w", "500", "${TARGET_ADDRESS}"],
+				"pingSuccessRegex": "[<=]\\d+ms",
+				"postBuild": null,
+				"install": ["scp", "-r", "-o", "BatchMode=yes", "${localPath}", "${TARGET_USER}@${TARGET_ADDRESS}:/tmp/${appName}"],
+				"uninstall": ["ssh", "-o", "BatchMode=yes", "${TARGET_USER}@${TARGET_ADDRESS}", "rm -rf \"/tmp/${appName}\""],
+				"runDebug": ["ssh", "-o", "BatchMode=yes", "${TARGET_USER}@${TARGET_ADDRESS}", "flutter-pi /tmp/${appName}"],
+				"forwardPort": ["ssh", "-o", "BatchMode=yes", "-o", "ExitOnForwardFailure=yes", "-L", "127.0.0.1:${hostPort}:127.0.0.1:${devicePort}", "${TARGET_USER}@${TARGET_ADDRESS}", "echo 'Port forwarding success'; read"],
+				"forwardPortSuccessRegex": "Port forwarding success",
+				"screenshot": null
+			}
+		}
+	],
+	"repos": [{
+			"uri": "https://github.com/flutter/gallery.git",
+			"branch": "master",
+			"rev": "9eb785cb997ff56c46e933c1c591f0a6f31454f6"
+		},
+		{
+			"uri": "https://github.com/mogol/flutter_secure_storage.git",
+			"branch": "develop",
+			"rev": "e716593352b80330e05729486eade7c2167d3c71"
+		},
+		{
+			"uri": "https://github.com/felipeerias/flutter_homescreen.git",
+			"branch": "main",
+			"rev": "08bf271f7f1f14153a41005718a2090fa8e783f0"
+		},
+		{
+			"uri": "https://github.com/bernardpumped/ped.git",
+			"branch": "main",
+			"rev": "7a670295d5a94508862316e045e789e0dfd01b20"
+		}
+	]
+}

@@ -53,7 +53,6 @@ jobs:
           wait
           pwd
           ls -la
-          sed -i '/SRCREV/d' meta-agl-devel/meta-agl-flutter/recipes-graphics/toyota/ivi-homescreen_aglflutter.inc
           cd external
           rm -rf meta-flutter || true
           ln -sf ../../meta-flutter meta-flutter
@@ -96,9 +95,9 @@ jobs:
           bitbake flutter-gallery-runtimerelease -c do_cleansstate
           bitbake flutter-gallery-runtimeprofile -c do_cleansstate
           bitbake flutter-gallery-runtimedebug -c do_cleansstate
-          bitbake ivi-homescreen-runtimerelease -c do_cleansstate
-          bitbake ivi-homescreen-runtimeprofile -c do_cleansstate
-          bitbake ivi-homescreen-runtimedebug -c do_cleansstate
+          bitbake flutter-auto-runtimerelease -c do_cleansstate
+          bitbake flutter-auto-runtimeprofile -c do_cleansstate
+          bitbake flutter-auto-runtimedebug -c do_cleansstate
 
       - name: Build agl-image-flutter-runtimerelease
         shell: bash
