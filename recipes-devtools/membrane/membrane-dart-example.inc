@@ -15,14 +15,14 @@ PREFERRED_PROVIDER:libgcc = "compiler-rt"
 FLUTTER_SDK = "${STAGING_DIR_NATIVE}/usr/share/flutter/sdk"
 PUB_CACHE = "${S}/dart_example/pub_cache"
 
-EXAMPLE_INSTALL_DIR = "${datadir}/membrane/dart_example"
+EXAMPLE_INSTALL_DIR = "${datadir}/membrane_template/dart_example"
 
 cargo_do_compile:prepend() {
     export PATH=${FLUTTER_SDK}/bin:$PATH
     export PUB_CACHE=${PUB_CACHE}
     export MEMBRANE_LLVM_PATHS=${STAGING_DIR_NATIVE}/usr
 
-    cd ${S}/example
+    cd ${S}/rust_example
     cargo run
 }
 
@@ -40,7 +40,7 @@ cargo_do_install:append() {
     rm ${D}${bindir}/generator
     rm -rf ${D}${bindir}
 
-    mv ${D}${libdir}/rust/libexample.so ${D}${EXAMPLE_INSTALL_DIR}/
+    mv ${D}${libdir}/rust/librust_example.so ${D}${EXAMPLE_INSTALL_DIR}/
     rm -rf ${D}${libdir}/rust
     rm -rf ${D}${libdir}
 
