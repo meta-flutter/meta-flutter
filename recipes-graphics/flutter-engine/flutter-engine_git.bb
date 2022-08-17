@@ -1,3 +1,5 @@
+FLUTTER_RUNTIME = "release"
+
 SUMMARY = "Flutter Engine"
 DESCRIPTION = "Google Flutter Engine for use with Flutter applications"
 AUTHOR = "Flutter Team"
@@ -12,7 +14,6 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 
 DEPENDS += "\
     compiler-rt \
-    fontconfig \
     libcxx \
     zip-native \
     "
@@ -21,6 +22,8 @@ SRC_URI = "gn://github.com/flutter/engine.git;name=src/flutter \
            file://0001-clang-toolchain.patch \
            file://0002-x64-sysroot-assert.patch \
            file://0001-allow-deprecated-calls.patch \
+           file://0001-remove-x11-dependency.patch \
+           file://0001-prevent-redefinition-of-glib_autoptr_clear_AtkObject.patch \
            "
 
 S = "${WORKDIR}/src"
@@ -29,6 +32,11 @@ inherit gn-for-flutter python3native features_check pkgconfig
 
 require conf/include/gn-utils.inc
 require conf/include/flutter-version.inc
+require conf/include/flutter-runtime.inc
+
+BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"
+
+PREFERRED_PROVIDER:${PN} = "${PN}"
 
 # For gn.bbclass
 GN_CUSTOM_VARS ?= '\
@@ -52,33 +60,29 @@ COMPATIBLE_MACHINE:armv7ve = "(.*)"
 COMPATIBLE_MACHINE:x86 = "(.*)"
 COMPATIBLE_MACHINE:x86-64 = "(.*)"
 
-FLUTTER_RUNTIME ??= "release"
-
-PACKAGECONFIG ??= "disable-desktop-embeddings \
-                   disable-embedder-examples \
-                   embedder-for-target \
+PACKAGECONFIG ??= "embedder-for-target \
+                   prebuilt-dart-sdk \
                    fontconfig \
                    ${FLUTTER_RUNTIME} \
+                   ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'vulkan', '', d)} \
                   "
 
 PACKAGECONFIG[asan] = "--asan"
 PACKAGECONFIG[coverage] = "--coverage"
 PACKAGECONFIG[dart-debug] = "--dart-debug"
 PACKAGECONFIG[debug] = "--runtime-mode debug"
-PACKAGECONFIG[disable-desktop-embeddings] = "--disable-desktop-embeddings"
-PACKAGECONFIG[disable-embedder-examples] = "--no-build-embedder-examples"
-PACKAGECONFIG[disable-glfw-shell] = "--no-build-glfw-shell"
-PACKAGECONFIG[disable-prebuilt-dart-sdk] = "--no-prebuilt-dart-sdk"
-PACKAGECONFIG[embedder-examples] = "--build-embedder-examples"
+PACKAGECONFIG[desktop-embeddings] = ",--disable-desktop-embeddings, glib-2.0 gtk+3"
+PACKAGECONFIG[embedder-examples] = "--build-embedder-examples,--no-build-embedder-examples"
 PACKAGECONFIG[embedder-for-target] = "--embedder-for-target"
-PACKAGECONFIG[fontconfig] = "--enable-fontconfig"
+PACKAGECONFIG[fontconfig] = "--enable-fontconfig,,fontconfig"
 PACKAGECONFIG[full-dart-debug] = "--full-dart-debug"
 PACKAGECONFIG[full-dart-sdk] = "--full-dart-sdk"
-PACKAGECONFIG[glfw-shell] = "--build-glfw-shell"
+PACKAGECONFIG[glfw-shell] = "--build-glfw-shell,--no-build-glfw-shell, glfw"
 PACKAGECONFIG[interpreter] = "--interpreter"
 PACKAGECONFIG[jit_release] = "--runtime-mode jit_release"
 PACKAGECONFIG[lsan] = "--lsan"
 PACKAGECONFIG[msan] = "--msan"
+PACKAGECONFIG[prebuilt-dart-sdk] = "--prebuilt-dart-sdk,--no-prebuilt-dart-sdk"
 PACKAGECONFIG[profile] = "--runtime-mode profile"
 PACKAGECONFIG[release] = "--runtime-mode release"
 PACKAGECONFIG[skshaper] = "--enable-skshaper"
@@ -114,6 +118,9 @@ ARGS_GN:append:armv7 = "arm_tune = \"${@gn_get_tune_features(d)}\""
 ARGS_GN:append:armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\""
 ARGS_GN:append:armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
 
+do_unpack[network] = "1"
+do_patch[network] = "1"
+
 do_configure() {
     cd ${S}
 
@@ -133,31 +140,36 @@ do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 do_compile() {
     cd ${S}
 
+    rm -rf fuchsia || true
     autoninja -C ${OUT_DIR_REL}
 }
+do_compile[network] = "0"
 do_compile[depends] += "depot-tools-native:do_populate_sysroot"
 do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
 do_install() {
 
-    install -d ${D}${libdir}
-    install -m 644 ${S}/${OUT_DIR_REL}/so.unstripped/libflutter_engine.so ${D}${libdir}
+    install -D -m0644 ${S}/${OUT_DIR_REL}/so.unstripped/libflutter_engine.so \
+        ${D}${libdir}/libflutter_engine.so
 
-    install -d ${D}${includedir}
-    install -m 644 ${S}/${OUT_DIR_REL}/flutter_embedder.h ${D}${includedir}
+    if ${@bb.utils.contains('PACKAGECONFIG', 'desktop-embeddings', 'true', 'false', d)}; then
+        install -m0644 ${S}/${OUT_DIR_REL}/so.unstripped/libflutter_linux_gtk.so ${D}${libdir}
+    fi
 
-    install -d ${D}${datadir}/flutter
-    install -m 644 ${S}/${OUT_DIR_REL}/icudtl.dat ${D}${datadir}/flutter/
+    install -D -m0644 ${S}/${OUT_DIR_REL}/flutter_embedder.h \
+        ${D}${includedir}/flutter_embedder.h
+
+    install -D -m0644 ${S}/${OUT_DIR_REL}/icudtl.dat \
+        ${D}${datadir}/flutter/icudtl.dat
 
     # create SDK
-    install -d ${D}${datadir}/flutter/sdk
-    install -d ${D}${datadir}/flutter/sdk/clang_x64
-    install -m 755 ${S}/${OUT_DIR_REL}/clang_x64/gen_snapshot ${D}${datadir}/flutter/sdk/clang_x64/
+    install -D -m0755 ${S}/${OUT_DIR_REL}/clang_x64/gen_snapshot \
+        ${D}${datadir}/flutter/sdk/clang_x64/gen_snapshot
 
-    # this avoids build break when SDK tag changes in middle of build
     cd ${S}/flutter
-    echo `git rev-parse HEAD` > ${D}/usr/share/flutter/sdk/engine.version
-    echo ${FLUTTER_ENGINE_REPO_URL} >> ${D}/usr/share/flutter/sdk/engine.version
+    echo `git rev-parse HEAD` > ${D}${datadir}/flutter/sdk/engine.version
+    echo ${FLUTTER_ENGINE_REPO_URL} >> ${D}${datadir}/flutter/sdk/engine.version
+    echo ${@get_flutter_sdk_version(d)} >> ${D}${datadir}/flutter/sdk/flutter_sdk.version
 
     cd ${D}/${datadir}/flutter
     zip -r engine_sdk.zip sdk
@@ -180,8 +192,8 @@ FILES:${PN}-dev = "\
     ${includedir} \
     "
 
-BBCLASSEXTEND = ""
-
 python () {
     d.setVar('SRCREV', gn_get_engine_commit(d))
 }
+
+RPROVIDES:${PN} = "flutter-engine-${@gn_get_flutter_runtime_name(d)}"
