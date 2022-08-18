@@ -1,0 +1,126 @@
+name: kirkstone-imx8mmevk
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, closed ]
+  release:
+    types: [ published, created, edited ]
+  workflow_dispatch:
+  schedule:
+    # daily
+    - cron:  '0 0 * * *'
+
+jobs:
+
+  kirkstone-fsl-wayland:
+  
+    env:
+      YOCTO_BRANCH: "kirkstone"
+      MACHINE: imx8mmevk
+      DISTRO: fsl-imx-wayland
+      IMAGE: imx-image-core
+      
+    runs-on: [self-hosted, linux]
+    
+    container:
+      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      options:
+        --user 1018
+        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
+        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
+        -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/imx8mmevk:/home/dev/sstate:Z
+        -v /mnt/raid10/github-ci/artifacts/imx8mmevk:/home/dev/artifacts:Z
+
+    steps:
+    
+      - name: Display UID Info
+        run: |
+          whoami
+          id -u
+          
+      - name: Set Ownership
+        run: |
+          chown -R dev:dev $HOME .
+          
+      - uses: actions/checkout@v2
+        with:
+          path: ''
+
+      - name: Fetch poky
+        run: |
+          [ -d ../imx8mmevk-kirkstone ] || mkdir -p ../imx8mmevk-kirkstone
+          cd ../imx8mmevk-kirkstone
+          rm -rf sources || true
+          ls -la
+          git config --list
+          git config --global user.email joel@winarske@gmail.com
+          git config --global user.name "Joel Winarske"
+          git config --list
+          rm -rf conf | true
+          /home/dev/bin/repo init -u https://source.codeaurora.org/external/imx/imx-manifest -m imx-5.15.32-2.0.0.xml -b imx-linux-kirkstone
+          /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo`
+
+      - name: Configure build
+        shell: bash
+        working-directory: ../imx8mmevk-kirkstone
+        run: |
+          ACCEPT_FSL_EULA="1" DISTRO=${{ env.DISTRO }} MACHINE=${{ env.MACHINE }} source imx-setup-release.sh -b build-wayland
+          echo '***************************************'
+          echo 'INHERIT += "rm_work"' >> ./conf/local.conf
+          echo 'DL_DIR = "/home/dev/dl"' >> conf/local.conf
+          echo 'SSTATE_DIR = "/home/dev/sstate"' >> conf/local.conf
+          echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> conf/local.conf
+          echo 'GLIBC_GENERATE_LOCALES:append = " en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> conf/local.conf
+          echo 'IMAGE_LINGUAS:append = " en-us en-gb es-us"' >> conf/local.conf
+          echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> conf/local.conf
+          echo 'IMAGE_INSTALL:append = "\
+              tzdata-core \
+              tzdata-americas \
+              ivi-homescreen-runtimerelease \
+              flutter-gallery-runtimerelease \
+              flutter-test-texture-egl-runtimerelease \
+              flutter-test-video-player-runtimerelease \
+              flutter-test-localization-runtimerelease \
+              flutter-pi-runtimerelease \
+              "' >> conf/local.conf
+          echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> conf/local.conf
+          echo '********** conf/local.conf **********'
+          cat conf/local.conf
+          echo '***************************************'
+          bitbake-layers show-layers
+          bitbake-layers add-layer ../../meta-flutter
+          bitbake-layers show-layers
+          echo '***************************************'
+          bitbake -e virtual/kernel | grep "^PV"
+          bitbake -e virtual/kernel | grep "^PN"
+          echo '***************************************'
+          bitbake -e ${{ env.IMAGE }} | grep "^DISTRO_FEATURES"
+          bitbake -e ${{ env.IMAGE }} | grep "^IMAGE_FEATURES"
+          echo '***************************************'
+          bitbake -e > bb.environment
+          bitbake -c do_cleansstate flutter-sdk-native
+          bitbake -c do_cleansstate flutter-engine-runtimerelease
+          bitbake -c do_cleansstate flutter-gallery-runtimerelease
+          bitbake -c do_cleansstate flutter-test-texture-egl-runtimerelease
+          bitbake -c do_cleansstate flutter-test-video-player-runtimerelease
+          bitbake -c do_cleansstate flutter-test-localization-runtimerelease
+
+      - name: Build imx-image-core
+        shell: bash
+        working-directory: ../imx8mmevk-kirkstone
+        run: |
+          DISTRO=${{ env.DISTRO }} MACHINE=${{ env.MACHINE }} source imx-setup-release.sh -b build-wayland
+          IMAGE=${{ env.IMAGE }}
+          ARTIFACTS=/home/dev/artifacts
+          bitbake $IMAGE
+          rm -rf ${ARTIFACTS}/*
+          cp bb.environment $ARTIFACTS
+          cp tmp/deploy/images/$MACHINE/${IMAGE}-${MACHINE}.wic.bz2 $ARTIFACTS
+
+      - name: Publish SD card image artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.MACHINE }}-${{ env.IMAGE }}
+          path: |
+             /home/dev/artifacts/*
