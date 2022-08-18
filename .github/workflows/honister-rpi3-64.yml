@@ -119,54 +119,54 @@ jobs:
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build flutter-engine-release
+      - name: Build flutter-engine-runtimerelease
         shell: bash
         working-directory: ../rpi3-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake flutter-engine-release -c do_cleansstate
-          bitbake flutter-engine-release
+          bitbake flutter-engine-runtimerelease -c do_cleansstate
+          bitbake flutter-engine-runtimerelease
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa53/flutter-engine-release-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa53/flutter-engine-runtimerelease-git*.rpm /home/dev/artifacts
 
-      - name: Publish flutter-engine-release artifacts
+      - name: Publish flutter-engine-runtimerelease artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: flutter-engine-release-rpi3-64
+          name: flutter-engine-runtimerelease-rpi3-64
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build flutter-pi-release
+      - name: Build flutter-pi-runtimerelease
         shell: bash
         working-directory: ../rpi3-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake flutter-pi-release
+          bitbake flutter-pi-runtimerelease
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa53/flutter-pi-release-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa53/flutter-pi-runtimerelease-git*.rpm /home/dev/artifacts
 
-      - name: Publish flutter-pi-release artifacts
+      - name: Publish flutter-pi-runtimerelease artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: flutter-pi-release-rpi3-64
+          name: flutter-pi-runtimerelease-rpi3-64
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build flutter-gallery-release
+      - name: Build flutter-gallery-runtimerelease
         shell: bash
         working-directory: ../rpi3-drm-honister-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-gallery-release -c do_cleansstate
-          bitbake flutter-gallery-release
+          bitbake flutter-gallery-runtimerelease -c do_cleansstate
+          bitbake flutter-gallery-runtimerelease
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/cortexa53/flutter-gallery-release-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/cortexa53/flutter-gallery-runtimerelease-git*.rpm /home/dev/artifacts
 
-      - name: Publish flutter-gallery-release artifacts
+      - name: Publish flutter-gallery-runtimerelease artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: flutter-gallery-release-rpi3-64
+          name: flutter-gallery-runtimerelease-rpi3-64
           path: |
              /home/dev/artifacts/*.rpm
 
@@ -176,8 +176,8 @@ jobs:
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           echo 'CORE_IMAGE_EXTRA_INSTALL:append = " \
-              flutter-pi-release \
-              flutter-gallery-release \
+              flutter-pi-runtimerelease \
+              flutter-gallery-runtimerelease \
               swiftshader \
               sascha-samples \
               vkcube \
