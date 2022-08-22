@@ -1,32 +1,36 @@
-From a34e06e871322a427741a88e67995d67847761ef Mon Sep 17 00:00:00 2001
+From 30c7b363ce7555d36921c3167f84cbcdba524183 Mon Sep 17 00:00:00 2001
 From: Joel Winarske <joel.winarske@gmail.com>
-Date: Wed, 23 Feb 2022 13:42:13 -0800
+Date: Sat, 9 Jul 2022 09:16:10 -0700
 Subject: [PATCH] path updates
 
 Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
- src/flutter-pi.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ src/flutter-pi.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/src/flutter-pi.c b/src/flutter-pi.c
-index 46ab470..4149626 100644
+index 49b57bd..5984457 100644
 --- a/src/flutter-pi.c
 +++ b/src/flutter-pi.c
-@@ -2260,7 +2260,7 @@ static bool setup_paths(void) {
+@@ -2298,24 +2298,24 @@ static bool setup_paths(void) {
+         return false;
      }
-     
-     asprintf(&kernel_blob_path, "%s/kernel_blob.bin", flutterpi.flutter.asset_bundle_path);
+ 
+-    asprintf(&kernel_blob_path, "%s/kernel_blob.bin", flutterpi.flutter.asset_bundle_path);
 -    asprintf(&app_elf_path, "%s/app.so", flutterpi.flutter.asset_bundle_path);
-+    asprintf(&app_elf_path, "%s/libapp.so", flutterpi.flutter.asset_bundle_path);
++    asprintf(&kernel_blob_path, "%s/data/flutter_assets/kernel_blob.bin", flutterpi.flutter.asset_bundle_path);
++    asprintf(&app_elf_path, "%s/lib/libapp.so", flutterpi.flutter.asset_bundle_path);
  
      if (flutterpi.flutter.runtime_mode == kDebug) {
          if (!PATH_EXISTS(kernel_blob_path)) {
-@@ -2269,14 +2269,14 @@ static bool setup_paths(void) {
+-            LOG_ERROR("Could not find \"kernel.blob\" file inside \"%s\", which is required for debug mode.\n", flutterpi.flutter.asset_bundle_path);
++            LOG_ERROR("Could not find \"kernel.blob\" file inside \"%s/data/flutter_assets/\", which is required for debug mode.\n", flutterpi.flutter.asset_bundle_path);
+             return false;
          }
-     } else if (flutterpi.flutter.runtime_mode == kRelease) {
+     } else if ((flutterpi.flutter.runtime_mode == kRelease) || (flutterpi.flutter.runtime_mode == kProfile)) {
          if (!PATH_EXISTS(app_elf_path)) {
 -            LOG_ERROR("Could not find \"app.so\" file inside \"%s\", which is required for release and profile mode.\n", flutterpi.flutter.asset_bundle_path);
-+            LOG_ERROR("Could not find \"libapp.so\" file inside \"%s\", which is required for release and profile mode.\n", flutterpi.flutter.asset_bundle_path);
++            LOG_ERROR("Could not find \"libapp.so\" file inside \"%s/lib/\", which is required for release and profile mode.\n", flutterpi.flutter.asset_bundle_path);
              return false;
          }
      }
@@ -40,4 +44,5 @@ index 46ab470..4149626 100644
      }
  
 -- 
-2.31.1
+2.32.1 (Apple Git-133)
+
