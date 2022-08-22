@@ -82,7 +82,7 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL += " \
                     flutter-engine-debug \
                     flutter-pi-debug \
-                    flutter-drm-gbm-backend \
+                    flutter-gallery-debug \
                     avahi-daemon \
                     ntp ntp-tickadj \
                     fbgrab \
@@ -245,12 +245,10 @@ jobs:
                     weston weston-init \
                     flutter-engine-debug \
                     ivi-homescreen-debug \
-                    flutter-linux-plugins-debug \
                     flutter-gallery-debug \
                     adwaita-icon-theme-cursors \
                     xdg-user-dirs \
                     flutter-pi-debug \
-                    flutter-drm-gbm-backend \
                     flutter-wayland-client \
                     avahi-daemon \
                     ntp ntp-tickadj \
