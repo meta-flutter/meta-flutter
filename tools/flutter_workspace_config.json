@@ -36,6 +36,7 @@
 			"arch": "x86_64",
 			"flutter_runtime": "debug",
 			"runtime": {
+				"install_dependent_packages": true,
 				"relative_path": ".agl/agl-image-flutter-runtimedebug-qemux86-64.wic.vmdk",
                 "github_owner": "meta-flutter",
 			    "github_repo": "meta-flutter",
