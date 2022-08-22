@@ -25,15 +25,22 @@ S = "${WORKDIR}/git"
 
 inherit pkgconfig cmake features_check
 
+require conf/include/flutter-runtime.inc
+
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
 PREFERRED_PROVIDER:libgcc = "compiler-rt"
 
-EXTRA_OECMAKE += "-D USER_PROJECT_PATH=${S}/examples/${PN}"
+EXTRA_OECMAKE += "\
+    -D USER_PROJECT_PATH=${S}/examples/${@gn_get_pn_without_runtime_suffix(d)} \
+    "
 
 do_configure:prepend() {
-   install -d ${S}/build
+   mkdir -p ${S}/build | true
    ln -sf ${STAGING_LIBDIR}/libflutter_engine.so ${S}/build/libflutter_engine.so
 }
 
-BBCLASSEXTEND = ""
+BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"
+
+DEPENDS += "flutter-engine-${@gn_get_flutter_runtime_name(d)}"
+RDEPENDS:${PN} += "flutter-engine-${@gn_get_flutter_runtime_name(d)}"

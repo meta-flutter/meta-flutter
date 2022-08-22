@@ -15,6 +15,8 @@ DEPENDS += "\
     compiler-rt \
     libcxx \
     libdrm \
+    libinput \
+    libxkbcommon \
     virtual/egl \
    "
 
@@ -27,11 +29,13 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 
 SRC_URI = "git://github.com/ardera/flutter-pi.git;protocol=https;branch=master \
            file://0001-path-updates.patch"
-SRCREV = "${AUTOREV}"
+SRCREV = "869fa7fcfbeb99662c3cae7ab8b5581e53295ce7"
 
 S = "${WORKDIR}/git"
 
 inherit pkgconfig cmake features_check
+
+require conf/include/flutter-runtime.inc
 
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
@@ -51,8 +55,14 @@ PACKAGECONFIG[asan]         = "-DENABLE_ASAN=ON,                         -DENABL
 PACKAGECONFIG[ubsan]        = "-DENABLE_UBSAN=ON,                        -DENABLE_UBSAN=OFF"
 PACKAGECONFIG[mtrace]       = "-DENABLE_MTRACE=ON,                       -DENABLE_MTRACE=OFF"
 
-FILES_${PN} = "\
+# prevent use of network to pull header
+EXTRA_OECMAKE += "-D FLUTTER_EMBEDDER_HEADER=${STAGING_DIR_TARGET}/include/flutter_embedder.h"
+
+FILES:${PN} = "\
     ${bindir} \
     "
 
-BBCLASSEXTEND = ""
+BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"
+
+DEPENDS += "flutter-engine-${@gn_get_flutter_runtime_name(d)}"
+RDEPENDS:${PN} += "flutter-engine-${@gn_get_flutter_runtime_name(d)}"

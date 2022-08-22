@@ -2,7 +2,35 @@
 
 Yocto Layer for Google Flutter related projects.
 
+[![honister-linux-dummy](https://github.com/meta-flutter/meta-flutter/actions/workflows/honister-linux-dummy.yml/badge.svg?branch=honister)](https://github.com/meta-flutter/meta-flutter/actions/workflows/honister-linux-dummy.yml)
+
+[![honister-rpi-zero2w-64](https://github.com/meta-flutter/meta-flutter/actions/workflows/honister-rpi-zero2w-64.yml/badge.svg?branch=honister)](https://github.com/meta-flutter/meta-flutter/actions/workflows/honister-rpi-zero2w-64.yml)
+
+[![honister-rpi3-32](https://github.com/meta-flutter/meta-flutter/actions/workflows/honister-rpi3-32.yml/badge.svg?branch=honister)](https://github.com/meta-flutter/meta-flutter/actions/workflows/honister-rpi3-32.yml)
+
+[![honister-rpi3-64](https://github.com/meta-flutter/meta-flutter/actions/workflows/honister-rpi3-64.yml/badge.svg?branch=honister)](https://github.com/meta-flutter/meta-flutter/actions/workflows/honister-rpi3-64.yml)
+
+[![honister-rpi4-32](https://github.com/meta-flutter/meta-flutter/actions/workflows/honister-rpi4-32.yml/badge.svg?branch=honister)](https://github.com/meta-flutter/meta-flutter/actions/workflows/honister-rpi4-32.yml)
+
+[![honister-rpi4-64](https://github.com/meta-flutter/meta-flutter/actions/workflows/honister-rpi4-64.yml/badge.svg?branch=honister)](https://github.com/meta-flutter/meta-flutter/actions/workflows/honister-rpi4-64.yml)
+
+
 _Updates_:
+
+* Breaking Changes
+  
+  Suffix for flutter runtime types has been changed to better define it.  Less confusing. 
+
+  -runtimerelease (was -release)
+
+  -runtimeprofile (was -profile)
+
+  -runtimedebug (was -debug)
+
+  The bundle folder structure is now common for all embedders.  This comes from the Linux GTK embeder.
+
+  - <app>
+      data/flutter_assets
 
 * FLUTTER_CHANNEL support has been deprecated
 
@@ -15,20 +43,13 @@ _Updates_:
 * build failure due to gn unknown parameter for `--no-build-embedder-examples`.  One solution to resolve this is to exclude `disable-embedder-examples` from PACKAGECONFIG in local.conf using:
 
   ```
-  PACKAGECONFIG:pn-flutter-engine-release = "disable-desktop-embeddings embedder-for-target fontconfig release"
+  PACKAGECONFIG:pn-flutter-engine-runtimerelease = "disable-desktop-embeddings embedder-for-target fontconfig release"
   
-  PACKAGECONFIG:pn-flutter-engine-debug = "disable-desktop-embeddings embedder-for-target fontconfig debug"
+  PACKAGECONFIG:pn-flutter-engine-runtimedebug = "disable-desktop-embeddings embedder-for-target fontconfig debug"
 
-  PACKAGECONFIG:pn-flutter-engine-profile = "disable-desktop-embeddings embedder-for-target fontconfig profile"
+  PACKAGECONFIG:pn-flutter-engine-runtimeprofile = "disable-desktop-embeddings embedder-for-target fontconfig profile"
    ```
   This issue is related to missing gn options `--build-embedder-examples` and `--no-build-embedder-examples` from certain builds.  I have `disable-embedder-examples` defined in PACKAGECONFIG by default, so if you have an engine commit that is missing this option, you need to use the PACKAGECONFIG sequence above.  Once the gn option rolls into all channels this override will no longer be needed.
-
-* When using the Sony embedders you need to specify FLUTTER_RUNTIME that matches other elements being installed, or make image will fail with package conflict. Example to avoid conflict with other recipes:
-  ```
-  echo 'FLUTTER_RUNTIME:pn-flutter-drm-gbm-backend = "debug"' >> ./conf/local.conf
-  echo 'FLUTTER_RUNTIME:pn-flutter-wayland-client = "debug"' >> ./conf/local.conf
-  ```
-
 
 ### Recommended development flow:
 * Build Flutter application using desktop tools
@@ -120,10 +141,10 @@ pushd ../sources
 git clone -b honister https://github.com/meta-flutter/meta-flutter.git
 popd
 bitbake-layers add-layer ../sources/meta-clang ../sources/meta-flutter
-echo -e 'FLUTTER_SDK_TAG = "2.10.3"' >> conf/local.conf
-echo -e 'IMAGE_INSTALL:append = " flutter-engine-release"' >> conf/local.conf
-echo -e 'IMAGE_INSTALL:append = " ivi-homescreen-release"' >> conf/local.conf
-echo -e 'IMAGE_INSTALL:append = " flutter-gallery-release"' >> conf/local.conf
+echo -e 'FLUTTER_SDK_TAG = "2.10.4"' >> conf/local.conf
+echo -e 'IMAGE_INSTALL:append = " flutter-engine-runtimerelease"' >> conf/local.conf
+echo -e 'IMAGE_INSTALL:append = " ivi-homescreen-runtimerelease"' >> conf/local.conf
+echo -e 'IMAGE_INSTALL:append = " flutter-gallery-runtimerelease"' >> conf/local.conf
 bitbake fsl-image-multimedia
 ```
 
