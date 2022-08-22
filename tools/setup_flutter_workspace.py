@@ -215,6 +215,8 @@ def main():
         command = ['flutter', 'custom-devices', 'list']
         subprocess.check_call(command)
 
+    print_banner("Setup Flutter Workspace - Complete")
+
 
 def make_sure_path_exists(path):
     try:
@@ -375,10 +377,9 @@ def validate_custom_device_config(config):
 def get_workspace_repos(base_folder, config):
     ''' Clone GIT repos referenced in config repos dict to base_folder '''
 
-    #print("base folder: %s" % base_folder)
-
     if 'repos' in config:
         repos = config['repos']
+
     else:
         repos = None
 
@@ -395,13 +396,10 @@ def get_workspace_repos(base_folder, config):
         repo_name = uri.rsplit('/', 1)[-1]
         repo_name = repo_name.split(".")
         repo_name = repo_name[0]
-        #print("repo name: %s" % repo_name)
 
         git_folder = os.path.join(base_folder, repo_name)
-        #print("git folder: %s" % git_folder)
 
         git_folder_git = os.path.join(base_folder, repo_name, '.git')
-        #print("git folder test: %s" % git_folder_git)
 
         isExist = os.path.exists(git_folder_git)
         if not isExist:
@@ -411,7 +409,6 @@ def get_workspace_repos(base_folder, config):
                 os.removedirs(git_folder)
 
             cmd = ['git', 'clone', repo['uri'], '-b', repo['branch'], repo_name]
-            #print('%s' % (cmd))
             subprocess.check_call(cmd, cwd=base_folder)
 
         if 'rev' in repo:
@@ -622,9 +619,6 @@ def configure_flutter_sdk():
 
     settings = {
         "enable-web": False,
-        "enable-linux-desktop": False,
-        "enable-macos-desktop": False,
-        "enable-windows-desktop": False,
         "enable-android": False,
         "enable-ios": False,
         "enable-fuchsia": False,
@@ -633,9 +627,17 @@ def configure_flutter_sdk():
 
     host = get_host_type()
     if host == 'darwin':
+        settings['enable-linux-desktop'] = False
         settings['enable-macos-desktop'] = True
+        settings['enable-windows-desktop'] = False
     elif host == 'linux':
-        settings['enable-linux-dekstop'] = True
+        settings['enable-linux-desktop'] = True
+        settings['enable-macos-desktop'] = False
+        settings['enable-windows-desktop'] = False
+    elif host == 'windows':
+        settings['enable-linux-desktop'] = False
+        settings['enable-macos-desktop'] = False
+        settings['enable-windows-desktop'] = True
 
     settings_file = os.path.join(get_flutter_settings_folder(), 'settings')
 
