@@ -228,17 +228,9 @@ def make_sure_path_exists(path):
 
 def clear_folder(dir):
     ''' Clears folder specified '''
-    if os.path.exists(dir):
-        for the_file in os.listdir(dir):
-            file_path = os.path.join(dir, the_file)
-            try:
-                if os.path.isfile(file_path):
-                    os.unlink(file_path)
-                else:
-                    clear_folder(file_path)
-                    os.rmdir(file_path)
-            except Exception as e:
-                print(e)
+    import shutil
+    if  os.path.exists(dir):
+        shutil.rmtree(dir)
 
 
 def get_workspace_config(config_file):
@@ -251,7 +243,7 @@ def get_workspace_config(config_file):
         print("Defaulting to %s channel\n" % default_channel)
         data = json.loads('{"flutter-version":"%s","platforms":[],"repos":[]}' % default_channel)
         return data
-    
+
     f = open(config_file)
     try:
         data = json.load(f)
@@ -906,7 +898,7 @@ def get_workspace_tmp_folder():
     return tmp_folder
 
 
-def get_github_artifact(token, url):
+def get_github_artifact(token, url, filename):
     ''' Gets artifact via Github URL'''
     import requests
 
@@ -914,11 +906,6 @@ def get_github_artifact(token, url):
         headers = {'Authorization': 'token %s' % (token)}
         with requests.get(url, headers=headers, allow_redirects=True) as r:
 
-            # get filename of attachment
-            content_disposition = r.headers['Content-Disposition']
-            cnt_disp = content_disposition.split("attachment; ")
-            attachment = dict(item.split("=") for item in cnt_disp[1].split(";"))
-            filename = attachment['filename']
             tmp_file = "%s/%s" % (get_workspace_tmp_folder(), filename)
 
             open(tmp_file, 'wb').write(r.content)
@@ -960,13 +947,13 @@ def install_agl_emu_image(config, platform):
                 subprocess.check_output(cmd)
 
                 cmd = ["sudo", "apt-get", "install", "-y", "qemu-system-x86", "ovmf", "qemu-kvm", "libvirt-daemon-system", "libvirt-clients", "bridge-utils"]
-                subprocess.check_output(cmd)
+                subprocess.call(cmd)
 
                 cmd = ["sudo", "adduser", username, "libvirt"]
-                subprocess.check_output(cmd)
+                subprocess.call(cmd)
 
                 cmd = ["sudo", "adduser", username, "kvm"]
-                subprocess.check_output(cmd)
+                subprocess.call(cmd)
 
                 cmd = ["sudo", "systemctl", "status", "libvirtd", "--no-pager", "-l"]
                 subprocess.call(cmd)
@@ -994,7 +981,7 @@ def install_agl_emu_image(config, platform):
 
                     print("Downloading %s run_id: %s via %s" % (github_workflow, run_id, url))
 
-                    downloaded_file = get_github_artifact(github_token, url)
+                    downloaded_file = get_github_artifact(github_token, url, "%s.zip" % name)
                     print("Downloaded: %s" % downloaded_file)
 
                     workspace = os.getenv('FLUTTER_WORKSPACE')
@@ -1029,13 +1016,13 @@ def install_flutter_auto(config, platform):
             if os_release.get('NAME') == 'Ubuntu':
 
                 cmd = ["sudo", "snap", "install", "cmake", "--classic"]
-                subprocess.check_output(cmd)
+                subprocess.call(cmd)
 
                 cmd = ["sudo", "add-apt-repository", "-y", "ppa:kisak/kisak-mesa"]
-                subprocess.check_output(cmd)
+                subprocess.call(cmd)
 
                 cmd = ["sudo", "apt", "update", "-y"]
-                subprocess.check_output(cmd)
+                subprocess.call(cmd)
 
                 cmd = ["sudo", "apt-get", "-y", "install", 
                     "libwayland-dev", "wayland-protocols", "mesa-common-dev",
@@ -1045,7 +1032,7 @@ def install_flutter_auto(config, platform):
                     "libxkbcommon-dev", "vulkan-tools",
                     "libgstreamer1.0-dev", "libgstreamer-plugins-base1.0-dev",
                     "gstreamer1.0-plugins-base", "gstreamer1.0-gl", "libavformat-dev"]
-                subprocess.check_output(cmd)
+                subprocess.call(cmd)
 
                 cmd = ["cmake", "--version"]
                 subprocess.call(cmd)
@@ -1074,7 +1061,7 @@ def install_flutter_auto(config, platform):
 
                     print("Downloading %s run_id: %s via %s" % (github_workflow, run_id, url))
 
-                    downloaded_file = get_github_artifact(github_token, url)
+                    downloaded_file = get_github_artifact(github_token, url, artifact_name)
                     print("Downloaded: %s" % downloaded_file)
 
                     with zipfile.ZipFile(downloaded_file, "r") as zip_ref:
@@ -1099,7 +1086,7 @@ def install_flutter_auto(config, platform):
                     subprocess.call(cmd)
 
                     cmd = ["sudo", "apt", "install", "-y", "./%s" % deb_file]
-                    subprocess.check_output(cmd)
+                    subprocess.call(cmd)
 
                     if ".ddeb" in dbgsym_file:
                         cmd = ["rm", dbgsym_file]
@@ -1211,8 +1198,6 @@ def setup_env_script(args, platform):
                 elif "qemu" == platform['type']:
 
                     runtime = platform['runtime']
-                    workspace = os.getenv("FLUTTER_WORKSPACE")
-                    absolute_image_path = os.path.join(workspace, runtime['relative_path'])
 
                     script.writelines([
                         "echo \"********************************************\"\n",
@@ -1223,7 +1208,7 @@ def setup_env_script(args, platform):
                         "\n",
                         "    if [ -z ${QEMU_IMAGE+x} ];\n",
                         "    then\n",
-                        "        export QEMU_IMAGE=%s;\n" % (absolute_image_path),
+                        "        export QEMU_IMAGE=${FLUTTER_WORKSPACE}/%s;\n" % (runtime['relative_path']),
                         "    else\n",
                         "        echo \"QEMU_IMAGE is set to '$QEMU_IMAGE'\";\n",
                         "    fi\n",
