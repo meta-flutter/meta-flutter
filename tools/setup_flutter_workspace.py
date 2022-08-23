@@ -80,6 +80,11 @@ def main():
     signal.signal(signal.SIGINT, handle_ctrl_c)
 
     #
+    # remove first instance of flutter from PATH
+    #
+    remove_from_path('flutter')
+
+    #
     # Create Workspace
     #
     if "FLUTTER_WORKSPACE" in os.environ:
@@ -175,7 +180,7 @@ def main():
     # Configure Workspace
     #
 
-    os.environ['PATH'] = '%s:%s' % (os.environ.get('PATH'), flutter_bin_path)
+    os.environ['PATH'] = '%s:%s' % (flutter_bin_path, os.environ.get('PATH'))
     os.environ['PUB_CACHE'] = os.path.join(os.environ.get('FLUTTER_WORKSPACE'), '.pub_cache')
     os.environ['XDG_CONFIG_HOME'] = os.path.join(os.environ.get('FLUTTER_WORKSPACE'), '.config', 'flutter')
  
@@ -231,6 +236,33 @@ def make_sure_path_exists(path):
     except OSError as exception:
         if exception.errno != errno.EEXIST:
             raise
+
+
+def check_path_for_executable(executable):
+    host = get_host_type
+    cmd = 'which'
+    if host == "windows":
+        cmd = 'where'
+
+    result = subprocess.run([cmd, executable], stdout=subprocess.PIPE)
+    if result.stdout:
+        tmp = result.stdout.decode('utf-8').strip()
+        head = os.path.split(tmp)
+        return head[0]
+
+    return None
+
+
+def remove_from_path(exe_name):
+    '''Removes Flutter from the system PATH'''
+    exe_path = check_path_for_executable(exe_name)
+    if exe_path:
+        print_banner("Flutter is in PATH - %s, removing" % exe_path)
+        system_path = os.environ['PATH'].split(os.pathsep)
+        print("Before: %s" % system_path)
+        system_path.remove(exe_path)
+        os.environ['PATH'] = os.pathsep.join(system_path)
+        print("After:   %s" % (os.environ.get('PATH')))
 
 
 def clear_folder(dir):
@@ -807,7 +839,9 @@ def fetch_https_binary_file(url, filename, redirect, headers):
             time.sleep(delay_between_retries)
 
     c.close()
-
+    os.sync()
+    
+    print("\nDownloaded: %s (res=%s)" % (filename, str(success)))
     return success
 
 
@@ -869,7 +903,6 @@ def get_artifacts(config, flutter_sdk_path, flutter_auto_folder):
         host_type = get_host_type()
         icudtl_source = os.path.join(flutter_sdk_path, "bin/cache/artifacts/engine/%s-x64/icudtl.dat" % host_type)
         subprocess.check_call(["cp", icudtl_source, "%s/" % data_folder])
-
 
         with zipfile.ZipFile(flutter_engine_zip, "r") as zip_ref:
             zip_ref.extractall(lib_folder)
@@ -1041,8 +1074,6 @@ def install_agl_emu_image(config, platform):
                         print_banner("Failed to download %s" % (filename))
                         break
                     else:
-                        print("Downloaded: %s" % downloaded_file)
-
                         workspace = os.getenv('FLUTTER_WORKSPACE')
 
                         image_path = os.path.join(workspace, '.agl')
@@ -1123,7 +1154,6 @@ def install_flutter_auto(config, platform):
                     print("** Downloading %s run_id: %s via %s" % (github_workflow, run_id, url))
 
                     downloaded_file = get_github_artifact(github_token, url, artifact_name)
-                    print("** Downloaded: %s" % downloaded_file)
 
                     with zipfile.ZipFile(downloaded_file, "r") as zip_ref:
                         filelist = zip_ref.namelist()
