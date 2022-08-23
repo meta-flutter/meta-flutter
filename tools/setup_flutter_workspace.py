@@ -6,6 +6,7 @@
 # Creates flutter workspace:
 #
 #   .config
+#   .flutter-auto
 #   .pub_cache
 #   app
 #   flutter
@@ -16,12 +17,7 @@
 #
 # "source ./setup_env.sh" or ". ./setup_env.sh"
 #
-# if emulator image is present type `qemu_run' to start the QEMU image
-#
-# if "github_token": "<XXXXXXXX>", is present in config.json (after flutter-version key)
-# - it will download and install:
-#   flutter-auto latest CI run
-#   AGL QEMU CI run (meta-flutter)
+# if emulator image is present type `qemu_run' to run the QEMU image
 #
 
 
@@ -30,15 +26,24 @@ import json
 import os
 import platform
 import pkg_resources
+import signal
 import subprocess
 import sys
 import zipfile
+from sys import stderr as STREAM
 
+# use kiB's
+kb = 1024
 
 def print_banner(text):
     print('*' * (len(text) + 6))
     print("** %s **" % text)
     print('*' * (len(text) + 6))
+
+
+def handle_ctrl_c(signal, frame):
+    print ("Ctl+C, Closing")
+    sys.exit(0)
 
 
 def main():
@@ -61,7 +66,7 @@ def main():
     #
     # Install required modules
     #
-    required = {'requests'}
+    required = {'requests', 'pycurl'}
 
     installed = {pkg.key for pkg in pkg_resources.working_set}
     missing = required - installed
@@ -71,6 +76,8 @@ def main():
         python = sys.executable
         subprocess.check_call([python, '-m', 'pip', 'install', *missing], stdout=subprocess.DEVNULL)
 
+
+    signal.signal(signal.SIGINT, handle_ctrl_c)
 
     #
     # Create Workspace
@@ -404,8 +411,18 @@ def get_workspace_repos(base_folder, config):
             subprocess.check_call(cmd, cwd=base_folder)
 
         if 'rev' in repo:
+
             cmd = ['git', 'reset', '--hard', repo['rev']]
             subprocess.check_call(cmd, cwd=git_folder)
+
+        else:
+
+            cmd = ['git', 'reset', '--hard']
+            subprocess.check_call(cmd, cwd=git_folder)
+
+            cmd = ['git', 'pull', '--all']
+            subprocess.check_call(cmd, cwd=git_folder)
+
 
         cmd = ['git', 'log', '-1']
         subprocess.check_call(cmd, cwd=git_folder)
@@ -743,9 +760,59 @@ def get_host_type():
     return platform.system().lower().rstrip()
 
 
+def fetch_https_progress(download_t, download_d, upload_t, upload_d):
+    '''callback function for pycurl.XFERINFOFUNCTION'''
+    STREAM.write('Progress: {}/{} kiB ({}%)\r'.format(
+        str(int(download_d/kb)),
+        str(int(download_t/kb)),
+        str(int(download_d/download_t*100) if download_t > 0 else 0)
+    ))
+    STREAM.flush()
+
+
+def fetch_https_binary_file(url, filename, redirect, headers):
+    '''Fetches binary file via HTTPS'''
+    import pycurl, time
+
+    retries_left = 3
+    delay_between_retries = 5 # seconds
+    success = False
+
+    c = pycurl.Curl()
+    c.setopt(pycurl.URL, url)
+    c.setopt(pycurl.CONNECTTIMEOUT, 30)
+    c.setopt(pycurl.NOSIGNAL, 1)
+    c.setopt(pycurl.NOPROGRESS, False)
+    c.setopt(pycurl.XFERINFOFUNCTION, fetch_https_progress)
+    
+    if headers:
+        c.setopt(pycurl.HTTPHEADER, headers)
+
+    if redirect:
+        c.setopt(pycurl.FOLLOWLOCATION, 1)
+        c.setopt(pycurl.AUTOREFERER, 1)
+        c.setopt(pycurl.MAXREDIRS, 255)
+
+    while retries_left > 0:
+        try:
+            with open(filename, 'wb') as f:
+                c.setopt(c.WRITEFUNCTION, f.write)
+                c.perform()
+
+            success = True
+            break
+
+        except BaseException as e:
+            retries_left -= 1
+            time.sleep(delay_between_retries)
+
+    c.close()
+
+    return success
+
+
 def get_artifacts(config, flutter_sdk_path, flutter_auto_folder):
     ''' Get x86_64 Engine artifcats '''
-    import requests
 
     tmp_folder = get_workspace_tmp_folder()
     make_sure_path_exists(tmp_folder)
@@ -780,13 +847,10 @@ def get_artifacts(config, flutter_sdk_path, flutter_auto_folder):
         flutter_engine_zip = "%s/embedder.zip" % tmp_folder
 
         print("Attempting to download %s\n...to %s" % (url, flutter_engine_zip))
-        try:
-            r = requests.get(url)
-            open(flutter_engine_zip, 'wb').write(r.content)
-        except requests.exceptions.HTTPError as e:
-            if e.errno == 404:
-                print("Artifact not available.")
-                return
+
+        if not fetch_https_binary_file(url, flutter_engine_zip, False, None):
+            print_banner("Failed to download %s" % (flutter_engine_zip))
+            return
 
         bundle_folder = os.path.join(flutter_auto_folder, engine_version[0:7], 'linux-x64', platform['flutter_runtime'], 'bundle')
         os.environ['BUNDLE_FOLDER'] = bundle_folder
@@ -900,22 +964,12 @@ def get_workspace_tmp_folder():
 
 def get_github_artifact(token, url, filename):
     ''' Gets artifact via Github URL'''
-    import requests
 
-    try:
-        headers = {'Authorization': 'token %s' % (token)}
-        with requests.get(url, headers=headers, allow_redirects=True) as r:
+    tmp_file = "%s/%s" % (get_workspace_tmp_folder(), filename)
 
-            tmp_file = "%s/%s" % (get_workspace_tmp_folder(), filename)
-
-            open(tmp_file, 'wb').write(r.content)
-
-            return tmp_file
-
-    except requests.exceptions.HTTPError as e:
-        if e.errno == 404:
-            print("Artifact not available.")
-            return None
+    headers = ['Authorization: token %s' % (token)]
+    if fetch_https_binary_file(url, tmp_file, True, headers):
+        return tmp_file
 
     return None
 
@@ -981,14 +1035,19 @@ def install_agl_emu_image(config, platform):
 
                     print("Downloading %s run_id: %s via %s" % (github_workflow, run_id, url))
 
-                    downloaded_file = get_github_artifact(github_token, url, "%s.zip" % name)
-                    print("Downloaded: %s" % downloaded_file)
+                    filename = "%s.zip" % name
+                    downloaded_file = get_github_artifact(github_token, url, filename)
+                    if downloaded_file == None:
+                        print_banner("Failed to download %s" % (filename))
+                        break
+                    else:
+                        print("Downloaded: %s" % downloaded_file)
 
-                    workspace = os.getenv('FLUTTER_WORKSPACE')
+                        workspace = os.getenv('FLUTTER_WORKSPACE')
 
-                    image_path = os.path.join(workspace, '.agl')
-                    with zipfile.ZipFile(downloaded_file, "r") as zip_ref:
-                        zip_ref.extractall(image_path)
+                        image_path = os.path.join(workspace, '.agl')
+                        with zipfile.ZipFile(downloaded_file, "r") as zip_ref:
+                            zip_ref.extractall(image_path)
 
                     break
 
@@ -1034,9 +1093,11 @@ def install_flutter_auto(config, platform):
                     "gstreamer1.0-plugins-base", "gstreamer1.0-gl", "libavformat-dev"]
                 subprocess.call(cmd)
 
+                print("** CMake Version")
                 cmd = ["cmake", "--version"]
                 subprocess.call(cmd)
 
+                print("** Clang Version")
                 cmd = ["/usr/lib/llvm-12/bin/clang++", "--version"]
                 subprocess.call(cmd)
 
@@ -1059,10 +1120,10 @@ def install_flutter_auto(config, platform):
 
                     url = artifact.get('archive_download_url')
 
-                    print("Downloading %s run_id: %s via %s" % (github_workflow, run_id, url))
+                    print("** Downloading %s run_id: %s via %s" % (github_workflow, run_id, url))
 
                     downloaded_file = get_github_artifact(github_token, url, artifact_name)
-                    print("Downloaded: %s" % downloaded_file)
+                    print("** Downloaded: %s" % downloaded_file)
 
                     with zipfile.ZipFile(downloaded_file, "r") as zip_ref:
                         filelist = zip_ref.namelist()
