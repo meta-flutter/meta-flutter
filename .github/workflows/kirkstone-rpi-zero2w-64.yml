@@ -83,13 +83,14 @@ jobs:
               default-language-en-us-utf8 \
               tzdata-americas \
               tzdata-core \
-              ivi-homescreen-runtimerelease \
+              flutter-auto-runtimerelease \
               flutter-gallery-runtimerelease \
               flutter-test-secure-storage-runtimerelease \
               flutter-test-video-player-runtimerelease \
               flutter-test-plugins-runtimerelease \
               flutter-test-texture-egl-runtimerelease \
               flutter-test-localization-runtimerelease \
+              flutter-pi-runtimerelease \
               "' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
