@@ -64,6 +64,16 @@ def main():
 
 
     #
+    # Target Folder
+    #
+    if "FLUTTER_WORKSPACE" in os.environ:
+        workspace = os.environ.get('FLUTTER_WORKSPACE')
+    else:
+        workspace = os.getcwd()
+
+    print_banner("Setting up Flutter Workspace in: %s" % workspace)
+
+    #
     # Install required modules
     #
     required = {'requests', 'pycurl'}
@@ -72,28 +82,23 @@ def main():
     missing = required - installed
 
     if missing:
-        print("Installing required packages: %s" % required)
+        print("Installing required Python packages: %s" % required)
         python = sys.executable
         subprocess.check_call([python, '-m', 'pip', 'install', *missing], stdout=subprocess.DEVNULL)
 
+    #
+    # Install minimum package
+    #
+    install_minimum_runtime_deps()
 
+    #
+    # Control+C handler
+    #
     signal.signal(signal.SIGINT, handle_ctrl_c)
-
-    #
-    # remove first instance of flutter from PATH
-    #
-    remove_from_path('flutter')
 
     #
     # Create Workspace
     #
-    if "FLUTTER_WORKSPACE" in os.environ:
-        workspace = os.environ.get('FLUTTER_WORKSPACE')
-    else:
-        workspace = os.getcwd()
-
-    print_banner("FLUTTER_WORKSPACE: %s" % workspace)
-
     isExist = os.path.exists(workspace)
     if not isExist:
         os.makedirs(workspace)
@@ -180,7 +185,7 @@ def main():
     # Configure Workspace
     #
 
-    os.environ['PATH'] = '%s:%s' % (flutter_bin_path, os.environ.get('PATH'))
+    os.environ['PATH'] = '%s:%s' % (os.environ.get('PATH'), flutter_bin_path)
     os.environ['PUB_CACHE'] = os.path.join(os.environ.get('FLUTTER_WORKSPACE'), '.pub_cache')
     os.environ['XDG_CONFIG_HOME'] = os.path.join(os.environ.get('FLUTTER_WORKSPACE'), '.config', 'flutter')
  
@@ -236,33 +241,6 @@ def make_sure_path_exists(path):
     except OSError as exception:
         if exception.errno != errno.EEXIST:
             raise
-
-
-def check_path_for_executable(executable):
-    host = get_host_type
-    cmd = 'which'
-    if host == "windows":
-        cmd = 'where'
-
-    result = subprocess.run([cmd, executable], stdout=subprocess.PIPE)
-    if result.stdout:
-        tmp = result.stdout.decode('utf-8').strip()
-        head = os.path.split(tmp)
-        return head[0]
-
-    return None
-
-
-def remove_from_path(exe_name):
-    '''Removes Flutter from the system PATH'''
-    exe_path = check_path_for_executable(exe_name)
-    if exe_path:
-        print_banner("Flutter is in PATH - %s, removing" % exe_path)
-        system_path = os.environ['PATH'].split(os.pathsep)
-        print("Before: %s" % system_path)
-        system_path.remove(exe_path)
-        os.environ['PATH'] = os.pathsep.join(system_path)
-        print("After:   %s" % (os.environ.get('PATH')))
 
 
 def clear_folder(dir):
@@ -840,8 +818,7 @@ def fetch_https_binary_file(url, filename, redirect, headers):
 
     c.close()
     os.sync()
-    
-    print("\nDownloaded: %s (res=%s)" % (filename, str(success)))
+
     return success
 
 
@@ -880,11 +857,17 @@ def get_artifacts(config, flutter_sdk_path, flutter_auto_folder):
         url = 'https://storage.googleapis.com/flutter_infra_release/flutter/%s/linux-x64/linux-x64-embedder' % engine_version
         flutter_engine_zip = "%s/embedder.zip" % tmp_folder
 
-        print("Attempting to download %s\n...to %s" % (url, flutter_engine_zip))
+        print("** Downloading %s\n...to %s" % (url, flutter_engine_zip))
 
-        if not fetch_https_binary_file(url, flutter_engine_zip, False, None):
+        res = fetch_https_binary_file(url, flutter_engine_zip, False, None)
+        print (res)
+        if not res:
             print_banner("Failed to download %s" % (flutter_engine_zip))
             return
+        if not os.path.exists(flutter_engine_zip):
+            print_banner("Failed to download %s" % (flutter_engine_zip))
+            return
+        print("** Downloaded %s" % (flutter_engine_zip))
 
         bundle_folder = os.path.join(flutter_auto_folder, engine_version[0:7], 'linux-x64', platform['flutter_runtime'], 'bundle')
         os.environ['BUNDLE_FOLDER'] = bundle_folder
@@ -903,6 +886,7 @@ def get_artifacts(config, flutter_sdk_path, flutter_auto_folder):
         host_type = get_host_type()
         icudtl_source = os.path.join(flutter_sdk_path, "bin/cache/artifacts/engine/%s-x64/icudtl.dat" % host_type)
         subprocess.check_call(["cp", icudtl_source, "%s/" % data_folder])
+
 
         with zipfile.ZipFile(flutter_engine_zip, "r") as zip_ref:
             zip_ref.extractall(lib_folder)
@@ -1007,6 +991,51 @@ def get_github_artifact(token, url, filename):
     return None
 
 
+def ubuntu_is_pkg_installed(package):
+    '''Ubuntu - checks if package is installed'''
+
+    cmd = ['dpkg-query', '-W', "--showformat='${Status}\n'", package, '|grep "install ok installed"']
+
+    result = subprocess.run(cmd, capture_output=True, text=True).stdout.strip('\'').strip('\n')
+
+    if type(result) == list:
+        test = result[0]
+    else:
+        test = result
+
+    if test == "install ok installed":
+        return True
+    elif test == "unknown ok not-installed":
+        return False
+
+
+def ubuntu_install_pkg_if_not_installed(package):
+    '''Ubuntu - Installs package if not already installed'''
+    if not ubuntu_is_pkg_installed(package):
+
+        print("\n* Installing runtime package dependency: %s" % package)
+
+        cmd = ["sudo", "apt", "update", "-y"]
+        subprocess.check_output(cmd)
+
+        cmd = ["sudo", "apt-get", "install", "-y", package]
+        subprocess.call(cmd)
+
+
+def install_minimum_runtime_deps():
+    '''Install minimum runtime deps to run this script'''
+    host_type = get_host_type()
+
+    if host_type == "linux":
+
+        os_release = get_freedesktop_os_release()
+
+        if os_release.get('NAME') == 'Ubuntu':
+
+            ubuntu_install_pkg_if_not_installed("curl")
+            ubuntu_install_pkg_if_not_installed("libcurl4-openssl-dev")
+
+
 def install_agl_emu_image(config, platform):
 
     host_type = get_host_type()
@@ -1029,9 +1058,6 @@ def install_agl_emu_image(config, platform):
             username = os.environ.get('USER')
 
             if os_release.get('NAME') == 'Ubuntu':
-
-                cmd = ["sudo", "apt", "update", "-y"]
-                subprocess.check_output(cmd)
 
                 cmd = ["sudo", "apt-get", "install", "-y", "qemu-system-x86", "ovmf", "qemu-kvm", "libvirt-daemon-system", "libvirt-clients", "bridge-utils"]
                 subprocess.call(cmd)
@@ -1074,6 +1100,8 @@ def install_agl_emu_image(config, platform):
                         print_banner("Failed to download %s" % (filename))
                         break
                     else:
+                        print("Downloaded: %s" % downloaded_file)
+
                         workspace = os.getenv('FLUTTER_WORKSPACE')
 
                         image_path = os.path.join(workspace, '.agl')
@@ -1154,6 +1182,7 @@ def install_flutter_auto(config, platform):
                     print("** Downloading %s run_id: %s via %s" % (github_workflow, run_id, url))
 
                     downloaded_file = get_github_artifact(github_token, url, artifact_name)
+                    print("** Downloaded: %s" % downloaded_file)
 
                     with zipfile.ZipFile(downloaded_file, "r") as zip_ref:
                         filelist = zip_ref.namelist()
@@ -1186,25 +1215,6 @@ def install_flutter_auto(config, platform):
                     cmd = ["rm", deb_file]
                     subprocess.check_output(cmd)
                     break
-
-
-def run_flutter_doctor():
-    ''' Runs flutter doctor '''
-
-    process = subprocess.Popen("flutter doctor -v", shell=True, stdout=subprocess.PIPE, universal_newlines=True)
-    ret = ""
-    print("Running flutter doctor -v")
-    for line in process.stdout:
-        print(line)
-        ret += str(line)
-    process.wait()
-    return ret
-
-
-def get_flutter_dir(fldoctor_ret):
-    search_start = "at"
-    search_end = "Upstream repository"
-    return fldoctor_ret[fldoctor_ret.find(search_start) + len(search_start):fldoctor_ret.find(search_end) - 5].strip()
 
 
 def is_repo(path):
