@@ -38,14 +38,14 @@
 			"runtime": {
 				"install_dependent_packages": true,
 				"relative_path": ".agl/agl-image-flutter-runtimedebug-qemux86-64.wic.vmdk",
-                "github_owner": "meta-flutter",
-			    "github_repo": "meta-flutter",
-                "github_workflow": "kirkstone-agl-x86_64.yml",
-			    "github_artifact": "agl-image-flutter-runtimedebug-qemux86-64-linux",
+				"github_owner": "meta-flutter",
+				"github_repo": "meta-flutter",
+				"github_workflow": "kirkstone-agl-x86_64.yml",
+				"github_artifact": "agl-image-flutter-runtimedebug-qemux86-64-linux",
 				"ovmf_path": "/usr/share/ovmf/OVMF.fd",
 				"cmd": "qemu-system-x86_64",
 				"args": "-enable-kvm -m 2048 -bios ${OVMF_PATH} -hda ${QEMU_IMAGE} -cpu kvm64 -cpu qemu64,+ssse3,+sse4.1,+sse4.2,+popcnt -vga virtio -show-cursor -device virtio-rng-pci -serial mon:stdio -serial null -soundhw hda -device virtio-net-pci,netdev=net0,mac=52:54:00:12:35:02 -netdev user,id=net0,hostfwd=tcp::2222-:22,hostfwd=tcp::1234-:1234"
-				},
+			},
 			"overwrite-existing": true,
 			"custom-device": {
 				"id": "AGL-qemu",
@@ -67,7 +67,7 @@
 					"bash", "-c", "ssh -p 2222 -t -t -oBatchMode=yes agl-driver@localhost mkdir -p \"/tmp/${appName}/data/flutter_assets\" && scp -r -P 2222 ${localPath}/../../.flutter-auto/* agl-driver@localhost:/tmp/${appName}"
 				],
 				"runDebug": [
-					"ssh", "-t", "-t", "-p", "2222", "-oBatchMode=yes", "agl-driver@localhost", 
+					"ssh", "-t", "-t", "-p", "2222", "-oBatchMode=yes", "agl-driver@localhost",
 					"flutter-auto",
 					"--j=/usr/share/flutter/default.json",
 					"--b=/tmp/${appName}",
