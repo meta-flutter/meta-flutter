@@ -29,7 +29,7 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 
 SRC_URI = "git://github.com/ardera/flutter-pi.git;protocol=https;branch=master \
            file://0001-path-updates.patch"
-SRCREV = "869fa7fcfbeb99662c3cae7ab8b5581e53295ce7"
+SRCREV = "cf57b52a5848439dd4a53b657cbcb06706340ee9"
 
 S = "${WORKDIR}/git"
 
