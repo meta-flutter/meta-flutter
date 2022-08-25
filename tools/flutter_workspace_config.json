@@ -1,11 +1,18 @@
 {
-	"flutter-version": "master",
+	"flutter-version": "3.0.1",
 	"platforms": [{
 			"id": "desktop-auto",
 			"type": "host",
 			"arch": "x86_64",
 			"flutter_runtime": "debug",
-			"enforce_runtime_packages": false,
+			"runtime": {
+				"install_dependent_packages": true,
+				"github_owner": "toyota-connected",
+				"github_repo": "ivi-homescreen",
+				"github_workflow": "flutter-auto-linux.yml",
+				"artifact_name": "flutter-auto-vulkan-dbg.amd64.deb.zip"
+			},
+			"overwrite-existing": true,
 			"custom-device": {
 				"id": "desktop-auto",
 				"label": "Toyota flutter-auto",
@@ -14,10 +21,10 @@
 				"enabled": true,
 				"ping": ["bash", "-c", "loginctl show-session $(awk '/tty/ {print $1}' <(loginctl)) -p Type"],
 				"pingSuccessRegex": "Type=wayland",
-				"postBuild": ["bash", "-c", "source $FLUTTER_WORKSPACE/.flutter-auto/post_build.sh", "${appName}", "${localPath}"],
-				"install": ["cp", "-r", "${localPath}/*", "/tmp/${appName}"],
+				"postBuild": null,
+				"install": ["bash", "-c", "mkdir -p /tmp/${appName}/data/flutter_assets && cp -r ${BUNDLE_FOLDER}/* /tmp/${appName} && cp -r ${localPath}/* /tmp/${appName}/data/flutter_assets"],
 				"uninstall": ["rm", "-rf", "tmp/${appName}"],
-				"runDebug": ["flutter-auto", "--j=$FLUTTER_WORKSPACE/.flutter-auto/default_config.json", "--b=/tmp/${appName}"],
+				"runDebug": ["flutter-auto", "--j=${FLUTTER_WORKSPACE}/.flutter-auto/default_config.json", "--b=/tmp/${appName}"],
 				"forwardPort": null,
 				"forwardPortSuccessRegex": null,
 				"screenshot": null
@@ -28,10 +35,17 @@
 			"type": "qemu",
 			"arch": "x86_64",
 			"flutter_runtime": "debug",
-			"image": "$HOME/development/.agl/agl-image-flutter-runtimedebug-qemux86-64.wic.vmdk",
-			"launch_app": "qemu-system-x86_64",
-			"launch_args": "-enable-kvm -m 2048 -bios ${OVMF_PATH} -hda ${QEMU_IMAGE} -cpu kvm64 -cpu qemu64,+ssse3,+sse4.1,+sse4.2,+popcnt -vga virtio -show-cursor -device virtio-rng-pci -serial mon:stdio -serial null -soundhw hda -net nic -netdev user,id=net0,hostfwd=tcp::2222-:22",
-			"ovmf_path": "/usr/share/ovmf/OVMF.fd",
+			"runtime": {
+				"install_dependent_packages": true,
+				"relative_path": ".agl/agl-image-flutter-runtimedebug-qemux86-64.wic.vmdk",
+				"github_owner": "meta-flutter",
+				"github_repo": "meta-flutter",
+				"github_workflow": "kirkstone-agl-x86_64.yml",
+				"github_artifact": "agl-image-flutter-runtimedebug-qemux86-64-linux",
+				"ovmf_path": "/usr/share/ovmf/OVMF.fd",
+				"cmd": "qemu-system-x86_64",
+				"args": "-enable-kvm -m 2048 -bios ${OVMF_PATH} -hda ${QEMU_IMAGE} -cpu kvm64 -cpu qemu64,+ssse3,+sse4.1,+sse4.2,+popcnt -vga virtio -show-cursor -device virtio-rng-pci -serial mon:stdio -serial null -soundhw hda -device virtio-net-pci,netdev=net0,mac=52:54:00:12:35:02 -netdev user,id=net0,hostfwd=tcp::2222-:22,hostfwd=tcp::1234-:1234"
+			},
 			"overwrite-existing": true,
 			"custom-device": {
 				"id": "AGL-qemu",
@@ -39,12 +53,27 @@
 				"sdkNameAndVersion": "agl-image-flutter-runtimedebug-qemux86-64.wic.vmdk",
 				"platform": "linux-x64",
 				"enabled": true,
-				"ping": ["bash", "-c", "(echo >/dev/tcp/localhost/2222) &>/dev/null && echo \"open 2222\" || echo \"close 2222\""],
+				"ping": [
+					"bash", "-c", "(echo >/dev/tcp/localhost/2222) &>/dev/null && echo \"open 2222\" || echo \"close 2222\""
+				],
 				"pingSuccessRegex": "open 2222",
-				"postBuild": ["bash", "-c", "source $FLUTTER_WORKSPACE/.flutter-auto/post_build.sh ${appName} ${localPath}"],
-				"install": ["scp", "-P 2222", "-r", "-o", "BatchMode=yes", "${localPath}", "agl-driver@localhost:/tmp/${appName}"],
-				"uninstall": ["ssh", "-p 2222", "-o", "BatchMode=yes", "agl-driver@localhost", "rm -rf \"/tmp/${appName}\""],
-				"runDebug": ["ssh", "-p 2222", "-t -t", "-o", "BatchMode=yes", "agl-driver@localhost", "/usr/bin/flutter-auto --j=/usr/share/flutter/default.json --b=/tmp/${appName}"],
+				"postBuild": [
+					"bash", "-c", "mkdir -p ${localPath}/../../.flutter-auto/data/flutter_assets && cp -r ${localPath}/* ${localPath}/../../.flutter-auto/data/flutter_assets && ssh -p 2222 -t -oBatchMode=yes root@localhost passwd -d agl-driver"
+				],
+				"uninstall": [
+					"bash", "-c", "ssh -p 2222 -t -t -oBatchMode=yes agl-driver@localhost rm -rf \"/tmp/${appName}\""
+				],
+				"install": [
+					"bash", "-c", "ssh -p 2222 -t -t -oBatchMode=yes agl-driver@localhost mkdir -p \"/tmp/${appName}/data/flutter_assets\" && scp -r -P 2222 ${localPath}/../../.flutter-auto/* agl-driver@localhost:/tmp/${appName}"
+				],
+				"runDebug": [
+					"ssh", "-t", "-t", "-p", "2222", "-oBatchMode=yes", "agl-driver@localhost",
+					"flutter-auto",
+					"--j=/usr/share/flutter/default.json",
+					"--b=/tmp/${appName}",
+					"--observatory-host=0.0.0.0",
+					"--observatory-port=1234"
+				],
 				"forwardPort": null,
 				"forwardPortSuccessRegex": null,
 				"screenshot": null
@@ -63,7 +92,7 @@
 				"label": "Raspberry Pi",
 				"sdkNameAndVersion": "Raspberry Pi 4 Model B+ 4",
 				"platform": null,
-				"enabled": true,
+				"enabled": false,
 				"ping": ["ping", "-n", "1", "-w", "500", "${TARGET_ADDRESS}"],
 				"pingSuccessRegex": "[<=]\\d+ms",
 				"postBuild": null,
