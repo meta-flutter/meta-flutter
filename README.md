@@ -154,28 +154,32 @@ When building on systems with GCC version > than uninative in Yocto distro add t
 We developed a Python script, `setup_flutter_workspace.py` to automate embedded flutter setup.This script reads a JSON configuration file and sets up a Flutter Workspace.
 
 ### What does setup_flutter_workspace.py do:
-•Creates workspace
-•Enumerates all repositories defined and clones them in the app folder
-•Installs custom-devices
-•Installs flutter-auto and runtime dependencies
-•Installs QEMU image and runtime dependencies
-•Creates setup_env.sh
-•Runs on Linux and Mac
+* Creates workspace
+* Enumerates all repositories defined and clones them in the app folder
+* Installs custom-devices
+* Installs flutter-auto and runtime dependencies
+* Installs QEMU image and runtime dependencies
+* Creates setup_env.sh
+* Runs on Linux and Mac
+
+### Flutter Workspace contains:
+* A Flutter workspace contains the following components
+* Flutter SDK
+* Development Repositories
+* Host Runtime images
+* flutter-auto binary
+* QEMU image
+* Versioned x86_64 libflutter_engine.so and icudtl.dat (debug)
+* Custom-device configurations
+* Public Cache
 
 ### JSON Configuration 
-•General
-• flutter-version
-• github_token
-• gitlab_token*
-• jartifactory_token*
-•Platforms Object
-•General: id, type, arch, flutter_runtime
-•Runtime: key/values related to installing binary runtime
-•Custom-device: key/values directly installed as custom-device
-•Repos Object
-•Array of GIT repos to clone: uri, branch, rev
-•Minimal configuration
-•{"flutter-version":"stable","platforms":[],"repos":[]}
+* General: flutter-version, github_token, and Platforms Object
+* General: id, type, arch, flutter_runtime
+* Runtime: key/values related to installing binary runtime
+* Custom-device: key/values directly installed as custom-device
+* Repos Object: Array of GIT repos to clone: uri, branch, rev
+* Minimal configuration: {"flutter-version":"stable","platforms":[],"repos":[]}
 
 ### Easy Install Method 
 ```
@@ -189,32 +193,32 @@ cd meta-flutter/tools
 ./setup_flutter_workspace.py
 ```
 ### run flutter app with desktop-auto 
-•Login via GDM Wayland Session
-•Open Terminal and type
-`source ${FLUTTER_WORKSPACE}/setup_env.sh`
-•Navigate to your favorite app
-`flutter run`
-•Select "Toyota flutter-auto (desktop-auto)"
+* Login via GDM Wayland Session
+* Open Terminal and type
+* `source ${FLUTTER_WORKSPACE}/setup_env.sh`
+* Navigate to your favorite app
+* `flutter run`
+* Select "Toyota flutter-auto (desktop-auto)"
 
-### run flutter app with QEMU 
-•Open Terminal and type
-`source ${FLUTTER_WORKSPACE}/setup_env.sh`
-•Type `qemu_run`
-•Wait until QEMU image reaches login prompt
-•Run `ssh –p 2222 root@localhost who` to add remote host to ~/.ssh/known_hosts
-•Navigate to your favorite app
-•`flutter run`
-•Select "AGL x86_64 QEMU Image (AGL-qemu)"
+### steps to run flutter app with QEMU 
+* Open Terminal and type
+* `source ${FLUTTER_WORKSPACE}/setup_env.sh`
+* Type `qemu_run`
+* Wait until QEMU image reaches login prompt
+* Run `ssh –p 2222 root@localhost who` to add remote host to ~/.ssh/known_hosts
+* Navigate to your favorite app
+* `flutter run`
+* Select "AGL x86_64 QEMU Image (AGL-qemu)"
 
 ### create a hello world flutter example 
-•Login to Ubuntu desktop via Wayland Session
-•Open Terminal and type
-•source ${FLUTTER_WORKSPACE}/setup_env.sh
-•cd ${FLUTTER_WORKSPACE}/app
-•flutter create hello_world -t app
-•cd hello_world
-•flutter run
-•Select "Toyota flutter-auto (desktop-auto)"
+* Login to Ubuntu desktop via Wayland Session
+* Open Terminal and type
+* `source ${FLUTTER_WORKSPACE}/setup_env.sh`
+* `cd ${FLUTTER_WORKSPACE}/app`
+* `flutter create hello_world -t app`
+* `cd hello_world`
+* `flutter run`
+* Select "Toyota flutter-auto (desktop-auto)"
 
 
  
