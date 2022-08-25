@@ -213,6 +213,11 @@ def main():
     setup_env_script(args, platforms)
 
     #
+    # Create vscode environment
+    #
+    setup_vscode_env()
+
+    #
     # Configure SDK
     #
     configure_flutter_sdk()
@@ -1326,6 +1331,44 @@ def setup_env_script(args, platform):
                         "}\n"
                     ])
 
+def setup_vscode_env():
+    '''Creates vscode startup task'''
+
+    os.makedirs(".vscode")
+    with open('.vscode/tasks.json', 'w+') as script:
+
+        script.writelines([
+            "{\r\n"
+            "    \"version\": \"2"
+            ".0.0\",\r\n"
+            "    \"tasks\": [\r\n"
+            "        {\r\n"
+            "            \"label"
+            "\": \"source env\","
+            "\r\n"
+            "            \"type\""
+            ": \"shell\",\r\n"
+            "            \"comman"
+            "d\": \"source setup_"
+            "env.sh\",\r\n"
+            "            \"presen"
+            "tation\": {\r\n"
+            "                \"re"
+            "veal\": \"always\","
+            "\r\n"
+            "                \"pa"
+            "nel\": \"new\",\r\n"
+            "            },\r\n"
+            "            \"runOpt"
+            "ions\" :{\r\n"
+            "                \"ru"
+            "nOn\" : \"folderOpen"
+            "\"\r\n"
+            "            }\r\n"
+            "        },\r\n"
+            "    ]\r\n"
+            "}"
+        ])
 
 
 if __name__ == "__main__":
