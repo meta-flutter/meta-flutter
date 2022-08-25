@@ -2,11 +2,20 @@
 
 Yocto Layer for Google Flutter related projects.
 
+[![kirkstone-agl-renesas-m3](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-agl-renesas-m3.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-agl-renesas-m3.yml)
+
+[![kirkstone-agl-x86_64](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-agl-x86_64.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-agl-x86_64.yml)
+
+[![kirkstone-imx8mmevk](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-imx8mmevk.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-imx8mmevk.yml)
+
 [![kirkstone-linux-dummy](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-linux-dummy.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-linux-dummy.yml)
+
+[![kirkstone-qc-dragonboard](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-qc-dragonboard.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-qc-dragonboard.yml)
 
 [![kirkstone-rpi-zero2w-64](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-rpi-zero2w-64.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-rpi-zero2w-64.yml)
 
-[![kirkstone-qc-dragonboard](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-qc-dragonboard.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-qc-dragonboard.yml)
+[![kirkstone-rm32mp15](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-stm32mp15.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-stm32mp15.yml)
+
 
 _Updates_:
 
@@ -15,9 +24,7 @@ _Updates_:
   Suffix for flutter runtime types has been changed to better define it.  Less confusing. 
 
   -runtimerelease (was -release)
-
   -runtimeprofile (was -profile)
-
   -runtimedebug (was -debug)
 
 * FLUTTER_CHANNEL support has been deprecated
@@ -32,64 +39,54 @@ _Updates_:
 
   ```
   PACKAGECONFIG:pn-flutter-engine-runtimerelease = "disable-desktop-embeddings embedder-for-target fontconfig release"
-  
   PACKAGECONFIG:pn-flutter-engine-runtimedebug = "disable-desktop-embeddings embedder-for-target fontconfig debug"
-
   PACKAGECONFIG:pn-flutter-engine-runtimeprofile = "disable-desktop-embeddings embedder-for-target fontconfig profile"
    ```
   This issue is related to missing gn options `--build-embedder-examples` and `--no-build-embedder-examples` from certain builds.  I have `disable-embedder-examples` defined in PACKAGECONFIG by default, so if you have an engine commit that is missing this option, you need to use the PACKAGECONFIG sequence above.  Once the gn option rolls into all channels this override will no longer be needed.
 
 ### Recommended development flow:
-* Build Flutter application using desktop tools
-* Use Flutter Engine Runtime=Debug build confirming it works on target.  Debug as needed using customdevices
-* Create Yocto Recipe for your Flutter application using `flutter-gallery-*` as the template.
+* Create flutter workspace using ./tools/setup_flutter_workspace.py
+* Debug and validate application on host using flutter-auto, AGL QEMU, or Linux GTK.
+  - 1P Linux plugins should be avoided.  They may work on a runtime=debug image, but will not work in an AOT (runtime=release) image.
+* Create Yocto Recipe for your Flutter application using `flutter-gallery-*` or one of the many app recipes as the template.
   Nested projected are supported using FLUTTER_APPLICATION_PATH.
   Passing Dart defines are done with FLUTTER_EXTRA_BUILD_ARGS.
-* Add flutter-gallery, selected embedder, flutter-engine runtime=Release to your release image.
+* Add your app, and selected embedder to your release image.  The flutter engine will be implicitly added to the image.
 * Image device
-
-Note: If you get a gray screen running the Gallery app, chances are you don't have a locale set.  Ensure your platform has a valid locale set.  See GLIBC_GENERATE_LOCALES and IMAGE_LINGUAS in one of the NVidia CI projects on how to do this.
-
-Note: In theory Swift Shader (CPU render) engine builds should work with the right build flags.  Be warned it won't work out of the box.  Select a SoC with a GPU that supports OpenGL 3.0+ and save yourself the Engineering NRE.
 
 ## Layers dependencies
 
 * meta-clang
 
-Clang generates smaller runtime images, and is used by Google to build the the flutter engine for Android and iOS.  Changing toolchains should be avoided, as this would provide a path with little to no test milage.  If you are trying to port the flutter-engine to QNX 7.0 feel free to contact me.
+Clang generates smaller runtime images, and is used by Google to build the the flutter engine for Android and iOS.  Changing toolchains should be avoided, as this would provide a path with little to no test milage.
 
 ## Overview
 
 Target BSP is expected to have a GPU with OpenGLES v2.0+ support.  
 If you selecting a part go with v3.0+, ideally one with Vulkan support.
 
-This layer includes recipes to build
-
-* flutter-sdk (channel selection, default is master if FLUTTER_SDK_TAG is not set)
-* flutter-engine (tracks engine.version from FLUTTER_SDK_TAG)
-* flutter-gallery Application (debug, profile, and release) requires master
-* ivi-homescreen (Toyota/AGL - Wayland Embedder)
-* flutter-pi (DRM w/VSync - Recommended embedder for DRM)
-* flutter-wayland (POC) / waylandpp/ipugxml (archived)
-* Sony embedders
-
 ## Notes
+
+* There are no OSS Linux embedders (that I am aware of that currently support software rendering).  The engine does support it.
+
+* `flutter-auto` is the `agl` branch of https://github.com/toyota-connected/ivi-homescreen
+  the `main` branch has moved to quarterly releases, the `agl` branch is directly supporting AGL development work.
 
 ### CI Jobs
 
-* linux-dummy.yml - meta-flutter canary CI job builds all recipes against linux-dummy kernel (except x11 client)
+* kirkstone-agl-renesas-m3.yml - Renesas M3 build.  Time boxed GPU driver (30 minutes?).  AGL canaray build.
 
-* rpi-32 (DRM, flutter-pi, flutter-gallery, vulkan)
+* kirkstone-agl-x86_64.yml - meta-flutter QEMU image used with tools/seup_flutter_workspace.py.  Test build for AGL downstream work.
 
-    RPI3 DRM - 32-bit RaspberryPi3 image - No X11/Wayland (Vulkan driver responds to Vulkan)
+* kirkstone-imx8mmevk.yml - NXP imx8mmevk baseline Wayland image.
 
-    RPI4 DRM - 32-bit RaspberryPi3 image - No X11/Wayland (Mesa Vulkan Driver functional)
+* kirkstone-linux-dummy.yml - Tests all recipes in the layer without a dummy Linux kernel (save build time).
 
-* rpi-64 (DRM, flutter-pi, flutter-gallery, vulkan)
+* kirkstone-qc-dragonboard.yml - DB410C and DB820C Wayland images.
 
-    RPI3 DRM - 32-bit RaspberryPi3 image - No X11/Wayland (Vulkan driver loaded and not functional)
+* kirkstone-rpi-zero2w-64.yml - RPI Zero2W Wayland image (flutter-auto).  Farily full featured with Network Manager, BT, WiFi, etc.
 
-    RPI4 DRM - 32-bit RaspberryPi3 image - No X11/Wayland (Mesa Vulkan Driver functional)
+* kirkstone-stm32mp15.yml - eglfs (flutter-pi) st-core-image+SDK and wayland (flutter-auto) st-core-image+SDK.
 
 Notes: CI job sstate is cleared between builds for all meta-flutter recipes; clean builds.
 
@@ -98,16 +95,17 @@ Notes: CI job sstate is cleared between builds for all meta-flutter recipes; cle
 
 Targets flutter-engine-* is known to work on
 
-* AGL QEMU images - aarch64/x86_64 (CI job)
-* DragonBoard 410c - aarch64
-* Intel MinnowBoard Max (BayTrail) - intel-icore7-64
-* NVIDIA Nano Dev Kit - aarch64 (CI job)
-* NVIDIA Xavier NX Dev Kit - aarch64 (CI job)
-* Raspberry Pi 3 / Compute - aarch64 / armv7hf (CI job)
-* Raspberry Pi 4 / Compute - aarch64 (CI job)
-* Renesas R-Car m3ulcb - aarch64
-* STM32MP157x - cortexa7t2hf (CI job)
-* etc, etc
+* AGL QEMU images - aarch64/x86_64
+* Intel icore7-64
+* NVIDIA Nano, Xavier Dev Kits - aarch64
+* NXP iMX7 (caveats), iMX8
+* Qualcomm DragonBoard DB410c, DB820, SA6155P, SA8xxx - aarch64
+* Raspberry Pi 3 / Compute - aarch64 / armv7hf
+* Raspberry Pi 4 / Compute - aarch64
+* Raspberry Pi ZeroW / Zero2W - aarch64
+* Renesas R-Car M3/H3 - aarch64
+* STM32MP157x - cortexa7t2hf
+* etc
 
 ## Include the Flutter SDK into Yocto SDK
 
@@ -118,31 +116,6 @@ Add to local.conf file:
 Then run:
 
     bitbake <image name> -c populate_sdk
-
-## NXP i.MX 8QuadXPlus MEK
-
-```
-repo init -u https://source.codeaurora.org/external/imx/imx-manifest -b imx-linux-gatesgarth -m imx-5.10.9-1.0.0.xml
-repo sync -j20
-DISTRO=fslc-wayland MACHINE=imx8qxpmek source setup-environment build
-pushd ../sources
-git clone -b honister https://github.com/meta-flutter/meta-flutter.git
-popd
-bitbake-layers add-layer ../sources/meta-clang ../sources/meta-flutter
-echo -e 'FLUTTER_SDK_TAG = "2.10.4"' >> conf/local.conf
-echo -e 'IMAGE_INSTALL:append = " flutter-engine-runtimerelease"' >> conf/local.conf
-echo -e 'IMAGE_INSTALL:append = " ivi-homescreen-runtimerelease"' >> conf/local.conf
-echo -e 'IMAGE_INSTALL:append = " flutter-gallery-runtimerelease"' >> conf/local.conf
-bitbake fsl-image-multimedia
-```
-
-## Raspberry PI 3/4 (aarch64)
-
-See rpi-32.yml/rpi-64.yml for example usage, or download build artifacts from this repo.
-
-## STM32MP157x Discovery Board
-
-See `dunfell` branch for CI job example.
 
 ## General Yocto Notes
 
