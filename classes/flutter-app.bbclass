@@ -16,7 +16,6 @@ DEPENDS += " \
     compiler-rt \
     flutter-engine-${@gn_get_flutter_runtime_name(d)} \
     flutter-sdk-native \
-    glib-2.0 gtk+3 \
     libcxx \
     ninja-native \
     unzip-native \
