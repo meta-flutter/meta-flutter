@@ -77,7 +77,7 @@ jobs:
           echo 'IMAGE_INSTALL:append = "\
               tzdata-core \
               tzdata-americas \
-              ivi-homescreen-runtimerelease \
+              flutter-auto-runtimerelease \
               flutter-gallery-runtimerelease \
               flutter-test-texture-egl-runtimerelease \
               flutter-test-video-player-runtimerelease \

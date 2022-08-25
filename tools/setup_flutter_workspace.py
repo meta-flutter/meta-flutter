@@ -74,6 +74,11 @@ def main():
     print_banner("Setting up Flutter Workspace in: %s" % workspace)
 
     #
+    # Install minimum package
+    #
+    install_minimum_runtime_deps()
+
+    #
     # Install required modules
     #
     required = {'requests', 'pycurl'}
@@ -85,11 +90,6 @@ def main():
         print("Installing required Python packages: %s" % required)
         python = sys.executable
         subprocess.check_call([python, '-m', 'pip', 'install', *missing], stdout=subprocess.DEVNULL)
-
-    #
-    # Install minimum package
-    #
-    install_minimum_runtime_deps()
 
     #
     # Control+C handler
