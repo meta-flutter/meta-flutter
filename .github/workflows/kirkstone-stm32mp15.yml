@@ -136,10 +136,14 @@ jobs:
           source layers/meta-st/scripts/envsetup.sh --no-ui
           bitbake st-image-core
           rm -rf /home/dev/artifacts/*
+          mkdir -p /home/dev/artifacts/arm-trusted-firmware
           cd tmp-glibc/deploy/images/${{ env.MACHINE }}
-          rm *.raw
-          source ./scripts/create_sdcard_from_flashlayout.sh flashlayout_st-image-core/optee/FlashLayout_sdcard_stm32mp157f-dk2-optee.tsv
-          cp FlashLayout_sdcard_stm32mp157f-dk2-optee.raw /home/dev/artifacts/
+          cp -r flashlayout_st-image-core /home/dev/artifacts/
+          cp -r fip /home/dev/artifacts
+          cp -r scripts /home/dev/artifacts
+          cp arm-trusted-firmware/* /home/dev/artifacts/arm-trusted-firmware/
+          cp st-image-*-${{ env.DISTRO }}-${{ env.MACHINE }}.ext4 /home/dev/artifacts/
+          ls -la /home/dev/artifacts
 
       - name: Publish OS image artifact
         uses: actions/upload-artifact@v2
@@ -298,10 +302,14 @@ jobs:
           source layers/meta-st/scripts/envsetup.sh --no-ui
           bitbake st-image-core
           rm -rf /home/dev/artifacts/*
+          mkdir -p /home/dev/artifacts/arm-trusted-firmware
           cd tmp-glibc/deploy/images/${{ env.MACHINE }}
-          rm *.raw
-          source ./scripts/create_sdcard_from_flashlayout.sh flashlayout_st-image-core/optee/FlashLayout_sdcard_stm32mp157f-dk2-optee.tsv
-          cp FlashLayout_sdcard_stm32mp157f-dk2-optee.raw /home/dev/artifacts/
+          cp -r flashlayout_st-image-core /home/dev/artifacts/
+          cp -r fip /home/dev/artifacts
+          cp -r scripts /home/dev/artifacts
+          cp arm-trusted-firmware/* /home/dev/artifacts/arm-trusted-firmware/
+          cp st-image-*-${{ env.DISTRO }}-${{ env.MACHINE }}.ext4 /home/dev/artifacts/
+          ls -la /home/dev/artifacts
 
       - name: Publish OS image artifact
         uses: actions/upload-artifact@v2
