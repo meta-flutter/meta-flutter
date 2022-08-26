@@ -91,3 +91,16 @@ cd meta-flutter/tools
 * `cd hello_world`
 * `flutter run`
 * Select "Toyota flutter-auto (desktop-auto)"
+
+### Visual Studio Code
+
+#### Launching on Ubuntu
+
+```
+    cd <your flutter workspace>
+    source ./setup_env.sh
+    code .
+```
+#### Debugging
+
+`setup_flutter_workspace.py` creates a `.vscode/launch.json` file if one is not present.  It uses the repo configuration key `pubspec_path`.  If this key is not present in the repo entry, then it will not get added to `.vscode/launch.json`.
