@@ -136,20 +136,14 @@ jobs:
           source layers/meta-st/scripts/envsetup.sh --no-ui
           bitbake st-image-core
           rm -rf /home/dev/artifacts/*
-          mkdir -p /home/dev/artifacts/arm-trusted-firmware
           cd tmp-glibc/deploy/images/${{ env.MACHINE }}
-          cp -r flashlayout_st-image-core /home/dev/artifacts/
-          cp -r fip /home/dev/artifacts
-          cp -r scripts /home/dev/artifacts
-          cp arm-trusted-firmware/*.stm32 /home/dev/artifacts/arm-trusted-firmware/
-          cp arm-trusted-firmware/metadata.bin /home/dev/artifacts/arm-trusted-firmware/
-          cp st-image-*-${{ env.DISTRO }}-${{ env.MACHINE }}.ext4 /home/dev/artifacts/
-          ls -la /home/dev/artifacts
+          source ./scripts/create_sdcard_from_flashlayout.sh flashlayout_st-image-core/optee/FlashLayout_sdcard_stm32mp157f-dk2-optee.tsv
+          cp FlashLayout_sdcard_stm32mp157f-dk2-optee.raw /home/dev/artifacts/
 
       - name: Publish OS image artifact
         uses: actions/upload-artifact@v2
         with:
-          name: stm32mp15-disco-core-eglfs-runtimerelease-image
+          name: sdcard_stm32mp157f-dk2-optee-runtimerelease-drm
           path: |
              /home/dev/artifacts/*
 
@@ -303,20 +297,14 @@ jobs:
           source layers/meta-st/scripts/envsetup.sh --no-ui
           bitbake st-image-core
           rm -rf /home/dev/artifacts/*
-          mkdir -p /home/dev/artifacts/arm-trusted-firmware
           cd tmp-glibc/deploy/images/${{ env.MACHINE }}
-          cp -r flashlayout_st-image-core /home/dev/artifacts/
-          cp -r fip /home/dev/artifacts
-          cp -r scripts /home/dev/artifacts
-          cp arm-trusted-firmware/*.stm32 /home/dev/artifacts/arm-trusted-firmware/
-          cp arm-trusted-firmware/metadata.bin /home/dev/artifacts/arm-trusted-firmware/
-          cp st-image-*-${{ env.DISTRO }}-${{ env.MACHINE }}.ext4 /home/dev/artifacts/
-          ls -la /home/dev/artifacts
+          source ./scripts/create_sdcard_from_flashlayout.sh flashlayout_st-image-core/optee/FlashLayout_sdcard_stm32mp157f-dk2-optee.tsv
+          cp FlashLayout_sdcard_stm32mp157f-dk2-optee.raw /home/dev/artifacts/
 
       - name: Publish OS image artifact
         uses: actions/upload-artifact@v2
         with:
-          name: stm32mp15-disco-core-weston-runtimerelease-image
+          name: sdcard_stm32mp157f-dk2-optee-runtimerelease-weston
           path: |
              /home/dev/artifacts/*
 
