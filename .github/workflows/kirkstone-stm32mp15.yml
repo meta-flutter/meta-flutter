@@ -137,6 +137,7 @@ jobs:
           bitbake st-image-core
           rm -rf /home/dev/artifacts/*
           cd tmp-glibc/deploy/images/${{ env.MACHINE }}
+          rm *.raw
           source ./scripts/create_sdcard_from_flashlayout.sh flashlayout_st-image-core/optee/FlashLayout_sdcard_stm32mp157f-dk2-optee.tsv
           cp FlashLayout_sdcard_stm32mp157f-dk2-optee.raw /home/dev/artifacts/
 
@@ -298,6 +299,7 @@ jobs:
           bitbake st-image-core
           rm -rf /home/dev/artifacts/*
           cd tmp-glibc/deploy/images/${{ env.MACHINE }}
+          rm *.raw
           source ./scripts/create_sdcard_from_flashlayout.sh flashlayout_st-image-core/optee/FlashLayout_sdcard_stm32mp157f-dk2-optee.tsv
           cp FlashLayout_sdcard_stm32mp157f-dk2-optee.raw /home/dev/artifacts/
 
