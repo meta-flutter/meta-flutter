@@ -1167,6 +1167,7 @@ def install_minimum_runtime_deps():
 
             ubuntu_install_pkg_if_not_installed("curl")
             ubuntu_install_pkg_if_not_installed("libcurl4-openssl-dev")
+            ubuntu_install_pkg_if_not_installed("libssl-dev")
 
 
 def install_agl_emu_image(config, platform):
