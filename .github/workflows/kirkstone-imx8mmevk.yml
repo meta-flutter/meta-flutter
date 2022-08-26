@@ -74,6 +74,7 @@ jobs:
           echo 'GLIBC_GENERATE_LOCALES:append = " en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> conf/local.conf
           echo 'IMAGE_LINGUAS:append = " en-us en-gb es-us"' >> conf/local.conf
           echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> conf/local.conf
+          echo 'DISTRO_FEATURES:remove = "vulkan"' >> conf/local.conf
           echo 'IMAGE_INSTALL:append = "\
               tzdata-core \
               tzdata-americas \
