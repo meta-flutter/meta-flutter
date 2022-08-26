@@ -6,7 +6,10 @@
 			"arch": "x86_64",
 			"flutter_runtime": "debug",
 			"runtime": {
+				"default_width": 1920,
+				"default_height": 720,
 				"install_dependent_packages": true,
+				"artifact_source": "github",
 				"github_owner": "toyota-connected",
 				"github_repo": "ivi-homescreen",
 				"github_workflow": "flutter-auto-linux.yml",
@@ -38,6 +41,7 @@
 			"runtime": {
 				"install_dependent_packages": true,
 				"relative_path": ".agl/agl-image-flutter-runtimedebug-qemux86-64.wic.vmdk",
+				"artifact_source": "github",
 				"github_owner": "meta-flutter",
 				"github_repo": "meta-flutter",
 				"github_workflow": "kirkstone-agl-x86_64.yml",
@@ -108,22 +112,26 @@
 	"repos": [{
 			"uri": "https://github.com/flutter/gallery.git",
 			"branch": "master",
-			"rev": "9eb785cb997ff56c46e933c1c591f0a6f31454f6"
+			"rev": "9eb785cb997ff56c46e933c1c591f0a6f31454f6",
+			"pubspec_path": "gallery"
 		},
 		{
 			"uri": "https://github.com/mogol/flutter_secure_storage.git",
 			"branch": "develop",
-			"rev": "e716593352b80330e05729486eade7c2167d3c71"
+			"rev": "e716593352b80330e05729486eade7c2167d3c71",
+			"pubspec_path": "flutter_secure_storage/flutter_secure_storage_linux/example"
 		},
 		{
 			"uri": "https://github.com/felipeerias/flutter_homescreen.git",
 			"branch": "main",
-			"rev": "08bf271f7f1f14153a41005718a2090fa8e783f0"
+			"rev": "08bf271f7f1f14153a41005718a2090fa8e783f0",
+			"pubspec_path": "flutter_homescreen"
 		},
 		{
 			"uri": "https://github.com/bernardpumped/ped.git",
 			"branch": "main",
-			"rev": "7a670295d5a94508862316e045e789e0dfd01b20"
+			"rev": "7a670295d5a94508862316e045e789e0dfd01b20",
+			"pubspec_path": "ped"
 		}
 	]
 }
