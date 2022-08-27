@@ -86,7 +86,7 @@ jobs:
                     flutter-engine-runtimerelease-sdk-dev \
                     flutter-gallery-runtimerelease \
                     flutter-test-video-player-runtimerelease \
-                    flutter-test-localization \
+                    flutter-test-localization-runtimerelease \
                     avahi-daemon \
                     ntp ntp-tickadj \
                     fbgrab \
@@ -243,14 +243,14 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " packagegroup-framework-core-extra "' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " packagegroup-st-demo "' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " gtk+3-demo "' >> $LOCAL_CONF
-          echo 'CORE_IMAGE_EXTRA_INSTALL += " \
+          echo 'CORE_IMAGE_EXTRA_INSTALL += "\
                     weston weston-init \
                     flutter-engine-runtimerelease-sdk-dev \
                     flutter-auto-runtimerelease \
                     flutter-gallery-runtimerelease \
                     flutter-test-texture-egl-runtimerelease \
                     flutter-test-video-player-runtimerelease \
-                    flutter-test-localization \
+                    flutter-test-localization-runtimerelease \
                     flutter-pi-runtimerelease \
                     adwaita-icon-theme-cursors \
                     xdg-user-dirs \
@@ -282,13 +282,13 @@ jobs:
           echo '***************************************'
           bitbake -e > bb.environment
           echo '* DISTRO_FEATURES *********************'
-          bitbake -e st-image-core | grep "^DISTRO_FEATURES"
+          bitbake -e st-image-weston | grep "^DISTRO_FEATURES"
           echo '* CORE_IMAGE_EXTRA_INSTALL ************'
-          bitbake -e st-image-core | grep "^CORE_IMAGE_EXTRA_INSTALL"
+          bitbake -e st-image-weston | grep "^CORE_IMAGE_EXTRA_INSTALL"
           echo '* COMBINED_FEATURES *******************'
-          bitbake -e st-image-core | grep "^COMBINED_FEATURES"
+          bitbake -e st-image-weston | grep "^COMBINED_FEATURES"
           echo '* IMAGE_FEATURES **********************'
-          bitbake -e st-image-core | grep "^IMAGE_FEATURES"
+          bitbake -e st-image-weston | grep "^IMAGE_FEATURES"
           echo '***************************************'
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
@@ -296,16 +296,16 @@ jobs:
           bitbake flutter-pi-runtimerelease -c do_cleansstate
           bitbake flutter-engine-runtimerelease -c do_cleansstate
 
-      - name: Build st-image-core
+      - name: Build st-image-weston
         shell: bash
         working-directory: ../${{ env.WORKSPACE }}
         run: |
           source layers/meta-st/scripts/envsetup.sh --no-ui
-          bitbake st-image-core
+          bitbake st-image-weston
           rm -rf /home/dev/artifacts/*
           mkdir -p /home/dev/artifacts/arm-trusted-firmware
           cd tmp-glibc/deploy/images/${{ env.MACHINE }}
-          cp -r flashlayout_st-image-core /home/dev/artifacts/
+          cp -r flashlayout_st-image-weston /home/dev/artifacts/
           cp -r fip /home/dev/artifacts
           cp -r scripts /home/dev/artifacts
           cp arm-trusted-firmware/*.stm32 /home/dev/artifacts/arm-trusted-firmware/
@@ -320,18 +320,18 @@ jobs:
           path: |
              /home/dev/artifacts/*
 
-      - name: Build st-image-core-weston-flutter-runtimerelease SDK
+      - name: Build st-image-weston-weston-flutter-runtimerelease SDK
         shell: bash
         working-directory: ../${{ env.WORKSPACE }}
         run: |
           source layers/meta-st/scripts/envsetup.sh --no-ui
-          bitbake st-image-core -c do_populate_sdk
+          bitbake st-image-weston -c do_populate_sdk
           rm -rf /home/dev/artifacts/*
-          cp tmp-glibc/deploy/sdk/st-image-core-openstlinux-${{ env.FLAVOR }}-*.sh /home/dev/artifacts/
+          cp tmp-glibc/deploy/sdk/st-image-weston-openstlinux-${{ env.FLAVOR }}-*.sh /home/dev/artifacts/
 
-      - name: Publish st-image-core-weston-flutter-runtimerelease SDK artifact
+      - name: Publish st-image-weston-flutter-runtimerelease SDK artifact
         uses: actions/upload-artifact@v2
         with:
-          name: st-image-core-weston-flutter-runtimerelease-sdk-linux
+          name: st-image-weston-flutter-runtimerelease-sdk-linux
           path: |
              /home/dev/artifacts/*
