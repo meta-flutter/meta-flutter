@@ -141,7 +141,8 @@ jobs:
           cp -r flashlayout_st-image-core /home/dev/artifacts/
           cp -r fip /home/dev/artifacts
           cp -r scripts /home/dev/artifacts
-          cp arm-trusted-firmware/* /home/dev/artifacts/arm-trusted-firmware/
+          cp arm-trusted-firmware/*.stm32 /home/dev/artifacts/arm-trusted-firmware/
+          cp arm-trusted-firmware/metadata.bin /home/dev/artifacts/arm-trusted-firmware/
           cp st-image-*-${{ env.DISTRO }}-${{ env.MACHINE }}.ext4 /home/dev/artifacts/
           ls -la /home/dev/artifacts
 
@@ -307,7 +308,8 @@ jobs:
           cp -r flashlayout_st-image-core /home/dev/artifacts/
           cp -r fip /home/dev/artifacts
           cp -r scripts /home/dev/artifacts
-          cp arm-trusted-firmware/* /home/dev/artifacts/arm-trusted-firmware/
+          cp arm-trusted-firmware/*.stm32 /home/dev/artifacts/arm-trusted-firmware/
+          cp arm-trusted-firmware/metadata.bin /home/dev/artifacts/arm-trusted-firmware/
           cp st-image-*-${{ env.DISTRO }}-${{ env.MACHINE }}.ext4 /home/dev/artifacts/
           ls -la /home/dev/artifacts
 
