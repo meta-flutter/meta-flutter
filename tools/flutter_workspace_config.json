@@ -119,7 +119,7 @@
 			"uri": "https://github.com/mogol/flutter_secure_storage.git",
 			"branch": "develop",
 			"rev": "e716593352b80330e05729486eade7c2167d3c71",
-			"pubspec_path": "flutter_secure_storage/flutter_secure_storage_linux/example"
+			"pubspec_path": "flutter_secure_storage/flutter_secure_storage/example"
 		},
 		{
 			"uri": "https://github.com/felipeerias/flutter_homescreen.git",
