@@ -113,6 +113,14 @@ jobs:
           . ./poky/oe-init-build-env
           bitbake core-image-minimal
 
+      - name: Build flutter-gallery-runtimerelease-container
+        shell: bash
+        working-directory: ../yocto-kirkstone
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake flutter-gallery-runtimerelease-container -c do_cleansstate
+          bitbake flutter-gallery-runtimerelease-container
+
       - name: Build membrane-dart-example
         shell: bash
         working-directory: ../yocto-kirkstone
