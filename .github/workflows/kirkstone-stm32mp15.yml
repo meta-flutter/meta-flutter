@@ -236,23 +236,20 @@ jobs:
           echo 'IMAGE_LINGUAS = "en-us"' >> $LOCAL_CONF
           echo 'TOOLCHAIN_HOST_TASK:append = " nativesdk-flutter-sdk"' >> $LOCAL_CONF
           echo 'CLANGSDK = "1"' >> $LOCAL_CONF
-          echo 'DISTRO_FEATURES:append = " wayland "' >> $LOCAL_CONF
           echo 'DISTRO_FEATURES:remove = " x11 "' >> $LOCAL_CONF
-          echo 'PACKAGECONFIG:pn-flutter-auto-runtimerelease:remove = "gstreamer transparency"' >> $LOCAL_CONF
+          echo 'PACKAGECONFIG:pn-flutter-auto-runtimerelease = "backend-egl mouse-cursor package-info secure-storage text-input texture-test-egl"' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " packagegroup-framework-core "' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " packagegroup-framework-tools "' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " packagegroup-framework-core-extra "' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " packagegroup-st-demo "' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " gtk+3-demo "' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL += "\
-                    weston weston-init \
                     flutter-engine-runtimerelease-sdk-dev \
                     flutter-auto-runtimerelease \
                     flutter-gallery-runtimerelease \
                     flutter-test-texture-egl-runtimerelease \
                     flutter-test-video-player-runtimerelease \
                     flutter-test-localization-runtimerelease \
-                    flutter-pi-runtimerelease \
                     adwaita-icon-theme-cursors \
                     xdg-user-dirs \
                     avahi-daemon \
