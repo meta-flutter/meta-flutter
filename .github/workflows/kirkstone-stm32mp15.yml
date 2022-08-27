@@ -63,9 +63,9 @@ jobs:
         shell: bash
         working-directory: ../${{ env.WORKSPACE }}
         run: |
-          rm -rf build-openstlinuxeglfs-${{ env.MACHINE }}/conf
+          rm -rf build-openstlinux${{ env.FLAVOR }}-${{ env.MACHINE }}/conf
           echo n | source layers/meta-st/scripts/envsetup.sh --no-ui
-          cd build-openstlinuxeglfs-${{ env.MACHINE }}
+          cd build-openstlinux${{ env.FLAVOR }}-${{ env.MACHINE }}
           echo '***************************************'
           LOCAL_CONF=./conf/local.conf
           echo '***************************************'
@@ -221,7 +221,7 @@ jobs:
         run: |
           rm -rf build-openstlinux${{ env.FLAVOR }}-${{ env.MACHINE }}/conf
           echo n | source layers/meta-st/scripts/envsetup.sh --no-ui
-          cd build-openstlinuxeglfs-${{ env.MACHINE }}
+          cd build-openstlinux${{ env.FLAVOR }}-${{ env.MACHINE }}
           echo '***************************************'
           LOCAL_CONF=./conf/local.conf
           echo '***************************************'
