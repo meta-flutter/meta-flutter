@@ -238,15 +238,12 @@ jobs:
           echo 'CLANGSDK = "1"' >> $LOCAL_CONF
           echo 'DISTRO_FEATURES:remove = " x11 "' >> $LOCAL_CONF
           echo 'PACKAGECONFIG:pn-flutter-auto-runtimerelease = "backend-egl mouse-cursor package-info secure-storage text-input texture-test-egl"' >> $LOCAL_CONF
-          echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " packagegroup-framework-core "' >> $LOCAL_CONF
-          echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " packagegroup-framework-tools "' >> $LOCAL_CONF
-          echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " packagegroup-framework-core-extra "' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " packagegroup-st-demo "' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " gtk+3-demo "' >> $LOCAL_CONF
           echo 'IMAGE_ROOTFS_MAXSIZE = "3145728"' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL += "\
-                    flutter-engine-runtimerelease-sdk-dev \
                     flutter-auto-runtimerelease \
+                    flutter-engine-runtimerelease-sdk-dev \
                     flutter-gallery-runtimerelease \
                     flutter-test-texture-egl-runtimerelease \
                     flutter-test-video-player-runtimerelease \
@@ -255,8 +252,6 @@ jobs:
                     xdg-user-dirs \
                     avahi-daemon \
                     ntp ntp-tickadj \
-                    infos-openstlinux \
-                    tiff libv4l rc-keymaps packagegroup-gstreamer1-0 \
                     gstreamer1.0-libav \
                     gstreamer1.0-plugins-bad \
                     gstreamer1.0-plugins-good \
