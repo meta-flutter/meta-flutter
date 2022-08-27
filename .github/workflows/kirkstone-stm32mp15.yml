@@ -243,6 +243,7 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " packagegroup-framework-core-extra "' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " packagegroup-st-demo "' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " gtk+3-demo "' >> $LOCAL_CONF
+          echo 'IMAGE_ROOTFS_MAXSIZE = "3145728"' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL += "\
                     flutter-engine-runtimerelease-sdk-dev \
                     flutter-auto-runtimerelease \
