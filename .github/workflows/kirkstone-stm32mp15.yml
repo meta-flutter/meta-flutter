@@ -238,6 +238,7 @@ jobs:
           echo 'CLANGSDK = "1"' >> $LOCAL_CONF
           echo 'DISTRO_FEATURES:append = " wayland "' >> $LOCAL_CONF
           echo 'DISTRO_FEATURES:remove = " x11 "' >> $LOCAL_CONF
+          echo 'PACKAGECONFIG_pn-flutter-auto-runtimerelease:remove = "gstreamer"' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " packagegroup-framework-core "' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " packagegroup-framework-tools "' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " packagegroup-framework-core-extra "' >> $LOCAL_CONF
