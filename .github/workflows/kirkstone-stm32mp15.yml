@@ -256,9 +256,7 @@ jobs:
                     xdg-user-dirs \
                     avahi-daemon \
                     ntp ntp-tickadj \
-                    dhcp-client systemd-networkd-configuration \
                     infos-openstlinux \
-                    fbgrab \
                     tiff libv4l rc-keymaps packagegroup-gstreamer1-0 \
                     gstreamer1.0-libav \
                     gstreamer1.0-plugins-bad \
