@@ -84,6 +84,31 @@
 			}
 		},
 		{
+			"id": "stm32mp15",
+			"type": "target",
+			"arch": "linux-arm",
+			"flutter_runtime": "debug",
+			"target_user": "root",
+			"target_address": "stm32mp15-disco.local",
+			"overwrite-existing": true,
+			"custom-device": {
+				"id": "stm32mp15",
+				"label": "STM32MP157F-DK2",
+				"sdkNameAndVersion": "STM32 Discovery Board (Dual Cortex-A7)",
+				"platform": null,
+				"enabled": false,
+				"ping": ["ping", "-c", "1", "-w", "400", "${TARGET_ADDRESS}"],
+				"pingSuccessRegex": "[<=]\\d+ms",
+				"postBuild": null,
+				"install": ["scp", "-r", "-o", "BatchMode=yes", "${localPath}", "${TARGET_USER}@${TARGET_ADDRESS}:/tmp/${appName}"],
+				"uninstall": ["ssh", "-o", "BatchMode=yes", "${TARGET_USER}@${TARGET_ADDRESS}", "rm -rf \"/tmp/${appName}\""],
+				"runDebug": ["ssh", "-o", "BatchMode=yes", "${TARGET_USER}@${TARGET_ADDRESS}", "flutter-pi /tmp/${appName}"],
+				"forwardPort": ["ssh", "-o", "BatchMode=yes", "-o", "ExitOnForwardFailure=yes", "-L", "127.0.0.1:${hostPort}:127.0.0.1:${devicePort}", "${TARGET_USER}@${TARGET_ADDRESS}", "echo 'Port forwarding success'; read"],
+				"forwardPortSuccessRegex": "Port forwarding success",
+				"screenshot": null
+			}
+		},
+		{
 			"id": "pi",
 			"type": "target",
 			"arch": "aarch64",
