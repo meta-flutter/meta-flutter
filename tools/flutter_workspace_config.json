@@ -88,7 +88,7 @@
 			"type": "target",
 			"arch": "linux-arm",
 			"flutter_runtime": "debug",
-			"target_user": "root",
+			"target_user": "weston",
 			"target_address": "stm32mp15-disco.local",
 			"overwrite-existing": true,
 			"custom-device": {
