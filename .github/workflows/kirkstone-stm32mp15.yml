@@ -224,7 +224,7 @@ jobs:
           echo 'TOOLCHAIN_HOST_TASK:append = " nativesdk-flutter-sdk"' >> $LOCAL_CONF
           echo 'CLANGSDK = "1"' >> $LOCAL_CONF
           echo 'DISTRO_FEATURES:remove = " x11 "' >> $LOCAL_CONF
-          echo 'PACKAGECONFIG:pn-flutter-auto-runtimerelease = "backend-egl mouse-cursor package-info secure-storage text-input texture-test-egl"' >> $LOCAL_CONF
+          echo 'PACKAGECONFIG:pn-flutter-auto-runtimedebug = "backend-egl mouse-cursor package-info secure-storage text-input texture-test-egl"' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " packagegroup-st-demo "' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " gtk+3-demo "' >> $LOCAL_CONF
           echo 'IMAGE_ROOTFS_MAXSIZE = "3145728"' >> $LOCAL_CONF
