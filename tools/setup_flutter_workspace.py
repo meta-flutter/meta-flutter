@@ -358,12 +358,6 @@ def validate_platform_config(platform):
                 print_banner(
                     "Missing 'flutter_runtime' key in platform config")
                 return False
-            if 'target_user' not in platform:
-                print_banner("Missing 'target_user' key in platform config")
-                return False
-            if 'target_address' not in platform:
-                print_banner("Missing 'target_address' key in platform config")
-                return False
 
             print("Platform ID: %s" % (platform['id']))
 
@@ -585,8 +579,6 @@ def patch_custom_device_strings(devices):
 
     workspace = os.getenv('FLUTTER_WORKSPACE')
     bundle_folder = os.getenv('BUNDLE_FOLDER')
-    target_user = os.getenv('TARGET_USER')
-    target_address = os.getenv('TARGET_ADDRESS')
 
     for device in devices:
 
@@ -604,39 +596,6 @@ def patch_custom_device_strings(devices):
         if device.get('install'):
             device['install'] = patch_string_array(
                 token, bundle_folder, device['install'])
-
-        if target_user:
-            token = '${TARGET_USER}'
-            if device.get('install'):
-                device['install'] = patch_string_array(
-                    token, target_user, device['install'])
-            if device.get('uninstall'):
-                device['uninstall'] = patch_string_array(
-                    token, target_user, device['uninstall'])
-            if device.get('runDebug'):
-                device['runDebug'] = patch_string_array(
-                    token, target_user, device['runDebug'])
-            if device.get('forwardPort'):
-                device['forwardPort'] = patch_string_array(
-                    token, target_user, device['forwardPort'])
-
-        if target_address:
-            token = '${TARGET_ADDRESS}'
-            if device.get('ping'):
-                device['ping'] = patch_string_array(
-                    token, target_address, device['ping'])
-            if device.get('install'):
-                device['install'] = patch_string_array(
-                    token, target_address, device['install'])
-            if device.get('uninstall'):
-                device['uninstall'] = patch_string_array(
-                    token, target_address, device['uninstall'])
-            if device.get('runDebug'):
-                device['runDebug'] = patch_string_array(
-                    token, target_address, device['runDebug'])
-            if device.get('forwardPort'):
-                device['forwardPort'] = patch_string_array(
-                    token, target_address, device['forwardPort'])
 
     return devices
 
@@ -1486,7 +1445,7 @@ qemu_run() {
     then
         export QEMU_IMAGE=${FLUTTER_WORKSPACE}/%s
     else
-        echo 'QEMU_IMAGE is set to \"$QEMU_IMAGE\"'
+        echo 'QEMU_IMAGE is set to ${QEMU_IMAGE}'
     fi
     export OVMF_PATH=%s
     echo \"OVMF_PATH is set to '$OVMF_PATH'\"
@@ -1510,22 +1469,7 @@ def setup_env_script(workspace, args, platform):
         for item in platform:
             if 'type' in item:
 
-                if "target" == item['type']:
-                    if args.target_user:
-                        target_user = args.target_user
-                    else:
-                        target_user = item['target_user']
-
-                    os.environ['TARGET_USER'] = target_user
-
-                    if args.target_address:
-                        target_address = args.target_address
-                    else:
-                        target_address = item['target_address']
-
-                    os.environ['TARGET_ADDRESS'] = target_address
-
-                elif "qemu" == item['type']:
+                if "qemu" == item['type']:
 
                     runtime = item['runtime']
                     script.write(env_qemu % (
