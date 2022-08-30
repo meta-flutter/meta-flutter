@@ -12,10 +12,9 @@ on:
 
 jobs:
 
-  dunfell-rpi4-drm:
+  dunfell-rpi4-wayland:
   
     env:
-      YOCTO_VERSION: 3.1.13
       YOCTO_BRANCH: dunfell
       MACHINE: raspberrypi4-64
       
@@ -52,19 +51,14 @@ jobs:
           [ -d ../rpi4-drm-dunfell-latest ] || mkdir -p ../rpi4-drm-dunfell-latest
           cd ../rpi4-drm-dunfell-latest
           rm -rf sources || true
-          ls -la
-          git config --list
           git config --global user.email joel@winarske@gmail.com
           git config --global user.name "Joel Winarske"
-          git config --list
           /home/dev/bin/repo init -u https://github.com/jwinarske/manifests.git -m rpi64.xml -b $YOCTO_BRANCH
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           wait
           cd sources/meta-raspberrypi
           git apply ../../conf/rpi64/0001-rpi-mesa-vulkan-broadcom-override.patch
           cd ../..
-          rm -rf sources/poky/meta/recipes-graphics/mesa || true
-          rm -rf sources/meta-raspberrypi/recipes-graphics/mesa/mesa-demos_%.bbappend || true
 
       - name: Configure build
         shell: bash
@@ -76,16 +70,17 @@ jobs:
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
-          echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> ./conf/local.conf
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES += " opengl vulkan wayland pam"' >> ./conf/local.conf
           echo 'PACKAGECONFIG_pn-sascha-samples = "d2d"' >> ./conf/local.conf
-          echo 'PREFERRED_VERSION_mesa = "21.2.%"' >> ./conf/local.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
-          echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../sources/poky/meta/recipes-core/gettext/gettext_0.20.1.bb
           echo 'FLUTTER_RUNTIME_pn-flutter-drm-gbm-backend = "debug"' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_WHITELIST = "commercial"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG_pn-mesa = "opengl egl gles gbm virgl vulkan wayland broadcom elf-tls"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG_pn-mesa-demos = "drm osmesa freetype2 gbm egl gles1 gles2 wayland glew glu"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL += " weston weston-init mesa-demos"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
