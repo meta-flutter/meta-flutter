@@ -8,12 +8,19 @@
 
 DEPENDS += " \
     ca-certificates-native \
+    cmake-native \
+    compiler-rt \
     flutter-engine-${FLUTTER_RUNTIME} \
     flutter-sdk-native \
+    libcxx \
+    ninja-native \
     unzip-native \
     "
 
 FLUTTER_RUNTIME ??= "release"
+RUNTIME = "llvm"
+TOOLCHAIN = "clang"
+PREFERRED_PROVIDER_libgcc = "compiler-rt"
 
 FLUTTER_PREBUILD_CMD ??= ""
 FLUTTER_APPLICATION_PATH ??= "."
@@ -169,30 +176,43 @@ do_compile() {
 
     ${FLUTTER_PREBUILD_CMD}
 
+    bbnote "flutter build ${FLUTTER_BUILD_ARGS}: Starting"
+
     flutter build ${FLUTTER_BUILD_ARGS}
+
+    bbnote "flutter build ${FLUTTER_BUILD_ARGS}: Completed"
 
     if ${@bb.utils.contains('FLUTTER_RUNTIME', 'release', 'true', 'false', d)} || \
        ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)}; then
 
-        PROFILE_ENABLE=false
-        if ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)}; then
-            PROFILE_ENABLE=true
-        fi
+        bbnote "kernel_snapshot_${FLUTTER_RUNTIME}: Starting"
 
         ${FLUTTER_SDK}/bin/cache/dart-sdk/bin/dart \
             --verbose \
             --disable-analytics \
             --disable-dart-dev ${FLUTTER_SDK}/bin/cache/artifacts/engine/linux-x64/frontend_server.dart.snapshot \
-            --sdk-root ${FLUTTER_SDK}/bin/cache/artifacts/engine/common/flutter_patched_sdk_product/ \
+            --sdk-root ${@bb.utils.contains('FLUTTER_RUNTIME', 'release', '${FLUTTER_SDK}/bin/cache/artifacts/engine/common/flutter_patched_sdk_product/', '${FLUTTER_SDK}/bin/cache/artifacts/engine/common/flutter_patched_sdk/', d)} \
             --target=flutter \
             --no-print-incremental-dependencies \
-            -Ddart.vm.profile=${PROFILE_ENABLE} \
-            -Ddart.vm.product=true \
+            -Ddart.vm.profile=${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)} \
+            -Ddart.vm.product=${@bb.utils.contains('FLUTTER_RUNTIME', 'release', 'true', 'false', d)} \
+            ${@bb.utils.contains('FLUTTER_RUNTIME', 'debug', '--enable-asserts', '', d)} \
+            ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', '--track-widget-creation', '', d)} \
             --aot --tfa \
             --packages .dart_tool/package_config.json \
-            --output-dill .dart_tool/flutter_build/*/app.dill \
+            ${@bb.utils.contains('FLUTTER_RUNTIME', 'debug', '.dart_tool/flutter_build/*/app.dill', '--output-dill .dart_tool/flutter_build/*/app.dill', d)} \
             --depfile .dart_tool/flutter_build/*/kernel_snapshot.d \
             package:${PUBSPEC_APPNAME}/main.dart
+
+        bbnote "kernel_snapshot_${FLUTTER_RUNTIME}: Complete"
+
+        # remove kernel_blob.bin to save space
+        rm ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/kernel_blob.bin
+
+        # create empty file for apps that check for kernel_blob.bin
+        touch ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/kernel_blob.bin
+
+        bbnote "aot_elf_${FLUTTER_RUNTIME}: Started"
 
         #
         # Extract Engine SDK
@@ -204,10 +224,13 @@ do_compile() {
         # Create libapp.so
         #
         ${S}/engine_sdk/sdk/clang_x64/gen_snapshot \
+            --deterministic \
             --snapshot_kind=app-aot-elf \
             --elf=libapp.so \
             --strip \
             .dart_tool/flutter_build/*/app.dill
+
+        bbnote "aot_elf_${FLUTTER_RUNTIME}: Complete"
     fi
 }
 
@@ -221,13 +244,18 @@ do_install() {
     cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/* ${D}${FLUTTER_INSTALL_DIR}/flutter_assets/
 
     if ${@bb.utils.contains('FLUTTER_RUNTIME', 'release', 'true', 'false', d)} || \
-       ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)}; then
-       install -d ${D}${FLUTTER_INSTALL_DIR}/lib
+        ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)}; then
+
+        bbnote "Flutter Application: Installing ${FLUTTER_RUNTIME}"
+
+        install -d ${D}${FLUTTER_INSTALL_DIR}/lib
         cp ${S}/${FLUTTER_APPLICATION_PATH}/libapp.so ${D}${FLUTTER_INSTALL_DIR}/lib/
     fi
 
        
     if [[ "${FLUTTER_BUILD_ARGS}" =~ .*"linux".* ]]; then
+
+        bbnote "Flutter Application: Installing GTK bundle"
 
         if [ -n "${FLUTTER_REMOVE_LINUX_BUILD_ARTIFACTS}" ]; then
             rm ${D}/usr/${PUBSPEC_APPNAME} | true
