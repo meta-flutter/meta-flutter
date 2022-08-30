@@ -103,4 +103,13 @@ cd meta-flutter/tools
 ```
 #### Debugging
 
-`setup_flutter_workspace.py` creates a `.vscode/launch.json` file if one is not present.  It uses the repo configuration key `pubspec_path`.  If this key is not present in the repo entry, then it will not get added to `.vscode/launch.json`.
+`setup_flutter_workspace.py` creates a `.vscode/launch.json` file if one is not present.
+It uses the repo configuration key `pubspec_path`.  If this key is present in the repo
+entry, then it will add entry to `.vscode/launch.json`.
+
+### M1 Mac PyCurl install
+```
+arch -arm64 brew reinstall openssl
+pip3 uninstall pycurl
+arch -arm64 pip3 install --install-option="--with-openssl" --install-option="--openssl-dir=/usr/local/opt/openssl@1.1" pycurl
+```
