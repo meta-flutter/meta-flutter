@@ -86,6 +86,7 @@ jobs:
               default-language-en-us-utf8 \
               flutter-auto-runtimerelease \
               flutter-gallery-runtimerelease \
+              flutter-test-plugins-runtimerelease \
               flutter-test-secure-storage-runtimerelease \
               flutter-test-texture-egl-runtimerelease \
               flutter-test-video-player-runtimerelease \
@@ -217,6 +218,7 @@ jobs:
               flutter-gallery-runtimerelease \
               flutter-test-secure-storage-runtimerelease \
               flutter-test-video-player-runtimerelease \
+              flutter-test-plugins-runtimerelease \
               flutter-test-texture-egl-runtimerelease \
               flutter-test-localization \
               flutter-pi-runtimerelease \
