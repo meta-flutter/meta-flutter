@@ -573,7 +573,7 @@ def patch_string_array(find_token, replace_token, list):
     return [w.replace(find_token, replace_token) for w in list]
 
 
-def patch_custom_device_strings(devices):
+def patch_custom_device_strings(devices, flutter_runtime):
     ''' Patch custom device string environmental variables to use literal
     values '''
 
@@ -583,6 +583,11 @@ def patch_custom_device_strings(devices):
     for device in devices:
 
         token = '${FLUTTER_WORKSPACE}'
+
+        if device.get('sdkNameAndVersion'):
+            device['sdkNameAndVersion'] = device['sdkNameAndVersion'].replace(
+                '${FLUTTER_RUNTIME}',
+                flutter_runtime)
 
         if device.get('postBuild'):
             device['postBuild'] = patch_string_array(
@@ -600,7 +605,7 @@ def patch_custom_device_strings(devices):
     return devices
 
 
-def add_flutter_custom_device(device_config):
+def add_flutter_custom_device(device_config, flutter_runtime):
     ''' Add a single Flutter custom device from json string '''
 
     if not validate_custom_device_config(device_config):
@@ -631,7 +636,8 @@ def add_flutter_custom_device(device_config):
                     new_device_list.append(device)
 
     new_device_list.append(device_config)
-    patched_device_list = patch_custom_device_strings(new_device_list)
+    patched_device_list = patch_custom_device_strings(
+        new_device_list, flutter_runtime)
 
     custom_devices = {}
     custom_devices['custom-devices'] = patched_device_list
@@ -663,7 +669,8 @@ def update_flutter_custom_devices_list(platforms):
                         # print("attempting to remove custom-device: %s" % id)
                         remove_flutter_custom_devices_id(id)
 
-        add_flutter_custom_device(platform['custom-device'])
+        add_flutter_custom_device(
+            platform['custom-device'], platform['flutter_runtime'])
 
 
 def configure_flutter_sdk():
@@ -1177,6 +1184,11 @@ def install_agl_emu_image(config, platform):
                 subprocess.call(cmd)
 
         if artifact_source == "github":
+            github_artifact = runtime['github_artifact'].replace(
+                '${FLUTTER_RUNTIME}',
+                platform.get('flutter_runtime')
+            )
+
             install_github_artifact_agl_emu_image(
                 get_github_token(
                     config.get('github_token')
@@ -1184,7 +1196,7 @@ def install_agl_emu_image(config, platform):
                 runtime.get('github_owner'),
                 runtime.get('github_repo'),
                 runtime.get('github_workflow'),
-                runtime.get('github_artifact')
+                github_artifact
             )
 
 
@@ -1249,8 +1261,6 @@ def install_flutter_auto(folder, config, platform):
         print_banner("Installing flutter-auto")
 
         runtime = platform['runtime']
-
-        artifact_source = runtime.get('artifact_type')
 
         default_width = runtime.get('default_width')
         if default_width is None:
@@ -1324,13 +1334,18 @@ def install_flutter_auto(folder, config, platform):
                 cmd = ["/usr/lib/llvm-12/bin/clang++", "--version"]
                 subprocess.call(cmd)
 
-        if artifact_source == "github":
+        if 'github' == runtime.get('artifact_source'):
+
+            backend = runtime.get('backend')
+            github_artifact = runtime.get('github_artifact')
+            github_artifact = github_artifact.replace('${BACKEND}', backend)
+
             install_flutter_auto_github_artifact(
                 get_github_token(config.get('github_token')),
                 runtime.get('github_owner'),
                 runtime.get('github_repo'),
                 runtime.get('github_workflow'),
-                runtime.get('artifact_name'))
+                github_artifact)
 
 
 def install_flutter_auto_github_artifact(
@@ -1338,11 +1353,11 @@ def install_flutter_auto_github_artifact(
     owner,
     repo,
     workflow,
-    artifact_name
+    github_artifact
 ):
     '''Installs flutter-auto github artifact'''
 
-    if (token and owner and repo and workflow and artifact_name):
+    if (token and owner and repo and workflow and github_artifact):
 
         workflow_runs = get_github_workflow_runs(
             token, owner, repo, workflow)
@@ -1357,7 +1372,7 @@ def install_flutter_auto_github_artifact(
 
         for artifact in artifacts:
 
-            if artifact_name == artifact.get('name'):
+            if github_artifact == artifact.get('name'):
 
                 url = artifact.get('archive_download_url')
 
@@ -1366,7 +1381,7 @@ def install_flutter_auto_github_artifact(
                     (workflow, run_id, url))
 
                 downloaded_file = get_github_artifact(
-                    token, url, artifact_name)
+                    token, url, github_artifact)
                 print("** Downloaded: %s" % downloaded_file)
 
                 with zipfile.ZipFile(downloaded_file, "r") as zip_ref:
@@ -1472,8 +1487,14 @@ def setup_env_script(workspace, args, platform):
                 if "qemu" == item['type']:
 
                     runtime = item['runtime']
+
+                    relative_path = runtime['relative_path'].replace(
+                        '${FLUTTER_RUNTIME}',
+                        item.get('flutter_runtime')
+                    )
+
                     script.write(env_qemu % (
-                        runtime['relative_path'],
+                        relative_path,
                         runtime['ovmf_path'],
                         runtime['cmd'],
                         runtime['cmd'],
