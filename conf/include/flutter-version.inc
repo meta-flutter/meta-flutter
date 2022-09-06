@@ -1,4 +1,4 @@
-FLUTTER_SDK_TAG ??= "AUTOINC"
+FLUTTER_SDK_TAG ??= "3.0.5"
 
 def get_flutter_archive(d):
     return _get_flutter_release_info(d, "archive")
