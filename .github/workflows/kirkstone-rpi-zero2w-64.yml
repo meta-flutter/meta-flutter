@@ -81,6 +81,7 @@ jobs:
               flutter-gallery-runtime${{ env.RUNTIME }} \
               flutter-test-secure-storage-runtime${{ env.RUNTIME }} \
               flutter-test-video-player-runtime${{ env.RUNTIME }} \
+              flutter-test-plugins-runtime${{ env.RUNTIME }} \
               flutter-test-texture-egl-runtime${{ env.RUNTIME }} \
               flutter-test-localization-runtime${{ env.RUNTIME }} \
               "' >> ./conf/local.conf
@@ -195,6 +196,7 @@ jobs:
               flutter-gallery-runtime${{ env.RUNTIME }} \
               flutter-test-secure-storage-runtime${{ env.RUNTIME }} \
               flutter-test-video-player-runtime${{ env.RUNTIME }} \
+              flutter-test-plugins-runtime${{ env.RUNTIME }} \
               flutter-test-texture-egl-runtime${{ env.RUNTIME }} \
               flutter-test-localization-runtime${{ env.RUNTIME }} \
               "' >> ./conf/local.conf
