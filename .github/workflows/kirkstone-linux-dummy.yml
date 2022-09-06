@@ -277,6 +277,18 @@ jobs:
           bitbake flutter-gallery-runtimeprofile
           bitbake flutter-gallery-runtimedebug
 
+      - name: Build flutter-test-plugins
+        shell: bash
+        working-directory: ../yocto-kirkstone
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake flutter-test-plugins-runtimerelease -c do_cleansstate
+          bitbake flutter-test-plugins-runtimeprofile -c do_cleansstate
+          bitbake flutter-test-plugins-runtimedebug -c do_cleansstate
+          bitbake flutter-test-plugins-runtimerelease
+          bitbake flutter-test-plugins-runtimeprofile
+          bitbake flutter-test-plugins-runtimedebug
+
       - name: Build flutter-test-secure-storage
         shell: bash
         working-directory: ../yocto-kirkstone
