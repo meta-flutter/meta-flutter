@@ -1,19 +1,20 @@
 {
-	"flutter-version": "3.0.1",
+	"flutter-version": "3.0.5",
 	"platforms": [{
 			"id": "desktop-auto",
 			"type": "host",
 			"arch": "x86_64",
 			"flutter_runtime": "debug",
 			"runtime": {
+				"backend": "vulkan",
 				"default_width": 1920,
-				"default_height": 720,
+				"default_height": 1080,
 				"install_dependent_packages": true,
 				"artifact_source": "github",
 				"github_owner": "toyota-connected",
 				"github_repo": "ivi-homescreen",
 				"github_workflow": "flutter-auto-linux.yml",
-				"artifact_name": "flutter-auto-vulkan-dbg.amd64.deb.zip"
+				"github_artifact": "flutter-auto-${BACKEND}-dbg.amd64.deb.zip"
 			},
 			"overwrite-existing": true,
 			"custom-device": {
@@ -40,12 +41,12 @@
 			"flutter_runtime": "debug",
 			"runtime": {
 				"install_dependent_packages": true,
-				"relative_path": ".agl/agl-image-flutter-runtimedebug-qemux86-64.wic.vmdk",
+				"relative_path": ".agl/agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemux86-64.wic.vmdk",
 				"artifact_source": "github",
 				"github_owner": "meta-flutter",
 				"github_repo": "meta-flutter",
 				"github_workflow": "kirkstone-agl-x86_64.yml",
-				"github_artifact": "agl-image-flutter-runtimedebug-qemux86-64-linux",
+				"github_artifact": "agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemux86-64-linux",
 				"ovmf_path": "/usr/share/ovmf/OVMF.fd",
 				"cmd": "qemu-system-x86_64",
 				"args": "-enable-kvm -m 2048 -bios ${OVMF_PATH} -hda ${QEMU_IMAGE} -cpu kvm64 -cpu qemu64,+ssse3,+sse4.1,+sse4.2,+popcnt -vga virtio -show-cursor -device virtio-rng-pci -serial mon:stdio -serial null -soundhw hda -device virtio-net-pci,netdev=net0,mac=52:54:00:12:35:02 -netdev user,id=net0,hostfwd=tcp::2222-:22,hostfwd=tcp::1234-:1234"
@@ -54,7 +55,7 @@
 			"custom-device": {
 				"id": "AGL-qemu",
 				"label": "AGL x86_64 QEMU Image",
-				"sdkNameAndVersion": "agl-image-flutter-runtimedebug-qemux86-64.wic.vmdk",
+				"sdkNameAndVersion": "agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemux86-64.wic.vmdk",
 				"platform": "linux-x64",
 				"enabled": true,
 				"ping": [
@@ -194,6 +195,31 @@
 			"branch": "main",
 			"rev": "7a670295d5a94508862316e045e789e0dfd01b20",
 			"pubspec_path": "ped"
+		},
+		{
+			"uri": "https://gerrit.automotivelinux.org/gerrit/apps/flutter-dashboard.git",
+			"branch": "master",
+			"pubspec_path": "flutter-dashboard"
+		},
+		{
+			"uri": "https://gerrit.automotivelinux.org/gerrit/apps/flutter-hvac.git",
+			"branch": "master",
+			"pubspec_path": "flutter-hvac"
+		},
+		{
+			"uri": "https://gerrit.automotivelinux.org/gerrit/apps/flutter-instrument-cluster.git",
+			"branch": "master",
+			"pubspec_path": "flutter-instrument-cluster"
+		},
+		{
+			"uri": "https://gerrit.automotivelinux.org/gerrit/apps/flutter-mediaplayer.git",
+			"branch": "master",
+			"pubspec_path": "flutter-mediaplayer"
+		},
+		{
+			"uri": "https://gerrit.automotivelinux.org/gerrit/apps/flutter-navigation.git",
+			"branch": "master",
+			"pubspec_path": "flutter-navigation"
 		}
 	]
 }
