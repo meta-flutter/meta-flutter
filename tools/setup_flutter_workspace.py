@@ -36,6 +36,9 @@ from sys import stderr as STREAM
 FLUTTER_AUTO_DEFAULT_WIDTH = 1920
 FLUTTER_AUTO_DEFAULT_HEIGHT = 720
 
+QEMU_DEFAULT_WIDTH = 1920
+QEMU_DEFAULT_HEIGHT = 720
+
 # use kiB's
 kb = 1024
 
@@ -239,7 +242,7 @@ def main():
     #
     # Get runtime artifacts
     #
-    get_artifacts(config, flutter_sdk_path, flutter_auto_folder)
+    get_artifacts(config, flutter_sdk_path, flutter_auto_folder, agl_folder)
 
     #
     # custom-devices
@@ -884,7 +887,7 @@ def fetch_https_binary_file(url, filename, redirect, headers):
     return success
 
 
-def get_artifacts(config, flutter_sdk_path, flutter_auto_folder):
+def get_artifacts(config, flutter_sdk_path, flutter_auto_folder, agl_folder):
     ''' Get x86_64 Engine artifcats '''
 
     tmp_folder = get_workspace_tmp_folder()
@@ -906,7 +909,7 @@ def get_artifacts(config, flutter_sdk_path, flutter_auto_folder):
             flutter_runtime = platform['flutter_runtime']
 
             if platform['id'] == 'AGL-qemu' and platform['type'] == 'qemu':
-                install_agl_emu_image(config, platform)
+                install_agl_emu_image(agl_folder, config, platform)
 
             elif (platform['id'] == 'desktop-auto' and
                     platform['type'] == 'host'):
@@ -1138,7 +1141,7 @@ def install_minimum_runtime_deps():
             ubuntu_install_pkg_if_not_installed("libssl-dev")
 
 
-def install_agl_emu_image(config, platform):
+def install_agl_emu_image(folder, config, platform):
 
     host_type = get_host_type()
 
@@ -1148,7 +1151,26 @@ def install_agl_emu_image(config, platform):
 
         runtime = platform['runtime']
 
-        artifact_source = runtime.get('artifact_source')
+        default_width = runtime.get('default_width')
+        if default_width is None:
+            default_width = QEMU_DEFAULT_WIDTH
+
+        default_height = runtime.get('default_height')
+        if default_height is None:
+            default_height = QEMU_DEFAULT_HEIGHT
+
+        make_sure_path_exists(folder)
+        default_config_filepath = os.path.join(folder, 'default_config.json')
+        with open(default_config_filepath, 'w+') as default_config_file:
+            config = {
+                "view": {
+                    "window": "BG",
+                    "width": default_width,
+                    "height": default_height,
+                    "fullscreen": True
+                }
+            }
+            json.dump(config, default_config_file, indent=2)
 
         if runtime.get('install_dependent_packages'):
 
@@ -1185,7 +1207,7 @@ def install_agl_emu_image(config, platform):
                     "-l"]
                 subprocess.call(cmd)
 
-        if artifact_source == "github":
+        if runtime.get('artifact_source') == "github":
             github_artifact = runtime['github_artifact']
             if '${FLUTTER_RUNTIME}' in github_artifact:
                 github_artifact = github_artifact.replace(
