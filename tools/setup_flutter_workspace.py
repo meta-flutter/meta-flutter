@@ -1164,7 +1164,7 @@ def install_agl_emu_image(folder, config, platform):
         with open(default_config_filepath, 'w+') as default_config_file:
             config = {
                 "view": {
-                    "window": "BG",
+                    "window_type": "BG",
                     "width": default_width,
                     "height": default_height,
                     "fullscreen": True
