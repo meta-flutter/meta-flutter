@@ -40,6 +40,8 @@
 			"arch": "x86_64",
 			"flutter_runtime": "debug",
 			"runtime": {
+				"default_width": 640,
+				"default_height": 480,
 				"install_dependent_packages": true,
 				"relative_path": ".agl/agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemux86-64.wic.vmdk",
 				"artifact_source": "github",
@@ -63,7 +65,7 @@
 				],
 				"pingSuccessRegex": "open 2222",
 				"postBuild": [
-					"bash", "-c", "mkdir -p ${localPath}/../../.flutter-auto/data/flutter_assets && cp -r ${localPath}/* ${localPath}/../../.flutter-auto/data/flutter_assets && ssh -p 2222 -t -oBatchMode=yes root@localhost passwd -d agl-driver"
+					"bash", "-c", "mkdir -p ${localPath}/../../.flutter-auto/data/flutter_assets && cp -r ${localPath}/* ${localPath}/../../.flutter-auto/data/flutter_assets && cp -r ${FLUTTER_WORKSPACE}/.agl/default_config.json ${localPath}/../../.flutter-auto/ && ssh -p 2222 -t -oBatchMode=yes root@localhost passwd -d agl-driver"
 				],
 				"uninstall": [
 					"bash", "-c", "ssh -p 2222 -t -t -oBatchMode=yes agl-driver@localhost rm -rf \"/tmp/${appName}\""
@@ -74,7 +76,7 @@
 				"runDebug": [
 					"ssh", "-t", "-t", "-p", "2222", "-oBatchMode=yes", "agl-driver@localhost",
 					"flutter-auto",
-					"--j=/usr/share/flutter/default.json",
+					"--j=/tmp/${appName}/default_config.json",
 					"--b=/tmp/${appName}",
 					"--observatory-host=0.0.0.0",
 					"--observatory-port=1234"
@@ -195,31 +197,6 @@
 			"branch": "main",
 			"rev": "7a670295d5a94508862316e045e789e0dfd01b20",
 			"pubspec_path": "ped"
-		},
-		{
-			"uri": "https://gerrit.automotivelinux.org/gerrit/apps/flutter-dashboard.git",
-			"branch": "master",
-			"pubspec_path": "flutter-dashboard"
-		},
-		{
-			"uri": "https://gerrit.automotivelinux.org/gerrit/apps/flutter-hvac.git",
-			"branch": "master",
-			"pubspec_path": "flutter-hvac"
-		},
-		{
-			"uri": "https://gerrit.automotivelinux.org/gerrit/apps/flutter-instrument-cluster.git",
-			"branch": "master",
-			"pubspec_path": "flutter-instrument-cluster"
-		},
-		{
-			"uri": "https://gerrit.automotivelinux.org/gerrit/apps/flutter-mediaplayer.git",
-			"branch": "master",
-			"pubspec_path": "flutter-mediaplayer"
-		},
-		{
-			"uri": "https://gerrit.automotivelinux.org/gerrit/apps/flutter-navigation.git",
-			"branch": "master",
-			"pubspec_path": "flutter-navigation"
 		}
 	]
 }
