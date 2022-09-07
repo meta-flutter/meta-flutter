@@ -173,6 +173,7 @@ do_install() {
     zip -r engine_sdk.zip sdk
     rm -rf sdk
 }
+do_install[network] = "1"
 do_install[depends] += "zip-native:do_populate_sysroot"
 
 PACKAGES =+ "${PN}-sdk-dev"
