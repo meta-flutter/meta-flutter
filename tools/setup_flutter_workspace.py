@@ -585,9 +585,11 @@ def patch_custom_device_strings(devices, flutter_runtime):
         token = '${FLUTTER_WORKSPACE}'
 
         if device.get('sdkNameAndVersion'):
-            device['sdkNameAndVersion'] = device['sdkNameAndVersion'].replace(
-                '${FLUTTER_RUNTIME}',
-                flutter_runtime)
+            if '${FLUTTER_RUNTIME}' in device['sdkNameAndVersion']:
+                sdkNameAndVersion = device['sdkNameAndVersion'].replace(
+                    '${FLUTTER_RUNTIME}',
+                    flutter_runtime)
+                device['sdkNameAndVersion'] = sdkNameAndVersion
 
         if device.get('postBuild'):
             device['postBuild'] = patch_string_array(
@@ -1184,10 +1186,12 @@ def install_agl_emu_image(config, platform):
                 subprocess.call(cmd)
 
         if artifact_source == "github":
-            github_artifact = runtime['github_artifact'].replace(
-                '${FLUTTER_RUNTIME}',
-                platform.get('flutter_runtime')
-            )
+            github_artifact = runtime['github_artifact']
+            if '${FLUTTER_RUNTIME}' in github_artifact:
+                github_artifact = github_artifact.replace(
+                    '${FLUTTER_RUNTIME}',
+                    platform.get('flutter_runtime')
+                )
 
             install_github_artifact_agl_emu_image(
                 get_github_token(
@@ -1336,9 +1340,10 @@ def install_flutter_auto(folder, config, platform):
 
         if 'github' == runtime.get('artifact_source'):
 
-            backend = runtime.get('backend')
             github_artifact = runtime.get('github_artifact')
-            github_artifact = github_artifact.replace('${BACKEND}', backend)
+            if '${BACKEND}' in github_artifact:
+                backend = runtime.get('backend')
+                github_artifact = github_artifact.replace('${BACKEND}', backend)
 
             install_flutter_auto_github_artifact(
                 get_github_token(config.get('github_token')),
@@ -1488,10 +1493,12 @@ def setup_env_script(workspace, args, platform):
 
                     runtime = item['runtime']
 
-                    relative_path = runtime['relative_path'].replace(
-                        '${FLUTTER_RUNTIME}',
-                        item.get('flutter_runtime')
-                    )
+                    relative_path = runtime['relative_path']
+                    if '${FLUTTER_RUNTIME}' in relative_path:
+                        relative_path = relative_path.replace(
+                            '${FLUTTER_RUNTIME}',
+                            item.get('flutter_runtime')
+                        )
 
                     script.write(env_qemu % (
                         relative_path,
@@ -1508,7 +1515,6 @@ def get_platform_ids(platforms):
     res = []
     for platform in platforms:
         res.append(platform.get('id'))
-    print(res)
     return res
 
 
