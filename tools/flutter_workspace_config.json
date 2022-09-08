@@ -194,16 +194,16 @@
 			"pubspec_path": "flutter_secure_storage/flutter_secure_storage/example"
 		},
 		{
+			"uri": "https://github.com/bernardpumped/ped.git",
+			"branch": "agl",
+			"rev": "bee63b8317fbf8f6b95d6be820bcf07b6b3c0c37",
+			"pubspec_path": "ped"
+		},
+		{
 			"uri": "https://github.com/felipeerias/flutter_homescreen.git",
 			"branch": "main",
 			"rev": "08bf271f7f1f14153a41005718a2090fa8e783f0",
 			"pubspec_path": "flutter_homescreen"
-		},
-		{
-			"uri": "https://github.com/bernardpumped/ped.git",
-			"branch": "main",
-			"rev": "7a670295d5a94508862316e045e789e0dfd01b20",
-			"pubspec_path": "ped"
 		}
 	]
 }
