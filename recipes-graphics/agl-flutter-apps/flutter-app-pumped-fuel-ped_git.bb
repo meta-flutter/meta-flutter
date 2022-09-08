@@ -27,6 +27,6 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "pumped_end_device"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
-FLUTTER_BUILD_ARGS = "bundle -v"
+FLUTTER_BUILD_ARGS = "bundle"
 
 inherit flutter-app

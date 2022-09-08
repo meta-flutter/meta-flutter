@@ -17,4 +17,6 @@ PUBSPEC_APPNAME = "localization"
 FLUTTER_APPLICATION_PATH = "localization"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
+FLUTTER_BUILD_ARGS = "bundle"
+
 inherit flutter-app

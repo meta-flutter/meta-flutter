@@ -121,6 +121,18 @@ jobs:
           bitbake membrane-dart-example -c do_cleansstate
           bitbake membrane-dart-example
 
+      - name: Build flutter-test-animated-background
+        shell: bash
+        working-directory: ../yocto-kirkstone
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake flutter-test-animated-background-runtimedebug -c do_cleansstate
+          bitbake flutter-test-animated-background-runtimeprofile -c do_cleansstate
+          bitbake flutter-test-animated-background-runtimerelease -c do_cleansstate
+          bitbake flutter-test-animated-background-runtimedebug
+          bitbake flutter-test-animated-background-runtimeprofile
+          bitbake flutter-test-animated-background-runtimerelease
+
       - name: Build flutter-app-igalia-homescreen
         shell: bash
         working-directory: ../yocto-kirkstone
@@ -157,18 +169,6 @@ jobs:
           bitbake flutter-engine-runtimeprofile
           bitbake flutter-engine-runtimedebug
 
-      - name: Build flutter-pi
-        shell: bash
-        working-directory: ../yocto-kirkstone
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-pi-runtimerelease -c do_cleansstate
-          bitbake flutter-pi-runtimeprofile -c do_cleansstate
-          bitbake flutter-pi-runtimedebug -c do_cleansstate
-          bitbake flutter-pi-runtimerelease
-          bitbake flutter-pi-runtimeprofile
-          bitbake flutter-pi-runtimedebug
-
       - name: Build flutter-auto
         shell: bash
         working-directory: ../yocto-kirkstone
@@ -180,6 +180,18 @@ jobs:
           bitbake flutter-auto-runtimerelease
           bitbake flutter-auto-runtimeprofile
           bitbake flutter-auto-runtimedebug
+
+      - name: Build flutter-pi
+        shell: bash
+        working-directory: ../yocto-kirkstone
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake flutter-pi-runtimerelease -c do_cleansstate
+          bitbake flutter-pi-runtimeprofile -c do_cleansstate
+          bitbake flutter-pi-runtimedebug -c do_cleansstate
+          bitbake flutter-pi-runtimerelease
+          bitbake flutter-pi-runtimeprofile
+          bitbake flutter-pi-runtimedebug
 
       - name: Build ivi-homescreen
         shell: bash
