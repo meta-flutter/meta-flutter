@@ -17,6 +17,6 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "flutter_homescreen"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
-FLUTTER_BUILD_ARGS = "bundle -v"
+FLUTTER_BUILD_ARGS = "bundle"
 
 inherit flutter-app

@@ -38,6 +38,8 @@ FLUTTER_APPLICATION_PATH = "plugins"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 FLUTTER_PREBUILD_CMD = "flutter pub get"
 
+FLUTTER_BUILD_ARGS = "bundle"
+
 inherit flutter-app
 
 require conf/include/flutter-version.inc

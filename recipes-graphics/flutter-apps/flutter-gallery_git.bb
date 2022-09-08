@@ -16,4 +16,6 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "gallery"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
+FLUTTER_BUILD_ARGS = "bundle"
+
 inherit flutter-app

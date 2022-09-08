@@ -1,6 +1,7 @@
 {
 	"flutter-version": "3.0.5",
-	"platforms": [{
+	"platforms": [
+		{
 			"id": "desktop-auto",
 			"type": "host",
 			"arch": "x86_64",
@@ -181,7 +182,8 @@
 			}
 		}
 	],
-	"repos": [{
+	"repos": [
+		{
 			"uri": "https://github.com/flutter/gallery.git",
 			"branch": "master",
 			"rev": "9eb785cb997ff56c46e933c1c591f0a6f31454f6",
@@ -198,6 +200,12 @@
 			"branch": "agl",
 			"rev": "bee63b8317fbf8f6b95d6be820bcf07b6b3c0c37",
 			"pubspec_path": "ped"
+		},
+		{
+			"uri": "https://github.com/meta-flutter/flutter_animated_background.git",
+			"branch": "meta-flutter",
+			"rev": "46f35ad2a323ab006813a3c4748163536b0fc332",
+			"pubspec_path": "flutter_animated_background/example"
 		},
 		{
 			"uri": "https://github.com/felipeerias/flutter_homescreen.git",
