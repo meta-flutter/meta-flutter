@@ -7,8 +7,11 @@
 			"flutter_runtime": "debug",
 			"runtime": {
 				"backend": "vulkan",
-				"default_width": 1920,
-				"default_height": 1080,
+				"config": {
+					"width": 1920,
+					"height": 1080,
+					"cursor_theme": "DMZ-White"
+				},
 				"install_dependent_packages": true,
 				"artifact_source": "github",
 				"github_owner": "toyota-connected",
@@ -40,8 +43,12 @@
 			"arch": "x86_64",
 			"flutter_runtime": "debug",
 			"runtime": {
-				"default_width": 640,
-				"default_height": 480,
+				"config": {
+					"window_type": "BG",
+					"width": 1920,
+					"height": 1080,
+					"fullscreen": true
+				},
 				"install_dependent_packages": true,
 				"relative_path": ".agl/agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemux86-64.wic.vmdk",
 				"artifact_source": "github",
