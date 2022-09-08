@@ -8,7 +8,7 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=df6bd2163489eedcdea6b9406bcbe1dd"
 
-SRCREV = "da096d27ee8e5e74c18eb97f91ac03021363ef5b"
+SRCREV = "c18845d2404394180a30c4583e1e865cdd00d433"
 SRC_URI = "git://github.com/meta-flutter/tests.git;lfs=1;branch=main;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"

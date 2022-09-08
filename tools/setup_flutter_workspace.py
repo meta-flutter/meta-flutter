@@ -829,6 +829,7 @@ def get_freedesktop_os_release():
     with open("/etc/os-release") as f:
         d = {}
         for line in f:
+            line = line.strip()
             k, v = line.rstrip().split("=")
             d[k] = v.strip('"')
         return d
@@ -1506,12 +1507,15 @@ echo \"* ${FLUTTER_WORKSPACE}\"
 echo \"********************************************\"
 
 flutter doctor -v
+echo \"\"
+
 flutter custom-devices list
+echo \"\"
 '''
 
 env_qemu = '''
 echo \"********************************************\"
-echo \" Type 'qemu_run' to start the emulator\"
+echo \"* Type 'qemu_run' to start the emulator    *\"
 echo \"********************************************\"
 qemu_run() {
     if [ -z ${QEMU_IMAGE+x} ];

@@ -1,0 +1,55 @@
+From da538e66118e1e8be2d16c6bdd86f072fcdb5205 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Thu, 8 Sep 2022 16:30:58 -0700
+Subject: [PATCH] impeller version macro fix
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ flutter/impeller/base/version.cc |  2 +-
+ flutter/impeller/base/version.h  | 12 ++++++------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/flutter/impeller/base/version.cc b/flutter/impeller/base/version.cc
+index 910e106aa1..2a0beea767 100644
+--- a/flutter/impeller/base/version.cc
++++ b/flutter/impeller/base/version.cc
+@@ -26,7 +26,7 @@ std::optional<Version> Version::FromVector(const std::vector<size_t>& version) {
+ 
+ std::string Version::ToString() const {
+   std::stringstream stream;
+-  stream << major << "." << minor << "." << patch;
++  stream << major_version << "." << minor_version << "." << patch_version;
+   return stream.str();
+ }
+ 
+diff --git a/flutter/impeller/base/version.h b/flutter/impeller/base/version.h
+index b042ce268a..1379a7f88e 100644
+--- a/flutter/impeller/base/version.h
++++ b/flutter/impeller/base/version.h
+@@ -14,18 +14,18 @@ namespace impeller {
+ 
+ struct Version {
+  public:
+-  size_t major;
+-  size_t minor;
+-  size_t patch;
++  size_t major_version;
++  size_t minor_version;
++  size_t patch_version;
+ 
+   constexpr Version(size_t p_major = 0, size_t p_minor = 0, size_t p_patch = 0)
+-      : major(p_major), minor(p_minor), patch(p_patch) {}
++      : major_version(p_major), minor_version(p_minor), patch_version(p_patch) {}
+ 
+   static std::optional<Version> FromVector(const std::vector<size_t>& version);
+ 
+   constexpr bool IsAtLeast(const Version& other) {
+-    return std::tie(major, minor, patch) >=
+-           std::tie(other.major, other.minor, other.patch);
++    return std::tie(major_version, minor_version, patch_version) >=
++           std::tie(other.major_version, other.minor_version, other.patch_version);
+   }
+ 
+   std::string ToString() const;
+-- 
+2.34.3
