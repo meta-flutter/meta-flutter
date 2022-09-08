@@ -33,11 +33,15 @@ import sys
 import zipfile
 from sys import stderr as STREAM
 
-FLUTTER_AUTO_DEFAULT_WIDTH = 1920
-FLUTTER_AUTO_DEFAULT_HEIGHT = 720
 
+FLUTTER_AUTO_DEFAULT_WIDTH = 1920
+FLUTTER_AUTO_DEFAULT_HEIGHT = 1080
+FLUTTER_AUTO_DEFAULT_CURSOR_THEME = "DMZ-White"
+
+QEMU_DEFAULT_WINDOW_TYPE = "BG"
 QEMU_DEFAULT_WIDTH = 1920
-QEMU_DEFAULT_HEIGHT = 720
+QEMU_DEFAULT_HEIGHT = 1080
+QEMU_DEFAULT_FULLSCREEN = True
 
 # use kiB's
 kb = 1024
@@ -1151,23 +1155,39 @@ def install_agl_emu_image(folder, config, platform):
 
         runtime = platform['runtime']
 
-        default_width = runtime.get('default_width')
-        if default_width is None:
-            default_width = QEMU_DEFAULT_WIDTH
+        config = runtime.get('config')
+        if config is None:
+            config_window_type = QEMU_DEFAULT_WINDOW_TYPE
+            config_width = QEMU_DEFAULT_WIDTH
+            config_height = QEMU_DEFAULT_HEIGHT
+            config_fullscreen = QEMU_DEFAULT_FULLSCREEN
 
-        default_height = runtime.get('default_height')
-        if default_height is None:
-            default_height = QEMU_DEFAULT_HEIGHT
+        else:
+            config_width = config.get('width')
+            if config_width is None:
+                config_width = QEMU_DEFAULT_WIDTH
+
+            config_height = config.get('height')
+            if config_height is None:
+                config_height = QEMU_DEFAULT_HEIGHT
+
+            config_fullscreen = config.get('fullscreen')
+            if config_fullscreen is None:
+                config_fullscreen = QEMU_DEFAULT_FULLSCREEN
+
+            config_window_type = config.get('window_type')
+            if config_window_type is None:
+                config_window_type = QEMU_DEFAULT_WINDOW_TYPE
 
         make_sure_path_exists(folder)
         default_config_filepath = os.path.join(folder, 'default_config.json')
         with open(default_config_filepath, 'w+') as default_config_file:
             config = {
                 "view": {
-                    "window_type": "BG",
-                    "width": default_width,
-                    "height": default_height,
-                    "fullscreen": True
+                    "window_type": config_window_type,
+                    "width": config_width,
+                    "height": config_height,
+                    "fullscreen": config_fullscreen
                 }
             }
             json.dump(config, default_config_file, indent=2)
@@ -1288,22 +1308,33 @@ def install_flutter_auto(folder, config, platform):
 
         runtime = platform['runtime']
 
-        default_width = runtime.get('default_width')
-        if default_width is None:
-            default_width = FLUTTER_AUTO_DEFAULT_WIDTH
+        config = runtime.get('config')
+        if config is None:
+            config_width = FLUTTER_AUTO_DEFAULT_WIDTH
+            config_height = FLUTTER_AUTO_DEFAULT_HEIGHT
+            config_cursor_theme = FLUTTER_AUTO_DEFAULT_CURSOR_THEME
 
-        default_height = runtime.get('default_height')
-        if default_height is None:
-            default_height = FLUTTER_AUTO_DEFAULT_HEIGHT
+        else:
+            config_width = config.get('width')
+            if config_width is None:
+                config_width = FLUTTER_AUTO_DEFAULT_WIDTH
+
+            config_height = config.get('height')
+            if config_height is None:
+                config_height = FLUTTER_AUTO_DEFAULT_HEIGHT
+
+            config_cursor_theme = config.get('cursor_theme')
+            if config_cursor_theme is None:
+                config_cursor_theme = FLUTTER_AUTO_DEFAULT_CURSOR_THEME
 
         make_sure_path_exists(folder)
         default_config_filepath = os.path.join(folder, 'default_config.json')
         with open(default_config_filepath, 'w+') as default_config_file:
             config = {
-                "cursor_theme": "DMZ-White",
+                "cursor_theme": config_cursor_theme,
                 "view": {
-                    "width": default_width,
-                    "height": default_height
+                    "width": config_width,
+                    "height": config_height
                 }
             }
             json.dump(config, default_config_file, indent=2)
