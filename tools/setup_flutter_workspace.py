@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# 
+#
 # Script that creates a Flutter Workspace
 #
 # Creates flutter workspace:
@@ -13,7 +13,8 @@
 #   setup_env.sh
 #
 #
-# One runs this script to create the workspace, then from working terminal setup the environment:
+# One runs this script to create the workspace, then from working terminal
+# setup the environment:
 #
 # "source ./setup_env.sh" or ". ./setup_env.sh"
 #
@@ -24,7 +25,7 @@
 import errno
 import json
 import os
-import platform
+from platform import system
 import pkg_resources
 import signal
 import subprocess
@@ -32,8 +33,19 @@ import sys
 import zipfile
 from sys import stderr as STREAM
 
+
+FLUTTER_AUTO_DEFAULT_WIDTH = 1920
+FLUTTER_AUTO_DEFAULT_HEIGHT = 1080
+FLUTTER_AUTO_DEFAULT_CURSOR_THEME = "DMZ-White"
+
+QEMU_DEFAULT_WINDOW_TYPE = "BG"
+QEMU_DEFAULT_WIDTH = 1920
+QEMU_DEFAULT_HEIGHT = 1080
+QEMU_DEFAULT_FULLSCREEN = True
+
 # use kiB's
 kb = 1024
+
 
 def print_banner(text):
     print('*' * (len(text) + 6))
@@ -42,7 +54,7 @@ def print_banner(text):
 
 
 def handle_ctrl_c(signal, frame):
-    print ("Ctl+C, Closing")
+    print("Ctl+C, Closing")
     sys.exit(0)
 
 
@@ -54,14 +66,24 @@ def main():
                         help='Wipes workspace clean')
     parser.add_argument('--workspace-cfg', default='', type=str,
                         help='Selects custom workspace configuration file')
-    parser.add_argument('--flutter-version', default='', type=str,
-                        help='Select flutter version.  Overrides config file key: flutter-version')
+    parser.add_argument(
+        '--flutter-version',
+        default='',
+        type=str,
+        help='Select flutter version.  Overrides config file key:'
+                ' flutter-version')
     parser.add_argument('--target-user', default='', type=str,
                         help='Sets custom-device target user name')
     parser.add_argument('--target-address', default='', type=str,
                         help='Sets custom-device target address')
     args = parser.parse_args()
 
+    #
+    # Check for network connection
+    #
+    if not test_internet_connection():
+        print_banner("This script requires an internet connection")
+        exit(1)
 
     #
     # Target Folder
@@ -74,6 +96,11 @@ def main():
     print_banner("Setting up Flutter Workspace in: %s" % workspace)
 
     #
+    # Install minimum package
+    #
+    install_minimum_runtime_deps()
+
+    #
     # Install required modules
     #
     required = {'requests', 'pycurl'}
@@ -84,12 +111,10 @@ def main():
     if missing:
         print("Installing required Python packages: %s" % required)
         python = sys.executable
-        subprocess.check_call([python, '-m', 'pip', 'install', *missing], stdout=subprocess.DEVNULL)
-
-    #
-    # Install minimum package
-    #
-    install_minimum_runtime_deps()
+        subprocess.check_call(
+            [python, '-m', 'pip', 'install', *missing],
+            stdout=subprocess.DEVNULL
+        )
 
     #
     # Control+C handler
@@ -113,10 +138,14 @@ def main():
     workspace_configuration = 'flutter_workspace_config.json'
     if args.workspace_cfg:
         workspace_configuration = args.workspace_cfg
-        print("\n** Custom Workspace Configuration file: %s\n" % workspace_configuration)
+        print(
+            "\n** Custom Workspace Configuration file: %s\n" %
+            workspace_configuration)
     else:
-        print("\n** Default Workspace Configuration file: %s\n" % workspace_configuration)
- 
+        print(
+            "\n** Default Workspace Configuration file: %s\n" %
+            workspace_configuration)
+
     config = get_workspace_config(workspace_configuration)
 
     platforms = config.get('platforms')
@@ -149,6 +178,7 @@ def main():
         clear_folder(config_folder)
         clear_folder(flutter_auto_folder)
         clear_folder(pub_cache_folder)
+        clear_folder('.vscode')
 
     #
     # App folder setup
@@ -186,9 +216,10 @@ def main():
     #
 
     os.environ['PATH'] = '%s:%s' % (os.environ.get('PATH'), flutter_bin_path)
-    os.environ['PUB_CACHE'] = os.path.join(os.environ.get('FLUTTER_WORKSPACE'), '.pub_cache')
-    os.environ['XDG_CONFIG_HOME'] = os.path.join(os.environ.get('FLUTTER_WORKSPACE'), '.config', 'flutter')
- 
+    os.environ['PUB_CACHE'] = os.path.join(
+        os.environ.get('FLUTTER_WORKSPACE'), '.pub_cache')
+    os.environ['XDG_CONFIG_HOME'] = os.path.join(
+        os.environ.get('FLUTTER_WORKSPACE'), '.config', 'flutter')
 
     print("PATH=%s" % os.environ.get('PATH'))
     print("PUB_CACHE=%s" % os.environ.get('PUB_CACHE'))
@@ -203,25 +234,19 @@ def main():
         subprocess.check_call(cmd, cwd=flutter_sdk_path)
 
     #
-    # Create default_config.json
-    #
-    setup_flutter_auto_files(flutter_auto_folder)
-
-    #
     # Create script to setup environment
     #
-    setup_env_script(args, platforms)
+    setup_env_script(workspace, args, platforms)
 
     #
     # Configure SDK
     #
     configure_flutter_sdk()
 
-
     #
     # Get runtime artifacts
     #
-    get_artifacts(config, flutter_sdk_path, flutter_auto_folder)
+    get_artifacts(config, flutter_sdk_path, flutter_auto_folder, agl_folder)
 
     #
     # custom-devices
@@ -232,7 +257,23 @@ def main():
         command = ['flutter', 'custom-devices', 'list']
         subprocess.check_call(command)
 
+    #
+    # Done
+    #
     print_banner("Setup Flutter Workspace - Complete")
+
+
+def test_internet_connection():
+    import http.client as httplib
+
+    conn = httplib.HTTPSConnection("8.8.8.8", timeout=5)
+    try:
+        conn.request("HEAD", "/")
+        return True
+    except Exception:
+        return False
+    finally:
+        conn.close()
 
 
 def make_sure_path_exists(path):
@@ -246,7 +287,7 @@ def make_sure_path_exists(path):
 def clear_folder(dir):
     ''' Clears folder specified '''
     import shutil
-    if  os.path.exists(dir):
+    if os.path.exists(dir):
         shutil.rmtree(dir)
 
 
@@ -258,14 +299,16 @@ def get_workspace_config(config_file):
         print("Missing %s file" % config_file)
         default_channel = "stable"
         print("Defaulting to %s channel\n" % default_channel)
-        data = json.loads('{"flutter-version":"%s","platforms":[],"repos":[]}' % default_channel)
+        data = json.loads(
+            '{"flutter-version":"%s","platforms":[],"repos":[]}' %
+            default_channel)
         return data
 
     f = open(config_file)
     try:
         data = json.load(f)
     except json.decoder.JSONDecodeError:
-        print("Invalid JSON in %s" % (config_file)) # in case json is invalid
+        print("Invalid JSON in %s" % (config_file))  # in case json is invalid
         exit(1)
 
     f.close()
@@ -276,60 +319,59 @@ def get_workspace_config(config_file):
 def validate_platform_config(platform):
     ''' Validates Platform Configuration returning bool '''
 
-    if not 'id' in platform:
+    if 'id' not in platform:
         print_banner("Missing 'id' key in platform config")
         return False
-    if not 'type' in platform:
+    if 'type' not in platform:
         print_banner("Missing 'type' key in platform config")
         return False
     else:
         if platform['type'] == 'host':
-            if not 'arch' in platform:
+            if 'arch' not in platform:
                 print_banner("Missing 'arch' key in platform config")
                 return False
-            if not 'flutter_runtime' in platform:
-                print_banner("Missing 'flutter_runtime' key in platform config")
+            if 'flutter_runtime' not in platform:
+                print_banner(
+                    "Missing 'flutter_runtime' key in platform config")
                 return False
-            if not 'runtime' in platform:
+            if 'runtime' not in platform:
                 print_banner("Missing 'runtime' key in platform config")
                 return False
 
             print("Platform ID: %s" % (platform['id']))
 
         elif platform['type'] == 'qemu':
-            if not 'arch' in platform:
+            if 'arch' not in platform:
                 print_banner("Missing 'arch' key in platform config")
                 return False
-            if not 'flutter_runtime' in platform:
-                print_banner("Missing 'flutter_runtime' key in platform config")
+            if 'flutter_runtime' not in platform:
+                print_banner(
+                    "Missing 'flutter_runtime' key in platform config")
                 return False
-            if not 'runtime' in platform:
+            if 'runtime' not in platform:
                 print_banner("Missing 'runtime' key in platform config")
                 return False
-            if not 'custom-device' in platform:
+            if 'custom-device' not in platform:
                 print_banner("Missing 'custom-device' key in platform config")
                 return False
 
             print("Platform ID: %s" % (platform['id']))
 
         elif platform['type'] == 'target':
-            if not 'arch' in platform:
+            if 'arch' not in platform:
                 print_banner("Missing 'arch' key in platform config")
                 return False
-            if not 'flutter_runtime' in platform:
-                print_banner("Missing 'flutter_runtime' key in platform config")
-                return False
-            if not 'target_user' in platform:
-                print_banner("Missing 'target_user' key in platform config")
-                return False
-            if not 'target_address' in platform:
-                print_banner("Missing 'target_address' key in platform config")
+            if 'flutter_runtime' not in platform:
+                print_banner(
+                    "Missing 'flutter_runtime' key in platform config")
                 return False
 
             print("Platform ID: %s" % (platform['id']))
 
         else:
-            print("platform type %s is not currently supported." % (platform['type']))
+            print(
+                "platform type %s is not currently supported." %
+                (platform['type']))
 
     return True
 
@@ -337,46 +379,47 @@ def validate_platform_config(platform):
 def validate_custom_device_config(config):
     ''' Validates custom-device Configuration returning bool '''
 
-    if not 'id' in config:
+    if 'id' not in config:
         print_banner("Missing 'id' key in custom-device config")
         return False
-    if not 'label' in config:
+    if 'label' not in config:
         print_banner("Missing 'label' key in custom-device config")
         return False
-    if not 'sdkNameAndVersion' in config:
+    if 'sdkNameAndVersion' not in config:
         print_banner("Missing 'sdkNameAndVersion' key in custom-device config")
         return False
-    if not 'platform' in config:
+    if 'platform' not in config:
         print_banner("Missing 'platform' key in custom-device config")
         return False
-    if not 'enabled' in config:
+    if 'enabled' not in config:
         print_banner("Missing 'enabled' key in custom-device config")
         return False
-    if not 'ping' in config:
+    if 'ping' not in config:
         print_banner("Missing 'ping' key in custom-device config")
         return False
-    if not 'pingSuccessRegex' in config:
+    if 'pingSuccessRegex' not in config:
         print_banner("Missing 'pingSuccessRegex' key in custom-device config")
         return False
-    if not 'postBuild' in config:
+    if 'postBuild' not in config:
         print_banner("Missing 'postBuild' key in custom-device config")
         return False
-    if not 'install' in config:
+    if 'install' not in config:
         print_banner("Missing 'install' key in custom-device config")
         return False
-    if not 'uninstall' in config:
+    if 'uninstall' not in config:
         print_banner("Missing 'uninstall' key in custom-device config")
         return False
-    if not 'runDebug' in config:
+    if 'runDebug' not in config:
         print_banner("Missing 'runDebug' key in custom-device config")
         return False
-    if not 'forwardPort' in config:
+    if 'forwardPort' not in config:
         print_banner("Missing 'forwardPort' key in custom-device config")
         return False
-    if not 'forwardPortSuccessRegex' in config:
-        print_banner("Missing 'forwardPortSuccessRegex' key in custom-device config")
+    if 'forwardPortSuccessRegex' not in config:
+        print_banner(
+            "Missing 'forwardPortSuccessRegex' key in custom-device config")
         return False
-    if not 'screenshot' in config:
+    if 'screenshot' not in config:
         print_banner("Missing 'screenshot' key in custom-device config")
         return False
 
@@ -393,10 +436,10 @@ def get_workspace_repos(base_folder, config):
         repos = None
 
     for repo in repos:
-        if not 'uri' in repo:
+        if 'uri' not in repo:
             print("repo entry needs a 'uri' key.  Skipping")
             continue
-        if not 'branch' in repo:
+        if 'branch' not in repo:
             print("repo entry needs a 'branch' key.  Skipping")
             continue
 
@@ -417,7 +460,13 @@ def get_workspace_repos(base_folder, config):
             if isExist:
                 os.removedirs(git_folder)
 
-            cmd = ['git', 'clone', repo['uri'], '-b', repo['branch'], repo_name]
+            cmd = [
+                'git',
+                'clone',
+                repo['uri'],
+                '-b',
+                repo['branch'],
+                repo_name]
             subprocess.check_call(cmd, cwd=base_folder)
 
         if 'rev' in repo:
@@ -433,9 +482,14 @@ def get_workspace_repos(base_folder, config):
             cmd = ['git', 'pull', '--all']
             subprocess.check_call(cmd, cwd=git_folder)
 
-
         cmd = ['git', 'log', '-1']
         subprocess.check_call(cmd, cwd=git_folder)
+
+    #
+    # Create vscode startup tasks
+    #
+    platform_ids = get_platform_ids(config.get('platforms'))
+    create_vscode_launch_file(repos, platform_ids)
 
 
 def get_flutter_settings_folder():
@@ -444,7 +498,8 @@ def get_flutter_settings_folder():
     if "XDG_CONFIG_HOME" in os.environ:
         settings_folder = os.path.join(os.environ.get('XDG_CONFIG_HOME'))
     else:
-        settings_folder = os.path.join(os.environ.get('HOME'), '.config', 'flutter')
+        settings_folder = os.path.join(
+            os.environ.get('HOME'), '.config', 'flutter')
 
     make_sure_path_exists(settings_folder)
 
@@ -455,7 +510,7 @@ def get_flutter_custom_config_path():
     ''' Returns the path of the Flutter Custom Config json file '''
 
     fldr_ = get_flutter_settings_folder()
-    #print("folder: %s" % fldr_)
+    # print("folder: %s" % fldr_)
     return os.path.join(fldr_, 'custom_devices.json')
 
 
@@ -469,7 +524,9 @@ def get_flutter_custom_devices():
         try:
             data = json.load(f)
         except json.decoder.JSONDecodeError:
-            print("Invalid JSON in %s" % (custom_config)) # in case json is invalid
+            print(
+                "Invalid JSON in %s" %
+                (custom_config))  # in case json is invalid
             exit(1)
         f.close()
 
@@ -482,7 +539,8 @@ def get_flutter_custom_devices():
 
 
 def remove_flutter_custom_devices_id(id):
-    ''' Removes Flutter custom devices that match given id from the configuration file '''
+    ''' Removes Flutter custom devices that match given id from the
+    configuration file '''
 
     # print("Removing custom-device with ID: %s" % id)
     custom_config = get_flutter_custom_config_path()
@@ -492,7 +550,8 @@ def remove_flutter_custom_devices_id(id):
         try:
             obj = json.load(f)
         except json.decoder.JSONDecodeError:
-            print_banner("Invalid JSON in %s" % (custom_config)) # in case json is invalid
+            print_banner("Invalid JSON in %s" %
+                         (custom_config))  # in case json is invalid
             exit(1)
         f.close()
 
@@ -505,8 +564,8 @@ def remove_flutter_custom_devices_id(id):
 
         custom_devices = {}
         custom_devices['custom-devices'] = new_device_list
-        
-        if not 'custom-devices' in custom_devices:
+
+        if 'custom-devices' not in custom_devices:
             print("Removing empty file: %s" % custom_config)
             os.remove(custom_config)
             return
@@ -521,57 +580,41 @@ def patch_string_array(find_token, replace_token, list):
     return [w.replace(find_token, replace_token) for w in list]
 
 
-def patch_custom_device_strings(devices):
-    ''' Patch custom device string environmental variables to use literal values '''
+def patch_custom_device_strings(devices, flutter_runtime):
+    ''' Patch custom device string environmental variables to use literal
+    values '''
 
     workspace = os.getenv('FLUTTER_WORKSPACE')
     bundle_folder = os.getenv('BUNDLE_FOLDER')
-    target_user = os.getenv('TARGET_USER')
-    target_address = os.getenv('TARGET_ADDRESS')
 
     for device in devices:
 
         token = '${FLUTTER_WORKSPACE}'
 
+        if device.get('sdkNameAndVersion'):
+            if '${FLUTTER_RUNTIME}' in device['sdkNameAndVersion']:
+                sdkNameAndVersion = device['sdkNameAndVersion'].replace(
+                    '${FLUTTER_RUNTIME}',
+                    flutter_runtime)
+                device['sdkNameAndVersion'] = sdkNameAndVersion
+
         if device.get('postBuild'):
-            device['postBuild'] = patch_string_array(token, workspace, device['postBuild'])
+            device['postBuild'] = patch_string_array(
+                token, workspace, device['postBuild'])
 
         if device.get('runDebug'):
-            device['runDebug'] = patch_string_array(token, workspace, device['runDebug'])
-
+            device['runDebug'] = patch_string_array(
+                token, workspace, device['runDebug'])
 
         token = '${BUNDLE_FOLDER}'
         if device.get('install'):
-            device['install'] = patch_string_array(token, bundle_folder, device['install'])
-
-        if target_user:
-            token = '${TARGET_USER}'
-            if device.get('install'):
-                device['install'] = patch_string_array(token, target_user, device['install'])
-            if device.get('uninstall'):
-                device['uninstall'] = patch_string_array(token, target_user, device['uninstall'])
-            if device.get('runDebug'):
-                device['runDebug'] = patch_string_array(token, target_user, device['runDebug'])
-            if device.get('forwardPort'):
-                device['forwardPort'] = patch_string_array(token, target_user, device['forwardPort'])
-
-        if target_address:
-            token = '${TARGET_ADDRESS}'
-            if device.get('ping'):
-                device['ping'] = patch_string_array(token, target_address, device['ping'])
-            if device.get('install'):
-                device['install'] = patch_string_array(token, target_address, device['install'])
-            if device.get('uninstall'):
-                device['uninstall'] = patch_string_array(token, target_address, device['uninstall'])
-            if device.get('runDebug'):
-                device['runDebug'] = patch_string_array(token, target_address, device['runDebug'])
-            if device.get('forwardPort'):
-                device['forwardPort'] = patch_string_array(token, target_address, device['forwardPort'])
+            device['install'] = patch_string_array(
+                token, bundle_folder, device['install'])
 
     return devices
 
 
-def add_flutter_custom_device(device_config):
+def add_flutter_custom_device(device_config, flutter_runtime):
     ''' Add a single Flutter custom device from json string '''
 
     if not validate_custom_device_config(device_config):
@@ -588,7 +631,8 @@ def add_flutter_custom_device(device_config):
         try:
             obj = json.load(f)
         except json.decoder.JSONDecodeError:
-            print_banner("Invalid JSON in %s" % (custom_devices_file)) # in case json is invalid
+            print_banner("Invalid JSON in %s" %
+                         (custom_devices_file))  # in case json is invalid
             exit(1)
         f.close()
 
@@ -601,12 +645,13 @@ def add_flutter_custom_device(device_config):
                     new_device_list.append(device)
 
     new_device_list.append(device_config)
-    patched_device_list = patch_custom_device_strings(new_device_list)
+    patched_device_list = patch_custom_device_strings(
+        new_device_list, flutter_runtime)
 
     custom_devices = {}
     custom_devices['custom-devices'] = patched_device_list
 
-    #print("custom_devices_file: %s" % custom_devices_file)
+    # print("custom_devices_file: %s" % custom_devices_file)
     with open(custom_devices_file, "w+") as outfile:
         json.dump(custom_devices, outfile, indent=4)
 
@@ -614,7 +659,8 @@ def add_flutter_custom_device(device_config):
 
 
 def update_flutter_custom_devices_list(platforms):
-    ''' Updates the custom_devices.json with all custom-devices in platforms dict '''
+    ''' Updates the custom_devices.json with all custom-devices in
+    platforms dict '''
 
     for platform in platforms:
 
@@ -622,16 +668,18 @@ def update_flutter_custom_devices_list(platforms):
 
         overwrite_existing = platform.get('overwrite-existing')
 
-        # check if id already exists, remove if overwrite enabled, otherwise skip
+        # check if id already exists, remove if overwrite enabled, otherwise
+        # skip
         if custom_devices:
             for custom_device in custom_devices:
                 if 'id' in custom_device:
                     id = custom_device['id']
                     if overwrite_existing and (id == platform['id']):
-                        #print("attempting to remove custom-device: %s" % id)
+                        # print("attempting to remove custom-device: %s" % id)
                         remove_flutter_custom_devices_id(id)
 
-        add_flutter_custom_device(platform['custom-device'])
+        add_flutter_custom_device(
+            platform['custom-device'], platform['flutter_runtime'])
 
 
 def configure_flutter_sdk():
@@ -673,7 +721,11 @@ def configure_flutter_sdk():
 
 def force_tool_rebuild(flutter_sdk_folder):
 
-    tool_script = os.path.join(flutter_sdk_folder, 'bin', 'cache', 'flutter_tools.snapshot')
+    tool_script = os.path.join(
+        flutter_sdk_folder,
+        'bin',
+        'cache',
+        'flutter_tools.snapshot')
 
     if os.path.exists(tool_script):
 
@@ -691,7 +743,19 @@ def patch_flutter_sdk(flutter_sdk_folder):
 
         print_banner("Patching Flutter SDK")
 
-        cmd = ["bash", "-c", "sed -i -e \"/const Feature flutterCustomDevicesFeature/a const Feature flutterCustomDevicesFeature = Feature\\(\\n  name: \\\'Early support for custom device types\\\',\\n  configSetting: \\\'enable-custom-devices\\\',\\n  environmentOverride: \\\'FLUTTER_CUSTOM_DEVICES\\\',\\n  master: FeatureChannelSetting(\\n    available: true,\\n  \\),\\n  beta: FeatureChannelSettin\\g(\\n    available: true,\\n  \\),\\n  stable: FeatureChannelSetting(\\n    available: true,\\n  \\)\\n);\" -e \"/const Feature flutterCustomDevicesFeature/,/);/d\" packages/flutter_tools/lib/src/features.dart"]
+        cmd = [
+            "bash",
+            "-c",
+            "sed -i -e \"/const Feature flutterCustomDevicesFeature/a const"
+            " Feature flutterCustomDevicesFeature = Feature\\(\\n  name: "
+            "\\\'Early support for custom device types\\\',\\n  configSetting:"
+            " \\\'enable-custom-devices\\\',\\n  environmentOverride: "
+            "\\\'FLUTTER_CUSTOM_DEVICES\\\',\\n  master: FeatureChannelSetting"
+            "(\\n    available: true,\\n  \\),\\n  beta: FeatureChannelSettin"
+            "\\g(\\n    available: true,\\n  \\),\\n  stable: "
+            "FeatureChannelSetting(\\n    available: true,\\n  \\)\\n);\" -e "
+            "\"/const Feature flutterCustomDevicesFeature/,/);/d\" packages/"
+            "flutter_tools/lib/src/features.dart"]
         subprocess.check_call(cmd, cwd=flutter_sdk_folder)
 
 
@@ -702,10 +766,10 @@ def get_flutter_sdk(version):
     workspace = os.environ.get('FLUTTER_WORKSPACE')
 
     flutter_sdk_path = os.path.join(workspace, 'flutter')
-    
+
     #
     # GIT repo
-    #  
+    #
     if is_repo(flutter_sdk_path):
 
         print('Checking out %s' % version)
@@ -718,13 +782,12 @@ def get_flutter_sdk(version):
 
         flutter_repo = 'https://github.com/flutter/flutter.git'
 
-        cmd = ["git","clone", flutter_repo, flutter_sdk_path]
+        cmd = ["git", "clone", flutter_repo, flutter_sdk_path]
         subprocess.check_call(cmd)
 
         print('Checking out %s' % version)
         cmd = ["git", "checkout", version]
         subprocess.check_call(cmd, cwd=flutter_sdk_path)
-
 
     print_banner("FLUTTER_SDK: %s" % flutter_sdk_path)
 
@@ -737,7 +800,8 @@ def get_flutter_sdk(version):
 def get_flutter_engine_version(flutter_sdk_path):
     ''' Get Engine Commit from Flutter SDK '''
 
-    engine_version_file = os.path.join(flutter_sdk_path, 'bin/internal/engine.version')
+    engine_version_file = os.path.join(
+        flutter_sdk_path, 'bin/internal/engine.version')
 
     with open(engine_version_file) as f:
         engine_version = f.read()
@@ -747,7 +811,11 @@ def get_flutter_engine_version(flutter_sdk_path):
 
 
 def get_process_stdout(cmd):
-    process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
+    process = subprocess.Popen(
+        cmd,
+        shell=True,
+        stdout=subprocess.PIPE,
+        universal_newlines=True)
     ret = ""
     for line in process.stdout:
         ret += str(line)
@@ -761,31 +829,33 @@ def get_freedesktop_os_release():
     with open("/etc/os-release") as f:
         d = {}
         for line in f:
-            k,v = line.rstrip().split("=")
+            line = line.strip()
+            k, v = line.rstrip().split("=")
             d[k] = v.strip('"')
         return d
 
 
 def get_host_type():
-    return platform.system().lower().rstrip()
+    return system().lower().rstrip()
 
 
 def fetch_https_progress(download_t, download_d, upload_t, upload_d):
     '''callback function for pycurl.XFERINFOFUNCTION'''
     STREAM.write('Progress: {}/{} kiB ({}%)\r'.format(
-        str(int(download_d/kb)),
-        str(int(download_t/kb)),
-        str(int(download_d/download_t*100) if download_t > 0 else 0)
+        str(int(download_d / kb)),
+        str(int(download_t / kb)),
+        str(int(download_d / download_t * 100) if download_t > 0 else 0)
     ))
     STREAM.flush()
 
 
 def fetch_https_binary_file(url, filename, redirect, headers):
     '''Fetches binary file via HTTPS'''
-    import pycurl, time
+    import pycurl
+    import time
 
     retries_left = 3
-    delay_between_retries = 5 # seconds
+    delay_between_retries = 5  # seconds
     success = False
 
     c = pycurl.Curl()
@@ -794,7 +864,7 @@ def fetch_https_binary_file(url, filename, redirect, headers):
     c.setopt(pycurl.NOSIGNAL, 1)
     c.setopt(pycurl.NOPROGRESS, False)
     c.setopt(pycurl.XFERINFOFUNCTION, fetch_https_progress)
-    
+
     if headers:
         c.setopt(pycurl.HTTPHEADER, headers)
 
@@ -812,7 +882,7 @@ def fetch_https_binary_file(url, filename, redirect, headers):
             success = True
             break
 
-        except BaseException as e:
+        except BaseException:
             retries_left -= 1
             time.sleep(delay_between_retries)
 
@@ -822,13 +892,14 @@ def fetch_https_binary_file(url, filename, redirect, headers):
     return success
 
 
-def get_artifacts(config, flutter_sdk_path, flutter_auto_folder):
+def get_artifacts(config, flutter_sdk_path, flutter_auto_folder, agl_folder):
     ''' Get x86_64 Engine artifcats '''
 
     tmp_folder = get_workspace_tmp_folder()
     make_sure_path_exists(tmp_folder)
 
     fetch_linux_x64_engine = False
+    flutter_runtime = 'debug'
 
     platforms = config['platforms']
 
@@ -840,11 +911,14 @@ def get_artifacts(config, flutter_sdk_path, flutter_auto_folder):
 
             fetch_linux_x64_engine = True
 
-            if platform['id'] == 'AGL-qemu' and platform['type'] == 'qemu':
-                install_agl_emu_image(config, platform)
+            flutter_runtime = platform['flutter_runtime']
 
-            elif platform['id'] == 'desktop-auto' and platform['type'] == 'host':
-                install_flutter_auto(config, platform)
+            if platform['id'] == 'AGL-qemu' and platform['type'] == 'qemu':
+                install_agl_emu_image(agl_folder, config, platform)
+
+            elif (platform['id'] == 'desktop-auto' and
+                    platform['type'] == 'host'):
+                install_flutter_auto(flutter_auto_folder, config, platform)
 
         else:
             print("%s artifacts not yet supported, skipping" % arch)
@@ -857,10 +931,9 @@ def get_artifacts(config, flutter_sdk_path, flutter_auto_folder):
         url = 'https://storage.googleapis.com/flutter_infra_release/flutter/%s/linux-x64/linux-x64-embedder' % engine_version
         flutter_engine_zip = "%s/embedder.zip" % tmp_folder
 
-        print("** Downloading %s\n...to %s" % (url, flutter_engine_zip))
-
+        print("** Downloading %s via %s" % (flutter_engine_zip, url))
         res = fetch_https_binary_file(url, flutter_engine_zip, False, None)
-        print (res)
+        print(res)
         if not res:
             print_banner("Failed to download %s" % (flutter_engine_zip))
             return
@@ -869,24 +942,32 @@ def get_artifacts(config, flutter_sdk_path, flutter_auto_folder):
             return
         print("** Downloaded %s" % (flutter_engine_zip))
 
-        bundle_folder = os.path.join(flutter_auto_folder, engine_version[0:7], 'linux-x64', platform['flutter_runtime'], 'bundle')
+        bundle_folder = os.path.join(flutter_auto_folder,
+                                     engine_version[0:7],
+                                     'linux-x64',
+                                     flutter_runtime,
+                                     'bundle')
         os.environ['BUNDLE_FOLDER'] = bundle_folder
-        
+
         lib_folder = os.path.join(bundle_folder, 'lib')
         make_sure_path_exists(lib_folder)
 
         data_folder = os.path.join(bundle_folder, 'data')
         make_sure_path_exists(data_folder)
 
-        icudtl_source = os.path.join(flutter_sdk_path, "bin/cache/artifacts/engine/linux-x64/icudtl.dat")
+        icudtl_source = os.path.join(
+            flutter_sdk_path,
+            "bin/cache/artifacts/engine/linux-x64/icudtl.dat")
         if not os.path.exists(icudtl_source):
             cmd = ["flutter", "doctor", "-v"]
             subprocess.check_call(cmd, cwd=flutter_sdk_path)
 
         host_type = get_host_type()
-        icudtl_source = os.path.join(flutter_sdk_path, "bin/cache/artifacts/engine/%s-x64/icudtl.dat" % host_type)
+        icudtl_source = os.path.join(
+            flutter_sdk_path,
+            "bin/cache/artifacts/engine/%s-x64/icudtl.dat" %
+            host_type)
         subprocess.check_call(["cp", icudtl_source, "%s/" % data_folder])
-
 
         with zipfile.ZipFile(flutter_engine_zip, "r") as zip_ref:
             zip_ref.extractall(lib_folder)
@@ -919,26 +1000,42 @@ def get_github_token(github_token):
 
 
 def get_github_artifact_list_json(token, url):
+    """Function to return the JSON of artifact object array."""
+    import requests
 
-        """Function to return the JSON of artifact object array."""
-        import requests
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": "token %s" %
+        (token)}
+    with requests.get(
+            url,
+            stream=True,
+            headers=headers,
+            allow_redirects=True
+    ) as r:
+        data = r.json()
 
-        headers = {"Accept": "application/vnd.github+json", "Authorization": "token %s" % (token)}
-        with requests.get(url, stream=True, headers=headers, allow_redirects=True) as r:
-            data = r.json()
-
-        return data['artifacts']
+    return data['artifacts']
 
 
 def get_github_workflow_runs(token, owner, repo, workflow):
     ''' Gets workflow run list '''
     import requests
 
-    url = "https://api.github.com/repos/%s/%s/actions/workflows/%s/runs" % (owner, repo, workflow)
+    url = "https://api.github.com/repos/%s/%s/actions/workflows/%s/runs" % (
+        owner, repo, workflow)
 
     try:
-        headers = {"Accept": "application/vnd.github+json", "Authorization": "token %s" % (token)}
-        with requests.get(url, stream=True, headers=headers, allow_redirects=True) as r:
+        headers = {
+            "Accept": "application/vnd.github+json",
+            "Authorization": "token %s" %
+            (token)}
+        with requests.get(
+                url,
+                stream=True,
+                headers=headers,
+                allow_redirects=True
+        ) as r:
             json_data = json.loads(r.text)
             return json_data['workflow_runs']
 
@@ -954,10 +1051,14 @@ def get_github_workflow_artifacts(token, owner, repo, id):
     ''' Get Workflow Artifact List '''
     import requests
 
-    url = "https://api.github.com/repos/%s/%s/actions/runs/%s/artifacts" % (owner, repo, id)
+    url = "https://api.github.com/repos/%s/%s/actions/runs/%s/artifacts" % (
+        owner, repo, id)
 
     try:
-        headers = {"Accept": "application/vnd.github+json", "Authorization": "token %s" % (token)}
+        headers = {
+            "Accept": "application/vnd.github+json",
+            "Authorization": "token %s" %
+            (token)}
         with requests.get(url, stream=True, headers=headers) as r:
             data = r.json()
 
@@ -974,7 +1075,7 @@ def get_github_workflow_artifacts(token, owner, repo, id):
 def get_workspace_tmp_folder():
     ''' Gets tmp folder path located in workspace'''
     workspace = os.getenv("FLUTTER_WORKSPACE")
-    tmp_folder = os.path.join(workspace,'.tmp')
+    tmp_folder = os.path.join(workspace, '.tmp')
     make_sure_path_exists(tmp_folder)
     return tmp_folder
 
@@ -994,11 +1095,19 @@ def get_github_artifact(token, url, filename):
 def ubuntu_is_pkg_installed(package):
     '''Ubuntu - checks if package is installed'''
 
-    cmd = ['dpkg-query', '-W', "--showformat='${Status}\n'", package, '|grep "install ok installed"']
+    cmd = [
+        'dpkg-query',
+        '-W',
+        "--showformat='${Status}\n'",
+        package,
+        '|grep "install ok installed"']
 
-    result = subprocess.run(cmd, capture_output=True, text=True).stdout.strip('\'').strip('\n')
+    result = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True).stdout.strip('\'').strip('\n')
 
-    if type(result) == list:
+    if isinstance(result, list):
         test = result[0]
     else:
         test = result
@@ -1034,9 +1143,10 @@ def install_minimum_runtime_deps():
 
             ubuntu_install_pkg_if_not_installed("curl")
             ubuntu_install_pkg_if_not_installed("libcurl4-openssl-dev")
+            ubuntu_install_pkg_if_not_installed("libssl-dev")
 
 
-def install_agl_emu_image(config, platform):
+def install_agl_emu_image(folder, config, platform):
 
     host_type = get_host_type()
 
@@ -1045,12 +1155,43 @@ def install_agl_emu_image(config, platform):
         print_banner("Installing AGL emulator image")
 
         runtime = platform['runtime']
-        
-        relative_path = runtime.get('relative_path') 
-        github_owner = runtime.get('github_owner')
-        github_repo = runtime.get('github_repo')
-        github_workflow = runtime.get('github_workflow')
-        github_artifact = runtime.get('github_artifact')
+
+        config = runtime.get('config')
+        if config is None:
+            config_window_type = QEMU_DEFAULT_WINDOW_TYPE
+            config_width = QEMU_DEFAULT_WIDTH
+            config_height = QEMU_DEFAULT_HEIGHT
+            config_fullscreen = QEMU_DEFAULT_FULLSCREEN
+
+        else:
+            config_width = config.get('width')
+            if config_width is None:
+                config_width = QEMU_DEFAULT_WIDTH
+
+            config_height = config.get('height')
+            if config_height is None:
+                config_height = QEMU_DEFAULT_HEIGHT
+
+            config_fullscreen = config.get('fullscreen')
+            if config_fullscreen is None:
+                config_fullscreen = QEMU_DEFAULT_FULLSCREEN
+
+            config_window_type = config.get('window_type')
+            if config_window_type is None:
+                config_window_type = QEMU_DEFAULT_WINDOW_TYPE
+
+        make_sure_path_exists(folder)
+        default_config_filepath = os.path.join(folder, 'default_config.json')
+        with open(default_config_filepath, 'w+') as default_config_file:
+            config = {
+                "view": {
+                    "window_type": config_window_type,
+                    "width": config_width,
+                    "height": config_height,
+                    "fullscreen": config_fullscreen
+                }
+            }
+            json.dump(config, default_config_file, indent=2)
 
         if runtime.get('install_dependent_packages'):
 
@@ -1059,7 +1200,17 @@ def install_agl_emu_image(config, platform):
 
             if os_release.get('NAME') == 'Ubuntu':
 
-                cmd = ["sudo", "apt-get", "install", "-y", "qemu-system-x86", "ovmf", "qemu-kvm", "libvirt-daemon-system", "libvirt-clients", "bridge-utils"]
+                cmd = [
+                    "sudo",
+                    "apt-get",
+                    "install",
+                    "-y",
+                    "qemu-system-x86",
+                    "ovmf",
+                    "qemu-kvm",
+                    "libvirt-daemon-system",
+                    "libvirt-clients",
+                    "bridge-utils"]
                 subprocess.call(cmd)
 
                 cmd = ["sudo", "adduser", username, "libvirt"]
@@ -1068,53 +1219,87 @@ def install_agl_emu_image(config, platform):
                 cmd = ["sudo", "adduser", username, "kvm"]
                 subprocess.call(cmd)
 
-                cmd = ["sudo", "systemctl", "status", "libvirtd", "--no-pager", "-l"]
+                cmd = [
+                    "sudo",
+                    "systemctl",
+                    "status",
+                    "libvirtd",
+                    "--no-pager",
+                    "-l"]
                 subprocess.call(cmd)
 
-        github_token = get_github_token(config.get('github_token'))
+        if runtime.get('artifact_source') == "github":
+            github_artifact = runtime['github_artifact']
+            if '${FLUTTER_RUNTIME}' in github_artifact:
+                github_artifact = github_artifact.replace(
+                    '${FLUTTER_RUNTIME}',
+                    platform.get('flutter_runtime')
+                )
 
-        if github_token and relative_path and github_owner and github_repo and github_workflow and github_artifact:
+            install_github_artifact_agl_emu_image(
+                get_github_token(
+                    config.get('github_token')
+                ),
+                runtime.get('github_owner'),
+                runtime.get('github_repo'),
+                runtime.get('github_workflow'),
+                github_artifact
+            )
 
-            workflow_runs = get_github_workflow_runs(github_token, github_owner, github_repo, github_workflow)
-            run_id = None
-            for run in workflow_runs:
-                if run['conclusion'] == "success":
-                    run_id = run['id']
+
+def install_github_artifact_agl_emu_image(
+    token,
+    owner,
+    repo,
+    workflow,
+    artifact_name
+):
+    '''Installs AGL emulation image github artifact'''
+
+    if (token and owner and repo and workflow and artifact_name):
+
+        workflow_runs = get_github_workflow_runs(token, owner, repo, workflow)
+        run_id = None
+        for run in workflow_runs:
+            if run['conclusion'] == "success":
+                run_id = run['id']
+                break
+
+        artifacts = get_github_workflow_artifacts(token, owner, repo, run_id)
+
+        for artifact in artifacts:
+
+            name = artifact.get('name')
+
+            if name == artifact_name:
+
+                url = artifact.get('archive_download_url')
+
+                print(
+                    "Downloading %s run_id: %s via %s" %
+                    (workflow, run_id, url))
+
+                filename = "%s.zip" % name
+                downloaded_file = get_github_artifact(
+                    token, url, filename)
+                if downloaded_file is None:
+                    print_banner("Failed to download %s" % (filename))
                     break
-        
-            artifacts = get_github_workflow_artifacts(github_token, github_owner, github_repo, run_id)
 
-            for artifact in artifacts:
-                
-                name = artifact.get('name')
+                print("Downloaded: %s" % downloaded_file)
 
-                if name == "agl-image-flutter-runtimedebug-qemux86-64-linux":
+                workspace = os.getenv('FLUTTER_WORKSPACE')
 
-                    url = artifact.get('archive_download_url')
+                image_path = os.path.join(workspace, '.agl')
+                with zipfile.ZipFile(downloaded_file, "r") as zip_ref:
+                    zip_ref.extractall(image_path)
 
-                    print("Downloading %s run_id: %s via %s" % (github_workflow, run_id, url))
-
-                    filename = "%s.zip" % name
-                    downloaded_file = get_github_artifact(github_token, url, filename)
-                    if downloaded_file == None:
-                        print_banner("Failed to download %s" % (filename))
-                        break
-                    else:
-                        print("Downloaded: %s" % downloaded_file)
-
-                        workspace = os.getenv('FLUTTER_WORKSPACE')
-
-                        image_path = os.path.join(workspace, '.agl')
-                        with zipfile.ZipFile(downloaded_file, "r") as zip_ref:
-                            zip_ref.extractall(image_path)
-
-                    break
-
-            cmd = ["rm", downloaded_file]
-            subprocess.check_output(cmd)
+                cmd = ["rm", downloaded_file]
+                subprocess.check_output(cmd)
+                break
 
 
-def install_flutter_auto(config, platform):
+def install_flutter_auto(folder, config, platform):
 
     host_type = get_host_type()
 
@@ -1123,10 +1308,37 @@ def install_flutter_auto(config, platform):
         print_banner("Installing flutter-auto")
 
         runtime = platform['runtime']
-        github_owner = runtime.get('github_owner')
-        github_repo = runtime.get('github_repo')
-        github_workflow = runtime.get('github_workflow')
-        artifact_name = runtime.get('artifact_name')
+
+        config = runtime.get('config')
+        if config is None:
+            config_width = FLUTTER_AUTO_DEFAULT_WIDTH
+            config_height = FLUTTER_AUTO_DEFAULT_HEIGHT
+            config_cursor_theme = FLUTTER_AUTO_DEFAULT_CURSOR_THEME
+
+        else:
+            config_width = config.get('width')
+            if config_width is None:
+                config_width = FLUTTER_AUTO_DEFAULT_WIDTH
+
+            config_height = config.get('height')
+            if config_height is None:
+                config_height = FLUTTER_AUTO_DEFAULT_HEIGHT
+
+            config_cursor_theme = config.get('cursor_theme')
+            if config_cursor_theme is None:
+                config_cursor_theme = FLUTTER_AUTO_DEFAULT_CURSOR_THEME
+
+        make_sure_path_exists(folder)
+        default_config_filepath = os.path.join(folder, 'default_config.json')
+        with open(default_config_filepath, 'w+') as default_config_file:
+            config = {
+                "cursor_theme": config_cursor_theme,
+                "view": {
+                    "width": config_width,
+                    "height": config_height
+                }
+            }
+            json.dump(config, default_config_file, indent=2)
 
         if runtime.get('install_dependent_packages'):
 
@@ -1136,20 +1348,40 @@ def install_flutter_auto(config, platform):
                 cmd = ["sudo", "snap", "install", "cmake", "--classic"]
                 subprocess.call(cmd)
 
-                cmd = ["sudo", "add-apt-repository", "-y", "ppa:kisak/kisak-mesa"]
+                cmd = [
+                    "sudo",
+                    "add-apt-repository",
+                    "-y",
+                    "ppa:kisak/kisak-mesa"]
                 subprocess.call(cmd)
 
                 cmd = ["sudo", "apt", "update", "-y"]
                 subprocess.call(cmd)
 
-                cmd = ["sudo", "apt-get", "-y", "install", 
-                    "libwayland-dev", "wayland-protocols", "mesa-common-dev",
-                    "libegl1-mesa-dev", "libgles2-mesa-dev", "mesa-utils",
-                    "clang-12", "lldb-12", "lld-12",
-                    "libc++-12-dev", "libc++abi-12-dev", "libunwind-dev",
-                    "libxkbcommon-dev", "vulkan-tools",
-                    "libgstreamer1.0-dev", "libgstreamer-plugins-base1.0-dev",
-                    "gstreamer1.0-plugins-base", "gstreamer1.0-gl", "libavformat-dev"]
+                cmd = [
+                    "sudo",
+                    "apt-get",
+                    "-y",
+                    "install",
+                    "libwayland-dev",
+                    "wayland-protocols",
+                    "mesa-common-dev",
+                    "libegl1-mesa-dev",
+                    "libgles2-mesa-dev",
+                    "mesa-utils",
+                    "clang-12",
+                    "lldb-12",
+                    "lld-12",
+                    "libc++-12-dev",
+                    "libc++abi-12-dev",
+                    "libunwind-dev",
+                    "libxkbcommon-dev",
+                    "vulkan-tools",
+                    "libgstreamer1.0-dev",
+                    "libgstreamer-plugins-base1.0-dev",
+                    "gstreamer1.0-plugins-base",
+                    "gstreamer1.0-gl",
+                    "libavformat-dev"]
                 subprocess.call(cmd)
 
                 print("** CMake Version")
@@ -1160,172 +1392,228 @@ def install_flutter_auto(config, platform):
                 cmd = ["/usr/lib/llvm-12/bin/clang++", "--version"]
                 subprocess.call(cmd)
 
-        github_token = get_github_token(config.get('github_token'))
+        if 'github' == runtime.get('artifact_source'):
 
-        if github_token and github_owner and github_repo and github_workflow and artifact_name:
+            github_artifact = runtime.get('github_artifact')
+            if '${BACKEND}' in github_artifact:
+                backend = runtime.get('backend')
+                github_artifact = github_artifact.replace('${BACKEND}', backend)
 
-            workflow_runs = get_github_workflow_runs(github_token, github_owner, github_repo, github_workflow)
-            run_id = None
-            for run in workflow_runs:
-                if "success" == run['conclusion']:
-                    run_id = run['id']
-                    break
+            install_flutter_auto_github_artifact(
+                get_github_token(config.get('github_token')),
+                runtime.get('github_owner'),
+                runtime.get('github_repo'),
+                runtime.get('github_workflow'),
+                github_artifact)
 
-            artifacts = get_github_workflow_artifacts(github_token, github_owner, github_repo, run_id)
 
-            for artifact in artifacts:
-                
-                if artifact_name == artifact.get('name'):
+def install_flutter_auto_github_artifact(
+    token,
+    owner,
+    repo,
+    workflow,
+    github_artifact
+):
+    '''Installs flutter-auto github artifact'''
 
-                    url = artifact.get('archive_download_url')
+    if (token and owner and repo and workflow and github_artifact):
 
-                    print("** Downloading %s run_id: %s via %s" % (github_workflow, run_id, url))
+        workflow_runs = get_github_workflow_runs(
+            token, owner, repo, workflow)
+        run_id = None
+        for run in workflow_runs:
+            if "success" == run['conclusion']:
+                run_id = run['id']
+                break
 
-                    downloaded_file = get_github_artifact(github_token, url, artifact_name)
-                    print("** Downloaded: %s" % downloaded_file)
+        artifacts = get_github_workflow_artifacts(
+            token, owner, repo, run_id)
 
-                    with zipfile.ZipFile(downloaded_file, "r") as zip_ref:
-                        filelist = zip_ref.namelist()
-                        zip_ref.extractall()
+        for artifact in artifacts:
 
-                    cmd = ["rm", downloaded_file]
+            if github_artifact == artifact.get('name'):
+
+                url = artifact.get('archive_download_url')
+
+                print(
+                    "** Downloading %s run_id: %s via %s" %
+                    (workflow, run_id, url))
+
+                downloaded_file = get_github_artifact(
+                    token, url, github_artifact)
+                print("** Downloaded: %s" % downloaded_file)
+
+                with zipfile.ZipFile(downloaded_file, "r") as zip_ref:
+                    filelist = zip_ref.namelist()
+                    zip_ref.extractall()
+
+                cmd = ["rm", downloaded_file]
+                subprocess.check_output(cmd)
+
+                dbgsym_file = None
+                for f in filelist:
+                    if ".deb" in f:
+                        deb_file = f
+                        break
+                    elif ".ddeb" in f:
+                        dbgsym_file = f
+
+                cmd = ["sudo", "apt", "purge", "-y", "flutter-auto"]
+                subprocess.call(cmd)
+
+                cmd = ["sudo", "apt", "purge", "-y", "flutter-auto-dbg"]
+                subprocess.call(cmd)
+
+                cmd = ["sudo", "apt", "install", "-y", "./%s" % deb_file]
+                subprocess.call(cmd)
+
+                if ".ddeb" in dbgsym_file:
+                    cmd = ["rm", dbgsym_file]
                     subprocess.check_output(cmd)
 
-                    dbgsym_file = None
-                    for f in filelist:
-                        if ".deb" in f:
-                            deb_file = f
-                            break
-                        elif ".ddeb" in f:
-                            dbgsym_file = f
-
-                    cmd = ["sudo", "apt", "purge", "-y", "flutter-auto"]
-                    subprocess.call(cmd)
-
-                    cmd = ["sudo", "apt", "purge", "-y", "flutter-auto-dbg"]
-                    subprocess.call(cmd)
-
-                    cmd = ["sudo", "apt", "install", "-y", "./%s" % deb_file]
-                    subprocess.call(cmd)
-
-                    if ".ddeb" in dbgsym_file:
-                        cmd = ["rm", dbgsym_file]
-                        subprocess.check_output(cmd)
-
-                    cmd = ["rm", deb_file]
-                    subprocess.check_output(cmd)
-                    break
+                cmd = ["rm", deb_file]
+                subprocess.check_output(cmd)
+                break
 
 
 def is_repo(path):
     return os.path.exists(os.path.join(path, ".git"))
 
 
-def setup_flutter_auto_files(folder):
-    ''' Creates default files under $FLUTTER_WORKSPACE/.flutter-auto '''
+env_prefix = '''#!/usr/bin/env bash -l
 
-    make_sure_path_exists(folder)
+pushd . > '/dev/null'
+SCRIPT_PATH=\"${BASH_SOURCE[0]:-$0}\"
 
-    default_config_filepath = os.path.join(folder,'default_config.json')
-    with open(default_config_filepath, 'w+') as default_config_file:
-        config = {
-            "cursor_theme":"DMZ-White",
-            "view":{
-                "width":1920,
-                "height":720
-            }
-        }
-        json.dump(config, default_config_file, indent=2)
+while [ -h \"$SCRIPT_PATH\" ]
+do
+    cd \"$( dirname -- \"$SCRIPT_PATH\"; )\"
+    SCRIPT_PATH=\"$( readlink -f -- \"$SCRIPT_PATH\"; )\"
+done
+cd \"$( dirname -- \"$SCRIPT_PATH\"; )\" > '/dev/null'
+
+SCRIPT_PATH=\"$( pwd; )\"
+popd  > '/dev/null'
+echo SCRIPT_PATH=$SCRIPT_PATH
+
+export FLUTTER_WORKSPACE=$SCRIPT_PATH
+export PATH=$FLUTTER_WORKSPACE/flutter/bin:$PATH
+export PUB_CACHE=$FLUTTER_WORKSPACE/.pub_cache
+export XDG_CONFIG_HOME=$FLUTTER_WORKSPACE/.config/flutter
+
+echo \"********************************************\"
+echo \"* Setting FLUTTER_WORKSPACE to:\"
+echo \"* ${FLUTTER_WORKSPACE}\"
+echo \"********************************************\"
+
+flutter doctor -v
+echo \"\"
+
+flutter custom-devices list
+echo \"\"
+'''
+
+env_qemu = '''
+echo \"********************************************\"
+echo \"* Type 'qemu_run' to start the emulator    *\"
+echo \"********************************************\"
+qemu_run() {
+    if [ -z ${QEMU_IMAGE+x} ];
+    then
+        export QEMU_IMAGE=${FLUTTER_WORKSPACE}/%s
+    else
+        echo 'QEMU_IMAGE is set to ${QEMU_IMAGE}'
+    fi
+    export OVMF_PATH=%s
+    echo \"OVMF_PATH is set to '$OVMF_PATH'\"
+    if pgrep -x \"%s\" > /dev/null
+    then
+        echo '%s running - do nothing'
+    else
+        gnome-terminal -- bash -c \"%s %s\"
+    fi
+}
+'''
 
 
-def setup_env_script(args, platform):
+def setup_env_script(workspace, args, platform):
     '''Creates bash script to setup environment variables'''
 
-    with open('setup_env.sh', 'w+') as script:
+    environment_script = os.path.join(workspace, 'setup_env.sh')
 
-        script.writelines([
-    
-            "#!/usr/bin/env bash -l\n",
-            "\n",
-            "pushd . > '/dev/null';\n",
-            "SCRIPT_PATH=\"${BASH_SOURCE[0]:-$0}\";\n",
-            "\n",
-            "while [ -h \"$SCRIPT_PATH\" ];\n",
-            "do\n",
-            "    cd \"$( dirname -- \"$SCRIPT_PATH\"; )\";\n",
-            "    SCRIPT_PATH=\"$( readlink -f -- \"$SCRIPT_PATH\"; )\";\n",
-            "done\n",
-            "\n",
-            "cd \"$( dirname -- \"$SCRIPT_PATH\"; )\" > '/dev/null';\n",
-            "SCRIPT_PATH=\"$( pwd; )\";\n",
-            "popd  > '/dev/null';\n",
-            "\n",
-            "echo SCRIPT_PATH=$SCRIPT_PATH\n",
-            "\n",
-            "export FLUTTER_WORKSPACE=$SCRIPT_PATH;\n",
-            "export PATH=$FLUTTER_WORKSPACE/flutter/bin:$PATH;\n",
-            "export PUB_CACHE=$FLUTTER_WORKSPACE/.pub_cache;\n",
-            "export XDG_CONFIG_HOME=$FLUTTER_WORKSPACE/.config/flutter;\n\n"
-            "echo \"********************************************\"\n",
-            "echo \"* Setting FLUTTER_WORKSPACE to:\"\n",
-            "echo \"* ${FLUTTER_WORKSPACE}\"\n",
-            "echo \"********************************************\"\n",
-            "flutter doctor -v\n",
-            "flutter custom-devices list\n",
-            "\n"
-        ])
+    with open(environment_script, 'w+') as script:
+        script.write(env_prefix)
+        for item in platform:
+            if 'type' in item:
 
-        for platform in platform:
-            if 'type' in platform:                    
+                if "qemu" == item['type']:
 
-                if "target" == platform['type']:
+                    runtime = item['runtime']
 
-                    script.writelines(["\n"])
+                    relative_path = runtime['relative_path']
+                    if '${FLUTTER_RUNTIME}' in relative_path:
+                        relative_path = relative_path.replace(
+                            '${FLUTTER_RUNTIME}',
+                            item.get('flutter_runtime')
+                        )
 
-                    if args.target_user:
-                        target_user = args.target_user
-                    else:
-                        target_user = platform['target_user']
+                    script.write(env_qemu % (
+                        relative_path,
+                        runtime['ovmf_path'],
+                        runtime['cmd'],
+                        runtime['cmd'],
+                        runtime['cmd'],
+                        runtime['args']
+                    ))
 
-                    os.environ['TARGET_USER'] = target_user
 
-                    if args.target_address:
-                        target_address = args.target_address
-                    else:
-                        target_address = platform['target_address']
+def get_platform_ids(platforms):
+    '''returns list of platform ids'''
+    res = []
+    for platform in platforms:
+        res.append(platform.get('id'))
+    return res
 
-                    os.environ['TARGET_ADDRESS'] = target_address
 
-                elif "qemu" == platform['type']:
+def get_launch_obj(repo, device_id):
+    '''returns dictionary of launch target'''
+    uri = repo.get('uri')
+    repo_name = uri.rsplit('/', 1)[-1]
+    repo_name = repo_name.split(".")
+    repo_name = repo_name[0]
 
-                    runtime = platform['runtime']
+    pubspec_path = repo.get('pubspec_path')
+    if pubspec_path is not None:
+        pubspec_path = os.path.join('app', pubspec_path)
+        return {
+            "name": "%s (%s)" % (repo_name, device_id),
+            "cwd": pubspec_path,
+            "request": "launch",
+            "type": "dart",
+            "deviceId": device_id
+        }
+    else:
+        return {}
 
-                    script.writelines([
-                        "echo \"********************************************\"\n",
-                        "echo \" Type 'qemu_run' to start the emulator\"\n",
-                        "echo \"********************************************\"\n",
-                        "\n",
-                        "qemu_run() {\n"
-                        "\n",
-                        "    if [ -z ${QEMU_IMAGE+x} ];\n",
-                        "    then\n",
-                        "        export QEMU_IMAGE=${FLUTTER_WORKSPACE}/%s;\n" % (runtime['relative_path']),
-                        "    else\n",
-                        "        echo \"QEMU_IMAGE is set to '$QEMU_IMAGE'\";\n",
-                        "    fi\n",
-                        "\n",
-                        "    export OVMF_PATH=%s;\n" % runtime['ovmf_path'],
-                        "    echo \"OVMF_PATH is set to '$OVMF_PATH'\";\n",
-                        "\n",
-                        "    if pgrep -x \"%s\" > /dev/null\n" % runtime['cmd'],
-                        "    then\n",
-                        "        echo \"%s running - do nothing\"\n" % runtime['cmd'],
-                        "    else\n",
-                        "        gnome-terminal -- bash -c \"%s %s\"\n" % (runtime['cmd'], runtime['args']),
-                        "    fi\n"
-                        "}\n"
-                    ])
 
+def create_vscode_launch_file(repos, device_ids):
+    '''Creates a default vscode launch.json'''
+
+    workspace = os.getenv("FLUTTER_WORKSPACE")
+    vscode_folder = os.path.join(workspace, '.vscode')
+    launch_file = os.path.join(vscode_folder, 'launch.json')
+    if not os.path.exists(launch_file):
+        launch_objs = []
+        for repo in repos:
+            if 'pubspec_path' in repo:
+                for device_id in device_ids:
+                    obj = get_launch_obj(repo, device_id)
+                    launch_objs.append(obj)
+
+        launch = {'version': '0.2.0', 'configurations': launch_objs}
+        make_sure_path_exists(vscode_folder)
+        with open(launch_file, 'w+') as f:
+            json.dump(launch, f, indent=4)
 
 
 if __name__ == "__main__":

@@ -18,15 +18,15 @@ RDEPENDS:${PN} += "\
 LICENSE = "GPL-3.0"
 LIC_FILES_CHKSUM = "file://COPYING;md5=e49f4652534af377a713df3d9dec60cb"
 
-SRC_URI = "git://github.com/bernardpumped/ped.git;protocol=https;branch=main"
+SRC_URI = "git://github.com/bernardpumped/ped.git;protocol=https;branch=agl"
 
-SRCREV = "7a670295d5a94508862316e045e789e0dfd01b20"
+SRCREV = "bee63b8317fbf8f6b95d6be820bcf07b6b3c0c37"
 
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "pumped_end_device"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
-FLUTTER_BUILD_ARGS = "bundle -v"
+FLUTTER_BUILD_ARGS = "bundle"
 
 inherit flutter-app

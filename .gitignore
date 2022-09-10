@@ -6,6 +6,7 @@ tools/.config
 tools/.flutter-auto
 tools/.pub_cache
 tools/.tmp
+tools/.vscode
 tools/setup_env.sh
 tools/flutter
 tools/app
