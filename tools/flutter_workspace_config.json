@@ -1,5 +1,5 @@
 {
-	"flutter-version": "3.0.5",
+	"flutter-version": "3.3.1",
 	"platforms": [
 		{
 			"id": "desktop-auto",
@@ -105,7 +105,7 @@
 				"label": "STM32MP157F-DK2",
 				"sdkNameAndVersion": "STM32 Discovery Board (Dual Cortex-A7)",
 				"platform": null,
-				"enabled": false,
+				"enabled": true,
 				"ping": ["ping", "-c", "1", "-w", "400", "stm32mp15-disco.local"],
 				"pingSuccessRegex": "[<=]\\d+ms",
 				"postBuild": ["bash", "-c", "mkdir -p ${localPath}/../../.flutter-auto/data/flutter_assets && cp -r ${localPath}/* ${localPath}/../../.flutter-auto/data/flutter_assets && ssh -t -oBatchMode=yes root@stm32mp15-disco.local passwd -d weston"],
