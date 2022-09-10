@@ -35,16 +35,18 @@ cargo_do_compile:append() {
 
 cargo_do_install:append() {
 
-    install -d ${D}${EXAMPLE_INSTALL_DIR}
-
     rm ${D}${bindir}/generator
     rm -rf ${D}${bindir}
 
-    mv ${D}${libdir}/rust/libexample.so ${D}${EXAMPLE_INSTALL_DIR}/
+    mv ${D}${libdir}/rust/libexample.so ${D}${libdir}/
     rm -rf ${D}${libdir}/rust
     rm -rf ${D}${libdir}
 
+    install -d ${D}${EXAMPLE_INSTALL_DIR}
     cp -r ${S}/dart_example/* ${D}${EXAMPLE_INSTALL_DIR}/
 }
 
-FILES:${PN} = "${datadir}"
+FILES:${PN} = "\
+    ${libdir} \
+    ${datadir} \
+    "
