@@ -20,7 +20,7 @@ SRCREV = "4e788100fc71162ee4ac427620cc96e62c410bba"
 PV:append = ".AUTOINC+4e788100fc"
 
 SRC_URI += " \
-    git://github.com/jerel/membrane.git;protocol=https;nobranch=1;branch=main \
+    git://github.com/jerel/membrane.git;protocol=https;branch=main \
     crate://crates.io/addr2line/0.17.0 \
     crate://crates.io/adler/1.0.2 \
     crate://crates.io/aho-corasick/0.7.18 \
@@ -152,7 +152,7 @@ RUNTIME:class-native = "llvm"
 TOOLCHAIN:class-native = "clang"
 PREFERRED_PROVIDER:libgcc:class-native = "compiler-rt"
 
-inherit rust cargo
+inherit cargo
 
 #
 # Dart generation
@@ -174,9 +174,9 @@ cargo_do_compile:class-native() {
     bbnote `dart --version`
 
     # requires libclang.so
-    bbnote `find ${STAGING_DIR_NATIVE} -iname libclang.*`
+    bbnote `find ${STAGING_DIR_NATIVE} -iname libclang.so*`
 
-    "${CARGO}" run -vv
+    "${CARGO}" run
 }
 
 cargo_do_install:class-native() {
@@ -186,9 +186,6 @@ cargo_do_install:class-native() {
     cp -r ${S}/dart_example/* ${D}${datadir}/membrane/dart_example
 }
 
-#
-# Rust shared module
-#
 cargo_do_install:append:class-target() {
 
     rm -rf ${D}${bindir}
