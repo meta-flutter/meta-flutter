@@ -91,6 +91,7 @@ jobs:
                     flutter-test-texture-egl-runtimerelease \
                     flutter-test-video-player-runtimerelease \
                     flutter-test-localization-runtimerelease \
+                    flutter-test-membrane-runtimerelease \
                     adwaita-icon-theme-cursors \
                     xdg-user-dirs \
                     avahi-daemon \
@@ -130,6 +131,7 @@ jobs:
           bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-pi-runtimerelease -c do_cleansstate
           bitbake flutter-engine-runtimerelease -c do_cleansstate
+          bitbake flutter-test-membrane-runtimerelease -c do_cleansstate
 
       - name: Build st-image-weston
         shell: bash
@@ -231,6 +233,7 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL += "\
                     flutter-auto-runtimedebug \
                     flutter-engine-runtimedebug-sdk-dev \
+                    membrane-example \
                     adwaita-icon-theme-cursors \
                     xdg-user-dirs \
                     avahi-daemon \
@@ -269,6 +272,7 @@ jobs:
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-engine-runtimedebug -c do_cleansstate
+          bitbake membrane-example -c do_cleansstate
 
       - name: Build st-image-weston
         shell: bash

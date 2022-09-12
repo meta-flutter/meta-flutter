@@ -113,13 +113,17 @@ jobs:
           . ./poky/oe-init-build-env
           bitbake core-image-minimal
 
-      - name: Build membrane-dart-example
+      - name: Build flutter-test-membrane
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
           . ./poky/oe-init-build-env
-          bitbake membrane-dart-example -c do_cleansstate
-          bitbake membrane-dart-example
+          bitbake flutter-test-membrane-runtimedebug -c do_cleansstate
+          bitbake flutter-test-membrane-runtimedebug
+          bitbake flutter-test-membrane-runtimeprofile -c do_cleansstate
+          bitbake flutter-test-membrane-runtimeprofile
+          bitbake flutter-test-membrane-runtimerelease -c do_cleansstate
+          bitbake flutter-test-membrane-runtimerelease
 
       - name: Build flutter-test-animated-background
         shell: bash
