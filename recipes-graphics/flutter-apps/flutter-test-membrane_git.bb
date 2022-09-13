@@ -8,7 +8,6 @@ SECTION = "graphics"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=47da47e9ceb852b136a5566db4ebec53"
 
-DEPENDS += " membrane-example-native"
 RDEPENDS:${PN} += " membrane-example"
 
 SRCREV = "402133efc123fbf86997118209b3a84007e4000d"
@@ -25,8 +24,6 @@ FLUTTER_BUILD_ARGS = "bundle"
 do_compile:prepend() {
 
     sed -i "s/name: flutter_example/name: ${PUBSPEC_APPNAME}/g" flutter_example/pubspec.yaml
-
-    cp -rf ${STAGING_DIR_NATIVE}${datadir}/membrane/dart_example/* dart_example/
 }
 
 inherit flutter-app
