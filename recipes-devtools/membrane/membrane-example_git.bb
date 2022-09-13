@@ -191,6 +191,8 @@ cargo_do_install:append:class-target() {
     rm -rf ${D}${bindir}
 }
 
+INSANE_SKIP:${PN} = "already-stripped"
+
 FILES:${PN}:class-native = "${datadir}"
 
 FILES:${PN} = "${libdir}"
