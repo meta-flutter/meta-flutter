@@ -113,11 +113,26 @@ jobs:
           . ./poky/oe-init-build-env
           bitbake core-image-minimal
 
+      - name: Build flutter-test-frb
+        shell: bash
+        working-directory: ../yocto-kirkstone
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake flutter-rust-bridge-example -c do_cleansstate
+          bitbake flutter-test-frb-runtimedebug -c do_cleansstate
+          bitbake flutter-test-frb-runtimedebug
+          bitbake flutter-test-frb-runtimeprofile -c do_cleansstate
+          bitbake flutter-test-frb-runtimeprofile
+          bitbake flutter-test-frb-runtimerelease -c do_cleansstate
+          bitbake flutter-test-frb-runtimerelease
+
       - name: Build flutter-test-membrane
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
           . ./poky/oe-init-build-env
+          bitbake membrane-example -c do_cleansstate
+          bitbake membrane-example-native -c do_cleansstate
           bitbake flutter-test-membrane-runtimedebug -c do_cleansstate
           bitbake flutter-test-membrane-runtimedebug
           bitbake flutter-test-membrane-runtimeprofile -c do_cleansstate
