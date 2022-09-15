@@ -176,7 +176,11 @@ cargo_do_install:append:class-target() {
     rm -rf ${D}${bindir}
 }
 
-INSANE_SKIP:${PN} = "already-stripped"
+# remove symbol stripping from Cargo build - Yocto does it
+cargo_do_compile:prepend:class-target() {
+
+    sed -i '/strip = \"symbols\"/d' ${S}/${CARGO_SRC_DIR}/Cargo.toml
+}
 
 FILES:${PN}:class-native = "${datadir}"
 
