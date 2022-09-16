@@ -79,10 +79,10 @@ class GN(FetchMethod):
         bb.utils.mkdirhier(ud.syncpath)
         os.chdir(ud.syncpath)
 
-        logger.debug("Fetching %s using command '%s'" % (ud.url, ud.basecmd))
+        logger.debug2("Fetching %s using command '%s'" % (ud.url, ud.basecmd))
         bb.fetch2.check_network_access(d, ud.basecmd, ud.url)
         runfetchcmd(ud.basecmd, d, quiet, workdir=None)
-        logger.debug("Packing %s using command '%s'" % (ud.url, ud.packcmd))
+        logger.debug2("Packing %s using command '%s'" % (ud.url, ud.packcmd))
         runfetchcmd(ud.packcmd, d, quiet, workdir=None)
 
     def localpath(self, ud, d):
