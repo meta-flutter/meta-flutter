@@ -96,6 +96,7 @@ jobs:
               flutter-pi-runtimerelease \
               "' >> conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> conf/local.conf
+          echo 'PACKAGECONFIG:append:pn-weston = " remoting"' >> conf/local.conf
           echo '********** conf/local.conf **********'
           cat conf/local.conf
           echo '***************************************'
@@ -233,6 +234,7 @@ jobs:
               flutter-pi-runtimerelease \
               "' >> conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> conf/local.conf
+          echo 'PACKAGECONFIG:append:pn-weston = " remoting"' >> conf/local.conf
           echo '********** conf/local.conf **********'
           cat conf/local.conf
           echo '***************************************'

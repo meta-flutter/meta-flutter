@@ -75,6 +75,9 @@ jobs:
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER:virtual/kernel = "linux-dummy"' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED = "commercial"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:append:pn-flutter-engine-runtimedebug = " desktop-embeddings"' >> conf/local.conf
+          echo 'PACKAGECONFIG:append:pn-flutter-engine-runtimeprofile = " desktop-embeddings"' >> conf/local.conf
+          echo 'PACKAGECONFIG:append:pn-flutter-engine-runtimerelease = " desktop-embeddings"' >> conf/local.conf
           echo 'IMAGE_INSTALL:append = " \
               gstreamer1.0 \
               gstreamer1.0-libav \
