@@ -84,6 +84,8 @@ jobs:
               flutter-test-plugins-runtime${{ env.RUNTIME }} \
               flutter-test-texture-egl-runtime${{ env.RUNTIME }} \
               flutter-test-localization-runtime${{ env.RUNTIME }} \
+              flutter-test-membrane-runtime${{ env.RUNTIME }} \
+              flutter-test-frb-runtime${{ env.RUNTIME }} \
               "' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
@@ -108,6 +110,12 @@ jobs:
           bitbake -c do_cleansstate flutter-test-texture-egl-runtime${{ env.RUNTIME }}
           bitbake -c do_cleansstate flutter-test-video-player-runtime${{ env.RUNTIME }}
           bitbake -c do_cleansstate flutter-test-localization-runtime${{ env.RUNTIME }}
+          bitbake -c do_cleansstate flutter-test-membrane-runtime${{ env.RUNTIME }}
+          bitbake -c do_cleansstate membrane-example
+          bitbake -c do_cleansstate membrane-example-native
+          bitbake -c do_cleansstate flutter-test-membrane-runtime${{ env.RUNTIME }}
+          bitbake -c do_cleansstate flutter-rust-bridge-example
+          bitbake -c do_cleansstate flutter-test-frb-runtime${{ env.RUNTIME }}
 
       - name: Build rpi-image-weston-flutter-runtimerelease
         shell: bash
@@ -199,6 +207,8 @@ jobs:
               flutter-test-plugins-runtime${{ env.RUNTIME }} \
               flutter-test-texture-egl-runtime${{ env.RUNTIME }} \
               flutter-test-localization-runtime${{ env.RUNTIME }} \
+              flutter-test-membrane-runtime${{ env.RUNTIME }} \
+              flutter-test-frb-runtime${{ env.RUNTIME }} \
               "' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
@@ -223,6 +233,11 @@ jobs:
           bitbake -c do_cleansstate flutter-test-texture-egl-runtime${{ env.RUNTIME }}
           bitbake -c do_cleansstate flutter-test-video-player-runtime${{ env.RUNTIME }}
           bitbake -c do_cleansstate flutter-test-localization-runtime${{ env.RUNTIME }}
+          bitbake -c do_cleansstate membrane-example
+          bitbake -c do_cleansstate membrane-example-native
+          bitbake -c do_cleansstate flutter-test-membrane-runtime${{ env.RUNTIME }}
+          bitbake -c do_cleansstate flutter-rust-bridge-example
+          bitbake -c do_cleansstate flutter-test-frb-runtime${{ env.RUNTIME }}
 
       - name: Build rpi-image-weston-flutter-runtimeprofile
         shell: bash
@@ -309,6 +324,8 @@ jobs:
               tzdata-core \
               flutter-auto-runtime${{ env.RUNTIME }} \
               flutter-pi-runtime${{ env.RUNTIME }} \
+              membrane-example \
+              flutter-rust-bridge-example \
               "' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
@@ -328,6 +345,8 @@ jobs:
           bitbake -e > bb.environment
           bitbake -c do_cleansstate flutter-sdk-native
           bitbake -c do_cleansstate flutter-engine-runtime${{ env.RUNTIME }}
+          bitbake -c do_cleansstate membrane-example
+          bitbake -c do_cleansstate flutter-rust-bridge-example
 
       - name: Build rpi-image-flutter-wayland-debug
         shell: bash

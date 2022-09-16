@@ -21,7 +21,7 @@ DEPENDS += "\
 
 REQUIRED_DISTRO_FEATURES = "wayland opengl"
 
-SRCREV ??= "ca9450f5d883c96326f064b2db9977d1566fdc85"
+SRCREV ??= "20df3c8a976ee623f1d6d35a66390591ae061bd5"
 SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=agl"
 
 S = "${WORKDIR}/git"
@@ -63,6 +63,9 @@ PACKAGECONFIG[texture-test-egl] = "-DBUILD_TEXTURE_TEST_EGL=ON, -DBUILD_TEXTURE_
 PACKAGECONFIG[transparency] = "-DBUILD_EGL_TRANSPARENCY=ON, -DBUILD_EGL_TRANSPARENCY=OFF"
 PACKAGECONFIG[url-launcher] = "-DBUILD_PLUGIN_URL_LAUNCHER=ON, -DBUILD_PLUGIN_URL_LAUNCHER=OFF"
 PACKAGECONFIG[verbose] = "-DCMAKE_BUILD_TYPE=Debug"
+
+# Enable verbose logging on runtimedebug image
+PACKAGECONFIG:append:runtimedebug = "verbose"
 
 
 EXTRA_OECMAKE += " -D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr"

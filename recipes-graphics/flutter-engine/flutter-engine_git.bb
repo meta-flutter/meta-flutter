@@ -19,7 +19,6 @@ DEPENDS += "\
 SRC_URI = "gn://github.com/flutter/engine.git;name=src/flutter \
            file://0001-clang-toolchain.patch \
            file://0002-x64-sysroot-assert.patch \
-           file://0001-allow-deprecated-calls.patch \
            file://0001-remove-x11-dependency.patch \
            file://0001-prevent-redefinition-of-glib_autoptr_clear_AtkObject.patch \
            "
@@ -168,6 +167,7 @@ do_install() {
     echo `git rev-parse HEAD` > ${D}${datadir}/flutter/sdk/engine.version
     echo ${FLUTTER_ENGINE_REPO_URL} >> ${D}${datadir}/flutter/sdk/engine.version
     echo ${@get_flutter_sdk_version(d)} >> ${D}${datadir}/flutter/sdk/flutter_sdk.version
+    echo ${FLUTTER_RUNTIME} >> ${D}${datadir}/flutter/sdk/flutter.runtime
 
     cd ${D}/${datadir}/flutter
     zip -r engine_sdk.zip sdk

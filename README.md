@@ -123,8 +123,5 @@ When building on systems with GCC version > than uninative in Yocto distro add t
 
     INHERIT:remove = "uninative"
 
-## Flutter Workspade Automation
+## Flutter Workspace Automation
 Please visit [here](tools/README.md) for how to setup Flutter workspace automatically.
-
-
- 

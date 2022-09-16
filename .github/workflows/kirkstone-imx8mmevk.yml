@@ -83,6 +83,8 @@ jobs:
               flutter-test-texture-egl-runtimerelease \
               flutter-test-video-player-runtimerelease \
               flutter-test-localization-runtimerelease \
+              flutter-test-membrane-runtimerelease \
+              flutter-test-frb-runtimerelease \
               flutter-pi-runtimerelease \
               "' >> conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> conf/local.conf
@@ -106,6 +108,11 @@ jobs:
           bitbake -c do_cleansstate flutter-test-texture-egl-runtimerelease
           bitbake -c do_cleansstate flutter-test-video-player-runtimerelease
           bitbake -c do_cleansstate flutter-test-localization-runtimerelease
+          bitbake -c do_cleansstate membrane-example
+          bitbake -c do_cleansstate membrane-example-native
+          bitbake -c do_cleansstate flutter-test-membrane-runtimerelease
+          bitbake -c do_cleansstate flutter-rust-bridge-example
+          bitbake -c do_cleansstate flutter-test-frb-runtimerelease
 
       - name: Build imx-image-core
         shell: bash
