@@ -51,21 +51,21 @@ jobs:
           /home/dev/bin/repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
           /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           wait
-          pwd
-          ls -la
-          cd external
-          rm -rf meta-flutter || true
-          ln -sf ../../meta-flutter meta-flutter
-          cd ..
-          rm -rf meta-agl-devel
-          git clone https://github.com/meta-flutter/meta-agl-devel.git
+          # pwd
+          # ls -la
+          # cd external
+          # rm -rf meta-flutter || true
+          # ln -sf ../../meta-flutter meta-flutter
+          # cd ..
+          # rm -rf meta-agl-devel
+          # git clone https://github.com/meta-flutter/meta-agl-devel.git
 
       - name: Configure AGL build
         shell: bash
         working-directory: ../agl-master-qemux86_64
         run: |
           rm -rf build/conf
-          . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-basesystem agl-flutter
+          . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-flutter
           echo '***************************************'
           echo 'INHERIT += "rm_work"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
@@ -76,7 +76,17 @@ jobs:
           echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../external/meta-clang/recipes-devtools/clang/clang_git.bb
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = "\' >> ./conf/local.conf
+          echo '    kuksa-val \' >> ./conf/local.conf
+          echo '    kuksa-dbc-feeder \' >> ./conf/local.conf
+          echo '"' >> ./conf/local.conf
           echo '** Layers *****************************'
+          bitbake-layers add-layer ../meta-agl-demo \
+              ../external/meta-openembedded/meta-python \
+              ../external/meta-openembedded/meta-multimedia \
+              ../external/meta-openembedded/meta-networking \
+              ../external/meta-python2 \
+              ../external/meta-qt5
           bitbake-layers show-layers
           echo '** Kernel *****************************'
           bitbake -e virtual/kernel | grep "^PV"

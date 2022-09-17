@@ -72,6 +72,7 @@ jobs:
           echo 'IMAGE_LINGUAS:append = " en-us en-gb es-us"' >> ./conf/local.conf
           echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-ffmpeg = " openssl"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:append:pn-weston = " remoting"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL:append = "\
               default-language-en-us-utf8 \
               tzdata-americas \
@@ -195,6 +196,7 @@ jobs:
           echo 'IMAGE_LINGUAS:append = " en-us en-gb es-us"' >> ./conf/local.conf
           echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-ffmpeg = " openssl"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:append:pn-weston = " remoting"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL:append = "\
               default-language-en-us-utf8 \
               tzdata-americas \
@@ -318,6 +320,7 @@ jobs:
           echo 'IMAGE_LINGUAS:append = " en-us en-gb es-us"' >> ./conf/local.conf
           echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-ffmpeg = " openssl"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:append:pn-weston = " remoting"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL:append = "\
               default-language-en-us-utf8 \
               tzdata-americas \
