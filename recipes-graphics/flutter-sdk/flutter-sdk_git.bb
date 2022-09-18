@@ -32,8 +32,7 @@ do_unpack[network] = "1"
 do_patch[network] = "1"
 do_compile[network] = "1"
 
-common_compile() {
-
+do_compile() {
     export CURL_CA_BUNDLE=${STAGING_DIR_NATIVE}/etc/ssl/certs/ca-certificates.crt
     export PATH=${S}/bin:$PATH
     export PUB_CACHE=${S}/.pub-cache
@@ -53,25 +52,15 @@ common_compile() {
     bbnote `flutter doctor -v`
 }
 
-do_compile:class-native() {
-    common_compile
-}
+do_install() {
+    rm -rf ${S}/bin/cache/pkg/sky_engine/
+    rm -rf ${S}/bin/cache/artifacts/*
 
-do_compile:class-nativesdk() {
-    common_compile
-}
+    chmod a+rw ${S} -R
 
-common_install() {
     install -d ${D}${datadir}/flutter/sdk
-    cp -rTv ${S}/. ${D}${datadir}/flutter/sdk
-    rm -rf ${D}${datadir}/flutter/sdk/bin/cache/artifacts/*
-}
 
-do_install:class-native() {
-    common_install
-}
-do_install:class-nativesdk() {
-    common_install
+    cp -rTv ${S}/. ${D}${datadir}/flutter/sdk
 }
 
 
