@@ -80,9 +80,9 @@ jobs:
           echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> $LOCAL_CONF 
           echo 'INHERIT_remove = "uninative"' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL += " \
-                    flutter-engine-debug \
-                    flutter-pi-debug \
-                    flutter-gallery-debug \
+                    flutter-engine-runtimedebug \
+                    flutter-pi-runtimedebug \
+                    flutter-gallery-runtimedebug \
                     avahi-daemon \
                     ntp ntp-tickadj \
                     fbgrab \
@@ -92,6 +92,9 @@ jobs:
                     gstreamer1.0-plugins-good \
                     gstreamer1.0-plugins-ugly \
                     "' >> $LOCAL_CONF
+          echo 'PREFERRED_VERSION_cmake = "3.22.3"' >> $LOCAL_CONF
+          echo 'PREFERRED_VERSION_cmake-native = "3.22.3"' >> $LOCAL_CONF
+          echo 'PREFERRED_VERSION_nativesdk-cmake = "3.22.3"' >> $LOCAL_CONF
           echo '********** ./conf/local.conf **********'
           cat $LOCAL_CONF
           echo '***************************************'
@@ -118,11 +121,11 @@ jobs:
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-pi-debug -c do_cleansstate
+          bitbake flutter-pi-runtimedebug -c do_cleansstate
           bitbake flutter-drm-gbm-backend -c do_cleansstate
-          bitbake flutter-engine-debug -c do_cleansstate
-          bitbake flutter-engine-release -c do_cleansstate
-          bitbake flutter-engine-profile -c do_cleansstate
+          bitbake flutter-engine-runtimedebug -c do_cleansstate
+          bitbake flutter-engine-runtimerelease -c do_cleansstate
+          bitbake flutter-engine-runtimeprofile -c do_cleansstate
 
       - name: Build st-image-core
         shell: bash
@@ -147,7 +150,7 @@ jobs:
           path: |
              /home/dev/artifacts/*
 
-      - name: Build st-image-core-flutter-debug SDK
+      - name: Build st-image-core-flutter-runtimedebug SDK
         shell: bash
         working-directory: ../${{ env.WORKSPACE }}
         run: |
@@ -156,10 +159,10 @@ jobs:
           rm -rf /home/dev/artifacts/*
           cp tmp-glibc/deploy/sdk/st-image-core-openstlinux-eglfs-*.sh /home/dev/artifacts/
 
-      - name: Publish st-image-core-flutter-debug SDK artifact
+      - name: Publish st-image-core-flutter-runtimedebug SDK artifact
         uses: actions/upload-artifact@v2
         with:
-          name: st-image-core-eglfs-flutter-debug-sdk-linux
+          name: st-image-core-eglfs-flutter-runtimedebug-sdk-linux
           path: |
              /home/dev/artifacts/*
 
@@ -233,9 +236,9 @@ jobs:
           echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> $LOCAL_CONF 
           echo 'INHERIT_remove = "uninative"' >> $LOCAL_CONF
           echo 'DISTRO_FEATURES_remove = " x11 "' >> $LOCAL_CONF
-          echo 'PACKAGECONFIG_pn-ivi-homescreen-debug = "transparency"' >> $LOCAL_CONF
-          echo 'PACKAGECONFIG_pn-ivi-homescreen-profile = "transparency"' >> $LOCAL_CONF
-          echo 'PACKAGECONFIG_pn-ivi-homescreen-release = "transparency"' >> $LOCAL_CONF
+          echo 'PACKAGECONFIG_pn-flutter-auto-runtimedebug = "transparency"' >> $LOCAL_CONF
+          echo 'PACKAGECONFIG_pn-flutter-auto-runtimeprofile = "transparency"' >> $LOCAL_CONF
+          echo 'PACKAGECONFIG_pn-flutter-auto-runtimerelease = "transparency"' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL_remove = " packagegroup-framework-core "' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL_remove = " packagegroup-framework-tools "' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL_remove = " packagegroup-framework-core-extra "' >> $LOCAL_CONF
@@ -243,12 +246,12 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL_remove = " gtk+3-demo "' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL += " \
                     weston weston-init \
-                    flutter-engine-debug \
-                    ivi-homescreen-debug \
-                    flutter-gallery-debug \
+                    flutter-engine-runtimedebug \
+                    flutter-auto-runtimedebug \
+                    flutter-gallery-runtimedebug \
                     adwaita-icon-theme-cursors \
                     xdg-user-dirs \
-                    flutter-pi-debug \
+                    flutter-pi-runtimedebug \
                     flutter-wayland-client \
                     avahi-daemon \
                     ntp ntp-tickadj \
@@ -262,6 +265,9 @@ jobs:
                     gstreamer1.0-plugins-ugly \
                     "' >> $LOCAL_CONF
           echo 'LICENSE_FLAGS_WHITELIST = "commercial"' >> $LOCAL_CONF
+          echo 'PREFERRED_VERSION_cmake = "3.22.3"' >> $LOCAL_CONF
+          echo 'PREFERRED_VERSION_cmake-native = "3.22.3"' >> $LOCAL_CONF
+          echo 'PREFERRED_VERSION_nativesdk-cmake = "3.22.3"' >> $LOCAL_CONF
           echo '********** ./conf/local.conf **********'
           cat $LOCAL_CONF
           echo '***************************************'
@@ -288,11 +294,11 @@ jobs:
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-pi-debug -c do_cleansstate
+          bitbake flutter-pi-runtimedebug -c do_cleansstate
           bitbake flutter-drm-gbm-backend -c do_cleansstate
-          bitbake flutter-engine-debug -c do_cleansstate
-          bitbake flutter-engine-release -c do_cleansstate
-          bitbake flutter-engine-profile -c do_cleansstate
+          bitbake flutter-engine-runtimedebug -c do_cleansstate
+          bitbake flutter-engine-runtimerelease -c do_cleansstate
+          bitbake flutter-engine-runtimeprofile -c do_cleansstate
 
       - name: Build st-image-core
         shell: bash
@@ -317,7 +323,7 @@ jobs:
           path: |
              /home/dev/artifacts/*
 
-      - name: Build st-image-core-weston-flutter-debug SDK
+      - name: Build st-image-core-weston-flutter-runtimedebug SDK
         shell: bash
         working-directory: ../${{ env.WORKSPACE }}
         run: |
@@ -326,9 +332,9 @@ jobs:
           rm -rf /home/dev/artifacts/*
           cp tmp-glibc/deploy/sdk/st-image-core-openstlinux-${{ env.FLAVOR }}-*.sh /home/dev/artifacts/
 
-      - name: Publish st-image-core-weston-flutter-debug SDK artifact
+      - name: Publish st-image-core-weston-flutter-runtimedebug SDK artifact
         uses: actions/upload-artifact@v2
         with:
-          name: st-image-core-weston-flutter-debug-sdk-linux
+          name: st-image-core-weston-flutter-runtimedebug-sdk-linux
           path: |
              /home/dev/artifacts/*

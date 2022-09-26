@@ -6,18 +6,21 @@
 # - PUBSPEC_APPNAME is defined correctly.  This is the name value from pubspec.yml.
 #
 
+require conf/include/flutter-runtime.inc
+
+BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"
+
 DEPENDS += " \
     ca-certificates-native \
     cmake-native \
     compiler-rt \
-    flutter-engine-${FLUTTER_RUNTIME} \
+    flutter-engine-${@gn_get_flutter_runtime_name(d)} \
     flutter-sdk-native \
     libcxx \
     ninja-native \
     unzip-native \
     "
 
-FLUTTER_RUNTIME ??= "release"
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
 PREFERRED_PROVIDER_libgcc = "compiler-rt"
@@ -240,8 +243,8 @@ FILES_SOLIBSDEV = ""
 
 do_install() {
 
-    install -d ${D}${FLUTTER_INSTALL_DIR}/flutter_assets
-    cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/* ${D}${FLUTTER_INSTALL_DIR}/flutter_assets/
+    install -d ${D}${FLUTTER_INSTALL_DIR}/data/flutter_assets
+    cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/* ${D}${FLUTTER_INSTALL_DIR}/data/flutter_assets/
 
     if ${@bb.utils.contains('FLUTTER_RUNTIME', 'release', 'true', 'false', d)} || \
         ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)}; then
@@ -269,6 +272,10 @@ do_install() {
     fi
 }
 
-FILES_${PN} = "${FLUTTER_INSTALL_DIR}"
+FILES_${PN} = "\
+    ${bindir} \
+    ${libdir} \
+    ${FLUTTER_INSTALL_DIR} \
+    "
 
 FILES_${PN}-dev = ""

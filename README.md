@@ -4,6 +4,14 @@ Yocto Layer for Google Flutter related projects.
 
 _Updates_:
 
+* Breaking Change
+  
+  Suffix for flutter runtime types has been changed to better define it.  Less confusing. 
+
+  -runtimerelease (was -release)
+  -runtimeprofile (was -profile)
+  -runtimedebug (was -debug)
+
 * FLUTTER_CHANNEL support has been deprecated
 
 * FLUTTER_SDK_TAG - New approach.  Allows locking SDK and Engine to specific commit hash.
@@ -15,56 +23,39 @@ _Updates_:
 * build failure due to gn unknown parameter for `--no-build-embedder-examples`.  One solution to resolve this is to exclude `disable-embedder-examples` from PACKAGECONFIG in local.conf using:
 
   ```
-  PACKAGECONFIG_pn-flutter-engine-release = "disable-desktop-embeddings embedder-for-target fontconfig release"
-  
-  PACKAGECONFIG_pn-flutter-engine-debug = "disable-desktop-embeddings embedder-for-target fontconfig debug"
-
-  PACKAGECONFIG_pn-flutter-engine-profile = "disable-desktop-embeddings embedder-for-target fontconfig profile"
+  PACKAGECONFIG_pn-flutter-engine-runtimerelease = "disable-desktop-embeddings embedder-for-target fontconfig release"
+  PACKAGECONFIG_pn-flutter-engine-runtimedebug = "disable-desktop-embeddings embedder-for-target fontconfig debug"
+  PACKAGECONFIG_pn-flutter-engine-runtimeprofile = "disable-desktop-embeddings embedder-for-target fontconfig profile"
    ```
   This issue is related to missing gn options `--build-embedder-examples` and `--no-build-embedder-examples` from certain builds.  I have `disable-embedder-examples` defined in PACKAGECONFIG by default, so if you have an engine commit that is missing this option, you need to use the PACKAGECONFIG sequence above.  Once the gn option rolls into all channels this override will no longer be needed.
 
-* When using the Sony embedders you need to specify FLUTTER_RUNTIME that matches other elements being installed, or make image will fail with package conflict. Example to avoid conflict with other recipes:
-  ```
-  echo 'FLUTTER_RUNTIME_pn-flutter-drm-gbm-backend = "debug"' >> ./conf/local.conf
-  echo 'FLUTTER_RUNTIME_pn-flutter-wayland-client = "debug"' >> ./conf/local.conf
-  ```
-
-
 ### Recommended development flow:
-* Build Flutter application using desktop tools
-* Use Flutter Engine Runtime=Debug build confirming it works on target.  Debug as needed using customdevices
-* Create Yocto Recipe for your Flutter application using `flutter-gallery-*` as the template.
+* Create flutter workspace using ./tools/setup_flutter_workspace.py
+* Debug and validate application on host using flutter-auto, AGL QEMU, or Linux GTK.
+  - 1P Linux plugins should be avoided.  They may work on a runtime=debug image, but will not work in an AOT (runtime=release) image.
+* Create Yocto Recipe for your Flutter application using `flutter-gallery-*` or one of the many app recipes as the template.
   Nested projected are supported using FLUTTER_APPLICATION_PATH.
   Passing Dart defines are done with FLUTTER_EXTRA_BUILD_ARGS.
-* Add flutter-gallery, selected embedder, flutter-engine runtime=Release to your release image.
+* Add your app, and selected embedder to your release image.  The flutter engine will be implicitly added to the image.
 * Image device
-
-Note: If you get a gray screen running the Gallery app, chances are you don't have a locale set.  Ensure your platform has a valid locale set.  See GLIBC_GENERATE_LOCALES and IMAGE_LINGUAS in one of the NVidia CI projects on how to do this.
-
-Note: In theory Swift Shader (CPU render) engine builds should work with the right build flags.  Be warned it won't work out of the box.  Select a SoC with a GPU that supports OpenGL 3.0+ and save yourself the Engineering NRE.
 
 ## Layers dependencies
 
 * meta-clang
 
-Clang generates smaller runtime images, and is used by Google to build the the flutter engine for Android and iOS.  Changing toolchains should be avoided, as this would provide a path with little to no test milage.  If you are trying to port the flutter-engine to QNX 7.0 feel free to contact me.
+Clang generates smaller runtime images, and is used by Google to build the the flutter engine for Android and iOS.  Changing toolchains should be avoided, as this would provide a path with little to no test milage.
 
 ## Overview
 
 Target BSP is expected to have a GPU with OpenGLES v2.0+ support.  
 If you selecting a part go with v3.0+, ideally one with Vulkan support.
 
-This layer includes recipes to build
-
-* flutter-sdk (channel selection, default is master if FLUTTER_SDK_TAG is not set)
-* flutter-engine (tracks engine.version from FLUTTER_SDK_TAG)
-* flutter-gallery Application (debug, profile, and release) requires master
-* ivi-homescreen (Toyota/AGL - Wayland Embedder)
-* flutter-pi (DRM w/VSync - Recommended embedder for DRM)
-* flutter-wayland (POC) / waylandpp/ipugxml (archived)
-* Sony embedders
-
 ## Notes
+
+* There are no OSS Linux embedders (that I am aware of that currently support software rendering).  The engine does support it.
+
+* `flutter-auto` is the `agl` branch of https://github.com/toyota-connected/ivi-homescreen
+  the `main` branch has moved to quarterly releases, the `agl` branch is directly supporting AGL development work.
 
 ### CI Jobs
 
@@ -91,18 +82,17 @@ For more Raspberry PI images see the Honister branch.
 
 Targets flutter-engine-* is known to work on
 
-* AGL QEMU images - aarch64/x86_64 (CI job)
-* DragonBoard 410c - aarch64
-* Intel MinnowBoard Max (BayTrail) - intel-icore7-64
-* NVIDIA Nano Dev Kit - aarch64 (CI job)
-* NVIDIA Xavier NX Dev Kit - aarch64 (CI job)
-* Raspberry Pi 3 / Compute - aarch64 / armv7hf (CI job)
-* Raspberry Pi 4 / Compute - aarch64 (CI job)
-* Renesas R-Car m3ulcb - aarch64
-* STM32MP157x - cortexa7t2hf (CI job)
-* etc, etc
-
-Note: 32-bit ARM builds were broken for a period, so if you have build issues only with 32-bit try moving to a newer tag.
+* AGL QEMU images - aarch64/x86_64
+* Intel icore7-64
+* NVIDIA Nano, Xavier Dev Kits - aarch64
+* NXP iMX7 (caveats), iMX8
+* Qualcomm DragonBoard DB410c, DB820, SA6155P, SA8xxx - aarch64
+* Raspberry Pi 3 / Compute - aarch64 / armv7hf
+* Raspberry Pi 4 / Compute - aarch64
+* Raspberry Pi ZeroW / Zero2W - aarch64
+* Renesas R-Car M3/H3 - aarch64
+* STM32MP157x - cortexa7t2hf
+* etc
 
 ## Include the Flutter SDK into Yocto SDK
 
@@ -114,34 +104,11 @@ Then run:
 
     bitbake <image name> -c populate_sdk
 
-## STM32MP157x Discovery Board
-
-See dunfell-stm32mp15.yml (CI job) for more detail
-
-See Wiki for flashing image and using customdevice:
-https://github.com/meta-flutter/meta-flutter/wiki/STM32MP1-Disco-Notes
-
-## NXP i.MX 8QuadXPlus MEK Example
-
-```
-repo init -u https://source.codeaurora.org/external/imx/imx-manifest -b imx-linux-gatesgarth -m imx-5.10.9-1.0.0.xml
-repo sync -j20
-DISTRO=fslc-wayland MACHINE=imx8qxpmek source setup-environment build
-pushd ../sources
-git clone -b dunfell https://github.com/meta-flutter/meta-flutter.git
-popd
-echo -e 'FLUTTER_SDK_TAG = "2.10.0-0.2.pre"' >> conf/local.conf
-echo -e 'IMAGE_INSTALL_append = " flutter-engine-debug ivi-homescreen-debug flutter-gallery-debug"' >> conf/local.conf
-bitbake-layers add-layer ../sources/meta-clang ../sources/meta-flutter
-bitbake fsl-image-multimedia
-```
-
-## Raspberry PI 3/Zero (aarch64)
-
-See honister branch README.md and CI jobs for more detail
-
 ## General Yocto Notes
 
 When building on systems with GCC version > than uninative in Yocto distro add the following to conf/local.conf
 
     INHERIT_remove = "uninative"
+
+## Flutter Workspace Automation
+Please visit [here](tools/README.md) for how to setup Flutter workspace automatically.

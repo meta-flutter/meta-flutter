@@ -60,11 +60,11 @@ jobs:
           /home/dev/bin/repo init -u https://github.com/jwinarske/manifests.git -m rpi64.xml -b $YOCTO_BRANCH
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           wait
-          cd sources/meta-raspberrypi
-          git apply ../../conf/rpi64/0001-rpi-mesa-vulkan-broadcom-override.patch
-          cd ../..
-          rm -rf sources/poky/meta/recipes-graphics/mesa || true
-          rm -rf sources/meta-raspberrypi/recipes-graphics/mesa/mesa-demos_%.bbappend || true
+          # cd sources/meta-raspberrypi
+          # git apply ../../conf/rpi64/0001-rpi-mesa-vulkan-broadcom-override.patch
+          # cd ../..
+          # rm -rf sources/poky/meta/recipes-graphics/mesa || true
+          # rm -rf sources/meta-raspberrypi/recipes-graphics/mesa/mesa-demos_%.bbappend || true
 
       - name: Configure build
         shell: bash
@@ -80,12 +80,12 @@ jobs:
           echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> ./conf/local.conf
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
           echo 'PACKAGECONFIG_pn-sascha-samples = "d2d"' >> ./conf/local.conf
-          echo 'PREFERRED_VERSION_mesa = "21.2.%"' >> ./conf/local.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
-          echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../sources/poky/meta/recipes-core/gettext/gettext_0.20.1.bb
-          echo 'FLUTTER_RUNTIME_pn-flutter-drm-gbm-backend = "debug"' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_WHITELIST = "commercial"' >> ./conf/local.conf
+          echo 'PREFERRED_VERSION_cmake = "3.22.3"' >> ./conf/local.conf
+          echo 'PREFERRED_VERSION_cmake-native = "3.22.3"' >> ./conf/local.conf
+          echo 'PREFERRED_VERSION_nativesdk-cmake = "3.22.3"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -105,143 +105,11 @@ jobs:
         working-directory: ../rpi4-drm-dunfell-latest
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake core-image-minimal
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64/mesa-vulkan-drivers-*.rpm /home/dev/artifacts
-
-      - name: Publish mesa-vulkan-drivers artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: mesa-vulkan-drivers-rpi4-64
-          path: |
-             /home/dev/artifacts/*.rpm
-
-      - name: Build vkmark
-        shell: bash
-        working-directory: ../rpi4-drm-dunfell-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vkmark
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64/vkmark-git-*.rpm /home/dev/artifacts
-
-      - name: Publish vkmark artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: vkmark-rpi4-64
-          path: |
-             /home/dev/artifacts/*.rpm
-
-      - name: Build vkcube
-        shell: bash
-        working-directory: ../rpi4-drm-dunfell-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vkcube
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64/vkcube-git*.rpm /home/dev/artifacts
-
-      - name: Publish vkcube artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: vkcube-rpi4-64
-          path: |
-             /home/dev/artifacts/*.rpm
-
-      - name: Build vk-layer-perfdoc
-        shell: bash
-        working-directory: ../rpi4-drm-dunfell-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake vk-layer-perfdoc
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64/vk-layer-perfdoc-git*.rpm /home/dev/artifacts
-
-      - name: Publish vk-layer-perfdoc artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: vk-layer-perfdoc-rpi4-64
-          path: |
-             /home/dev/artifacts/*.rpm
-
-      - name: Build sascha-samples (D2D)
-        shell: bash
-        working-directory: ../rpi4-drm-dunfell-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake sascha-samples
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64/sascha-samples-git*.rpm /home/dev/artifacts
-
-      - name: Publish sascha-samples artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: sascha-samples-d2d-rpi4-64
-          path: |
-             /home/dev/artifacts/*.rpm
-
-      - name: Build flutter-engine-debug
-        shell: bash
-        working-directory: ../rpi4-drm-dunfell-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake flutter-engine-debug -c do_cleansstate
-          bitbake flutter-engine-debug
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64/flutter-engine-debug-git*.rpm /home/dev/artifacts
-
-      - name: Publish flutter-engine-debug artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: flutter-engine-debug-rpi4-64
-          path: |
-             /home/dev/artifacts/*.rpm
-
-      - name: Build flutter-pi-debug
-        shell: bash
-        working-directory: ../rpi4-drm-dunfell-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake flutter-pi-debug
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64/flutter-pi-debug-git*.rpm /home/dev/artifacts
-
-      - name: Publish flutter-pi-debug artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: flutter-pi-debug-rpi4-64
-          path: |
-             /home/dev/artifacts/*.rpm
-      
-      - name: Build flutter-gallery-debug
-        shell: bash
-        working-directory: ../rpi4-drm-dunfell-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
-          bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-gallery-debug -c do_cleansstate
-          bitbake flutter-gallery-debug
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64/flutter-gallery-debug-git*.rpm /home/dev/artifacts
-      
-      - name: Publish flutter-gallery-debug artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: flutter-gallery-debug-rpi4-64
-          path: |
-             /home/dev/artifacts/*.rpm
-
-      - name: Build core-image-minimal
-        shell: bash
-        working-directory: ../rpi4-drm-dunfell-latest
-        run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           echo 'CORE_IMAGE_EXTRA_INSTALL_append = " \
-              flutter-pi-release \
-              flutter-gallery-release \
+              flutter-pi-runtimerelease \
+              flutter-gallery-runtimerelease \
+              flutter-test-frb-runtimerelease \
               kmscube libdrm-tests \
-              vkcube sascha-samples \
-              vk-layer-perfdoc \
               gstreamer1.0-libav \
               gstreamer1.0-plugins-bad \
               gstreamer1.0-plugins-good \
@@ -256,6 +124,6 @@ jobs:
       - name: Publish SD card image artifact
         uses: actions/upload-artifact@v2
         with:
-          name: rpi4-drm-flutter-debug-dunfell-sdimage
+          name: rpi4-drm-flutter-runtimedebug-dunfell-sdimage
           path: |
              /home/dev/artifacts/*

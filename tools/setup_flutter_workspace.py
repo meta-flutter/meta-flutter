@@ -33,8 +33,15 @@ import sys
 import zipfile
 from sys import stderr as STREAM
 
+
 FLUTTER_AUTO_DEFAULT_WIDTH = 1920
-FLUTTER_AUTO_DEFAULT_HEIGHT = 720
+FLUTTER_AUTO_DEFAULT_HEIGHT = 1080
+FLUTTER_AUTO_DEFAULT_CURSOR_THEME = "DMZ-White"
+
+QEMU_DEFAULT_WINDOW_TYPE = "BG"
+QEMU_DEFAULT_WIDTH = 1920
+QEMU_DEFAULT_HEIGHT = 1080
+QEMU_DEFAULT_FULLSCREEN = True
 
 # use kiB's
 kb = 1024
@@ -239,7 +246,7 @@ def main():
     #
     # Get runtime artifacts
     #
-    get_artifacts(config, flutter_sdk_path, flutter_auto_folder)
+    get_artifacts(config, flutter_sdk_path, flutter_auto_folder, agl_folder)
 
     #
     # custom-devices
@@ -357,12 +364,6 @@ def validate_platform_config(platform):
             if 'flutter_runtime' not in platform:
                 print_banner(
                     "Missing 'flutter_runtime' key in platform config")
-                return False
-            if 'target_user' not in platform:
-                print_banner("Missing 'target_user' key in platform config")
-                return False
-            if 'target_address' not in platform:
-                print_banner("Missing 'target_address' key in platform config")
                 return False
 
             print("Platform ID: %s" % (platform['id']))
@@ -579,18 +580,23 @@ def patch_string_array(find_token, replace_token, list):
     return [w.replace(find_token, replace_token) for w in list]
 
 
-def patch_custom_device_strings(devices):
+def patch_custom_device_strings(devices, flutter_runtime):
     ''' Patch custom device string environmental variables to use literal
     values '''
 
     workspace = os.getenv('FLUTTER_WORKSPACE')
     bundle_folder = os.getenv('BUNDLE_FOLDER')
-    target_user = os.getenv('TARGET_USER')
-    target_address = os.getenv('TARGET_ADDRESS')
 
     for device in devices:
 
         token = '${FLUTTER_WORKSPACE}'
+
+        if device.get('sdkNameAndVersion'):
+            if '${FLUTTER_RUNTIME}' in device['sdkNameAndVersion']:
+                sdkNameAndVersion = device['sdkNameAndVersion'].replace(
+                    '${FLUTTER_RUNTIME}',
+                    flutter_runtime)
+                device['sdkNameAndVersion'] = sdkNameAndVersion
 
         if device.get('postBuild'):
             device['postBuild'] = patch_string_array(
@@ -605,43 +611,10 @@ def patch_custom_device_strings(devices):
             device['install'] = patch_string_array(
                 token, bundle_folder, device['install'])
 
-        if target_user:
-            token = '${TARGET_USER}'
-            if device.get('install'):
-                device['install'] = patch_string_array(
-                    token, target_user, device['install'])
-            if device.get('uninstall'):
-                device['uninstall'] = patch_string_array(
-                    token, target_user, device['uninstall'])
-            if device.get('runDebug'):
-                device['runDebug'] = patch_string_array(
-                    token, target_user, device['runDebug'])
-            if device.get('forwardPort'):
-                device['forwardPort'] = patch_string_array(
-                    token, target_user, device['forwardPort'])
-
-        if target_address:
-            token = '${TARGET_ADDRESS}'
-            if device.get('ping'):
-                device['ping'] = patch_string_array(
-                    token, target_address, device['ping'])
-            if device.get('install'):
-                device['install'] = patch_string_array(
-                    token, target_address, device['install'])
-            if device.get('uninstall'):
-                device['uninstall'] = patch_string_array(
-                    token, target_address, device['uninstall'])
-            if device.get('runDebug'):
-                device['runDebug'] = patch_string_array(
-                    token, target_address, device['runDebug'])
-            if device.get('forwardPort'):
-                device['forwardPort'] = patch_string_array(
-                    token, target_address, device['forwardPort'])
-
     return devices
 
 
-def add_flutter_custom_device(device_config):
+def add_flutter_custom_device(device_config, flutter_runtime):
     ''' Add a single Flutter custom device from json string '''
 
     if not validate_custom_device_config(device_config):
@@ -672,7 +645,8 @@ def add_flutter_custom_device(device_config):
                     new_device_list.append(device)
 
     new_device_list.append(device_config)
-    patched_device_list = patch_custom_device_strings(new_device_list)
+    patched_device_list = patch_custom_device_strings(
+        new_device_list, flutter_runtime)
 
     custom_devices = {}
     custom_devices['custom-devices'] = patched_device_list
@@ -704,7 +678,8 @@ def update_flutter_custom_devices_list(platforms):
                         # print("attempting to remove custom-device: %s" % id)
                         remove_flutter_custom_devices_id(id)
 
-        add_flutter_custom_device(platform['custom-device'])
+        add_flutter_custom_device(
+            platform['custom-device'], platform['flutter_runtime'])
 
 
 def configure_flutter_sdk():
@@ -854,6 +829,7 @@ def get_freedesktop_os_release():
     with open("/etc/os-release") as f:
         d = {}
         for line in f:
+            line = line.strip()
             k, v = line.rstrip().split("=")
             d[k] = v.strip('"')
         return d
@@ -916,7 +892,7 @@ def fetch_https_binary_file(url, filename, redirect, headers):
     return success
 
 
-def get_artifacts(config, flutter_sdk_path, flutter_auto_folder):
+def get_artifacts(config, flutter_sdk_path, flutter_auto_folder, agl_folder):
     ''' Get x86_64 Engine artifcats '''
 
     tmp_folder = get_workspace_tmp_folder()
@@ -938,7 +914,7 @@ def get_artifacts(config, flutter_sdk_path, flutter_auto_folder):
             flutter_runtime = platform['flutter_runtime']
 
             if platform['id'] == 'AGL-qemu' and platform['type'] == 'qemu':
-                install_agl_emu_image(config, platform)
+                install_agl_emu_image(agl_folder, config, platform)
 
             elif (platform['id'] == 'desktop-auto' and
                     platform['type'] == 'host'):
@@ -1170,7 +1146,7 @@ def install_minimum_runtime_deps():
             ubuntu_install_pkg_if_not_installed("libssl-dev")
 
 
-def install_agl_emu_image(config, platform):
+def install_agl_emu_image(folder, config, platform):
 
     host_type = get_host_type()
 
@@ -1180,7 +1156,42 @@ def install_agl_emu_image(config, platform):
 
         runtime = platform['runtime']
 
-        artifact_source = runtime.get('artifact_source')
+        config = runtime.get('config')
+        if config is None:
+            config_window_type = QEMU_DEFAULT_WINDOW_TYPE
+            config_width = QEMU_DEFAULT_WIDTH
+            config_height = QEMU_DEFAULT_HEIGHT
+            config_fullscreen = QEMU_DEFAULT_FULLSCREEN
+
+        else:
+            config_width = config.get('width')
+            if config_width is None:
+                config_width = QEMU_DEFAULT_WIDTH
+
+            config_height = config.get('height')
+            if config_height is None:
+                config_height = QEMU_DEFAULT_HEIGHT
+
+            config_fullscreen = config.get('fullscreen')
+            if config_fullscreen is None:
+                config_fullscreen = QEMU_DEFAULT_FULLSCREEN
+
+            config_window_type = config.get('window_type')
+            if config_window_type is None:
+                config_window_type = QEMU_DEFAULT_WINDOW_TYPE
+
+        make_sure_path_exists(folder)
+        default_config_filepath = os.path.join(folder, 'default_config.json')
+        with open(default_config_filepath, 'w+') as default_config_file:
+            config = {
+                "view": {
+                    "window_type": config_window_type,
+                    "width": config_width,
+                    "height": config_height,
+                    "fullscreen": config_fullscreen
+                }
+            }
+            json.dump(config, default_config_file, indent=2)
 
         if runtime.get('install_dependent_packages'):
 
@@ -1217,7 +1228,14 @@ def install_agl_emu_image(config, platform):
                     "-l"]
                 subprocess.call(cmd)
 
-        if artifact_source == "github":
+        if runtime.get('artifact_source') == "github":
+            github_artifact = runtime['github_artifact']
+            if '${FLUTTER_RUNTIME}' in github_artifact:
+                github_artifact = github_artifact.replace(
+                    '${FLUTTER_RUNTIME}',
+                    platform.get('flutter_runtime')
+                )
+
             install_github_artifact_agl_emu_image(
                 get_github_token(
                     config.get('github_token')
@@ -1225,7 +1243,7 @@ def install_agl_emu_image(config, platform):
                 runtime.get('github_owner'),
                 runtime.get('github_repo'),
                 runtime.get('github_workflow'),
-                runtime.get('github_artifact')
+                github_artifact
             )
 
 
@@ -1291,24 +1309,33 @@ def install_flutter_auto(folder, config, platform):
 
         runtime = platform['runtime']
 
-        artifact_source = runtime.get('artifact_type')
+        config = runtime.get('config')
+        if config is None:
+            config_width = FLUTTER_AUTO_DEFAULT_WIDTH
+            config_height = FLUTTER_AUTO_DEFAULT_HEIGHT
+            config_cursor_theme = FLUTTER_AUTO_DEFAULT_CURSOR_THEME
 
-        default_width = runtime.get('default_width')
-        if default_width is None:
-            default_width = FLUTTER_AUTO_DEFAULT_WIDTH
+        else:
+            config_width = config.get('width')
+            if config_width is None:
+                config_width = FLUTTER_AUTO_DEFAULT_WIDTH
 
-        default_height = runtime.get('default_height')
-        if default_height is None:
-            default_height = FLUTTER_AUTO_DEFAULT_HEIGHT
+            config_height = config.get('height')
+            if config_height is None:
+                config_height = FLUTTER_AUTO_DEFAULT_HEIGHT
+
+            config_cursor_theme = config.get('cursor_theme')
+            if config_cursor_theme is None:
+                config_cursor_theme = FLUTTER_AUTO_DEFAULT_CURSOR_THEME
 
         make_sure_path_exists(folder)
         default_config_filepath = os.path.join(folder, 'default_config.json')
         with open(default_config_filepath, 'w+') as default_config_file:
             config = {
-                "cursor_theme": "DMZ-White",
+                "cursor_theme": config_cursor_theme,
                 "view": {
-                    "width": default_width,
-                    "height": default_height
+                    "width": config_width,
+                    "height": config_height
                 }
             }
             json.dump(config, default_config_file, indent=2)
@@ -1365,13 +1392,19 @@ def install_flutter_auto(folder, config, platform):
                 cmd = ["/usr/lib/llvm-12/bin/clang++", "--version"]
                 subprocess.call(cmd)
 
-        if artifact_source == "github":
+        if 'github' == runtime.get('artifact_source'):
+
+            github_artifact = runtime.get('github_artifact')
+            if '${BACKEND}' in github_artifact:
+                backend = runtime.get('backend')
+                github_artifact = github_artifact.replace('${BACKEND}', backend)
+
             install_flutter_auto_github_artifact(
                 get_github_token(config.get('github_token')),
                 runtime.get('github_owner'),
                 runtime.get('github_repo'),
                 runtime.get('github_workflow'),
-                runtime.get('artifact_name'))
+                github_artifact)
 
 
 def install_flutter_auto_github_artifact(
@@ -1379,11 +1412,11 @@ def install_flutter_auto_github_artifact(
     owner,
     repo,
     workflow,
-    artifact_name
+    github_artifact
 ):
     '''Installs flutter-auto github artifact'''
 
-    if (token and owner and repo and workflow and artifact_name):
+    if (token and owner and repo and workflow and github_artifact):
 
         workflow_runs = get_github_workflow_runs(
             token, owner, repo, workflow)
@@ -1398,7 +1431,7 @@ def install_flutter_auto_github_artifact(
 
         for artifact in artifacts:
 
-            if artifact_name == artifact.get('name'):
+            if github_artifact == artifact.get('name'):
 
                 url = artifact.get('archive_download_url')
 
@@ -1407,7 +1440,7 @@ def install_flutter_auto_github_artifact(
                     (workflow, run_id, url))
 
                 downloaded_file = get_github_artifact(
-                    token, url, artifact_name)
+                    token, url, github_artifact)
                 print("** Downloaded: %s" % downloaded_file)
 
                 with zipfile.ZipFile(downloaded_file, "r") as zip_ref:
@@ -1474,19 +1507,22 @@ echo \"* ${FLUTTER_WORKSPACE}\"
 echo \"********************************************\"
 
 flutter doctor -v
+echo \"\"
+
 flutter custom-devices list
+echo \"\"
 '''
 
 env_qemu = '''
 echo \"********************************************\"
-echo \" Type 'qemu_run' to start the emulator\"
+echo \"* Type 'qemu_run' to start the emulator    *\"
 echo \"********************************************\"
 qemu_run() {
     if [ -z ${QEMU_IMAGE+x} ];
     then
         export QEMU_IMAGE=${FLUTTER_WORKSPACE}/%s
     else
-        echo 'QEMU_IMAGE is set to \"$QEMU_IMAGE\"'
+        echo 'QEMU_IMAGE is set to ${QEMU_IMAGE}'
     fi
     export OVMF_PATH=%s
     echo \"OVMF_PATH is set to '$OVMF_PATH'\"
@@ -1510,26 +1546,19 @@ def setup_env_script(workspace, args, platform):
         for item in platform:
             if 'type' in item:
 
-                if "target" == item['type']:
-                    if args.target_user:
-                        target_user = args.target_user
-                    else:
-                        target_user = item['target_user']
-
-                    os.environ['TARGET_USER'] = target_user
-
-                    if args.target_address:
-                        target_address = args.target_address
-                    else:
-                        target_address = item['target_address']
-
-                    os.environ['TARGET_ADDRESS'] = target_address
-
-                elif "qemu" == item['type']:
+                if "qemu" == item['type']:
 
                     runtime = item['runtime']
+
+                    relative_path = runtime['relative_path']
+                    if '${FLUTTER_RUNTIME}' in relative_path:
+                        relative_path = relative_path.replace(
+                            '${FLUTTER_RUNTIME}',
+                            item.get('flutter_runtime')
+                        )
+
                     script.write(env_qemu % (
-                        runtime['relative_path'],
+                        relative_path,
                         runtime['ovmf_path'],
                         runtime['cmd'],
                         runtime['cmd'],
@@ -1543,7 +1572,6 @@ def get_platform_ids(platforms):
     res = []
     for platform in platforms:
         res.append(platform.get('id'))
-    print(res)
     return res
 
 

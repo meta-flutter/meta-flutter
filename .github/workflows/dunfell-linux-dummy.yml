@@ -56,10 +56,10 @@ jobs:
 
       - name: Configure build
         shell: bash
-        working-directory: ../yocto-dunfell/poky
+        working-directory: ../yocto-dunfell
         run: |
           rm -rf build/conf
-          . ./oe-init-build-env
+          . ./poky/oe-init-build-env
           echo '***************************************'
           echo 'INHERIT += "rm_work"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
@@ -68,12 +68,14 @@ jobs:
           echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES_remove = " sysvinit"' >> ./conf/local.conf
-          echo 'DISTRO_FEATURES += "x11 wayland opengl systemd"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES += "x11 wayland opengl vulkan"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES_BACKFILL_CONSIDERED = ""' >> ./conf/local.conf
-          echo 'VIRTUAL-RUNTIME_init_manager = "systemd"' >> ./conf/local.conf
-          echo 'VIRTUAL-RUNTIME_initscripts = ""' >> ./conf/local.conf
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"' >> ./conf/local.conf
+          echo 'LICENSE_FLAGS_WHITELIST += "commercial"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG_append_pn-flutter-engine-runtimedebug = " desktop-embeddings"' >> conf/local.conf
+          echo 'PACKAGECONFIG_append_pn-flutter-engine-runtimeprofile = " desktop-embeddings"' >> conf/local.conf
+          echo 'PACKAGECONFIG_append_pn-flutter-engine-runtimerelease = " desktop-embeddings"' >> conf/local.conf
           echo 'IMAGE_INSTALL_append = " \
               gstreamer1.0 \
               gstreamer1.0-libav \
@@ -83,20 +85,22 @@ jobs:
               gstreamer1.0-plugins-ugly \
               ffmpeg \
               "' >> ./conf/local.conf
-          echo 'LICENSE_FLAGS_WHITELIST = "commercial"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
+          bitbake-layers show-layers
           bitbake-layers add-layer \
-              ../../meta-openembedded/meta-oe \
-              ../../meta-openembedded/meta-python \
-              ../../meta-openembedded/meta-networking \
-              ../../meta-clang \
-              ../../../meta-flutter
+              ../meta-openembedded/meta-oe \
+              ../meta-openembedded/meta-python \
+              ../meta-openembedded/meta-networking \
+              ../meta-clang \
+              ../../meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
+          echo '***************************************'
+          bitbake -e core-image-minimal | grep "^DISTRO_FEATURES"
           echo '***************************************'
           bitbake -e > bb.environment
           bitbake ca-certificates -c do_cleansstate
@@ -105,143 +109,135 @@ jobs:
 
       - name: Build core-image-minimal
         shell: bash
-        working-directory: ../yocto-dunfell/poky
+        working-directory: ../yocto-dunfell
         run: |
-          . ./oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake core-image-minimal
 
-      - name: Build filament
+      - name: Build flutter-engine-runtimerelease
         shell: bash
-        working-directory: ../yocto-dunfell/poky
+        working-directory: ../yocto-dunfell
         run: |
-          . ./oe-init-build-env
-          bitbake filament -c do_cleansstate
-          bitbake filament
+          . ./poky/oe-init-build-env
+          bitbake flutter-engine-runtimerelease -c do_cleansstate
+          bitbake flutter-engine-runtimerelease
 
-      - name: Build flutter-engine-release
+      - name: Build flutter-gallery-runtimerelease
         shell: bash
-        working-directory: ../yocto-dunfell/poky
+        working-directory: ../yocto-dunfell
         run: |
-          . ./oe-init-build-env
-          bitbake flutter-engine-release -c do_cleansstate
-          bitbake flutter-engine-release
+          . ./poky/oe-init-build-env
+          bitbake flutter-gallery-runtimerelease -c do_cleansstate
+          bitbake flutter-gallery-runtimerelease
 
-      - name: Build flutter-gallery-release
+      - name: Build flutter-engine-runtimeprofile
         shell: bash
-        working-directory: ../yocto-dunfell/poky
+        working-directory: ../yocto-dunfell
         run: |
-          . ./oe-init-build-env
-          bitbake flutter-gallery-release -c do_cleansstate
-          bitbake flutter-gallery-release
+          . ./poky/oe-init-build-env
+          bitbake flutter-engine-runtimeprofile -c do_cleansstate
+          bitbake flutter-engine-runtimeprofile
 
-      - name: Build flutter-engine-profile
+      - name: Build flutter-gallery-runtimeprofile
         shell: bash
-        working-directory: ../yocto-dunfell/poky
+        working-directory: ../yocto-dunfell
         run: |
-          . ./oe-init-build-env
-          bitbake flutter-engine-profile -c do_cleansstate
-          bitbake flutter-engine-profile
+          . ./poky/oe-init-build-env
+          bitbake flutter-gallery-runtimeprofile -c do_cleansstate
+          bitbake flutter-gallery-runtimeprofile
 
-      - name: Build flutter-gallery-profile
+      - name: Build flutter-auto-runtimerelease
         shell: bash
-        working-directory: ../yocto-dunfell/poky
+        working-directory: ../yocto-dunfell
         run: |
-          . ./oe-init-build-env
-          bitbake flutter-gallery-profile -c do_cleansstate
-          bitbake flutter-gallery-profile
+          . ./poky/oe-init-build-env
+          bitbake flutter-auto-runtimerelease -c do_cleansstate
+          bitbake flutter-auto-runtimerelease
 
-      - name: Build ivi-homescreen-release
+      - name: Build flutter-auto-runtimeprofile
         shell: bash
-        working-directory: ../yocto-dunfell/poky
+        working-directory: ../yocto-dunfell
         run: |
-          . ./oe-init-build-env
-          bitbake ivi-homescreen-release -c do_cleansstate
-          bitbake ivi-homescreen-release
+          . ./poky/oe-init-build-env
+          bitbake flutter-auto-runtimeprofile -c do_cleansstate
+          bitbake flutter-auto-runtimeprofile
 
-      - name: Build ivi-homescreen-profile
+      - name: Build flutter-auto-runtimedebug
         shell: bash
-        working-directory: ../yocto-dunfell/poky
+        working-directory: ../yocto-dunfell
         run: |
-          . ./oe-init-build-env
-          bitbake ivi-homescreen-profile -c do_cleansstate
-          bitbake ivi-homescreen-profile
+          . ./poky/oe-init-build-env
+          bitbake flutter-auto-runtimedebug -c do_cleansstate
+          bitbake flutter-auto-runtimedebug
 
-      - name: Build ivi-homescreen-debug
+      - name: Build flutter-pi-runtimerelease
         shell: bash
-        working-directory: ../yocto-dunfell/poky
+        working-directory: ../yocto-dunfell
         run: |
-          . ./oe-init-build-env
-          bitbake ivi-homescreen-debug -c do_cleansstate
-          bitbake ivi-homescreen-debug
+          . ./poky/oe-init-build-env
+          bitbake flutter-pi-runtimerelease -c do_cleansstate
+          bitbake flutter-pi-runtimerelease
 
-      - name: Build flutter-pi-release
+      - name: Build flutter-pi-runtimeprofile
         shell: bash
-        working-directory: ../yocto-dunfell/poky
+        working-directory: ../yocto-dunfell
         run: |
-          . ./oe-init-build-env
-          bitbake flutter-pi-release -c do_cleansstate
-          bitbake flutter-pi-release
+          . ./poky/oe-init-build-env
+          bitbake flutter-pi-runtimeprofile -c do_cleansstate
+          bitbake flutter-pi-runtimeprofile
 
-      - name: Build flutter-pi-profile
+      - name: Build flutter-pi-runtimedebug
         shell: bash
-        working-directory: ../yocto-dunfell/poky
+        working-directory: ../yocto-dunfell
         run: |
-          . ./oe-init-build-env
-          bitbake flutter-pi-profile -c do_cleansstate
-          bitbake flutter-pi-profile
-
-      - name: Build flutter-pi-debug
-        shell: bash
-        working-directory: ../yocto-dunfell/poky
-        run: |
-          . ./oe-init-build-env
-          bitbake flutter-pi-debug -c do_cleansstate
-          bitbake flutter-pi-debug
+          . ./poky/oe-init-build-env
+          bitbake flutter-pi-runtimedebug -c do_cleansstate
+          bitbake flutter-pi-runtimedebug
 
       - name: Build flutter-drm-eglstream-backend
         shell: bash
-        working-directory: ../yocto-dunfell/poky
+        working-directory: ../yocto-dunfell
         run: |
-          . ./oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake flutter-drm-eglstream-backend -c do_cleansstate
           bitbake flutter-drm-eglstream-backend
 
       - name: Build drm gbm backend
         shell: bash
-        working-directory: ../yocto-dunfell/poky
+        working-directory: ../yocto-dunfell
         run: |
-          . ./oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake flutter-drm-gbm-backend -c do_cleansstate
           bitbake flutter-drm-gbm-backend
 
       - name: Build external texture plugin
         shell: bash
-        working-directory: ../yocto-dunfell/poky
+        working-directory: ../yocto-dunfell
         run: |
-          . ./oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake flutter-external-texture-plugin -c do_cleansstate
           bitbake flutter-external-texture-plugin
 
       - name: Build video player plugin
         shell: bash
-        working-directory: ../yocto-dunfell/poky
+        working-directory: ../yocto-dunfell
         run: |
-          . ./oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake flutter-video-player-plugin -c do_cleansstate
           bitbake flutter-video-player-plugin
 
       - name: Build Wayland Client
         shell: bash
-        working-directory: ../yocto-dunfell/poky
+        working-directory: ../yocto-dunfell
         run: |
-          . ./oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake flutter-wayland-client -c do_cleansstate
           bitbake flutter-wayland-client
 
       - name: Build X11 Client
         shell: bash
-        working-directory: ../yocto-dunfell/poky
+        working-directory: ../yocto-dunfell
         run: |
-          . ./oe-init-build-env
+          . ./poky/oe-init-build-env
           bitbake flutter-x11-client -c do_cleansstate
           bitbake flutter-x11-client
