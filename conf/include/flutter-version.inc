@@ -15,7 +15,11 @@ def _get_flutter_release_info(d, key):
     ret = ""
     flutter_sdk_tag = d.getVar("FLUTTER_SDK_TAG")
     with urllib.request.urlopen('https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json') as f:
-        releases_linux_json = json.load(f)
+
+        data = f.read()
+        encoding = f.info().get_content_charset('utf-8')
+        releases_linux_json = json.loads(data.decode(encoding))
+
         if flutter_sdk_tag == "AUTOINC":
             flutter_sdk_tag = releases_linux_json["current_release"]["stable"]
 
@@ -36,7 +40,11 @@ def get_flutter_sdk_version(d):
     ret = ""
     flutter_sdk_tag = d.getVar("FLUTTER_SDK_TAG")
     with urllib.request.urlopen('https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json') as f:
-        releases_linux_json = json.load(f)
+
+        data = f.read()
+        encoding = f.info().get_content_charset('utf-8')
+        releases_linux_json = json.loads(data.decode(encoding))
+
         if flutter_sdk_tag == "AUTOINC":
             flutter_sdk_tag = releases_linux_json["current_release"]["stable"]
 
