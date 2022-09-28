@@ -1,4 +1,4 @@
-FLUTTER_SDK_TAG ??= "3.0.5"
+FLUTTER_SDK_TAG ??= "3.3.1"
 
 def get_flutter_archive(d):
     return _get_flutter_release_info(d, "archive")
@@ -15,8 +15,7 @@ def _get_flutter_release_info(d, key):
     ret = ""
     flutter_sdk_tag = d.getVar("FLUTTER_SDK_TAG")
     with urllib.request.urlopen('https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json') as f:
-        releases_linux_raw = f.read().decode('utf-8').strip()
-        releases_linux_json = json.loads(releases_linux_raw)
+        releases_linux_json = json.load(f)
         if flutter_sdk_tag == "AUTOINC":
             flutter_sdk_tag = releases_linux_json["current_release"]["stable"]
 
@@ -37,8 +36,7 @@ def get_flutter_sdk_version(d):
     ret = ""
     flutter_sdk_tag = d.getVar("FLUTTER_SDK_TAG")
     with urllib.request.urlopen('https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json') as f:
-        releases_linux_raw = f.read().decode('utf-8').strip()
-        releases_linux_json = json.loads(releases_linux_raw)
+        releases_linux_json = json.load(f)
         if flutter_sdk_tag == "AUTOINC":
             flutter_sdk_tag = releases_linux_json["current_release"]["stable"]
 
@@ -64,9 +62,11 @@ def gn_get_engine_commit(d):
     """ Sets FLUTTER_ENGINE_COMMIT variable """
     import urllib.request
 
+    FLUTTER_ENGINE_VERSION_FMT = \
+        'https://raw.githubusercontent.com/flutter/flutter/%s/bin/internal/engine.version'
     revision = get_flutter_hash(d)
 
-    with urllib.request.urlopen('https://raw.githubusercontent.com/flutter/flutter/%s/bin/internal/engine.version' % (revision)) as f:
+    with urllib.request.urlopen(FLUTTER_ENGINE_VERSION_FMT % (revision)) as f:
         return f.read().decode('utf-8').strip()
 
     bb.fatal('Unable to get engine commit')

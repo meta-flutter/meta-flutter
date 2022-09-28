@@ -1,19 +1,24 @@
 {
-	"flutter-version": "3.0.1",
-	"platforms": [{
+	"flutter-version": "3.3.1",
+	"platforms": [
+		{
 			"id": "desktop-auto",
 			"type": "host",
 			"arch": "x86_64",
 			"flutter_runtime": "debug",
 			"runtime": {
-				"default_width": 1920,
-				"default_height": 720,
+				"backend": "vulkan",
+				"config": {
+					"width": 1920,
+					"height": 1080,
+					"cursor_theme": "DMZ-White"
+				},
 				"install_dependent_packages": true,
 				"artifact_source": "github",
 				"github_owner": "toyota-connected",
 				"github_repo": "ivi-homescreen",
 				"github_workflow": "flutter-auto-linux.yml",
-				"artifact_name": "flutter-auto-vulkan-dbg.amd64.deb.zip"
+				"github_artifact": "flutter-auto-${BACKEND}-dbg.amd64.deb.zip"
 			},
 			"overwrite-existing": true,
 			"custom-device": {
@@ -39,13 +44,19 @@
 			"arch": "x86_64",
 			"flutter_runtime": "debug",
 			"runtime": {
+				"config": {
+					"window_type": "BG",
+					"width": 1920,
+					"height": 1080,
+					"fullscreen": true
+				},
 				"install_dependent_packages": true,
-				"relative_path": ".agl/agl-image-flutter-runtimedebug-qemux86-64.wic.vmdk",
+				"relative_path": ".agl/agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemux86-64.wic.vmdk",
 				"artifact_source": "github",
 				"github_owner": "meta-flutter",
 				"github_repo": "meta-flutter",
 				"github_workflow": "kirkstone-agl-x86_64.yml",
-				"github_artifact": "agl-image-flutter-runtimedebug-qemux86-64-linux",
+				"github_artifact": "agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemux86-64-linux",
 				"ovmf_path": "/usr/share/ovmf/OVMF.fd",
 				"cmd": "qemu-system-x86_64",
 				"args": "-enable-kvm -m 2048 -bios ${OVMF_PATH} -hda ${QEMU_IMAGE} -cpu kvm64 -cpu qemu64,+ssse3,+sse4.1,+sse4.2,+popcnt -vga virtio -show-cursor -device virtio-rng-pci -serial mon:stdio -serial null -soundhw hda -device virtio-net-pci,netdev=net0,mac=52:54:00:12:35:02 -netdev user,id=net0,hostfwd=tcp::2222-:22,hostfwd=tcp::1234-:1234"
@@ -54,7 +65,7 @@
 			"custom-device": {
 				"id": "AGL-qemu",
 				"label": "AGL x86_64 QEMU Image",
-				"sdkNameAndVersion": "agl-image-flutter-runtimedebug-qemux86-64.wic.vmdk",
+				"sdkNameAndVersion": "agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemux86-64.wic.vmdk",
 				"platform": "linux-x64",
 				"enabled": true,
 				"ping": [
@@ -62,7 +73,7 @@
 				],
 				"pingSuccessRegex": "open 2222",
 				"postBuild": [
-					"bash", "-c", "mkdir -p ${localPath}/../../.flutter-auto/data/flutter_assets && cp -r ${localPath}/* ${localPath}/../../.flutter-auto/data/flutter_assets && ssh -p 2222 -t -oBatchMode=yes root@localhost passwd -d agl-driver"
+					"bash", "-c", "mkdir -p ${localPath}/../../.flutter-auto/data/flutter_assets && cp -r ${localPath}/* ${localPath}/../../.flutter-auto/data/flutter_assets && cp -r ${FLUTTER_WORKSPACE}/.agl/default_config.json ${localPath}/../../.flutter-auto/ && ssh -p 2222 -t -oBatchMode=yes root@localhost passwd -d agl-driver"
 				],
 				"uninstall": [
 					"bash", "-c", "ssh -p 2222 -t -t -oBatchMode=yes agl-driver@localhost rm -rf \"/tmp/${appName}\""
@@ -73,7 +84,7 @@
 				"runDebug": [
 					"ssh", "-t", "-t", "-p", "2222", "-oBatchMode=yes", "agl-driver@localhost",
 					"flutter-auto",
-					"--j=/usr/share/flutter/default.json",
+					"--j=/tmp/${appName}/default_config.json",
 					"--b=/tmp/${appName}",
 					"--observatory-host=0.0.0.0",
 					"--observatory-port=1234"
@@ -94,7 +105,7 @@
 				"label": "STM32MP157F-DK2",
 				"sdkNameAndVersion": "STM32 Discovery Board (Dual Cortex-A7)",
 				"platform": null,
-				"enabled": false,
+				"enabled": true,
 				"ping": ["ping", "-c", "1", "-w", "400", "stm32mp15-disco.local"],
 				"pingSuccessRegex": "[<=]\\d+ms",
 				"postBuild": ["bash", "-c", "mkdir -p ${localPath}/../../.flutter-auto/data/flutter_assets && cp -r ${localPath}/* ${localPath}/../../.flutter-auto/data/flutter_assets && ssh -t -oBatchMode=yes root@stm32mp15-disco.local passwd -d weston"],
@@ -171,7 +182,8 @@
 			}
 		}
 	],
-	"repos": [{
+	"repos": [
+		{
 			"uri": "https://github.com/flutter/gallery.git",
 			"branch": "master",
 			"rev": "9eb785cb997ff56c46e933c1c591f0a6f31454f6",
@@ -184,16 +196,22 @@
 			"pubspec_path": "flutter_secure_storage/flutter_secure_storage/example"
 		},
 		{
+			"uri": "https://github.com/bernardpumped/ped.git",
+			"branch": "agl",
+			"rev": "bee63b8317fbf8f6b95d6be820bcf07b6b3c0c37",
+			"pubspec_path": "ped"
+		},
+		{
+			"uri": "https://github.com/meta-flutter/flutter_animated_background.git",
+			"branch": "meta-flutter",
+			"rev": "46f35ad2a323ab006813a3c4748163536b0fc332",
+			"pubspec_path": "flutter_animated_background/example"
+		},
+		{
 			"uri": "https://github.com/felipeerias/flutter_homescreen.git",
 			"branch": "main",
 			"rev": "08bf271f7f1f14153a41005718a2090fa8e783f0",
 			"pubspec_path": "flutter_homescreen"
-		},
-		{
-			"uri": "https://github.com/bernardpumped/ped.git",
-			"branch": "main",
-			"rev": "7a670295d5a94508862316e045e789e0dfd01b20",
-			"pubspec_path": "ped"
 		}
 	]
 }
