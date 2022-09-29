@@ -6,12 +6,10 @@ LIC_FILES_CHKSUM = "\
     file://${COREBASE}/meta/files/common-licenses/Apache-2.0;md5=89aea4e17d99a7cacdbeed46a0096b10 \
 "
 
-DEPENDS_class-target = "membrane-example-native"
-
-DEPENDS_class-native += "\
+DEPENDS += "\
     flutter-sdk-native \
-    compiler-rt-native \
-    libcxx-native \
+    compiler-rt \
+    libcxx \
     "
 
 SRCREV = "402133efc123fbf86997118209b3a84007e4000d"
@@ -131,57 +129,40 @@ S = "${WORKDIR}/git"
 
 CARGO_SRC_DIR = "rust_example"
 
-RUNTIME_class-native = "llvm"
-TOOLCHAIN_class-native = "clang"
-PREFERRED_PROVIDER_libgcc_class-native = "compiler-rt"
+RUNTIME = "llvm"
+TOOLCHAIN = "clang"
+PREFERRED_PROVIDER = "compiler-rt"
 
 inherit cargo
 
 #
 # Dart generation
 #
-cargo_do_compile_class-native() {    
-
-    export RUSTFLAGS
-    export RUST_BACKTRACE=full
-    export CARGO_TARGET_DIR=${S}/target
-    export CARGO_BUILD_TARGET="${HOST_SYS}"
+cargo_do_compile_prepend() {
 
     export PUB_CACHE=${WORKDIR}/pub_cache
     export MEMBRANE_LLVM_PATHS=${STAGING_DIR_NATIVE}/usr
     export PATH="${STAGING_DIR_NATIVE}/usr/share/flutter/sdk/bin:$PATH"
 
-    cd ${S}/${CARGO_SRC_DIR}
+    sed -i '/strip = \"symbols\"/d' ${S}/${CARGO_SRC_DIR}/Cargo.toml
 
     # requires Dart
     bbnote `dart --version`
 
     # requires libclang.so
     bbnote `find ${STAGING_DIR_NATIVE} -iname libclang.so*`
-
-    "${CARGO}" run -vv
 }
 
-cargo_do_install_class-native() {
+cargo_do_install_append() {
 
     install -d ${D}${datadir}/membrane/dart_example
 
     cp -r ${S}/dart_example/* ${D}${datadir}/membrane/dart_example
-}
-
-cargo_do_install_append_class-target() {
 
     rm -rf ${D}${bindir}
 }
 
-# remove symbol stripping from Cargo build - Yocto does it
-cargo_do_compile_prepend_class-target() {
-
-    sed -i '/strip = \"symbols\"/d' ${S}/${CARGO_SRC_DIR}/Cargo.toml
-}
-
-FILES_${PN}_class-native = "${datadir}"
-
 FILES_${PN} = "${libdir}"
+FILES_${PN}-dev = "${datadir}"
 
-BBCLASSEXTEND += "native"
+BBCLASSEXTEND = ""
