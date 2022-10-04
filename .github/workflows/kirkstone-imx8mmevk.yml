@@ -86,6 +86,7 @@ jobs:
               flutter-test-membrane-runtimerelease \
               flutter-test-frb-runtimerelease \
               flutter-pi-runtimerelease \
+              tangram-es \
               "' >> conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> conf/local.conf
           echo 'PACKAGECONFIG:append:pn-weston = " remoting"' >> conf/local.conf

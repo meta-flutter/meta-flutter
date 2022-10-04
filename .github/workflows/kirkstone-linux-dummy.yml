@@ -116,6 +116,15 @@ jobs:
           . ./poky/oe-init-build-env
           bitbake core-image-minimal
 
+      - name: Build tangram-es
+        shell: bash
+        working-directory: ../yocto-kirkstone
+        run: |
+          . ./poky/oe-init-build-env
+          export NEXTZEN_API_KEY=${{ secrets.NEXTZEN_API_KEY }}
+          bitbake tangram-es -c do_cleansstate
+          bitbake tangram-es
+
       - name: Build flutter-test-frb
         shell: bash
         working-directory: ../yocto-kirkstone

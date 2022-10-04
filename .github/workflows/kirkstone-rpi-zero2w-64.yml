@@ -87,6 +87,7 @@ jobs:
               flutter-test-localization-runtime${{ env.RUNTIME }} \
               flutter-test-membrane-runtime${{ env.RUNTIME }} \
               flutter-test-frb-runtime${{ env.RUNTIME }} \
+              tangram-es \
               "' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
@@ -211,6 +212,7 @@ jobs:
               flutter-test-localization-runtime${{ env.RUNTIME }} \
               flutter-test-membrane-runtime${{ env.RUNTIME }} \
               flutter-test-frb-runtime${{ env.RUNTIME }} \
+              tangram-es \
               "' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
@@ -329,6 +331,7 @@ jobs:
               flutter-pi-runtime${{ env.RUNTIME }} \
               membrane-example \
               flutter-rust-bridge-example \
+              tangram-es \
               "' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'

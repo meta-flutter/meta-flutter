@@ -101,6 +101,7 @@ jobs:
                     gstreamer1.0-plugins-bad \
                     gstreamer1.0-plugins-good \
                     gstreamer1.0-plugins-ugly \
+                    tangram-es \
                     "' >> $LOCAL_CONF
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> $LOCAL_CONF
           echo '********** ./conf/local.conf **********'
@@ -245,6 +246,7 @@ jobs:
                     gstreamer1.0-plugins-bad \
                     gstreamer1.0-plugins-good \
                     gstreamer1.0-plugins-ugly \
+                    tangram-es \
                     "' >> $LOCAL_CONF
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> $LOCAL_CONF
           echo '********** ./conf/local.conf **********'
