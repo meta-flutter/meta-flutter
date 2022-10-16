@@ -10,7 +10,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=480e9b5af92d888295493a5cc7f2238e"
 
 RDEPENDS_${PN} += " flutter-rust-bridge-example"
 
-SRCREV = "8c984efe63e0ed306cf2ab497788d4e94392e539"
+SRCREV = "2f77dc606af7acbbd9ab5ec77ca4094ba06587fe"
 SRC_URI = "git://github.com/fzyzcjy/flutter_rust_bridge.git;lfs=0;branch=master;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"
