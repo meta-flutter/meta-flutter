@@ -17,7 +17,7 @@
 				"github_owner": "toyota-connected",
 				"github_repo": "ivi-homescreen",
 				"github_workflow": "flutter-auto-linux.yml",
-				"github_artifact": "flutter-auto-${BACKEND}-dbg.amd64.deb.zip"
+				"github_artifact": "flutter-auto-${BACKEND}-dbg"
 			},
 			"overwrite-existing": true,
 			"custom-device": {

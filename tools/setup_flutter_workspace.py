@@ -96,7 +96,7 @@ def main():
     #
     # Install required modules
     #
-    required = {'requests', 'pycurl'}
+    required = {'pycurl'}
 
     installed = {pkg.key for pkg in pkg_resources.working_set}
     missing = required - installed
@@ -820,7 +820,6 @@ def fetch_https_binary_file(url, filename, redirect, headers):
 
 
 def get_host_machine_arch():
-    # print("Machine Architecture: %s" % platform.machine())
     return platform.machine()
 
 
@@ -933,67 +932,67 @@ def get_github_token(github_token):
 
 
 def get_github_artifact_list_json(token, url):
-    """Function to return the JSON of artifact object array."""
-    import requests
+    """Function to return the JSON of artifact object array"""
+    import pycurl
+    from io import BytesIO
 
-    headers = {"Accept": "application/vnd.github+json", "Authorization": "token %s" % token}
-    with requests.get(url, stream=True, headers=headers, allow_redirects=True) as r:
-        data = r.json()
-
-    if 'message' in data:
-        sys.exit("GitHub Message: %s" % data['message'])
+    c = pycurl.Curl()
+    c.setopt(pycurl.URL, url)
+    c.setopt(pycurl.HTTPHEADER, ["Accept: application/vnd.github+json", "Authorization: Bearer %s" % token])
+    buffer = BytesIO()
+    c.setopt(c.WRITEDATA, buffer)
+    c.perform()
+    data = json.loads(buffer.getvalue().decode('utf-8'))
 
     if 'artifacts' in data:
-        return data['artifacts']
+        return data.get('artifacts')
+
+    if 'message' in data:
+        sys.exit("[get_github_artifact_list_json] GitHub Message: %s" % data.get('message'))
 
     return {}
 
 
 def get_github_workflow_runs(token, owner, repo, workflow):
     """ Gets workflow run list """
-    import requests
+    import pycurl
+    from io import BytesIO
 
-    url = "https://api.github.com/repos/%s/%s/actions/workflows/%s/runs" % (owner, repo, workflow)
+    c = pycurl.Curl()
+    c.setopt(pycurl.URL, "https://api.github.com/repos/%s/%s/actions/workflows/%s/runs" % (owner, repo, workflow))
+    c.setopt(pycurl.HTTPHEADER, ["Accept: application/vnd.github+json", "Authorization: Bearer %s" % token])
+    buffer = BytesIO()
+    c.setopt(c.WRITEDATA, buffer)
+    c.perform()
+    data = json.loads(buffer.getvalue().decode('utf-8'))
 
-    try:
-        headers = {"Accept": "application/vnd.github+json", "Authorization": "token %s" % token}
-        with requests.get(url, stream=True, headers=headers, allow_redirects=False) as r:
-            json_data = json.loads(r.text)
+    if 'workflow_runs' in data:
+        return data.get('workflow_runs')
 
-            if 'message' in json_data:
-                sys.exit("GitHub Message: %s" % json_data['message'])
-
-            if 'workflow_runs' in json_data:
-                return json_data['workflow_runs']
-
-    except requests.exceptions.HTTPError as e:
-        if e.errno == 404:
-            print("Artifact not available.")
-            return {}
+    if 'message' in data:
+        sys.exit("[get_github_workflow_runs] GitHub Message: %s" % data.get('message'))
 
     return {}
 
 
 def get_github_workflow_artifacts(token, owner, repo, id_):
     """ Get Workflow Artifact List """
-    import requests
+    import pycurl
+    from io import BytesIO
 
-    url = "https://api.github.com/repos/%s/%s/actions/runs/%s/artifacts" % (owner, repo, id_)
+    c = pycurl.Curl()
+    c.setopt(pycurl.URL, "https://api.github.com/repos/%s/%s/actions/runs/%s/artifacts" % (owner, repo, id_))
+    c.setopt(pycurl.HTTPHEADER, ["Accept: application/vnd.github+json", "Authorization: Bearer %s" % token])
+    buffer = BytesIO()
+    c.setopt(c.WRITEDATA, buffer)
+    c.perform()
+    data = json.loads(buffer.getvalue().decode('utf-8'))
 
-    try:
-        headers = {"Accept": "application/vnd.github+json", "Authorization": "token %s" % token}
-        with requests.get(url, stream=True, headers=headers) as r:
-            data = r.json()
+    if 'artifacts' in data:
+        return data.get('artifacts')
 
-        if 'message' in data:
-            sys.exit("GitHub Message: %s" % data['message'])
-
-        return data['artifacts']
-
-    except requests.exceptions.HTTPError as e:
-        if e.errno == 404:
-            print("Artifact list not available.")
-            return {}
+    if 'message' in data:
+        sys.exit("[get_github_workflow_artifacts] GitHub Message: %s" % data.get('message'))
 
     return {}
 
@@ -1067,6 +1066,15 @@ def fedora_install_pkg_if_not_installed(package):
         subprocess.call(cmd)
 
 
+def is_linux_host_kvm_capable():
+    """Determine if CPU supports HW Hypervisor support"""
+    cmd = ['cat', '/proc/cpuinfo', '|', 'egrep', '"vmx|svm"']
+    result = subprocess.run(cmd, capture_output=True, text=True).stdout.strip('\'').strip('\n')
+    if len(result):
+        return True
+    return False
+
+
 def get_mac_brew_path():
     """ Read which brew """
     result = subprocess.run(['which', 'brew'], stdout=subprocess.PIPE)
@@ -1120,10 +1128,10 @@ def install_minimum_runtime_deps():
         elif os_release == 'Fedora':
             cmd = ["sudo", "dnf", "update", "-y"]
             subprocess.check_output(cmd)
-            fedora_install_pkg_if_not_installed("gtk3-devel")
             fedora_install_pkg_if_not_installed("curl")
             fedora_install_pkg_if_not_installed("libcurl-devel")
             fedora_install_pkg_if_not_installed("openssl-devel")
+            fedora_install_pkg_if_not_installed("gtk3-devel")
 
     elif host_type == "darwin":
         brew_path = get_mac_brew_path()
@@ -1180,22 +1188,26 @@ def install_agl_emu_image(folder, config, platform_):
         if runtime.get('install_dependent_packages'):
 
             os_release = get_freedesktop_os_release()
-            print(os_release)
+
             username = os.environ.get('USER')
 
             if os_release.get('NAME') == 'Ubuntu':
-                subprocess.call(["sudo", "apt-get", "install", "-y", "qemu-system-x86", "ovmf", "qemu-kvm",
-                                 "libvirt-daemon-system", "libvirt-clients", "bridge-utils"])
-                subprocess.call(["sudo", "adduser", username, "libvirt"])
-                subprocess.call(["sudo", "adduser", username, "kvm"])
-                subprocess.call(["sudo", "systemctl", "status", "libvirtd", "--no-pager", "-l"])
+                subprocess.call(["sudo", "apt-get", "install", "-y", "qemu-system-x86", "ovmf"])
+                if is_linux_host_kvm_capable():
+                    subprocess.call(["sudo", "apt-get", "install", "-y", "qemu-kvm",
+                                     "libvirt-daemon-system", "libvirt-clients", "bridge-utils"])
+                    subprocess.call(["sudo", "adduser", username, "libvirt"])
+                    subprocess.call(["sudo", "adduser", username, "kvm"])
+                    subprocess.call(["sudo", "systemctl", "status", "libvirtd", "--no-pager", "-l"])
 
             elif os_release.get('NAME') == 'Fedora':
-                subprocess.call(["sudo", "dnf", "install", "-y", "qemu-system-x86", "ovmf", "qemu-kvm",
-                                 "libvirt-daemon-system", "libvirt-clients", "bridge-utils"])
-                subprocess.call(["sudo", "adduser", username, "libvirt"])
-                subprocess.call(["sudo", "adduser", username, "kvm"])
-                subprocess.call(["sudo", "systemctl", "status", "libvirtd", "--no-pager", "-l"])
+                subprocess.call(["sudo", "dnf", "install", "-y", "qemu-system-x86", "edk2-ovmf"])
+                if is_linux_host_kvm_capable():
+                    subprocess.call(["sudo", "dnf", "install", "-y", "bridge-utils", "libvirt",
+                                     "virt-install", "qemu-kvm"])
+                    subprocess.call(["sudo", "systemctl", "status", "libvirtd", "--no-pager", "-l"])
+                    subprocess.call(["sudo", "dnf", "install", "-y", "libvirt-devel", "virt-top",
+                                     "libguestfs-tools", "guestfs-tools"])
 
         if runtime.get('artifact_source') == "github":
             github_artifact = runtime['github_artifact']
@@ -1288,36 +1300,24 @@ def install_flutter_auto(folder, config, platform_):
         if runtime.get('install_dependent_packages'):
 
             os_release = get_freedesktop_os_release()
+
             if os_release.get('NAME') == 'Ubuntu':
-                cmd = ["sudo", "snap", "install", "cmake", "--classic"]
-                subprocess.call(cmd)
 
-                cmd = ["sudo", "add-apt-repository", "-y", "ppa:kisak/kisak-mesa"]
-                subprocess.call(cmd)
+                subprocess.call(["sudo", "snap", "install", "cmake", "--classic"])
 
-                cmd = ["sudo", "apt", "update", "-y"]
-                subprocess.call(cmd)
+                subprocess.call(["sudo", "add-apt-repository", "-y", "ppa:kisak/kisak-mesa"])
 
-                cmd = ["sudo", "apt-get", "-y", "install", "libwayland-dev", "wayland-protocols", "mesa-common-dev",
+                subprocess.call(["sudo", "apt", "update", "-y"])
+
+                subprocess.call(["sudo", "apt-get", "-y", "install", "libwayland-dev", "wayland-protocols", "mesa-common-dev",
                        "libegl1-mesa-dev", "libgles2-mesa-dev", "mesa-utils", "clang-12", "lldb-12", "lld-12",
                        "libc++-12-dev", "libc++abi-12-dev", "libunwind-dev", "libxkbcommon-dev", "vulkan-tools",
                        "libgstreamer1.0-dev", "libgstreamer-plugins-base1.0-dev", "gstreamer1.0-plugins-base",
-                       "gstreamer1.0-gl", "libavformat-dev"]
-                subprocess.call(cmd)
-
-                print("** CMake Version")
-                cmd = ["cmake", "--version"]
-                subprocess.call(cmd)
-
-                print("** Clang Version")
-                cmd = ["/usr/lib/llvm-12/bin/clang++", "--version"]
-                subprocess.call(cmd)
+                       "gstreamer1.0-gl", "libavformat-dev"])
 
             elif os_release.get('NAME') == 'Fedora':
-                cmd = ["sudo", "dnf", "install", "cmake", "-y"]
-                subprocess.call(cmd)
 
-                cmd = ["sudo", "dnf", "-y", "install", "wayland-devel", "wayland-protocols-devel",
+                subprocess.call(["sudo", "dnf", "-y", "install", "wayland-devel", "wayland-protocols-devel",
                        "mesa-dri-drivers", "mesa-filesystem", "mesa-libEGL-devel", "mesa-libGL-devel",
                        "mesa-libGLU-devel", "mesa-libgbm-devel", "mesa-libglapi", "mesa-libxatracker",
                        "mesa-vulkan-drivers", "vulkan-tools", "libunwind-devel", "libxkbcommon-devel",
@@ -1327,16 +1327,13 @@ def install_flutter_auto(folder, config, platform_):
                        "gstreamer1-devel", "gstreamer1-plugins-base-devel", "gstreamer1-plugins-bad-free-devel",
                        "gstreamer1-plugins-bad-free-extras", "gstreamer1-plugins-base-tools",
                        "gstreamer1-plugins-good", "gstreamer1-plugins-good-extras",
-                       "gstreamer1-plugins-ugly-free", "ffmpeg-devel"]
-                subprocess.call(cmd)
+                       "gstreamer1-plugins-ugly-free", "ffmpeg-devel", "cmake"])
 
-                print("** CMake Version")
-                cmd = ["cmake", "--version"]
-                subprocess.call(cmd)
+            print("** CMake Version")
+            subprocess.call(["cmake", "--version"])
 
-                print("** Clang Version")
-                cmd = ["/usr/bin/clang++", "--version"]
-                subprocess.call(cmd)
+            print("** Clang Version")
+            subprocess.call(["/usr/bin/clang++", "--version"])
 
         if 'github' == runtime.get('artifact_source'):
 
@@ -1353,6 +1350,13 @@ def install_flutter_auto(folder, config, platform_):
 def install_flutter_auto_github_artifact(token, owner, repo, workflow, github_artifact):
     """Installs flutter-auto GitHub artifact"""
 
+    os_release = get_freedesktop_os_release().get('NAME')
+
+    if os_release == 'Ubuntu':
+        github_artifact = "%s.amd64.deb.zip" % github_artifact
+    elif os_release == 'Fedora':
+        github_artifact = "%s.x86_64.rpm.zip" % github_artifact
+
     if token and owner and repo and workflow and github_artifact:
 
         workflow_runs = get_github_workflow_runs(token, owner, repo, workflow)
@@ -1366,7 +1370,7 @@ def install_flutter_auto_github_artifact(token, owner, repo, workflow, github_ar
 
         for artifact in artifacts:
 
-            if github_artifact == artifact.get('name'):
+            if github_artifact in artifact.get('name'):
 
                 url = artifact.get('archive_download_url')
 
@@ -1382,9 +1386,8 @@ def install_flutter_auto_github_artifact(token, owner, repo, workflow, github_ar
                 cmd = ["rm", downloaded_file]
                 subprocess.check_output(cmd)
 
-                os_release = get_freedesktop_os_release().get('NAME')
-
                 if os_release == 'Ubuntu':
+
                     dbgsym_file = None
                     deb_file = None
                     for f in filelist:
@@ -1412,28 +1415,21 @@ def install_flutter_auto_github_artifact(token, owner, repo, workflow, github_ar
                     break
 
                 if os_release == 'Fedora':
-                    dbgsym_file = None
+
                     rpm_file = None
                     for f in filelist:
-                        print(f)
                         if ".rpm" in f:
                             rpm_file = f
                             break
-                        elif ".drpm" in f:
-                            dbgsym_file = f
 
-                    cmd = ["sudo", "dnf", "purge", "-y", "flutter-auto"]
+                    cmd = ["sudo", "dnf", "remove", "-y", "flutter-auto"]
                     subprocess.call(cmd)
 
-                    cmd = ["sudo", "dnf", "purge", "-y", "flutter-auto-dbg"]
+                    cmd = ["sudo", "dnf", "remove", "-y", "flutter-auto-dbg"]
                     subprocess.call(cmd)
 
                     cmd = ["sudo", "dnf", "install", "-y", "./%s" % rpm_file]
                     subprocess.call(cmd)
-
-                    if ".drpm" in dbgsym_file:
-                        cmd = ["rm", dbgsym_file]
-                        subprocess.check_output(cmd)
 
                     cmd = ["rm", rpm_file]
                     subprocess.check_output(cmd)
