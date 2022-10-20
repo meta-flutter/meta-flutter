@@ -23,6 +23,7 @@
 
 
 import errno
+import io
 import json
 import os
 import platform
@@ -809,7 +810,7 @@ def fetch_https_binary_file(url, filename, redirect, headers):
             success = True
             break
 
-        except BaseException:
+        except pycurl.error:
             retries_left -= 1
             time.sleep(delay_between_retries)
 
@@ -921,7 +922,6 @@ def base64_to_string(b):
 
 
 def get_github_token(github_token):
-
     if not github_token:
         part_a = "Z2hwX0Q5MzRESjJ5SF"
         part_b = "BMRFM1V0xyUTlpQmFr"
@@ -931,18 +931,23 @@ def get_github_token(github_token):
     return github_token
 
 
-def get_github_artifact_list_json(token, url):
-    """Function to return the JSON of artifact object array"""
+def get_github_json(token, url):
+    """Function to return the JSON of GitHub REST API"""
     import pycurl
-    from io import BytesIO
 
     c = pycurl.Curl()
     c.setopt(pycurl.URL, url)
     c.setopt(pycurl.HTTPHEADER, ["Accept: application/vnd.github+json", "Authorization: Bearer %s" % token])
-    buffer = BytesIO()
+    buffer = io.BytesIO()
     c.setopt(c.WRITEDATA, buffer)
     c.perform()
-    data = json.loads(buffer.getvalue().decode('utf-8'))
+    return json.loads(buffer.getvalue().decode('utf-8'))
+
+
+def get_github_artifact_list_json(token, url):
+    """Function to return the JSON of artifact object array"""
+
+    data = get_github_json(token, url)
 
     if 'artifacts' in data:
         return data.get('artifacts')
@@ -955,16 +960,10 @@ def get_github_artifact_list_json(token, url):
 
 def get_github_workflow_runs(token, owner, repo, workflow):
     """ Gets workflow run list """
-    import pycurl
-    from io import BytesIO
 
-    c = pycurl.Curl()
-    c.setopt(pycurl.URL, "https://api.github.com/repos/%s/%s/actions/workflows/%s/runs" % (owner, repo, workflow))
-    c.setopt(pycurl.HTTPHEADER, ["Accept: application/vnd.github+json", "Authorization: Bearer %s" % token])
-    buffer = BytesIO()
-    c.setopt(c.WRITEDATA, buffer)
-    c.perform()
-    data = json.loads(buffer.getvalue().decode('utf-8'))
+    url = "https://api.github.com/repos/%s/%s/actions/workflows/%s/runs" % (owner, repo, workflow)
+
+    data = get_github_json(token, url)
 
     if 'workflow_runs' in data:
         return data.get('workflow_runs')
@@ -977,16 +976,10 @@ def get_github_workflow_runs(token, owner, repo, workflow):
 
 def get_github_workflow_artifacts(token, owner, repo, id_):
     """ Get Workflow Artifact List """
-    import pycurl
-    from io import BytesIO
 
-    c = pycurl.Curl()
-    c.setopt(pycurl.URL, "https://api.github.com/repos/%s/%s/actions/runs/%s/artifacts" % (owner, repo, id_))
-    c.setopt(pycurl.HTTPHEADER, ["Accept: application/vnd.github+json", "Authorization: Bearer %s" % token])
-    buffer = BytesIO()
-    c.setopt(c.WRITEDATA, buffer)
-    c.perform()
-    data = json.loads(buffer.getvalue().decode('utf-8'))
+    url = "https://api.github.com/repos/%s/%s/actions/runs/%s/artifacts" % (owner, repo, id_)
+
+    data = get_github_json(token, url)
 
     if 'artifacts' in data:
         return data.get('artifacts')
@@ -1309,25 +1302,27 @@ def install_flutter_auto(folder, config, platform_):
 
                 subprocess.call(["sudo", "apt", "update", "-y"])
 
-                subprocess.call(["sudo", "apt-get", "-y", "install", "libwayland-dev", "wayland-protocols", "mesa-common-dev",
-                       "libegl1-mesa-dev", "libgles2-mesa-dev", "mesa-utils", "clang-12", "lldb-12", "lld-12",
-                       "libc++-12-dev", "libc++abi-12-dev", "libunwind-dev", "libxkbcommon-dev", "vulkan-tools",
-                       "libgstreamer1.0-dev", "libgstreamer-plugins-base1.0-dev", "gstreamer1.0-plugins-base",
-                       "gstreamer1.0-gl", "libavformat-dev"])
+                subprocess.call(
+                    ["sudo", "apt-get", "-y", "install", "libwayland-dev", "wayland-protocols", "mesa-common-dev",
+                     "libegl1-mesa-dev", "libgles2-mesa-dev", "mesa-utils", "clang-12", "lldb-12", "lld-12",
+                     "libc++-12-dev", "libc++abi-12-dev", "libunwind-dev", "libxkbcommon-dev", "vulkan-tools",
+                     "libgstreamer1.0-dev", "libgstreamer-plugins-base1.0-dev", "gstreamer1.0-plugins-base",
+                     "gstreamer1.0-gl", "libavformat-dev"])
 
             elif os_release.get('NAME') == 'Fedora':
 
                 subprocess.call(["sudo", "dnf", "-y", "install", "wayland-devel", "wayland-protocols-devel",
-                       "mesa-dri-drivers", "mesa-filesystem", "mesa-libEGL-devel", "mesa-libGL-devel",
-                       "mesa-libGLU-devel", "mesa-libgbm-devel", "mesa-libglapi", "mesa-libxatracker",
-                       "mesa-vulkan-drivers", "vulkan-tools", "libunwind-devel", "libxkbcommon-devel",
-                       "clang", "clang-analyzer", "clang-devel", "clang-libs", "clang-resource-filesystem",
-                       "clang-tools-extra", "lld", "lld-libs", "lldb", "libcxx", "libcxx-devel",
-                       "libcxx-static", "libcxxabi", "libcxxabi-devel", "libcxxabi-static",
-                       "gstreamer1-devel", "gstreamer1-plugins-base-devel", "gstreamer1-plugins-bad-free-devel",
-                       "gstreamer1-plugins-bad-free-extras", "gstreamer1-plugins-base-tools",
-                       "gstreamer1-plugins-good", "gstreamer1-plugins-good-extras",
-                       "gstreamer1-plugins-ugly-free", "ffmpeg-devel", "cmake"])
+                                 "mesa-dri-drivers", "mesa-filesystem", "mesa-libEGL-devel", "mesa-libGL-devel",
+                                 "mesa-libGLU-devel", "mesa-libgbm-devel", "mesa-libglapi", "mesa-libxatracker",
+                                 "mesa-vulkan-drivers", "vulkan-tools", "libunwind-devel", "libxkbcommon-devel",
+                                 "clang", "clang-analyzer", "clang-devel", "clang-libs", "clang-resource-filesystem",
+                                 "clang-tools-extra", "lld", "lld-libs", "lldb", "libcxx", "libcxx-devel",
+                                 "libcxx-static", "libcxxabi", "libcxxabi-devel", "libcxxabi-static",
+                                 "gstreamer1-devel", "gstreamer1-plugins-base-devel",
+                                 "gstreamer1-plugins-bad-free-devel",
+                                 "gstreamer1-plugins-bad-free-extras", "gstreamer1-plugins-base-tools",
+                                 "gstreamer1-plugins-good", "gstreamer1-plugins-good-extras",
+                                 "gstreamer1-plugins-ugly-free", "ffmpeg-devel", "cmake"])
 
             print("** CMake Version")
             subprocess.call(["cmake", "--version"])
