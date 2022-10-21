@@ -49,15 +49,14 @@
 					"fullscreen": true
 				},
 				"install_dependent_packages": true,
-				"relative_path": ".agl/agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemux86-64.wic.vmdk",
+				"relative_path": ".agl/agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemu${MACHINE_ARCH_HYPHEN}",
 				"artifact_source": "github",
 				"github_owner": "meta-flutter",
 				"github_repo": "meta-flutter",
-				"github_workflow": "kirkstone-agl-x86_64.yml",
-				"github_artifact": "agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemux86-64-linux",
-				"ovmf_path": "/usr/share/ovmf/OVMF.fd",
-				"cmd": "qemu-system-x86_64",
-				"args": "-enable-kvm -m 2048 -bios ${OVMF_PATH} -hda ${QEMU_IMAGE} -cpu kvm64 -cpu qemu64,+ssse3,+sse4.1,+sse4.2,+popcnt -vga virtio -show-cursor -device virtio-rng-pci -serial mon:stdio -serial null -soundhw hda -device virtio-net-pci,netdev=net0,mac=52:54:00:12:35:02 -netdev user,id=net0,hostfwd=tcp::2222-:22,hostfwd=tcp::1234-:1234"
+				"github_workflow": "kirkstone-agl-${MACHINE_ARCH}.yml",
+				"github_artifact": "agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemu${MACHINE_ARCH_HYPHEN}-linux",
+				"cmd": "qemu-system-${FORMAL_MACHINE_ARCH}",
+				"args": "-m 2048 -bios OVMF.fd -hda ${QEMU_IMAGE} -cpu kvm64 -cpu qemu64,+ssse3,+sse4.1,+sse4.2,+popcnt -vga virtio -show-cursor -device virtio-rng-pci -serial mon:stdio -serial null -soundhw hda -device virtio-net-pci,netdev=net0,mac=52:54:00:12:35:02 -netdev user,id=net0,hostfwd=tcp::2222-:22,hostfwd=tcp::1234-:1234"
 			},
 			"overwrite-existing": true,
 			"custom-device": {

@@ -1141,44 +1141,46 @@ def install_agl_emu_image(folder, config, platform_):
     del config
     host_type = get_host_type()
 
-    if host_type == "linux":
+#    if host_type == "linux":
 
-        print_banner("Installing AGL emulator image")
+    print_banner("Installing AGL emulator image")
 
-        runtime = platform_['runtime']
+    runtime = platform_['runtime']
 
-        config = runtime.get('config')
-        if config is None:
-            config_window_type = QEMU_DEFAULT_WINDOW_TYPE
+    config = runtime.get('config')
+    if config is None:
+        config_window_type = QEMU_DEFAULT_WINDOW_TYPE
+        config_width = QEMU_DEFAULT_WIDTH
+        config_height = QEMU_DEFAULT_HEIGHT
+        config_fullscreen = QEMU_DEFAULT_FULLSCREEN
+
+    else:
+        config_width = config.get('width')
+        if config_width is None:
             config_width = QEMU_DEFAULT_WIDTH
+
+        config_height = config.get('height')
+        if config_height is None:
             config_height = QEMU_DEFAULT_HEIGHT
+
+        config_fullscreen = config.get('fullscreen')
+        if config_fullscreen is None:
             config_fullscreen = QEMU_DEFAULT_FULLSCREEN
 
-        else:
-            config_width = config.get('width')
-            if config_width is None:
-                config_width = QEMU_DEFAULT_WIDTH
+        config_window_type = config.get('window_type')
+        if config_window_type is None:
+            config_window_type = QEMU_DEFAULT_WINDOW_TYPE
 
-            config_height = config.get('height')
-            if config_height is None:
-                config_height = QEMU_DEFAULT_HEIGHT
+    make_sure_path_exists(folder)
+    default_config_filepath = os.path.join(folder, 'default_config.json')
+    with open(default_config_filepath, 'w+') as default_config_file:
+        config = {"view": {"window_type": config_window_type, "width": config_width, "height": config_height,
+                           "fullscreen": config_fullscreen}}
+        json.dump(config, default_config_file, indent=2)
 
-            config_fullscreen = config.get('fullscreen')
-            if config_fullscreen is None:
-                config_fullscreen = QEMU_DEFAULT_FULLSCREEN
+    if runtime.get('install_dependent_packages'):
 
-            config_window_type = config.get('window_type')
-            if config_window_type is None:
-                config_window_type = QEMU_DEFAULT_WINDOW_TYPE
-
-        make_sure_path_exists(folder)
-        default_config_filepath = os.path.join(folder, 'default_config.json')
-        with open(default_config_filepath, 'w+') as default_config_file:
-            config = {"view": {"window_type": config_window_type, "width": config_width, "height": config_height,
-                               "fullscreen": config_fullscreen}}
-            json.dump(config, default_config_file, indent=2)
-
-        if runtime.get('install_dependent_packages'):
+        if host_type == "linux":
 
             os_release = get_freedesktop_os_release()
 
@@ -1202,14 +1204,22 @@ def install_agl_emu_image(folder, config, platform_):
                     subprocess.call(["sudo", "dnf", "install", "-y", "libvirt-devel", "virt-top",
                                      "libguestfs-tools", "guestfs-tools"])
 
-        if runtime.get('artifact_source') == "github":
-            github_artifact = runtime['github_artifact']
-            if '${FLUTTER_RUNTIME}' in github_artifact:
-                github_artifact = github_artifact.replace('${FLUTTER_RUNTIME}', platform_.get('flutter_runtime'))
+    if runtime.get('artifact_source') == "github":
+        github_artifact = runtime.get('github_artifact')
+        if '${FLUTTER_RUNTIME}' in github_artifact:
+            github_artifact = github_artifact.replace('${FLUTTER_RUNTIME}', platform_.get('flutter_runtime'))
 
-            install_github_artifact_agl_emu_image(get_github_token(config.get('github_token')),
-                                                  runtime.get('github_owner'), runtime.get('github_repo'),
-                                                  runtime.get('github_workflow'), github_artifact)
+        arch = get_host_machine_arch()
+        if '${MACHINE_ARCH_HYPHEN}' in github_artifact:
+            github_artifact = github_artifact.replace('${MACHINE_ARCH_HYPHEN}', arch.replace('_', '-'))
+
+        github_workflow = runtime.get('github_workflow')
+        if '${MACHINE_ARCH}' in github_workflow:
+            github_workflow = github_workflow.replace('${MACHINE_ARCH}', arch)
+
+        install_github_artifact_agl_emu_image(get_github_token(config.get('github_token')),
+                                              runtime.get('github_owner'), runtime.get('github_repo'),
+                                              github_workflow, github_artifact)
 
 
 def install_github_artifact_agl_emu_image(token, owner, repo, workflow, artifact_name):
@@ -1297,11 +1307,8 @@ def install_flutter_auto(folder, config, platform_):
             if os_release.get('NAME') == 'Ubuntu':
 
                 subprocess.call(["sudo", "snap", "install", "cmake", "--classic"])
-
                 subprocess.call(["sudo", "add-apt-repository", "-y", "ppa:kisak/kisak-mesa"])
-
                 subprocess.call(["sudo", "apt", "update", "-y"])
-
                 subprocess.call(
                     ["sudo", "apt-get", "-y", "install", "libwayland-dev", "wayland-protocols", "mesa-common-dev",
                      "libegl1-mesa-dev", "libgles2-mesa-dev", "mesa-utils", "clang-12", "lldb-12", "lld-12",
@@ -1479,8 +1486,6 @@ qemu_run() {
     else
         echo 'QEMU_IMAGE is set to ${QEMU_IMAGE}'
     fi
-    export OVMF_PATH=%s
-    echo \"OVMF_PATH is set to '$OVMF_PATH'\"
     if pgrep -x \"%s\" > /dev/null
     then
         echo '%s running - do nothing'
@@ -1506,13 +1511,38 @@ def setup_env_script(workspace, args, platform_):
 
                     runtime = item['runtime']
 
-                    relative_path = runtime['relative_path']
+                    arch = get_host_machine_arch()
+                    arch_hyphen = arch.replace('_', '-')
+
+                    relative_path = runtime.get('relative_path')
+
                     if '${FLUTTER_RUNTIME}' in relative_path:
                         relative_path = relative_path.replace('${FLUTTER_RUNTIME}', item.get('flutter_runtime'))
 
-                    script.write(env_qemu % (
-                        relative_path, runtime['ovmf_path'], runtime['cmd'], runtime['cmd'], runtime['cmd'],
-                        runtime['args']))
+                    if '${MACHINE_ARCH_HYPHEN}' in relative_path:
+                        relative_path = relative_path.replace('${MACHINE_ARCH_HYPHEN}', arch_hyphen)
+
+                    if arch == 'x86_64':
+                        relative_path = format('%s.wic.vmdk' % relative_path)
+                    elif arch == 'arm64':
+                        relative_path = format('%s.ext4' % relative_path)
+
+                    cmd = runtime.get('cmd')
+                    if '${FORMAL_MACHINE_ARCH}' in cmd:
+                        if arch == 'arm64':
+                            cmd = cmd.replace('${FORMAL_MACHINE_ARCH}', 'aarch64')
+                        elif arch == 'x86_64':
+                            cmd = cmd.replace('${FORMAL_MACHINE_ARCH}', 'x86_64')
+
+                    args = runtime.get('args')
+                    host_type = get_host_type()
+                    if host_type == "linux":
+                        if is_linux_host_kvm_capable():
+                            args = format('-enable-kvm %s' % args)
+                    elif host_type == "darwin":
+                        args = format('-accel hvf %s' % args)
+
+                    script.write(env_qemu % (relative_path, cmd, cmd, cmd, args))
 
 
 def get_platform_ids(platforms):
