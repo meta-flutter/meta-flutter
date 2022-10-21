@@ -1,0 +1,181 @@
+name: kirkstone-agl-arm64
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened, closed ]
+  release:
+    types: [ published, created, edited ]
+  workflow_dispatch:
+  schedule:
+    # daily
+    - cron:  '0 0 * * *'
+
+jobs:
+
+  master-qemuarm64:
+
+    env:
+      MACHINE: qemuarm64
+      AGL_BRANCH: master
+
+    runs-on: [self-hosted, linux]
+
+    container:
+      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      options:
+        --user 1018
+        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
+        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
+        -v /mnt/raid10/github-ci/sstate/agl/qemuarm64:/home/dev/sstate:Z
+        -v /mnt/raid10/github-ci/artifacts/agl/qemuarm64:/home/dev/artifacts:Z
+
+    steps:
+
+      - name: Display UID Info
+        run: |
+          whoami
+          id -u
+
+      - name: Set Ownership
+        run: |
+          chown -R dev:dev $HOME .
+
+      - uses: actions/checkout@v2
+
+      - name: Fetch Layers
+        run: |
+          [ -d ../agl-master-qemuarm64 ] || mkdir -p ../agl-master-qemuarm64
+          cd ../agl-master-qemuarm64
+          rm -rf .repo  bsp  external  meta-agl  meta-agl-demo  meta-agl-devel  meta-agl-flutter
+          /home/dev/bin/repo init -b ${{ env.AGL_BRANCH }} -u https://gerrit.automotivelinux.org/gerrit/AGL/AGL-repo --no-clone-bundle
+          /home/dev/bin/repo sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
+          wait
+          # pwd
+          # ls -la
+          # cd external
+          # rm -rf meta-flutter || true
+          # ln -sf ../../meta-flutter meta-flutter
+          # cd ..
+          # rm -rf meta-agl-devel
+          # git clone https://github.com/meta-flutter/meta-agl-devel.git
+
+      - name: Configure AGL build
+        shell: bash
+        working-directory: ../agl-master-qemuarm64
+        run: |
+          rm -rf build/conf
+          . ./meta-agl/scripts/aglsetup.sh -m ${{ env.MACHINE }} agl-devel agl-flutter
+          echo '***************************************'
+          echo 'INHERIT += "rm_work"' >> ./conf/local.conf
+          echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
+          echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
+          echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
+          echo 'SSTATE_MIRRORS += "file://.* http://download.automotivelinux.org/sstate-mirror/${{ env.AGL_BRANCH }}/${DEFAULTTUNE}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
+          echo 'INHERIT:remove = "uninative"' >> ./conf/local.conf
+          echo 'INSANE_SKIP_${PN} += "host-user-contaminated"' >> ../external/meta-clang/recipes-devtools/clang/clang_git.bb
+          #echo 'AGL_EXTRA_IMAGE_FSTYPES += "wic.vmdk"' >> ./conf/local.conf
+          echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
+          echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = "\' >> ./conf/local.conf
+          echo '    kuksa-val \' >> ./conf/local.conf
+          echo '    kuksa-dbc-feeder \' >> ./conf/local.conf
+          echo '"' >> ./conf/local.conf
+          echo '** Layers *****************************'
+          bitbake-layers add-layer ../meta-agl-demo \
+              ../external/meta-openembedded/meta-python \
+              ../external/meta-openembedded/meta-multimedia \
+              ../external/meta-openembedded/meta-networking \
+              ../external/meta-python2 \
+              ../external/meta-qt5
+          bitbake-layers show-layers
+          echo '** Kernel *****************************'
+          bitbake -e virtual/kernel | grep "^PV"
+          bitbake -e virtual/kernel | grep "^PN"
+          echo '***************************************'
+          bitbake -e > bb.environment
+          echo '***************************************'
+          bitbake ca-certificates -c do_cleansstate
+          bitbake ca-certificates-native -c do_cleansstate
+          bitbake flutter-sdk -c do_cleansstate
+          bitbake flutter-sdk-native -c do_cleansstate
+          bitbake flutter-engine-runtimerelease -c do_cleansstate
+          bitbake flutter-engine-runtimeprofile -c do_cleansstate
+          bitbake flutter-engine-runtimedebug -c do_cleansstate
+          bitbake flutter-gallery-runtimerelease -c do_cleansstate
+          bitbake flutter-gallery-runtimeprofile -c do_cleansstate
+          bitbake flutter-gallery-runtimedebug -c do_cleansstate
+          bitbake flutter-auto-runtimerelease -c do_cleansstate
+          bitbake flutter-auto-runtimeprofile -c do_cleansstate
+          bitbake flutter-auto-runtimedebug -c do_cleansstate
+
+      - name: Build agl-image-flutter-runtimerelease
+        shell: bash
+        working-directory: ../agl-master-qemuarm64
+        run: |
+          . ./build/agl-init-build-env
+          rm -rf /home/dev/artifacts/*
+          bitbake agl-image-flutter-runtimerelease
+          cp bb.environment /home/dev/artifacts
+          cp tmp/deploy/images/${{ env.MACHINE }}/Image-qemuarm64.bin /home/dev/artifacts
+          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-runtimerelease-${{ env.MACHINE }}.ext4 /home/dev/artifacts
+
+      - name: Publish agl-image-flutter-runtimerelease artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: agl-image-flutter-runtimerelease-qemuarm64-linux
+          path: |
+             /home/dev/artifacts/*
+
+      - name: Build agl-image-flutter-runtimeprofile
+        shell: bash
+        working-directory: ../agl-master-qemuarm64
+        run: |
+          . ./build/agl-init-build-env
+          rm -rf /home/dev/artifacts/*
+          bitbake agl-image-flutter-runtimeprofile
+          cp bb.environment /home/dev/artifacts
+          cp tmp/deploy/images/${{ env.MACHINE }}/Image-qemuarm64.bin /home/dev/artifacts
+          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-runtimeprofile-${{ env.MACHINE }}.ext4 /home/dev/artifacts
+
+      - name: Publish agl-image-flutter-runtimeprofile artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: agl-image-flutter-runtimeprofile-qemuarm64-linux
+          path: |
+             /home/dev/artifacts/*
+
+      - name: Build agl-image-flutter-runtimedebug
+        shell: bash
+        working-directory: ../agl-master-qemuarm64
+        run: |
+          . ./build/agl-init-build-env
+          rm -rf /home/dev/artifacts/*
+          bitbake agl-image-flutter-runtimedebug
+          cp bb.environment /home/dev/artifacts
+          cp tmp/deploy/images/${{ env.MACHINE }}/Image-qemuarm64.bin /home/dev/artifacts
+          cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-runtimedebug-${{ env.MACHINE }}.ext4 /home/dev/artifacts
+
+      - name: Publish agl-image-flutter-runtimedebug artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: agl-image-flutter-runtimedebug-qemuarm64-linux
+          path: |
+             /home/dev/artifacts/*
+
+      - name: Build agl-image-flutter-runtimedebug SDK
+        shell: bash
+        working-directory: ../agl-master-qemuarm64
+        run: |
+          . ./build/agl-init-build-env
+          rm -rf /home/dev/artifacts/*
+          bitbake agl-image-flutter-runtimedebug -c do_populate_sdk
+          cp bb.environment /home/dev/artifacts
+          cp tmp/deploy/sdk/poky-agl-glibc-*-agl-image-flutter-runtimedebug-*.sh /home/dev/artifacts
+
+      - name: Publish agl-image-flutter-runtimedebug SDK artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: agl-image-flutter-runtimedebug-sdk-qemuarm64-linux
+          path: |
+             /home/dev/artifacts/*
