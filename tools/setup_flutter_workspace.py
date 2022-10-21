@@ -149,6 +149,7 @@ def main():
     config_folder = os.path.join(workspace, '.config')
     flutter_auto_folder = os.path.join(workspace, '.flutter-auto')
     pub_cache_folder = os.path.join(workspace, '.pub_cache')
+    vscode_folder = os.path.join(workspace, '.vscode')
 
     clean_workspace = False
     if args.clean:
@@ -157,15 +158,27 @@ def main():
             print_banner("Cleaning Workspace")
 
     if clean_workspace:
-        clear_folder(app_folder)
-        clear_folder(flutter_sdk_folder)
 
-        clear_folder(tmp_folder)
+        try:
+            os.remove(os.path.join(workspace, 'setup_env.sh'))
+        except FileNotFoundError:
+            pass
+
+        try:
+            os.remove(os.path.join(workspace, 'qemu_run.scpt'))
+        except FileNotFoundError:
+            pass
+
         clear_folder(agl_folder)
         clear_folder(config_folder)
         clear_folder(flutter_auto_folder)
         clear_folder(pub_cache_folder)
-        clear_folder('.vscode')
+        clear_folder(tmp_folder)
+        clear_folder(vscode_folder)
+
+        clear_folder(app_folder)
+        clear_folder(flutter_sdk_folder)
+
 
     #
     # App folder setup
@@ -860,6 +873,7 @@ def get_artifacts(config, flutter_sdk_path, flutter_auto_folder, agl_folder):
             url = 'https://storage.googleapis.com/flutter_infra_release/flutter/%s/linux-x64/linux-x64-embedder' % \
                   engine_version
         elif arch == 'arm64':
+            # download something as a place holder for later
             url = 'https://storage.googleapis.com/flutter_infra_release/flutter/%s/linux-arm64/artifacts.zip' % \
                   engine_version
         else:
@@ -1103,6 +1117,25 @@ def mac_pip3_install(pkg):
     print(text)
 
 
+def mac_is_cocoapods_installed():
+    cmd = ['gem', 'list', '|', 'grep', 'cocoapods ']
+
+    result = subprocess.run(cmd, capture_output=True, text=True).stdout.strip('\'').strip('\n')
+
+    if 'cocoapods ' in result:
+        print("Package cocoapods Found")
+        return True
+    else:
+        print("Package cocoapods Not Found")
+        return False
+
+
+def mac_install_cocoapods_if_not_installed():
+    if not mac_is_cocoapods_installed():
+        subprocess.run(['sudo', 'gem', 'install', 'cocoapods'])
+        subprocess.run(['sudo', 'gem', 'uninstall', 'ffi', '&&', 'sudo', 'gem', 'install', 'ffi', '--', '--enable-libffi-alloc'])
+
+
 def install_minimum_runtime_deps():
     """Install minimum runtime deps to run this script"""
     host_type = get_host_type()
@@ -1135,6 +1168,8 @@ def install_minimum_runtime_deps():
 
         mac_pip3_install(
             '--install-option="--with-openssl" --install-option="--openssl-dir=%s" pycurl' % (get_mac_openssl_prefix()))
+
+        mac_install_cocoapods_if_not_installed()
 
 
 def install_agl_qemu_image(folder, config, platform_):
@@ -1447,6 +1482,18 @@ def is_repo(path):
     return os.path.exists(os.path.join(path, ".git"))
 
 
+def random_mac():
+    import random
+    return [0x00, 0x16, 0x3e,
+            random.randint(0x00, 0x7f),
+            random.randint(0x00, 0xff),
+            random.randint(0x00, 0xff)]
+
+
+def mac_pretty_print(mac):
+    return ':'.join(map(lambda x: "%02x" % x, mac))
+
+
 env_prefix = '''#!/usr/bin/env bash -l
 
 pushd . > '/dev/null'
@@ -1488,18 +1535,27 @@ qemu_run() {
     if [ -z ${QEMU_IMAGE+x} ];
     then
         export QEMU_IMAGE=${FLUTTER_WORKSPACE}/%s
-    else
-        echo 'QEMU_IMAGE is set to ${QEMU_IMAGE}'
     fi
     if pgrep -x \"%s\" > /dev/null
     then
         echo '%s running - do nothing'
     else
-        gnome-terminal -- bash -c \"%s %s\"
+        %s
     fi
 }
 '''
+env_qemu_applescript = '''
+#!/usr/bin/osascript
 
+tell application "Finder"
+        set flutter_workspace to system attribute "FLUTTER_WORKSPACE"
+    set p_path to POSIX path of flutter_workspace
+    tell application "Terminal"
+        activate
+        set a to do script "cd " & quoted form of p_path & " && %s %s"
+    end tell
+end tell
+'''
 
 def setup_env_script(workspace, args, platform_):
     """Creates bash script to set up environment variables"""
@@ -1519,19 +1575,7 @@ def setup_env_script(workspace, args, platform_):
                     arch = get_host_machine_arch()
                     arch_hyphen = arch.replace('_', '-')
 
-                    relative_path = runtime.get('relative_path')
-
-                    if '${FLUTTER_RUNTIME}' in relative_path:
-                        relative_path = relative_path.replace('${FLUTTER_RUNTIME}', item.get('flutter_runtime'))
-
-                    if '${MACHINE_ARCH_HYPHEN}' in relative_path:
-                        relative_path = relative_path.replace('${MACHINE_ARCH_HYPHEN}', arch_hyphen)
-
-                    if arch == 'x86_64':
-                        relative_path = format('%s.wic.vmdk' % relative_path)
-                    elif arch == 'arm64':
-                        relative_path = format('%s.ext4' % relative_path)
-
+                    # qemu command
                     cmd = runtime.get('cmd')
                     if '${FORMAL_MACHINE_ARCH}' in cmd:
                         if arch == 'arm64':
@@ -1539,15 +1583,80 @@ def setup_env_script(workspace, args, platform_):
                         elif arch == 'x86_64':
                             cmd = cmd.replace('${FORMAL_MACHINE_ARCH}', 'x86_64')
 
-                    args = runtime.get('args')
                     host_type = get_host_type()
+
+                    args = runtime.get('args')
+                    kernel = runtime.get('kernel')
+                    qemu_image = runtime.get('qemu_image')
+
+                    if arch == 'x86_64':
+
+                        # args
+                        if args == None:
+                            args = runtime.get('args_x86_64')
+
+                        if '${KERNEL}' in args:
+                            if kernel == None:
+                                kernel = runtime.get('kernel_x86_64')
+                                if kernel == None:
+                                    print_banner('Missing kernel_x86_64 key value in config')
+                                    exit(1)
+                            args = args.replace('${KERNEL}', kernel)
+
+                        # qemu image
+                        if qemu_image == None:
+                            qemu_image = runtime.get('qemu_image_x86_64')
+
+                    elif arch == 'arm64':
+
+                        # args
+                        if args == None:
+                            args = runtime.get('args_arm64')
+
+                        if '${KERNEL}' in args:
+                            if kernel == None:
+                                kernel = runtime.get('kernel_arm64')
+                                if kernel == None:
+                                    print_banner('Missing kernel_arm64 key value in config')
+                                    exit(1)
+                            args = args.replace('${KERNEL}', kernel)
+
+                        # qemu image
+                        if qemu_image == None:
+                            qemu_image = runtime.get('qemu_image_arm64')
+
+                        if '${QEMU_IMAGE}' in args:
+                            args = args.replace('${QEMU_IMAGE}', qemu_image)
+
+
+                    if '${MACHINE_ARCH_HYPHEN}' in qemu_image:
+                        qemu_image = qemu_image.replace('${MACHINE_ARCH_HYPHEN}', arch_hyphen)
+
+                    if '${FLUTTER_RUNTIME}' in qemu_image:
+                        qemu_image = qemu_image.replace('${FLUTTER_RUNTIME}', item.get('flutter_runtime'))
+
+                    if '${FLUTTER_RUNTIME}' in args:
+                        args = args.replace('${FLUTTER_RUNTIME}', item.get('flutter_runtime'))
+
+                    if '${RANDOM_MAC}' in args:
+                        args = args.replace('${RANDOM_MAC}', mac_pretty_print(random_mac()))
+
                     if host_type == "linux":
                         if is_linux_host_kvm_capable():
                             args = format('-enable-kvm %s' % args)
-                    elif host_type == "darwin":
-                        args = format('-accel hvf %s' % args)
 
-                    script.write(env_qemu % (relative_path, cmd, cmd, cmd, args))
+
+                    terminal_cmd = ''
+                    if host_type == "linux":
+                        terminal_cmd = format('gnome-terminal -- bash -c \"%s %s\"' % (cmd, args))
+                    elif host_type == "darwin":
+                        apple_script_filename = 'qemu_run.scpt'
+                        terminal_cmd = format('osascript ${FLUTTER_WORKSPACE}/%s' % apple_script_filename)
+                        apple_script_file = os.path.join(workspace, apple_script_filename)
+                        with open(apple_script_file, 'w+') as f:
+                            f.write(format(env_qemu_applescript % (cmd, args)))
+
+                    script.write(env_qemu % (qemu_image, cmd, cmd, terminal_cmd))
 
 
 def get_platform_ids(platforms):
