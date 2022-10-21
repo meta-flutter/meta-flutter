@@ -844,7 +844,7 @@ def get_artifacts(config, flutter_sdk_path, flutter_auto_folder, agl_folder):
         flutter_runtime = platform_['flutter_runtime']
 
         if platform_['id'] == 'AGL-qemu' and platform_['type'] == 'qemu':
-            install_agl_emu_image(agl_folder, config, platform_)
+            install_agl_qemu_image(agl_folder, config, platform_)
 
         if get_host_type() == 'linux' and arch == "x86_64":
             if platform_['id'] == 'desktop-auto' and platform_['type'] == 'host':
@@ -1137,11 +1137,9 @@ def install_minimum_runtime_deps():
             '--install-option="--with-openssl" --install-option="--openssl-dir=%s" pycurl' % (get_mac_openssl_prefix()))
 
 
-def install_agl_emu_image(folder, config, platform_):
+def install_agl_qemu_image(folder, config, platform_):
     del config
     host_type = get_host_type()
-
-#    if host_type == "linux":
 
     print_banner("Installing AGL emulator image")
 
@@ -1180,7 +1178,14 @@ def install_agl_emu_image(folder, config, platform_):
 
     if runtime.get('install_dependent_packages'):
 
-        if host_type == "linux":
+        if host_type == "darwin":
+            host_arch = get_host_machine_arch()
+            if host_arch == 'arm64':
+                subprocess.call(["arch", "-arm64", "brew", "reinstall", "qemu"])
+            else:
+                subprocess.call(["brew", "reinstall", "qemu"])
+
+        elif host_type == "linux":
 
             os_release = get_freedesktop_os_release()
 
