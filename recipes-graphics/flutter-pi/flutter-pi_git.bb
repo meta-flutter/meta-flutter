@@ -29,10 +29,7 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 SRC_REPO ??= "github.com/ardera/flutter-pi.git"
 SRC_REPO_BRANCH ??= "master"
 
-SRC_URI = "git://${SRC_REPO};protocol=https;branch=${SRC_REPO_BRANCH} \
-           file://0001-path-updates.patch"
-
-SRCREV = "cf57b52a5848439dd4a53b657cbcb06706340ee9"
+SRC_URI = "git://${SRC_REPO};protocol=https;branch=${SRC_REPO_BRANCH}"
 
 S = "${WORKDIR}/git"
 
@@ -59,7 +56,7 @@ PACKAGECONFIG[ubsan]        = "-DENABLE_UBSAN=ON,                        -DENABL
 PACKAGECONFIG[mtrace]       = "-DENABLE_MTRACE=ON,                       -DENABLE_MTRACE=OFF"
 
 # prevent use of network to pull header
-EXTRA_OECMAKE += "-D FLUTTER_EMBEDDER_HEADER=${STAGING_DIR_TARGET}/include/flutter_embedder.h"
+EXTRA_OECMAKE += "-D FLUTTER_EMBEDDER_HEADER=${STAGING_DIR_TARGET}/include/flutter_embedder.h -D FILESYSTEM_LAYOUT=meta-flutter"
 
 FILES_PN} = "\
     ${bindir} \
