@@ -29,6 +29,8 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 
 SRC_URI = "git://github.com/ardera/flutter-pi.git;protocol=https;branch=master"
 
+SRCREV = "${AUTOREV}"
+
 S = "${WORKDIR}/git"
 
 inherit pkgconfig cmake features_check
