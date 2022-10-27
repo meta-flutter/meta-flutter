@@ -31,6 +31,7 @@ SRC_REPO ??= "github.com/ardera/flutter-pi.git"
 SRC_REPO_BRANCH ??= "master"
 
 SRC_URI = "git://${SRC_REPO};protocol=https;branch=${SRC_REPO_BRANCH}"
+SRCREV = "${AUTOREV}"
 
 S = "${WORKDIR}/git"
 
