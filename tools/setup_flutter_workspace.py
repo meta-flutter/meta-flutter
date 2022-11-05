@@ -570,15 +570,30 @@ def patch_custom_device_strings(devices, flutter_runtime):
 
     workspace = os.getenv('FLUTTER_WORKSPACE')
     bundle_folder = os.getenv('BUNDLE_FOLDER')
+    host_arch = get_host_machine_arch()
 
     for device in devices:
 
         token = '${FLUTTER_WORKSPACE}'
 
+        if device.get('label'):
+            if '${MACHINE_ARCH}' in device['label']:
+                device['label'] = device['label'].replace('${MACHINE_ARCH}', host_arch)
+
+        if device.get('platform'):
+            if host_arch == 'x86_64':
+                device['platform'] = 'linux-x64'
+            elif host_arch == 'arm64':
+                device['platform'] = 'linux-arm64'
+
         if device.get('sdkNameAndVersion'):
+
             if '${FLUTTER_RUNTIME}' in device['sdkNameAndVersion']:
                 sdk_name_and_version = device['sdkNameAndVersion'].replace('${FLUTTER_RUNTIME}', flutter_runtime)
                 device['sdkNameAndVersion'] = sdk_name_and_version
+
+            if '${MACHINE_ARCH_HYPHEN}' in device['sdkNameAndVersion']:
+                device['sdkNameAndVersion'] = device['sdkNameAndVersion'].replace('${MACHINE_ARCH_HYPHEN}', host_arch.replace('_', '-'))
 
         if device.get('postBuild'):
             device['postBuild'] = patch_string_array(token, workspace, device['postBuild'])
