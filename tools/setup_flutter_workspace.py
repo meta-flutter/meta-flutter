@@ -73,13 +73,6 @@ def main():
     args = parser.parse_args()
 
     #
-    # Check for network connection
-    #
-    if not test_internet_connection():
-        print_banner("This script requires an internet connection")
-        exit(1)
-
-    #
     # Target Folder
     #
     if "FLUTTER_WORKSPACE" in os.environ:
@@ -93,6 +86,13 @@ def main():
     # Install minimum package
     #
     install_minimum_runtime_deps()
+
+    #
+    # Check for network connection
+    #
+    if not test_internet_connection():
+        print_banner("This script requires an internet connection")
+        exit(1)
 
     #
     # Install required modules
@@ -262,16 +262,27 @@ def main():
 
 
 def test_internet_connection():
-    import http.client as httplib
+    """Test internet by connecting to nameserver"""
+    import pycurl
 
-    conn = httplib.HTTPSConnection("8.8.8.8", timeout=5)
+    c = pycurl.Curl()
+    c.setopt(pycurl.URL, "https://dns.google")
+    c.setopt(pycurl.FOLLOWLOCATION, 0)
+    c.setopt(pycurl.CONNECTTIMEOUT, 5)
+    c.setopt(pycurl.NOSIGNAL, 1)
+    c.setopt(pycurl.NOPROGRESS, 1)
+    c.setopt(pycurl.NOBODY, 1)
     try:
-        conn.request("HEAD", "/")
-        return True
-    except httplib.HTTPException:
-        return False
-    finally:
-        conn.close()
+        c.perform()
+    except:
+        pass
+
+    res = False
+    if c.getinfo(pycurl.RESPONSE_CODE) == 200:
+        res = True
+
+    c.close
+    return res
 
 
 def make_sure_path_exists(path):
