@@ -1101,9 +1101,10 @@ def fedora_install_pkg_if_not_installed(package):
 
 def is_linux_host_kvm_capable():
     """Determine if CPU supports HW Hypervisor support"""
-    cmd = ['cat', '/proc/cpuinfo', '|', 'egrep', '"vmx|svm"']
-    result = subprocess.run(cmd, capture_output=True, text=True).stdout.strip('\'').strip('\n')
-    if len(result):
+    cmd = 'cat /proc/cpuinfo |egrep "vmx|svm"'
+    ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+    output = ps.communicate()[0]
+    if len(output):
         return True
     return False
 
@@ -1255,11 +1256,14 @@ def install_agl_qemu_image(folder, config, platform_):
             if os_release.get('NAME') == 'Ubuntu':
                 subprocess.call(["sudo", "apt-get", "install", "-y", "qemu-system-x86", "ovmf"])
                 if is_linux_host_kvm_capable():
+                    print_banner("KVM is supported")
                     subprocess.call(["sudo", "apt-get", "install", "-y", "qemu-kvm",
                                      "libvirt-daemon-system", "libvirt-clients", "bridge-utils"])
                     subprocess.call(["sudo", "adduser", username, "libvirt"])
                     subprocess.call(["sudo", "adduser", username, "kvm"])
                     subprocess.call(["sudo", "systemctl", "status", "libvirtd", "--no-pager", "-l"])
+                else:
+                    print_banner("KVM is not supported.  Consider enabling in BIOS for better performance.")
 
             elif os_release.get('NAME') == 'Fedora':
                 subprocess.call(["sudo", "dnf", "install", "-y", "qemu-system-x86", "edk2-ovmf"])
