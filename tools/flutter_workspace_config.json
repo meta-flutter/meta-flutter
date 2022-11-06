@@ -55,11 +55,14 @@
 				"github_workflow": "kirkstone-agl-${MACHINE_ARCH}.yml",
 				"github_artifact": "agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemu${MACHINE_ARCH_HYPHEN}-linux",
 				"cmd": "qemu-system-${FORMAL_MACHINE_ARCH}",
-				"args_x86_64": "-m 2048 -bios OVMF.fd -hda ${QEMU_IMAGE} -cpu kvm64 -cpu qemu64,+ssse3,+sse4.1,+sse4.2,+popcnt -vga virtio -show-cursor -device virtio-rng-pci -serial mon:stdio -serial null -soundhw hda -device virtio-net-pci,netdev=net0,mac=${RANDOM_MAC} -netdev user,id=net0,hostfwd=tcp::2222-:22,hostfwd=tcp::1234-:1234",
+				"args_x86_64": "-m 2048 ${QEMU_EXTRA} -hda ${QEMU_IMAGE} -cpu kvm64 -cpu qemu64,+ssse3,+sse4.1,+sse4.2,+popcnt -vga virtio -device virtio-rng-pci -serial mon:stdio -serial null -soundhw hda -device virtio-net-pci,netdev=net0,mac=${RANDOM_MAC} -netdev user,id=net0,hostfwd=tcp::2222-:22,hostfwd=tcp::1234-:1234",
                 "qemu_image_x86_64": ".agl/agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemux86-64.wic.vmdk",
-				"args_arm64": "-accel hvf -cpu host -M virt -smp cpus=8,sockets=1,cores=8,threads=1 -m 4096 -device virtio-gpu-pci -nographic -display cocoa,show-cursor=on -object rng-random,filename=/dev/urandom,id=rng0 -device virtio-rng-pci,rng=rng0 -device qemu-xhci -device usb-tablet -device usb-mouse -device usb-kbd -device virtio-net-pci,netdev=vnet -netdev user,id=vnet,hostfwd=tcp::2222-:22,hostfwd=tcp::1234-:1234 -kernel ${KERNEL} -drive file=${QEMU_IMAGE},format=raw,if=virtio -append root=/dev/vda",
+				"args_arm64": "-accel hvf -cpu host -M virt ${QEMU_EXTRA} -m 4096 -device virtio-gpu-pci -nographic -display cocoa,show-cursor=on -object rng-random,filename=/dev/urandom,id=rng0 -device virtio-rng-pci,rng=rng0 -device qemu-xhci -device usb-tablet -device usb-mouse -device usb-kbd -device virtio-net-pci,netdev=vnet -netdev user,id=vnet,hostfwd=tcp::2222-:22,hostfwd=tcp::1234-:1234 -kernel ${KERNEL} -drive file=${QEMU_IMAGE},format=raw,if=virtio -append root=/dev/vda",
 				"kernel_arm64": ".agl/Image-qemuarm64.bin",
-				"qemu_image_arm64": ".agl/agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemuarm64.ext4"
+				"qemu_image_arm64": ".agl/agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemuarm64.ext4",
+				"qemu_extra_darwin": "-smp cpus=8,sockets=1,cores=8,threads=1",
+				"qemu_extra_ubuntu": "-bios OVMF.fd -show-cursor",
+				"qemu_extra_fedora": "-bios /usr/share/edk2/ovmf/OVMF_CODE.fd"
 			},
 			"overwrite-existing": true,
 			"custom-device": {

@@ -1178,7 +1178,7 @@ def install_minimum_runtime_deps():
             ubuntu_install_pkg_if_not_installed("libcurl4-openssl-dev")
             ubuntu_install_pkg_if_not_installed("libssl-dev")
 
-        elif os_release == 'Fedora':
+        elif os_release == 'Fedora Linux':
             cmd = ["sudo", "dnf", "update", "-y"]
             subprocess.check_output(cmd)
             fedora_install_pkg_if_not_installed("curl")
@@ -1265,7 +1265,7 @@ def install_agl_qemu_image(folder, config, platform_):
                 else:
                     print_banner("KVM is not supported.  Consider enabling in BIOS for better performance.")
 
-            elif os_release.get('NAME') == 'Fedora':
+            elif os_release.get('NAME') == 'Fedora Linux':
                 subprocess.call(["sudo", "dnf", "install", "-y", "qemu-system-x86", "edk2-ovmf"])
                 if is_linux_host_kvm_capable():
                     subprocess.call(["sudo", "dnf", "install", "-y", "bridge-utils", "libvirt",
@@ -1386,7 +1386,7 @@ def install_flutter_auto(folder, config, platform_):
                      "libgstreamer1.0-dev", "libgstreamer-plugins-base1.0-dev", "gstreamer1.0-plugins-base",
                      "gstreamer1.0-gl", "libavformat-dev"])
 
-            elif os_release.get('NAME') == 'Fedora':
+            elif os_release.get('NAME') == 'Fedora Linux':
 
                 subprocess.call(["sudo", "dnf", "-y", "install", "wayland-devel", "wayland-protocols-devel",
                                  "mesa-dri-drivers", "mesa-filesystem", "mesa-libEGL-devel", "mesa-libGL-devel",
@@ -1426,7 +1426,7 @@ def install_flutter_auto_github_artifact(token, owner, repo, workflow, github_ar
 
     if os_release == 'Ubuntu':
         github_artifact = "%s.amd64.deb.zip" % github_artifact
-    elif os_release == 'Fedora':
+    elif os_release == 'Fedora Linux':
         github_artifact = "%s.x86_64.rpm.zip" % github_artifact
 
     if token and owner and repo and workflow and github_artifact:
@@ -1451,23 +1451,23 @@ def install_flutter_auto_github_artifact(token, owner, repo, workflow, github_ar
                 downloaded_file = get_github_artifact(token, url, github_artifact)
                 print("** Downloaded: %s" % downloaded_file)
 
+                files_to_remove = None
                 with zipfile.ZipFile(downloaded_file, "r") as zip_ref:
                     filelist = zip_ref.namelist()
+                    files_to_remove = filelist
                     zip_ref.extractall()
 
                 cmd = ["rm", downloaded_file]
                 subprocess.check_output(cmd)
 
+
                 if os_release == 'Ubuntu':
 
-                    dbgsym_file = None
                     deb_file = None
                     for f in filelist:
                         if ".deb" in f:
                             deb_file = f
                             break
-                        elif ".ddeb" in f:
-                            dbgsym_file = f
 
                     cmd = ["sudo", "apt", "purge", "-y", "flutter-auto"]
                     subprocess.call(cmd)
@@ -1478,15 +1478,7 @@ def install_flutter_auto_github_artifact(token, owner, repo, workflow, github_ar
                     cmd = ["sudo", "apt", "install", "-y", "./%s" % deb_file]
                     subprocess.call(cmd)
 
-                    if ".ddeb" in dbgsym_file:
-                        cmd = ["rm", dbgsym_file]
-                        subprocess.check_output(cmd)
-
-                    cmd = ["rm", deb_file]
-                    subprocess.check_output(cmd)
-                    break
-
-                if os_release == 'Fedora':
+                if os_release == 'Fedora Linux':
 
                     rpm_file = None
                     for f in filelist:
@@ -1503,7 +1495,9 @@ def install_flutter_auto_github_artifact(token, owner, repo, workflow, github_ar
                     cmd = ["sudo", "dnf", "install", "-y", "./%s" % rpm_file]
                     subprocess.call(cmd)
 
-                    cmd = ["rm", rpm_file]
+
+                for f in files_to_remove:
+                    cmd = ["rm", f]
                     subprocess.check_output(cmd)
                     break
 
@@ -1587,6 +1581,7 @@ tell application "Finder"
 end tell
 '''
 
+
 def setup_env_script(workspace, args, platform_):
     """Creates bash script to set up environment variables"""
 
@@ -1605,6 +1600,7 @@ def setup_env_script(workspace, args, platform_):
                     arch = get_host_machine_arch()
                     arch_hyphen = arch.replace('_', '-')
 
+
                     # qemu command
                     cmd = runtime.get('cmd')
                     if '${FORMAL_MACHINE_ARCH}' in cmd:
@@ -1612,8 +1608,6 @@ def setup_env_script(workspace, args, platform_):
                             cmd = cmd.replace('${FORMAL_MACHINE_ARCH}', 'aarch64')
                         elif arch == 'x86_64':
                             cmd = cmd.replace('${FORMAL_MACHINE_ARCH}', 'x86_64')
-
-                    host_type = get_host_type()
 
                     args = runtime.get('args')
                     kernel = runtime.get('kernel')
@@ -1636,6 +1630,7 @@ def setup_env_script(workspace, args, platform_):
                         # qemu image
                         if qemu_image == None:
                             qemu_image = runtime.get('qemu_image_x86_64')
+
 
                     elif arch == 'arm64':
 
@@ -1671,11 +1666,43 @@ def setup_env_script(workspace, args, platform_):
                     if '${RANDOM_MAC}' in args:
                         args = args.replace('${RANDOM_MAC}', mac_pretty_print(random_mac()))
 
+
+                    #
+                    # extras
+                    #
+                    qemu_extra = ''
+
+                    host_type = get_host_type()
+
                     if host_type == "linux":
+
+                        os_release = get_freedesktop_os_release().get('NAME')
+
+                        if os_release == 'Ubuntu':
+                            print_banner('QEMU_EXTRA: %s' % runtime.get('qemu_extra_ubuntu'))
+                            qemu_extra = runtime.get('qemu_extra_ubuntu')
+
+                        elif os_release == 'Fedora Linux':
+                            print_banner('QEMU_EXTRA: %s' % runtime.get('qemu_extra_fedora'))
+                            qemu_extra = runtime.get('qemu_extra_fedora')
+
+
                         if is_linux_host_kvm_capable():
                             args = format('-enable-kvm %s' % args)
 
+                    elif host_type == "darwin":
 
+                        print_banner('QEMU_EXTRA: %s' % runtime.get('qemu_extra_darwin'))
+                        qemu_extra = runtime.get('qemu_extra_darwin')
+
+
+                    if '${QEMU_EXTRA}' in args:
+                        args = args.replace('${QEMU_EXTRA}', qemu_extra)
+
+
+                    #
+                    # writes scripts
+                    #
                     terminal_cmd = ''
                     if host_type == "linux":
                         terminal_cmd = format('gnome-terminal -- bash -c \"%s %s\"' % (cmd, args))
