@@ -88,13 +88,6 @@ def main():
     install_minimum_runtime_deps()
 
     #
-    # Check for network connection
-    #
-    if not test_internet_connection():
-        print_banner("This script requires an internet connection")
-        exit(1)
-
-    #
     # Install required modules
     #
     required = {'pycurl'}
