@@ -1,7 +1,7 @@
 SUMMARY = "Flutter Engine"
 DESCRIPTION = "Google Flutter Engine for use with Flutter applications"
 AUTHOR = "Flutter Team"
-HOMEPAGE = "https://github.com/flutter/engineflutter/"
+HOMEPAGE = "https://github.com/flutter/engine"
 BUGTRACKER = "https://github.com/flutter/flutter/issues"
 SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
