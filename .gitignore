@@ -11,3 +11,4 @@ tools/setup_env.sh
 tools/flutter
 tools/app
 tools/flutter_*.log
+tools/qemu_run.scpt

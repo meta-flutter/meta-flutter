@@ -1,10 +1,9 @@
 {
-	"flutter-version": "3.3.3",
+	"flutter-version": "3.3.7",
 	"platforms": [
 		{
 			"id": "desktop-auto",
 			"type": "host",
-			"arch": "x86_64",
 			"flutter_runtime": "debug",
 			"runtime": {
 				"backend": "vulkan",
@@ -18,7 +17,7 @@
 				"github_owner": "toyota-connected",
 				"github_repo": "ivi-homescreen",
 				"github_workflow": "flutter-auto-linux.yml",
-				"github_artifact": "flutter-auto-${BACKEND}-dbg.amd64.deb.zip"
+				"github_artifact": "flutter-auto-${BACKEND}-dbg"
 			},
 			"overwrite-existing": true,
 			"custom-device": {
@@ -41,7 +40,6 @@
 		{
 			"id": "AGL-qemu",
 			"type": "qemu",
-			"arch": "x86_64",
 			"flutter_runtime": "debug",
 			"runtime": {
 				"config": {
@@ -51,21 +49,26 @@
 					"fullscreen": true
 				},
 				"install_dependent_packages": true,
-				"relative_path": ".agl/agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemux86-64.wic.vmdk",
 				"artifact_source": "github",
 				"github_owner": "meta-flutter",
 				"github_repo": "meta-flutter",
-				"github_workflow": "kirkstone-agl-x86_64.yml",
-				"github_artifact": "agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemux86-64-linux",
-				"ovmf_path": "/usr/share/ovmf/OVMF.fd",
-				"cmd": "qemu-system-x86_64",
-				"args": "-enable-kvm -m 2048 -bios ${OVMF_PATH} -hda ${QEMU_IMAGE} -cpu kvm64 -cpu qemu64,+ssse3,+sse4.1,+sse4.2,+popcnt -vga virtio -show-cursor -device virtio-rng-pci -serial mon:stdio -serial null -soundhw hda -device virtio-net-pci,netdev=net0,mac=52:54:00:12:35:02 -netdev user,id=net0,hostfwd=tcp::2222-:22,hostfwd=tcp::1234-:1234"
+				"github_workflow": "kirkstone-agl-${MACHINE_ARCH}.yml",
+				"github_artifact": "agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemu${MACHINE_ARCH_HYPHEN}-linux",
+				"cmd": "qemu-system-${FORMAL_MACHINE_ARCH}",
+				"args_x86_64": "-m 2048 ${QEMU_EXTRA} -hda ${QEMU_IMAGE} -cpu kvm64 -cpu qemu64,+ssse3,+sse4.1,+sse4.2,+popcnt -vga virtio -device virtio-rng-pci -serial mon:stdio -serial null -soundhw hda -device virtio-net-pci,netdev=net0,mac=${RANDOM_MAC} -netdev user,id=net0,hostfwd=tcp::2222-:22,hostfwd=tcp::1234-:1234",
+                "qemu_image_x86_64": ".agl/agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemux86-64.wic.vmdk",
+				"args_arm64": "-accel hvf -cpu host -M virt ${QEMU_EXTRA} -m 4096 -device virtio-gpu-pci -nographic -display cocoa,show-cursor=on -object rng-random,filename=/dev/urandom,id=rng0 -device virtio-rng-pci,rng=rng0 -device qemu-xhci -device usb-tablet -device usb-mouse -device usb-kbd -device virtio-net-pci,netdev=vnet -netdev user,id=vnet,hostfwd=tcp::2222-:22,hostfwd=tcp::1234-:1234 -kernel ${KERNEL} -drive file=${QEMU_IMAGE},format=raw,if=virtio -append root=/dev/vda",
+				"kernel_arm64": ".agl/Image-qemuarm64.bin",
+				"qemu_image_arm64": ".agl/agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemuarm64.ext4",
+				"qemu_extra_darwin": "-smp cpus=8,sockets=1,cores=8,threads=1",
+				"qemu_extra_ubuntu": "-bios OVMF.fd -show-cursor",
+				"qemu_extra_fedora": "-bios /usr/share/edk2/ovmf/OVMF_CODE.fd"
 			},
 			"overwrite-existing": true,
 			"custom-device": {
 				"id": "AGL-qemu",
-				"label": "AGL x86_64 QEMU Image",
-				"sdkNameAndVersion": "agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemux86-64.wic.vmdk",
+				"label": "AGL ${MACHINE_ARCH} QEMU Image",
+				"sdkNameAndVersion": "agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemu${MACHINE_ARCH_HYPHEN}",
 				"platform": "linux-x64",
 				"enabled": true,
 				"ping": [
@@ -177,8 +180,7 @@
 					"weston@raspberrypi0-2w-64.local",
 					"echo 'Port forwarding success'; read"
 				],
-				"forwardPortSuccessRegex": "Port forwarding success",
-				"screenshot": null
+				"forwardPortSuccessRegex": "Port forwarding success",				"screenshot": null
 			}
 		}
 	],
@@ -192,13 +194,11 @@
 		{
 			"uri": "https://github.com/mogol/flutter_secure_storage.git",
 			"branch": "develop",
-			"rev": "e716593352b80330e05729486eade7c2167d3c71",
 			"pubspec_path": "flutter_secure_storage/flutter_secure_storage/example"
 		},
 		{
 			"uri": "https://github.com/bernardpumped/ped.git",
 			"branch": "agl",
-			"rev": "bee63b8317fbf8f6b95d6be820bcf07b6b3c0c37",
 			"pubspec_path": "ped"
 		},
 		{
