@@ -61,7 +61,7 @@
 				"kernel_arm64": ".agl/Image-qemuarm64.bin",
 				"qemu_image_arm64": ".agl/agl-image-flutter-runtime${FLUTTER_RUNTIME}-qemuarm64.ext4",
 				"qemu_extra_darwin": "-smp cpus=8,sockets=1,cores=8,threads=1",
-				"qemu_extra_ubuntu": "-bios OVMF.fd -show-cursor",
+				"qemu_extra_ubuntu": "-bios OVMF.fd",
 				"qemu_extra_fedora": "-bios /usr/share/edk2/ovmf/OVMF_CODE.fd"
 			},
 			"overwrite-existing": true,
