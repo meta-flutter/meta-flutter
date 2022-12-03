@@ -38,7 +38,8 @@ _Updates_:
   Valid values for FLUTTER_SDK_TAG are here:  https://github.com/flutter/flutter/tags
   
 * Flutter Engine Commit
-  If `FLUTTER_SDK_TAG` is set to `"AUTOINC"` or not defined in local.conf, the engine commit used is master channel.  Otherwise the engine.version file in flutter/flutter is used to set the engine commit.
+  The Flutter Engine Commit is based on the value of `FLUTTER_SDK_TAG.`
+  The default value of `FLUTTER_SDK_TAG` is set in `conf/include/flutter-version.inc`.  If `FLUTTER_SDK_TAG` is overriden with `"AUTOINC"` in local.conf, stable channel is used for the engine commit.
 
 * build failure due to gn unknown parameter for `--no-build-embedder-examples`.  One solution to resolve this is to exclude `disable-embedder-examples` from PACKAGECONFIG in local.conf using:
 

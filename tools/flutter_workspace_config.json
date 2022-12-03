@@ -1,7 +1,6 @@
 {
-	"flutter-version": "3.3.3",
-	"platforms": [
-		{
+	"flutter-version": "3.3.9",
+	"platforms": [{
 			"id": "desktop-auto",
 			"type": "host",
 			"arch": "x86_64",
