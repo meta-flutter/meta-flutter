@@ -212,6 +212,10 @@
 			"branch": "main",
 			"rev": "08bf271f7f1f14153a41005718a2090fa8e783f0",
 			"pubspec_path": "flutter_homescreen"
-		}
+		},
+                {
+                        "uri": "https://github.com/DavBfr/dart_pdf.git",
+                        "branch": "master"
+                }
 	]
 }

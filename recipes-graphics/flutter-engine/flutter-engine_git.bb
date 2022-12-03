@@ -24,6 +24,7 @@ SRC_URI = "gn://github.com/flutter/engine.git;name=src/flutter \
            "
 
 S = "${WORKDIR}/src"
+B = "${WORKDIR}/src/${@get_out_dir(d)}"
 
 inherit gn-for-flutter python3native features_check pkgconfig
 
@@ -94,16 +95,17 @@ PACKAGECONFIG[vulkan-validation-layers] = "--enable-vulkan-validation-layers"
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
 CLANG_PATH = "${WORKDIR}/src/buildtools/linux-x64/clang"
 
-ARGS_GN_FILE = "${WORKDIR}/src/${OUT_DIR_REL}/args.gn"
+ARGS_GN_FILE = "${B}/args.gn"
 
-OUT_DIR_REL = "${@get_out_dir(d)}"
-
-GN_ARGS = "${PACKAGECONFIG_CONFARGS} --clang --lto --no-goma --no-stripped "
-GN_ARGS:append = " --target-os linux"
-GN_ARGS:append = " --linux-cpu ${@gn_target_arch_name(d)}"
-GN_ARGS:append = " --target-sysroot ${STAGING_DIR_TARGET}"
-GN_ARGS:append = " --target-toolchain ${CLANG_PATH}"
-GN_ARGS:append = " --target-triple ${CLANG_TOOLCHAIN_TRIPLE}"
+GN_ARGS = '\
+    ${PACKAGECONFIG_CONFARGS} \
+    --clang --lto --no-goma --no-stripped \
+    --target-os linux \
+    --linux-cpu ${@gn_target_arch_name(d)} \
+    --target-sysroot ${STAGING_DIR_TARGET} \
+    --target-toolchain ${CLANG_PATH} \
+    --target-triple ${CLANG_TOOLCHAIN_TRIPLE} \
+'
 
 GN_ARGS:append:armv7 = " --arm-float-abi ${TARGET_FPU}"
 GN_ARGS:append:armv7a = " --arm-float-abi ${TARGET_FPU}"
@@ -138,7 +140,7 @@ do_compile() {
     cd ${S}
 
     rm -rf fuchsia || true
-    autoninja -C ${OUT_DIR_REL}
+    autoninja -C ${B}
 }
 do_compile[network] = "0"
 do_compile[depends] += "depot-tools-native:do_populate_sysroot"
@@ -146,21 +148,21 @@ do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
 do_install() {
 
-    install -D -m0644 ${S}/${OUT_DIR_REL}/so.unstripped/libflutter_engine.so \
+    install -D -m0644 ${B}/so.unstripped/libflutter_engine.so \
         ${D}${libdir}/libflutter_engine.so
     
     if ${@bb.utils.contains('PACKAGECONFIG', 'desktop-embeddings', 'true', 'false', d)}; then
-        install -m0644 ${S}/${OUT_DIR_REL}/so.unstripped/libflutter_linux_gtk.so ${D}${libdir}
+        install -m0644 ${B}/so.unstripped/libflutter_linux_gtk.so ${D}${libdir}
     fi
 
-    install -D -m0644 ${S}/${OUT_DIR_REL}/flutter_embedder.h \
+    install -D -m0644 ${B}/flutter_embedder.h \
         ${D}${includedir}/flutter_embedder.h
 
-    install -D -m0644 ${S}/${OUT_DIR_REL}/icudtl.dat \
+    install -D -m0644 ${B}/icudtl.dat \
         ${D}${datadir}/flutter/icudtl.dat
 
     # create SDK
-    install -D -m0755 ${S}/${OUT_DIR_REL}/clang_x64/gen_snapshot \
+    install -D -m0755 ${B}/clang_x64/gen_snapshot \
         ${D}${datadir}/flutter/sdk/clang_x64/gen_snapshot
     
     cd ${S}/flutter
@@ -178,18 +180,13 @@ do_install[depends] += "zip-native:do_populate_sysroot"
 
 PACKAGES =+ "${PN}-sdk-dev"
 
-FILES:${PN} = "\
-    ${libdir} \
-    ${datadir}/flutter/icudtl.dat \
-    "
+# enable non-versioned so
+SOLIBS = ".so"
+FILES_SOLIBSDEV = ""
 
-FILES:${PN}-sdk-dev = "\
-    ${datadir}/flutter/engine_sdk.zip \
-    "
+FILES:${PN} += "${datadir}/flutter/icudtl.dat"
 
-FILES:${PN}-dev = "\
-    ${includedir} \
-    "
+FILES:${PN}-sdk-dev = "${datadir}/flutter/engine_sdk.zip"
 
 python () {
     d.setVar('SRCREV', gn_get_engine_commit(d))

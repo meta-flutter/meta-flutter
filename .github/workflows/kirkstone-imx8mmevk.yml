@@ -78,6 +78,7 @@ jobs:
           echo 'IMAGE_INSTALL:append = "\
               tzdata-core \
               tzdata-americas \
+              pdfium \
               flutter-auto-runtimerelease \
               flutter-gallery-runtimerelease \
               flutter-test-texture-egl-runtimerelease \

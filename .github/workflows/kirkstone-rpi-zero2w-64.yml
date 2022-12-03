@@ -77,6 +77,7 @@ jobs:
               default-language-en-us-utf8 \
               tzdata-americas \
               tzdata-core \
+              pdfium \
               flutter-auto-runtime${{ env.RUNTIME }} \
               flutter-pi-runtime${{ env.RUNTIME }} \
               flutter-gallery-runtime${{ env.RUNTIME }} \
@@ -201,6 +202,7 @@ jobs:
               default-language-en-us-utf8 \
               tzdata-americas \
               tzdata-core \
+              pdfium \
               flutter-auto-runtime${{ env.RUNTIME }} \
               flutter-pi-runtime${{ env.RUNTIME }} \
               flutter-gallery-runtime${{ env.RUNTIME }} \
@@ -325,6 +327,7 @@ jobs:
               default-language-en-us-utf8 \
               tzdata-americas \
               tzdata-core \
+              pdfium \
               flutter-auto-runtime${{ env.RUNTIME }} \
               flutter-pi-runtime${{ env.RUNTIME }} \
               membrane-example \
