@@ -1,5 +1,5 @@
 {
-	"flutter-version": "master",
+	"flutter-version": "3.3.9",
 	"platforms": [{
 			"id": "desktop-auto",
 			"type": "host",
