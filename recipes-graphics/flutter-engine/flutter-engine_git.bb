@@ -102,6 +102,7 @@ GN_ARGS = '\
     --clang --lto --no-goma --no-stripped \
     --target-os linux \
     --linux-cpu ${@gn_target_arch_name(d)} \
+    --sysroot ${STAGING_DIR} \
     --target-sysroot ${STAGING_DIR_TARGET} \
     --target-toolchain ${CLANG_PATH} \
     --target-triple ${CLANG_TOOLCHAIN_TRIPLE} \
