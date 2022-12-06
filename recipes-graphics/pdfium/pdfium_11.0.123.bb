@@ -8,8 +8,11 @@ LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=c93507531cc9bb8e24a05f2a1a4036c7"
 
 DEPENDS += "\
+    compiler-rt \
+    compiler-rt-native \
     glib-2.0 \
-    libgcc-native \
+    libcxx \
+    libcxx-native \
     "
 
 SRCREV = "ea231736ea4056dcef435caee59580701aa4b3ef"
@@ -25,6 +28,12 @@ B = "${WORKDIR}/src/out"
 inherit gn-for-flutter python3native pkgconfig
 
 require conf/include/gn-utils.inc
+
+RUNTIME = "llvm"
+TOOLCHAIN = "clang"
+TC_CXX_RUNTIME = "llvm"
+TCLIBC = "glibc"
+PREFERRED_PROVIDER:libgcc = "compiler-rt"
 
 # For gn.bbclass
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
@@ -49,6 +58,9 @@ PACKAGECONFIG[v8] = "\
     pdf_enable_v8=false pdf_enable_xfa=false \
 "
 
+PACKAGECONFIG[musl] = "\
+"
+
 GN_TARGET_ARCH_NAME:aarch64 = "arm64"
 GN_TARGET_ARCH_NAME:arm = "arm"
 GN_TARGET_ARCH_NAME:x86 = "x86"
@@ -59,8 +71,10 @@ GN_ARGS = '\
     pdf_is_standalone = true \
     is_component_build = false \
     treat_warnings_as_errors = false \
+    sysroot = "${STAGING_DIR_NATIVE}" \
     target_os = "linux" \
     target_cpu = "${GN_TARGET_ARCH_NAME}" \
+    target_triple = "${TARGET_SYS}" \
     target_sysroot = "${STAGING_DIR_TARGET}" \
     arm_tune = "${@gn_get_tune_features(d)}" \
     arm_float_abi = "${TARGET_FPU}" \
@@ -71,9 +85,9 @@ def gn_get_tune_features(d):
     tune_features = d.getVar("TUNE_FEATURES")
     if not tune_features:
         return tune_features
-    tune_features = tune_features.replace("aarch64 ", "")
-    tune_features = tune_features.replace("arm ", "")
-    tune_features = tune_features.replace("vfp ", "")
+    #tune_features = tune_features.replace("aarch64 ", "")
+    #tune_features = tune_features.replace("arm ", "")
+    #tune_features = tune_features.replace("vfp ", "")
     return tune_features.replace(" ", "+")
 
 def gn_clang_triple_prefix(d):
@@ -83,8 +97,7 @@ def gn_clang_triple_prefix(d):
     arch_translations = {
         r'arm64.*': 'aarch64-unknown-linux-gnu',
         r'arm.*': 'arm-unknown-linux-gnueabihf',
-        r'i[3456]86$': 'i386-unknown-linux-gnu',
-        r'x86_64$': 'x86_64-unknown-linux-gnu',
+        r'x86$': 'i386-unknown-linux-gnu',
         r'x64$': 'x86_64-unknown-linux-gnu',
     }
     build_arch = d.getVar("GN_TARGET_ARCH_NAME")
