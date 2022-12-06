@@ -9,7 +9,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=c93507531cc9bb8e24a05f2a1a4036c7"
 
 DEPENDS += "\
     glib-2.0 \
-    libgcc \
+    libgcc-native \
     "
 
 SRCREV = "ea231736ea4056dcef435caee59580701aa4b3ef"
