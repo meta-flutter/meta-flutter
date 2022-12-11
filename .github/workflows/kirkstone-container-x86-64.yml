@@ -67,46 +67,10 @@ jobs:
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
-          echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
-          echo 'DISTRO_FEATURES:remove = "sysvinit"' >> ./conf/local.conf
+          echo 'MACHINE = "containerx86-64"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES:append = " wayland opengl"' >> ./conf/local.conf
-          echo 'DISTRO_FEATURES_BACKFILL_CONSIDERED = ""' >> ./conf/local.conf
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
-          echo 'PREFERRED_PROVIDER:virtual/kernel = "linux-dummy"' >> ./conf/local.conf
-          echo 'IMAGE_CONTAINER_NO_DUMMY = "1"' >> conf/local.conf
-          echo 'IMAGE_FSTYPES = "container"' >> conf/local.conf
-          echo 'IMAGE_LINGUAS:append = " en-us"' >> conf/local.conf
-          echo 'LICENSE_FLAGS_ACCEPTED = "commercial"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-engine-runtimerelease = " desktop-embeddings"' >> conf/local.conf
-          echo 'IMAGE_INSTALL:append = " \
-              flutter-test-frb-runtimerelease \
-              flutter-test-membrane-runtimerelease \
-              flutter-test-animated-background-runtimerelease \
-              flutter-test-membrane-runtimerelease \
-              flutter-app-igalia-homescreen-runtimerelease \
-              flutter-app-pumped-fuel-ped-runtimerelease \
-              flutter-engine-runtimerelease \
-              flutter-auto-runtimerelease \
-              flutter-pi-runtimerelease \
-              ivi-homescreen-runtimerelease \
-              flutter-gallery-runtimerelease \
-              flutter-test-plugins-runtimerelease \
-              flutter-test-secure-storage-runtimerelease \
-              flutter-test-texture-egl-runtimerelease \
-              flutter-test-video-player-runtimerelease \
-              flutter-test-localization-runtimerelease \
-              gstreamer1.0 \
-              gstreamer1.0-libav \
-              gstreamer1.0-plugins-bad \
-              gstreamer1.0-plugins-base \
-              gstreamer1.0-plugins-good \
-              gstreamer1.0-plugins-ugly \
-              ffmpeg \
-              "' >> ./conf/local.conf
-          echo 'CORE_IMAGE_EXTRA_INSTALL:append = " \
-              packagegroup-self-hosted-sdk \
-              packagegroup-self-hosted-extended \
-              "' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -122,21 +86,22 @@ jobs:
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
           echo '***************************************'
-          bitbake -e core-image-minimal | grep "^DISTRO_FEATURES"
+          bitbake -e app-container-image-flutter-auto-runtimerelease | grep "^DISTRO_FEATURES"
           echo '***************************************'
           bitbake -e > bb.environment
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
 
-      - name: Build core-image-minimal
+      - name: Build app-container-image-flutter-auto-runtimerelease
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
           . ./poky/oe-init-build-env
-          bitbake core-image-minimal
+          bitbake app-container-image-flutter-auto-runtimerelease
           rm -rf ${ARTIFACTS}/*
           cp bb.environment $ARTIFACTS
+          ls -la tmp/deploy/images/$MACHINE/
           cp tmp/deploy/images/$MACHINE/${IMAGE}-${MACHINE}.tar.bz2 $ARTIFACTS
 
       - name: Publish SD card image artifact
