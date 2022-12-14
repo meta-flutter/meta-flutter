@@ -10,15 +10,13 @@ def get_flutter_hash(d):
     return _get_flutter_release_info(d, "hash")
 
 def _get_flutter_release_info(d, key):
-    import urllib
     import json
+    import inspect
     ret = ""
     flutter_sdk_tag = d.getVar("FLUTTER_SDK_TAG")
-    with urllib.request.urlopen('https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json') as f:
-
-        data = f.read()
-        encoding = f.info().get_content_charset('utf-8')
-        releases_linux_json = json.loads(data.decode(encoding))
+    thisdir = os.path.dirname(inspect.getfile(lambda: None))
+    with open(os.path.join(thisdir, 'releases_linux.json')) as f:
+        releases_linux_json = json.load(f)
 
         if flutter_sdk_tag == "AUTOINC":
             flutter_sdk_tag = releases_linux_json["current_release"]["stable"]
@@ -32,32 +30,11 @@ def _get_flutter_release_info(d, key):
     if ret == "":
         raise ValueError("Could not get flutter sdk archive url")
 
+    bb.debug(1, f"Choosing {ret} for requested {key}")
     return ret
 
 def get_flutter_sdk_version(d):
-    import urllib
-    import json
-    ret = ""
-    flutter_sdk_tag = d.getVar("FLUTTER_SDK_TAG")
-    with urllib.request.urlopen('https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json') as f:
-
-        data = f.read()
-        encoding = f.info().get_content_charset('utf-8')
-        releases_linux_json = json.loads(data.decode(encoding))
-            
-        if flutter_sdk_tag == "AUTOINC":
-            flutter_sdk_tag = releases_linux_json["current_release"]["stable"]
-
-        releases = releases_linux_json["releases"]
-        for r in releases:
-            if r["version"] == flutter_sdk_tag or r["hash"] == flutter_sdk_tag:
-                ret = r["version"]
-                break
-
-    if ret == "":
-        raise ValueError("Could not get flutter sdk archive url")
-
-    return ret
+    return _get_flutter_release_info(d, "version")
 
 # gn_get_engine_commit
 #
@@ -67,14 +44,17 @@ def get_flutter_sdk_version(d):
 # You would need to set FLUTTER_SDK_TAG to match your custom repo
 #
 def gn_get_engine_commit(d):
-    """ Sets FLUTTER_ENGINE_COMMIT variable """
-    import urllib.request
+    import json
+    import inspect
+    ret = ""
+    flutter_tag = d.getVar("FLUTTER_SDK_TAG")
+    thisdir = os.path.dirname(inspect.getfile(lambda: None))
+    with open(os.path.join(thisdir, 'engine-revision.json')) as f:
+        engine_json = json.load(f)
+        ret = engine_json.get(flutter_tag, '')
 
-    FLUTTER_ENGINE_VERSION_FMT = \
-        'https://raw.githubusercontent.com/flutter/flutter/%s/bin/internal/engine.version'
-    revision = get_flutter_hash(d)
+    if ret == "":
+        raise ValueError("Unable to get engine commit")
 
-    with urllib.request.urlopen(FLUTTER_ENGINE_VERSION_FMT % (revision)) as f:
-        return f.read().decode('utf-8').strip()
-
-    bb.fatal('Unable to get engine commit')
+    bb.debug(1, f"Engine commit for {flutter_tag} is {ret}")
+    return ret
