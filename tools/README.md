@@ -109,7 +109,7 @@ entry, then it will add entry to `.vscode/launch.json`.
 
 ### M1 Mac PyCurl install
 ```
-arch -arm64 brew reinstall openssl
+arch -arm64 brew reinstall openssl@1.1
 pip3 uninstall pycurl
-arch -arm64 pip3 install --install-option="--with-openssl" --install-option="--openssl-dir=/usr/local/opt/openssl@1.1" pycurl
+arch -arm64 pip3 install --install-option="--with-openssl" --install-option="--openssl-dir=/opt/homebrew/opt/openssl@1.1" pycurl
 ```
