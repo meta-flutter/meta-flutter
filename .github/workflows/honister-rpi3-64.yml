@@ -113,7 +113,7 @@ jobs:
           cp tmp/deploy/rpm/cortexa53/swiftshader-git*.rpm /home/dev/artifacts
 
       - name: Publish swiftshader artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: swiftshader-rpi3-64
           path: |
@@ -130,7 +130,7 @@ jobs:
           cp tmp/deploy/rpm/cortexa53/flutter-engine-runtimerelease-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-engine-runtimerelease artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: flutter-engine-runtimerelease-rpi3-64
           path: |
@@ -146,7 +146,7 @@ jobs:
           cp tmp/deploy/rpm/cortexa53/flutter-pi-runtimerelease-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-pi-runtimerelease artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: flutter-pi-runtimerelease-rpi3-64
           path: |
@@ -164,7 +164,7 @@ jobs:
           cp tmp/deploy/rpm/cortexa53/flutter-gallery-runtimerelease-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-gallery-runtimerelease artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: flutter-gallery-runtimerelease-rpi3-64
           path: |
@@ -196,7 +196,7 @@ jobs:
           cp tmp/deploy/images/raspberrypi3-64/core-image-minimal-raspberrypi3-64.wic.bz2 /home/dev/artifacts
 
       - name: Publish SD card image artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: rpi3-drm-flutter-runtimerelease-honister-sdimage
           path: |

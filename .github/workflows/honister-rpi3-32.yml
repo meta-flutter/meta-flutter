@@ -114,7 +114,7 @@ jobs:
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/swiftshader-git*.rpm /home/dev/artifacts
 
       - name: Publish swiftshader artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: swiftshader-rpi3
           path: |
@@ -130,7 +130,7 @@ jobs:
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/rpi-vk-driver-git*.rpm /home/dev/artifacts
 
       - name: Publish rpi-vk-driver artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: rpi-vk-driver-rpi3
           path: |
@@ -146,7 +146,7 @@ jobs:
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/vkmark-git*.rpm /home/dev/artifacts
 
       - name: Publish vkmark artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: vkmark-rpi3
           path: |
@@ -162,7 +162,7 @@ jobs:
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/vkcube-git*.rpm /home/dev/artifacts
 
       - name: Publish vkcube artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: vkcube-rpi4-64
           path: |
@@ -178,7 +178,7 @@ jobs:
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/vkquake3-git*.rpm /home/dev/artifacts
 
       - name: Publish vkquake3 artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: vkquake3-rpi4-64
           path: |
@@ -194,7 +194,7 @@ jobs:
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/vkrunner-git*.rpm /home/dev/artifacts
 
       - name: Publish vkrunner artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: vkrunner-rpi4-64
           path: |
@@ -210,7 +210,7 @@ jobs:
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/vk-layer-perfdoc-git*.rpm /home/dev/artifacts
 
       - name: Publish vk-layer-perfdoc artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: vk-layer-perfdoc-rpi4-64
           path: |
@@ -226,7 +226,7 @@ jobs:
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/sascha-samples-git*.rpm /home/dev/artifacts
 
       - name: Publish sascha-samples artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: sascha-samples-d2d-rpi3
           path: |
@@ -243,7 +243,7 @@ jobs:
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/flutter-engine-runtimerelease-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-engine-runtimerelease artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: flutter-engine-runtimerelease-rpi3
           path: |
@@ -259,7 +259,7 @@ jobs:
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/flutter-pi-runtimerelease-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-pi-runtimerelease artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: flutter-pi-runtimerelease-rpi3
           path: |
@@ -277,7 +277,7 @@ jobs:
           cp tmp/deploy/rpm/cortexa7t2hf_neon_vfpv4/flutter-gallery-runtimerelease-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-gallery-runtimerelease artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: flutter-gallery-runtimerelease-rpi3
           path: |
@@ -311,7 +311,7 @@ jobs:
           cp tmp/deploy/images/raspberrypi3/core-image-minimal-raspberrypi3.wic.bz2 /home/dev/artifacts
 
       - name: Publish SD card image artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: rpi3-drm-flutter-runtimerelease-honister-sdimage
           path: |
