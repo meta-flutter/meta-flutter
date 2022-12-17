@@ -12,7 +12,7 @@ on:
 
 jobs:
 
-  kirkstone-weston-release:
+  kirkstone-weston:
   
     env:
       MACHINE: stm32mp15-disco
@@ -66,46 +66,34 @@ jobs:
           echo n | source layers/meta-st/scripts/envsetup.sh --no-ui
           cd build-openstlinux${{ env.FLAVOR }}-${{ env.MACHINE }}
           echo '***************************************'
-          LOCAL_CONF=./conf/local.conf
-          echo '***************************************'
-          sed -i "/ACCEPT_EULA/d" $LOCAL_CONF
-          echo 'ACCEPT_EULA_${{ env.MACHINE }} = "1"' >> $LOCAL_CONF
-          echo 'DL_DIR = "/home/dev/dl"' >> $LOCAL_CONF
-          echo 'SSTATE_DIR = "/home/dev/sstate"' >> $LOCAL_CONF
-          echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> $LOCAL_CONF
-          sed -i "/GLIBC_GENERATE_LOCALES/d" $LOCAL_CONF
-          echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> $LOCAL_CONF
-          sed -i "/IMAGE_LINGUAS/d" $LOCAL_CONF
-          echo 'IMAGE_LINGUAS = "en-us"' >> $LOCAL_CONF
-          echo 'TOOLCHAIN_HOST_TASK:append = " nativesdk-flutter-sdk"' >> $LOCAL_CONF
-          echo 'CLANGSDK = "1"' >> $LOCAL_CONF
-          echo 'DISTRO_FEATURES:remove = " x11 "' >> $LOCAL_CONF
-          echo 'PACKAGECONFIG:pn-flutter-auto-runtimerelease = "backend-egl mouse-cursor package-info secure-storage text-input texture-test-egl"' >> $LOCAL_CONF
-          echo 'PACKAGECONFIG:append:pn-weston = " remoting"' >> $LOCAL_CONF
-          echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " packagegroup-st-demo "' >> $LOCAL_CONF
-          echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " gtk+3-demo "' >> $LOCAL_CONF
-          echo 'IMAGE_ROOTFS_MAXSIZE = "3145728"' >> $LOCAL_CONF
+          sed -i "/ACCEPT_EULA/d" ./conf/local.conf
+          echo 'ACCEPT_EULA_${{ env.MACHINE }} = "1"' >> ./conf/local.conf
+          echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
+          echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
+          echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
+          sed -i "/GLIBC_GENERATE_LOCALES/d" ./conf/local.conf
+          echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> ./conf/local.conf
+          sed -i "/IMAGE_LINGUAS/d" ./conf/local.conf
+          echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
+          echo 'TOOLCHAIN_HOST_TASK:append = " nativesdk-flutter-sdk"' >> ./conf/local.conf
+          echo 'CLANGSDK = "1"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:remove = " x11 "' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " packagegroup-st-demo "' >> ./conf/local.conf
+          echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " gtk+3-demo "' >> ./conf/local.conf
+          echo 'IMAGE_ROOTFS_MAXSIZE = "3145728"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL += "\
-                    dart-sdk \
-                    flutter-auto-runtimerelease \
-                    flutter-engine-runtimerelease-sdk-dev \
-                    flutter-gallery-runtimerelease \
-                    flutter-test-texture-egl-runtimerelease \
-                    flutter-test-video-player-runtimerelease \
-                    flutter-test-localization-runtimerelease \
-                    flutter-rust-bridge-example \
+                    flutter-auto \
+                    flutter-engine-sdk-dev \
+                    packagegroup-flutter-test-apps \
                     adwaita-icon-theme-cursors \
                     xdg-user-dirs \
                     avahi-daemon \
                     ntp ntp-tickadj \
-                    gstreamer1.0-libav \
-                    gstreamer1.0-plugins-bad \
-                    gstreamer1.0-plugins-good \
-                    gstreamer1.0-plugins-ugly \
-                    "' >> $LOCAL_CONF
-          echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> $LOCAL_CONF
+                    "' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:pn-flutter-auto = "backend-egl mouse-cursor package-info secure-storage text-input texture-test-egl"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:append:pn-flutter-engine = " profile debug"' >> conf/local.conf
           echo '********** ./conf/local.conf **********'
-          cat $LOCAL_CONF
+          cat ./conf/local.conf
           echo '***************************************'
           cd .. && source layers/meta-st/scripts/envsetup.sh --no-ui
           env
@@ -131,10 +119,10 @@ jobs:
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-pi-runtimerelease -c do_cleansstate
-          bitbake flutter-engine-runtimerelease -c do_cleansstate
+          bitbake flutter-pi -c do_cleansstate
+          bitbake flutter-engine -c do_cleansstate
           bitbake -c do_cleansstate flutter-rust-bridge-example
-          bitbake -c do_cleansstate flutter-test-frb-runtimerelease
+          bitbake -c do_cleansstate flutter-test-frb
 
       - name: Build st-image-weston
         shell: bash
@@ -156,150 +144,6 @@ jobs:
       - name: Publish OS image artifact
         uses: actions/upload-artifact@v3
         with:
-          name: sdcard_stm32mp157f-dk2-optee-weston-runtimerelease
-          path: |
-             /home/dev/artifacts/*
-
-
-  kirkstone-weston-debug:
-  
-    env:
-      MACHINE: stm32mp15-disco
-      DISTRO: openstlinux-weston
-      WORKSPACE: stm32mp15-kirkstone
-      FLAVOR: weston
-      
-    runs-on: [self-hosted, linux]
-    
-    container:
-      image: ghcr.io/meta-flutter/ubuntu-18-dev:main
-      options:
-        --user 1018
-        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
-        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
-        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
-        -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/stm32mp15:/home/dev/sstate:Z
-        -v /mnt/raid10/github-ci/artifacts/kirkstone/stm32mp15:/home/dev/artifacts:Z
-
-    steps:
-    
-      - name: Display UID Info
-        run: |
-          whoami
-          id -u
-          
-      - name: Set Ownership
-        run: |
-          chown -R dev:dev $HOME .
-          
-      - uses: actions/checkout@v3
-
-      - name: Fetch poky
-        run: |
-          [ -d ../${{ env.WORKSPACE }} ] || mkdir -p ../${{ env.WORKSPACE }}
-          cd ../${{ env.WORKSPACE }}
-          rm -rf layers
-          git config --global user.name "Joel Winarske"
-          git config --global user.email "joel.winarske@gmail.com"
-          /home/dev/bin/repo init -u https://github.com/STMicroelectronics/oe-manifest.git -b refs/tags/openstlinux-5.15-yocto-kirkstone-mp1-v22.07.27
-          /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
-          git clone -b kirkstone https://github.com/kraj/meta-clang.git layers/meta-clang &
-          wait
-          sed -i "/xwayland=true/d" layers/meta-st/meta-st-openstlinux/recipes-graphics/wayland/weston-init/weston.ini
-
-      - name: Configure build
-        shell: bash
-        working-directory: ../${{ env.WORKSPACE }}
-        run: |
-          rm -rf build-openstlinux${{ env.FLAVOR }}-${{ env.MACHINE }}/conf
-          echo n | source layers/meta-st/scripts/envsetup.sh --no-ui
-          cd build-openstlinux${{ env.FLAVOR }}-${{ env.MACHINE }}
-          echo '***************************************'
-          LOCAL_CONF=./conf/local.conf
-          echo '***************************************'
-          sed -i "/ACCEPT_EULA/d" $LOCAL_CONF
-          echo 'ACCEPT_EULA_${{ env.MACHINE }} = "1"' >> $LOCAL_CONF
-          echo 'DL_DIR = "/home/dev/dl"' >> $LOCAL_CONF
-          echo 'SSTATE_DIR = "/home/dev/sstate"' >> $LOCAL_CONF
-          echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> $LOCAL_CONF
-          sed -i "/GLIBC_GENERATE_LOCALES/d" $LOCAL_CONF
-          echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> $LOCAL_CONF
-          sed -i "/IMAGE_LINGUAS/d" $LOCAL_CONF
-          echo 'IMAGE_LINGUAS = "en-us"' >> $LOCAL_CONF
-          echo 'TOOLCHAIN_HOST_TASK:append = " nativesdk-flutter-sdk"' >> $LOCAL_CONF
-          echo 'CLANGSDK = "1"' >> $LOCAL_CONF
-          echo 'DISTRO_FEATURES:remove = " x11 "' >> $LOCAL_CONF
-          echo 'PACKAGECONFIG:pn-flutter-auto-runtimedebug = "backend-egl mouse-cursor package-info secure-storage text-input texture-test-egl"' >> $LOCAL_CONF
-          echo 'PACKAGECONFIG:append:pn-weston = " remoting"' >> $LOCAL_CONF
-          echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " packagegroup-st-demo "' >> $LOCAL_CONF
-          echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " gtk+3-demo "' >> $LOCAL_CONF
-          echo 'IMAGE_ROOTFS_MAXSIZE = "3145728"' >> $LOCAL_CONF
-          echo 'CORE_IMAGE_EXTRA_INSTALL += "\
-                    dart-sdk \
-                    flutter-auto-runtimedebug \
-                    flutter-engine-runtimedebug-sdk-dev \
-                    flutter-test-frb-runtimerelease \
-                    adwaita-icon-theme-cursors \
-                    xdg-user-dirs \
-                    avahi-daemon \
-                    ntp ntp-tickadj \
-                    gstreamer1.0-libav \
-                    gstreamer1.0-plugins-bad \
-                    gstreamer1.0-plugins-good \
-                    gstreamer1.0-plugins-ugly \
-                    "' >> $LOCAL_CONF
-          echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> $LOCAL_CONF
-          echo '********** ./conf/local.conf **********'
-          cat $LOCAL_CONF
-          echo '***************************************'
-          cd .. && source layers/meta-st/scripts/envsetup.sh --no-ui
-          env
-          echo '***************************************'
-          bitbake-layers add-layer \
-              ../layers/meta-clang \
-              ../../meta-flutter
-          bitbake-layers show-layers
-          echo '***************************************'
-          bitbake -e virtual/kernel | grep "^PV"
-          bitbake -e virtual/kernel | grep "^PN"
-          echo '***************************************'
-          bitbake -e > bb.environment
-          echo '* DISTRO_FEATURES *********************'
-          bitbake -e st-image-weston | grep "^DISTRO_FEATURES"
-          echo '* CORE_IMAGE_EXTRA_INSTALL ************'
-          bitbake -e st-image-weston | grep "^CORE_IMAGE_EXTRA_INSTALL"
-          echo '* COMBINED_FEATURES *******************'
-          bitbake -e st-image-weston | grep "^COMBINED_FEATURES"
-          echo '* IMAGE_FEATURES **********************'
-          bitbake -e st-image-weston | grep "^IMAGE_FEATURES"
-          echo '***************************************'
-          bitbake ca-certificates -c do_cleansstate
-          bitbake ca-certificates-native -c do_cleansstate
-          bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-engine-runtimedebug -c do_cleansstate
-          bitbake -c do_cleansstate flutter-rust-bridge-example
-          bitbake -c do_cleansstate flutter-test-frb-runtimerelease
-
-      - name: Build st-image-weston
-        shell: bash
-        working-directory: ../${{ env.WORKSPACE }}
-        run: |
-          source layers/meta-st/scripts/envsetup.sh --no-ui
-          bitbake st-image-weston
-          rm -rf /home/dev/artifacts/*
-          mkdir -p /home/dev/artifacts/arm-trusted-firmware
-          cd tmp-glibc/deploy/images/${{ env.MACHINE }}
-          cp -r flashlayout_st-image-weston /home/dev/artifacts/
-          cp -r fip /home/dev/artifacts
-          cp -r scripts /home/dev/artifacts
-          cp arm-trusted-firmware/*.stm32 /home/dev/artifacts/arm-trusted-firmware/
-          cp arm-trusted-firmware/metadata.bin /home/dev/artifacts/arm-trusted-firmware/
-          cp st-image-*-${{ env.DISTRO }}-${{ env.MACHINE }}.ext4 /home/dev/artifacts/
-          ls -la /home/dev/artifacts
-
-      - name: Publish OS image artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: sdcard_stm32mp157f-dk2-optee-weston-runtimedebug
+          name: sdcard_stm32mp157f-dk2-optee-weston
           path: |
              /home/dev/artifacts/*

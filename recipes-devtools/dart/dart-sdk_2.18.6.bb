@@ -15,6 +15,10 @@ DEPENDS += "\
     zip-native \
     "
 
+RDEPENDS:${PN} += "\
+    libgcc \
+    "
+
 SRCREV = "f16b62ea92cc0f04cfd9166992f93419e425c809"
 SRC_URI = "gn://github.com/dart-lang/sdk.git;name=sdk"
 
@@ -27,11 +31,6 @@ require conf/include/gn-utils.inc
 # For gn.bbclass
 
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
-
-# For do_configure, do_compile
-RUNTIME = "llvm"
-TOOLCHAIN = "clang"
-PREFERRED_PROVIDER_libgcc = "compiler-rt"
 
 COMPATIBLE_MACHINE = "(-)"
 COMPATIBLE_MACHINE:aarch64 = "(.*)"

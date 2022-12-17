@@ -37,8 +37,6 @@ S = "${WORKDIR}/git"
 
 inherit pkgconfig cmake features_check
 
-require conf/include/flutter-runtime.inc
-
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
 PREFERRED_PROVIDER:libgcc = "compiler-rt"
@@ -64,7 +62,5 @@ FILES:${PN} = "\
     ${bindir} \
     "
 
-BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"
-
-DEPENDS += "flutter-engine-${@gn_get_flutter_runtime_name(d)}"
-RDEPENDS:${PN} += "flutter-engine-${@gn_get_flutter_runtime_name(d)}"
+DEPENDS += "flutter-engine"
+RDEPENDS:${PN} += "flutter-engine"

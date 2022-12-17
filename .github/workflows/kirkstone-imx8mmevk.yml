@@ -65,27 +65,33 @@ jobs:
         shell: bash
         working-directory: ../imx8mmevk-kirkstone
         run: |
-          ACCEPT_FSL_EULA="1" DISTRO=${{ env.DISTRO }} MACHINE=${{ env.MACHINE }} source imx-setup-release.sh -b build-wayland
+          ACCEPT_FSL_EULA="1" DISTRO=fsl-imx-wayland MACHINE=imx8mmevk source imx-setup-release.sh -b build-wayland
           echo '***************************************'
           echo 'INHERIT += "rm_work"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> conf/local.conf
+          echo 'BASELIB = "lib64"' >> ./conf/local.conf
           echo 'GLIBC_GENERATE_LOCALES:append = " en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> conf/local.conf
           echo 'IMAGE_LINGUAS:append = " en-us en-gb es-us"' >> conf/local.conf
           echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> conf/local.conf
           echo 'DISTRO_FEATURES:remove = "vulkan"' >> conf/local.conf
+          echo 'PACKAGECONFIG:append:pn-flutter-engine = " desktop-embeddings profile debug"' >> conf/local.conf
+          echo 'PACKAGECONFIG:append:pn-flutter-auto = " gstreamer"' >> conf/local.conf
+          echo 'PACKAGECONFIG:append:pn-ffmpeg = " openssl"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL:append = "\
               tzdata-core \
               tzdata-americas \
-              flutter-auto-runtimerelease \
-              flutter-gallery-runtimerelease \
-              flutter-test-texture-egl-runtimerelease \
-              flutter-test-video-player-runtimerelease \
-              flutter-test-localization-runtimerelease \
-              flutter-test-membrane-runtimerelease \
-              flutter-test-frb-runtimerelease \
-              flutter-pi-runtimerelease \
+              flutter-auto \
+              packagegroup-flutter-test-apps \
+              flutter-pi \
+              gstreamer1.0 \
+              gstreamer1.0-libav \
+              gstreamer1.0-plugins-bad \
+              gstreamer1.0-plugins-base \
+              gstreamer1.0-plugins-good \
+              gstreamer1.0-plugins-ugly \
+              ffmpeg \
               "' >> conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> conf/local.conf
           echo 'PACKAGECONFIG:append:pn-weston = " remoting"' >> conf/local.conf
@@ -104,16 +110,16 @@ jobs:
           echo '***************************************'
           bitbake -e > bb.environment
           bitbake -c do_cleansstate flutter-sdk-native
-          bitbake -c do_cleansstate flutter-engine-runtimerelease
-          bitbake -c do_cleansstate flutter-gallery-runtimerelease
-          bitbake -c do_cleansstate flutter-test-texture-egl-runtimerelease
-          bitbake -c do_cleansstate flutter-test-video-player-runtimerelease
-          bitbake -c do_cleansstate flutter-test-localization-runtimerelease
+          bitbake -c do_cleansstate flutter-engine
+          bitbake -c do_cleansstate flutter-gallery
+          bitbake -c do_cleansstate flutter-test-texture-egl
+          bitbake -c do_cleansstate flutter-test-video-player
+          bitbake -c do_cleansstate flutter-test-localization
           bitbake -c do_cleansstate membrane-example
           bitbake -c do_cleansstate membrane-example-native
-          bitbake -c do_cleansstate flutter-test-membrane-runtimerelease
+          bitbake -c do_cleansstate flutter-test-membrane
           bitbake -c do_cleansstate flutter-rust-bridge-example
-          bitbake -c do_cleansstate flutter-test-frb-runtimerelease
+          bitbake -c do_cleansstate flutter-test-frb
 
       - name: Build imx-image-core
         shell: bash

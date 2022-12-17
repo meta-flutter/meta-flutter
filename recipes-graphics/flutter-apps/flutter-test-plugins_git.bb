@@ -42,8 +42,6 @@ FLUTTER_BUILD_ARGS = "bundle"
 
 inherit flutter-app
 
-require conf/include/flutter-version.inc
-
 # Plugin Plus "Package Info" looks for "/usr/bin/data/flutter_assets/version.json".
 
 # Plugin Plus "Device Info" requires "/etc/lsb-release" which is not present with Poky

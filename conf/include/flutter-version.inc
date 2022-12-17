@@ -20,11 +20,13 @@ def _get_flutter_release_info(d, key):
         encoding = f.info().get_content_charset('utf-8')
         releases_linux_json = json.loads(data.decode(encoding))
 
+        bb.note("Flutter SDK (stable): %s" % releases_linux_json["current_release"]["stable"])
+        bb.note("Flutter SDK (beta):   %s" % releases_linux_json["current_release"]["beta"])
+
         if flutter_sdk_tag == "AUTOINC":
             flutter_sdk_tag = releases_linux_json["current_release"]["stable"]
 
-        releases = releases_linux_json["releases"]
-        for r in releases:
+        for r in releases_linux_json["releases"]:
             if r["version"] == flutter_sdk_tag or r["hash"] == flutter_sdk_tag:
                 ret = r[key]
                 break
