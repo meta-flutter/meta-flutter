@@ -158,7 +158,7 @@ jobs:
           cp tmp/deploy/images/${{ env.MACHINE }}/demo-image-weston-${{ env.MACHINE }}-*.tegraflash.tar.gz /home/dev/artifacts
 
       - name: Publish bootable SD card image
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: demo-image-weston-${{ env.MACHINE }}-flutter-sdimage
           path: |

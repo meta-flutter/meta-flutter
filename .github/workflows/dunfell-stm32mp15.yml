@@ -144,7 +144,7 @@ jobs:
           ls -la /home/dev/artifacts
 
       - name: Publish OS image artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: stm32mp1-disco-core-eglfs-image
           path: |
@@ -160,7 +160,7 @@ jobs:
           cp tmp-glibc/deploy/sdk/st-image-core-openstlinux-eglfs-*.sh /home/dev/artifacts/
 
       - name: Publish st-image-core-flutter-runtimedebug SDK artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: st-image-core-eglfs-flutter-runtimedebug-sdk-linux
           path: |
@@ -317,7 +317,7 @@ jobs:
           ls -la /home/dev/artifacts
 
       - name: Publish OS image artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: stm32mp1-disco-core-weston-image
           path: |
@@ -333,7 +333,7 @@ jobs:
           cp tmp-glibc/deploy/sdk/st-image-core-openstlinux-${{ env.FLAVOR }}-*.sh /home/dev/artifacts/
 
       - name: Publish st-image-core-weston-flutter-runtimedebug SDK artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: st-image-core-weston-flutter-runtimedebug-sdk-linux
           path: |

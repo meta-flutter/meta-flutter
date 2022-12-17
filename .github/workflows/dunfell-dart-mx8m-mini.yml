@@ -169,7 +169,7 @@ jobs:
           cp tmp/deploy/rpm/aarch64/flutter-engine-runtimedebug-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-engine-runtimedebug artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: flutter-engine-runtimedebug-imx8mm-var-dart
           path: |
@@ -186,7 +186,7 @@ jobs:
           cp tmp/deploy/rpm/aarch64_mx8mm/flutter-auto-runtimedebug-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-auto-runtimedebug artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: flutter-auto-runtimedebug-imx8mm-var-dart
           path: |
@@ -203,7 +203,7 @@ jobs:
           cp tmp/deploy/rpm/aarch64_mx8mm/flutter-pi-runtimedebug-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-pi-runtimedebug artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: flutter-pi-runtimedebug-imx8mm-var-dart
           path: |
@@ -220,7 +220,7 @@ jobs:
           cp tmp/deploy/rpm/aarch64/flutter-engine-runtimeprofile-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-engine-runtimeprofile artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: flutter-engine-runtimeprofile-imx8mm-var-dart
           path: |
@@ -237,7 +237,7 @@ jobs:
           cp tmp/deploy/rpm/aarch64/flutter-engine-runtimerelease-git*.rpm /home/dev/artifacts
 
       - name: Publish flutter-engine-runtimerelease artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: flutter-engine-runtimerelease-imx8mm-var-dart
           path: |
@@ -255,7 +255,7 @@ jobs:
           cp tmp/deploy/rpm/aarch64/flutter-gallery-runtimedebug-git*.rpm /home/dev/artifacts
       
       - name: Publish flutter-gallery-runtimedebug artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: flutter-gallery-runtimedebug-imx8mm-var-dart
           path: |
@@ -273,7 +273,7 @@ jobs:
           cp tmp/deploy/rpm/aarch64/flutter-gallery-runtimerelease-git*.rpm /home/dev/artifacts
       
       - name: Publish flutter-gallery-runtimerelease artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: flutter-gallery-runtimerelease-imx8mm-var-dart
           path: |
@@ -294,7 +294,7 @@ jobs:
           cp tmp/deploy/images/${{ env.MACHINE }}/fsl-image-gui-${{ env.MACHINE }}-*.rootfs.wic.gz /home/dev/artifacts
 
       - name: Publish bootable SD card image
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: fsl-image-gui-${{ env.MACHINE }}-flutter-runtimedebug-sdimage
           path: |
@@ -310,7 +310,7 @@ jobs:
           cp tmp/deploy/sdk/fslc-wayland-glibc-x86_64-fsl-image-gui-aarch64-${{ env.MACHINE }}-*.sh /home/dev/artifacts/
 
       - name: Publish fsl-image-gui SDK artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: fsl-image-gui-${{ env.MACHINE }}-flutter-runtimedebug-sdk-linux
           path: |

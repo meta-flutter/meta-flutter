@@ -122,7 +122,7 @@ jobs:
           cp tmp/deploy/images/raspberrypi4-64/core-image-minimal-raspberrypi4-64.wic.bz2 /home/dev/artifacts
 
       - name: Publish SD card image artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: rpi4-drm-flutter-runtimedebug-dunfell-sdimage
           path: |
