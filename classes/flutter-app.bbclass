@@ -6,15 +6,13 @@
 # - PUBSPEC_APPNAME is defined correctly.  This is the name value from pubspec.yml.
 #
 
-require conf/include/flutter-runtime.inc
-
-BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"
+require conf/include/flutter-version.inc
 
 DEPENDS += " \
     ca-certificates-native \
     cmake-native \
     compiler-rt \
-    flutter-engine-${@gn_get_flutter_runtime_name(d)} \
+    flutter-engine \
     flutter-sdk-native \
     libcxx \
     ninja-native \
@@ -39,6 +37,13 @@ PUB_CACHE = "${WORKDIR}/pub_cache"
 PUB_CACHE_ARCHIVE = "flutter-pub-cache-${PUBSPEC_APPNAME}-${SRCREV}.tar.bz2"
 
 FLUTTER_SDK = "${STAGING_DIR_NATIVE}/usr/share/flutter/sdk"
+
+FLUTTER_APP_SKIP_DEBUG_INSTALL ??= "true"
+
+
+python () {
+    d.setVar('FLUTTER_SDK_VERSION', get_flutter_sdk_version(d))
+}
 
 #
 # Archive Pub Cache
@@ -177,100 +182,132 @@ do_compile() {
 
     cd ${S}/${FLUTTER_APPLICATION_PATH}
 
-    ${FLUTTER_PREBUILD_CMD}
+    # determine build type based on what flutter-engine installed
+    declare -a RUNTIME_MODES=($(ls ${STAGING_DIR_TARGET}${datadir}/flutter/${FLUTTER_SDK_VERSION}))
 
-    bbnote "flutter build ${FLUTTER_BUILD_ARGS}: Starting"
+    for RUNTIME_MODE in ${RUNTIME_MODES[@]}; do
 
-    flutter build ${FLUTTER_BUILD_ARGS}
+        bbnote "[$RUNTIME_MODE] flutter build ${FLUTTER_BUILD_ARGS}: Starting"
 
-    bbnote "flutter build ${FLUTTER_BUILD_ARGS}: Completed"
+        ${FLUTTER_PREBUILD_CMD}
 
-    if ${@bb.utils.contains('FLUTTER_RUNTIME', 'release', 'true', 'false', d)} || \
-       ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)}; then
+        if [ "$RUNTIME_MODE" = "jit_release"]; then
+            flutter build ${FLUTTER_BUILD_ARGS} --local-engine
+        else
+            flutter build ${FLUTTER_BUILD_ARGS}
+        fi
 
-        bbnote "kernel_snapshot_${FLUTTER_RUNTIME}: Starting"
+        bbnote "[$RUNTIME_MODE] flutter build ${FLUTTER_BUILD_ARGS}: Completed\n"
 
-        ${FLUTTER_SDK}/bin/cache/dart-sdk/bin/dart \
-            --verbose \
-            --disable-analytics \
-            --disable-dart-dev ${FLUTTER_SDK}/bin/cache/artifacts/engine/linux-x64/frontend_server.dart.snapshot \
-            --sdk-root ${@bb.utils.contains('FLUTTER_RUNTIME', 'release', '${FLUTTER_SDK}/bin/cache/artifacts/engine/common/flutter_patched_sdk_product/', '${FLUTTER_SDK}/bin/cache/artifacts/engine/common/flutter_patched_sdk/', d)} \
-            --target=flutter \
-            --no-print-incremental-dependencies \
-            -Ddart.vm.profile=${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)} \
-            -Ddart.vm.product=${@bb.utils.contains('FLUTTER_RUNTIME', 'release', 'true', 'false', d)} \
-            ${@bb.utils.contains('FLUTTER_RUNTIME', 'debug', '--enable-asserts', '', d)} \
-            ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', '--track-widget-creation', '', d)} \
-            --aot --tfa \
-            --packages .dart_tool/package_config.json \
-            ${@bb.utils.contains('FLUTTER_RUNTIME', 'debug', '.dart_tool/flutter_build/*/app.dill', '--output-dill .dart_tool/flutter_build/*/app.dill', d)} \
-            --depfile .dart_tool/flutter_build/*/kernel_snapshot.d \
-            package:${PUBSPEC_APPNAME}/main.dart
+        if [ "$RUNTIME_MODE" = "release" || "$RUNTIME_MODE" = "profile" ]; then
 
-        bbnote "kernel_snapshot_${FLUTTER_RUNTIME}: Complete"
+            bbnote "kernel_snapshot_${RUNTIME_MODE}: Starting"
 
-        # remove kernel_blob.bin to save space
-        rm ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/kernel_blob.bin
+            SDK_ROOT="${FLUTTER_SDK}/bin/cache/artifacts/engine/common/flutter_patched_sdk/"
+            VM_PRODUCT="false"
+            if [ "$RUNTIME_MODE" = "release" ]; then
+                SDK_ROOT="${FLUTTER_SDK}/bin/cache/artifacts/engine/common/flutter_patched_sdk_product/"
+                VM_PRODUCT="true"
+            fi
 
-        # create empty file for apps that check for kernel_blob.bin
-        touch ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/kernel_blob.bin
+            PROFILE_FLAGS=""
+            VM_PROFILE="false"
+            if [ "$RUNTIME_MODE" = "profile" ]; then
+                PROFILE_FLAGS="--track-widget-creation"
+                VM_PROFILE="true"
+            fi
 
-        bbnote "aot_elf_${FLUTTER_RUNTIME}: Started"
+            DEBUG_FLAGS=""
+            APP_DILL="--output-dill .dart_tool/flutter_build/*/app.dill"
+            if [ "$RUNTIME_MODE" = "debug" ]; then
+                DEBUG_FLAGS="--enable-asserts"
+                APP_DILL=".dart_tool/flutter_build/*/app.dill"
+            fi
 
-        #
-        # Extract Engine SDK
-        #
-        rm -rf ${S}/engine_sdk
-        unzip ${STAGING_DATADIR}/flutter/engine_sdk.zip -d ${S}/engine_sdk
+            ${FLUTTER_SDK}/bin/cache/dart-sdk/bin/dart \
+                --verbose \
+                --disable-analytics \
+                --disable-dart-dev ${FLUTTER_SDK}/bin/cache/artifacts/engine/linux-x64/frontend_server.dart.snapshot \
+                --sdk-root ${SDK_ROOT} \
+                --target=flutter \
+                --no-print-incremental-dependencies \
+                -Ddart.vm.profile=${VM_PROFILE} \
+                -Ddart.vm.product=${VM_PRODUCT} \
+                ${DEBUG_FLAGS} \
+                ${PROFILE_FLAGS} \
+                --aot --tfa \
+                --packages .dart_tool/package_config.json \
+                ${APP_DILL} \
+                --depfile .dart_tool/flutter_build/*/kernel_snapshot.d \
+                package:${PUBSPEC_APPNAME}/main.dart
 
-        #
-        # Create libapp.so
-        #
-        ${S}/engine_sdk/sdk/clang_x64/gen_snapshot \
-            --deterministic \
-            --snapshot_kind=app-aot-elf \
-            --elf=libapp.so \
-            --strip \
-            .dart_tool/flutter_build/*/app.dill
+            bbnote "kernel_snapshot_${RUNTIME_MODE}: Complete"
 
-        bbnote "aot_elf_${FLUTTER_RUNTIME}: Complete"
-    fi
+            # remove kernel_blob.bin to save space
+            rm ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/kernel_blob.bin
+
+            # create empty file for apps that check for kernel_blob.bin
+            touch ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/kernel_blob.bin
+
+            bbnote "aot_elf_${RUNTIME_MODE}: Started"
+
+            #
+            # Extract Engine SDK
+            #
+            rm -rf ${S}/engine_sdk
+            unzip ${STAGING_DATADIR}/flutter/${FLUTTER_SDK_VERSION}/${RUNTIME_MODE}/engine_sdk.zip -d ${S}/engine_sdk
+
+            #
+            # Create libapp.so
+            #
+            ${S}/engine_sdk/sdk/clang_x64/gen_snapshot \
+                --deterministic \
+                --snapshot_kind=app-aot-elf \
+                --elf=libapp.so \
+                --strip \
+                .dart_tool/flutter_build/*/app.dill
+
+            bbnote "aot_elf_${RUNTIME_MODE}: Complete"
+        fi
+    done
 }
-
-INSANE_SKIP:${PN} += " ldflags libdir"
-SOLIBS = ".so"
-FILES:SOLIBSDEV = ""
 
 do_install() {
 
-    install -d ${D}${FLUTTER_INSTALL_DIR}/data/flutter_assets
-    cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/* ${D}${FLUTTER_INSTALL_DIR}/data/flutter_assets/
+    declare -a RUNTIME_MODES=($(ls ${STAGING_DIR_TARGET}${datadir}/flutter/${FLUTTER_SDK_VERSION}))
 
-    if ${@bb.utils.contains('FLUTTER_RUNTIME', 'release', 'true', 'false', d)} || \
-        ${@bb.utils.contains('FLUTTER_RUNTIME', 'profile', 'true', 'false', d)}; then
+    for RUNTIME_MODE in ${RUNTIME_MODES[@]}; do
 
-        bbnote "Flutter Application: Installing ${FLUTTER_RUNTIME}"
-
-        install -d ${D}${FLUTTER_INSTALL_DIR}/lib
-        cp ${S}/${FLUTTER_APPLICATION_PATH}/libapp.so ${D}${FLUTTER_INSTALL_DIR}/lib/
-    fi
-
-       
-    if [[ "${FLUTTER_BUILD_ARGS}" =~ .*"linux".* ]]; then
-
-        bbnote "Flutter Application: Installing GTK bundle"
-
-        if [ -n "${FLUTTER_REMOVE_LINUX_BUILD_ARTIFACTS}" ]; then
-            rm ${D}/usr/${PUBSPEC_APPNAME} | true
-            rm -rf ${D}${libdir}/*.so | true
-        else
-            # expecting default "release" build
-            mv ${D}/usr/${PUBSPEC_APPNAME} ${D}${bindir}/ | true
-            rm -rf ${D}${bindir}/${PUBSPEC_APPNAME} | true
-            rm -rf ${D}${libdir}/*.so | true
+        if [ "${RUNTIME_MODE}" = "debug" && "$FLUTTER_APP_SKIP_DEBUG_INSTALL" = "true" ]; then
+            continue
         fi
-    fi
+
+        # App artifacts
+        install -d ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${RUNTIME_MODE}/data/flutter_assets
+        install -d ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${RUNTIME_MODE}/lib
+
+        cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/* \
+            ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${RUNTIME_MODE}/data/flutter_assets/
+
+        if [ "$RUNTIME_MODE" = "release" || "$RUNTIME_MODE" = "profile" ]; then
+
+            bbnote "Flutter Application: Installing ${RUNTIME_MODE}"
+
+            install -d ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${RUNTIME_MODE}/lib
+            cp ${S}/${FLUTTER_APPLICATION_PATH}/libapp.so \
+                ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${RUNTIME_MODE}/lib/
+        fi
+
+        # Engine artifact symlinks
+        ln -sfr ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${RUNTIME_MODE}/data/icudtl.dat \
+            ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${RUNTIME_MODE}/data/icudtl.dat
+
+        ln -sfr ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${RUNTIME_MODE}/lib/libflutter_engine.so \
+            ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${RUNTIME_MODE}/lib/libflutter_engine.so
+    done
 }
+
+INSANE_SKIP:${PN} += " ldflags libdir dev-so"
 
 FILES:${PN} = "\
     ${bindir} \
@@ -278,4 +315,4 @@ FILES:${PN} = "\
     ${FLUTTER_INSTALL_DIR} \
     "
 
-FILES:${PN}-dev = ""
+RDEPENDS:${PN} = "flutter-engine"

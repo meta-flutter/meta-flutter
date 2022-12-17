@@ -8,5 +8,3 @@ RDEPENDS:${PN} += " \
     flutter-app-igalia-homescreen \
     flutter-app-pumped-fuel-ped \
 "
-
-BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"

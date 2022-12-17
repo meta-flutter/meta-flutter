@@ -10,11 +10,7 @@ RDEPENDS:${PN} += " \
     flutter-test-membrane \
     flutter-test-animated-background \
     flutter-test-membrane \
-    flutter-test-plugins \
     flutter-test-secure-storage \
-    flutter-test-texture-egl \
     flutter-test-video-player \
     flutter-test-localization \
 "
-
-BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"

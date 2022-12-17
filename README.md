@@ -2,10 +2,6 @@
 
 Yocto Layer for Google Flutter related projects.
 
-[![kirkstone-agl-renesas-m3](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-agl-renesas-m3.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-agl-renesas-m3.yml)
-
-[![kirkstone-agl-x86_64](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-agl-x86_64.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-agl-x86_64.yml)
-
 [![kirkstone-imx8mmevk](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-imx8mmevk.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-imx8mmevk.yml)
 
 [![kirkstone-linux-dummy](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-linux-dummy.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-linux-dummy.yml)
@@ -18,6 +14,21 @@ Yocto Layer for Google Flutter related projects.
 
 
 _Updates_:
+
+Dec 16, 2022
+
+* Package Groups added - flutter-agl-apps, flutter-test-apps
+* Container Image added - app-container-image, app-container-image-flutter-auto
+* Breaking Changes
+
+  Removed AGL CI builds.  Will be hosted downstream.
+  Removed BBCLASS implementation for -runtimedebug, -runtimeprofile, -runtimerelease
+  Removed FLUTTER_RUNTIME
+  Flutter Engine runtime variants are now built based on PACKAGECONFIG values: debug, profile, release, jit_release.  The default is release.
+  To add additional runtime variants in addition to `release` use this pattern in local.conf:
+      `PACKAGECONFIG:append:pn-flutter-engine = " profile debug"`
+  flutter-app.bbclass installs app for each engine build available in the target sysroot.
+  By default Flutter Apps are not installed for runtime=debug.  This can be overriden in local.conf using `FLUTTER_APP_SKIP_DEBUG_INSTALL = "false"`.
 
 * Breaking Change
   

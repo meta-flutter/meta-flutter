@@ -1,4 +1,4 @@
-name: kirkstone-container-x86_64
+name: kirkstone-container-arm64
 
 on:
   pull_request:
@@ -17,7 +17,7 @@ jobs:
     env:
       YOCTO_VERSION: 4.0
       YOCTO_BRANCH: kirkstone
-      MACHINE: containerx86-64
+      MACHINE: containerarm64
 
     runs-on: [self-hosted, linux]
 
@@ -68,7 +68,7 @@ jobs:
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
-          echo 'MACHINE = "containerx86-64"' >> ./conf/local.conf
+          echo 'MACHINE = "containerarm64"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES:append = " wayland opengl"' >> ./conf/local.conf
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-engine = " profile debug"' >> conf/local.conf

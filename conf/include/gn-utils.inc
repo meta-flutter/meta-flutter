@@ -226,7 +226,38 @@ def parse_args(d):
 
     return parser.parse_known_args(args)[0]
 
-def get_out_dir(d):
+
+def get_build_runtimes(d):
+    """ Return array of build runtimes """
+
+
+    args = d.getVar("GN_ARGS")
+
+    results = []
+
+    tokens = args.split('--runtime-mode')
+    for token in tokens:
+        mode = token.split(' ')
+
+        if not '--' in mode[1] and mode[1]:
+            results.append(mode[1])
+
+    return results
+
+
+def get_gn_args_less_runtime(d):
+    """ Return gn args not including runtime modes """
+
+    args = d.getVar("GN_ARGS")
+
+    res = args
+    for token in ['--runtime-mode debug', '--runtime-mode jit_release', '--runtime-mode profile', '--runtime-mode release']:
+        res = res.replace(token, '')
+
+    return res
+
+
+def get_gn_tmp_out_dir(d):
     """Gets output directory based on the Package Configuration args."""
     import os
 
@@ -237,7 +268,7 @@ def get_out_dir(d):
     else:
         target_dir = ['host']
 
-    target_dir.append(args.runtime_mode)
+    target_dir.append('_RUNTIME_')
 
     if args.simulator:
         target_dir.append('sim')

@@ -1,0 +1,3 @@
+export PATH=/usr/share/dart-sdk/bin:$PATH
+
+

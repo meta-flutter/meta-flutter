@@ -26,9 +26,7 @@ SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;b
 
 S = "${WORKDIR}/git"
 
-inherit cmake features_check pkgconfig 
-
-require conf/include/flutter-runtime.inc
+inherit cmake features_check pkgconfig
 
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
@@ -64,15 +62,12 @@ PACKAGECONFIG[transparency] = "-DBUILD_EGL_TRANSPARENCY=ON, -DBUILD_EGL_TRANSPAR
 PACKAGECONFIG[url-launcher] = "-DBUILD_PLUGIN_URL_LAUNCHER=ON, -DBUILD_PLUGIN_URL_LAUNCHER=OFF"
 PACKAGECONFIG[verbose] = "-DCMAKE_BUILD_TYPE=Debug"
 
-# Enable verbose logging on runtimedebug image
-PACKAGECONFIG:append:runtimedebug = "verbose"
-
-
 EXTRA_OECMAKE += " -D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr"
 
 cmake_do_install:append() {
     rm -rf ${D}${libdir}
 }
 
-BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"
-RDEPENDS:${PN} += " flutter-engine-${@gn_get_flutter_runtime_name(d)}"
+BBCLASSEXTEND = "with-logging"
+
+RDEPENDS:${PN} = "flutter-engine"
