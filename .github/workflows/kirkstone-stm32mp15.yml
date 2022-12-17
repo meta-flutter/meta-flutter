@@ -154,7 +154,7 @@ jobs:
           ls -la /home/dev/artifacts
 
       - name: Publish OS image artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: sdcard_stm32mp157f-dk2-optee-weston-runtimerelease
           path: |
@@ -298,7 +298,7 @@ jobs:
           ls -la /home/dev/artifacts
 
       - name: Publish OS image artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: sdcard_stm32mp157f-dk2-optee-weston-runtimedebug
           path: |

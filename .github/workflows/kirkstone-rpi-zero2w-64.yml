@@ -131,7 +131,7 @@ jobs:
           cp tmp/deploy/images/raspberrypi0-2w-64/rpi-image-flutter-wayland-${{ env.RUNTIME }}-raspberrypi0-2w-64.wic.bz2 /home/dev/artifacts
 
       - name: Publish SD card image artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: raspberrypi0-2w-64-weston-flutter-runtime${{ env.RUNTIME }}-sdimage
           path: |
@@ -255,7 +255,7 @@ jobs:
           cp tmp/deploy/images/raspberrypi0-2w-64/rpi-image-flutter-wayland-${{ env.RUNTIME }}-raspberrypi0-2w-64.wic.bz2 /home/dev/artifacts
 
       - name: Publish SD card image artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: raspberrypi0-2w-64-weston-flutter-runtime${{ env.RUNTIME }}-sdimage
           path: |
@@ -366,7 +366,7 @@ jobs:
           cp tmp/deploy/images/raspberrypi0-2w-64/rpi-image-flutter-wayland-${{ env.RUNTIME }}-raspberrypi0-2w-64.wic.bz2 /home/dev/artifacts
 
       - name: Publish SD card image artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: raspberrypi0-2w-64-weston-flutter-runtime${{ env.RUNTIME }}-sdimage
           path: |

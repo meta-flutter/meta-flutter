@@ -121,7 +121,7 @@ jobs:
           cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-runtimerelease-${{ env.MACHINE }}.ext4 /home/dev/artifacts
 
       - name: Publish agl-image-flutter-runtimerelease artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: agl-image-flutter-runtimerelease-qemuarm64-linux
           path: |
@@ -139,7 +139,7 @@ jobs:
           cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-runtimeprofile-${{ env.MACHINE }}.ext4 /home/dev/artifacts
 
       - name: Publish agl-image-flutter-runtimeprofile artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: agl-image-flutter-runtimeprofile-qemuarm64-linux
           path: |
@@ -157,7 +157,7 @@ jobs:
           cp tmp/deploy/images/${{ env.MACHINE }}/agl-image-flutter-runtimedebug-${{ env.MACHINE }}.ext4 /home/dev/artifacts
 
       - name: Publish agl-image-flutter-runtimedebug artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: agl-image-flutter-runtimedebug-qemuarm64-linux
           path: |
@@ -174,7 +174,7 @@ jobs:
           cp tmp/deploy/sdk/poky-agl-glibc-*-agl-image-flutter-runtimedebug-*.sh /home/dev/artifacts
 
       - name: Publish agl-image-flutter-runtimedebug SDK artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: agl-image-flutter-runtimedebug-sdk-qemuarm64-linux
           path: |

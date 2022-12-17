@@ -130,7 +130,7 @@ jobs:
           cp u-boot-elf-m3ulcb-*.srec /home/dev/artifacts
 
       - name: Publish agl-image-flutter-runtimedebug artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: agl-image-flutter-runtimedebug-m3ulcb-linux
           path: |
@@ -147,7 +147,7 @@ jobs:
           cp tmp/deploy/sdk/poky-agl-glibc-*-agl-image-flutter-runtimedebug-*.sh /home/dev/artifacts
 
       - name: Publish agl-image-flutter-runtimedebug SDK artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: agl-image-flutter-runtimedebug-sdk-m3ulcb-linux
           path: |

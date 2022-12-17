@@ -128,7 +128,7 @@ jobs:
           cp tmp/deploy/images/$MACHINE/${IMAGE}-${MACHINE}.wic.bz2 $ARTIFACTS
 
       - name: Publish SD card image artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ env.MACHINE }}-${{ env.IMAGE }}
           path: |
