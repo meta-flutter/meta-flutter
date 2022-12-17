@@ -86,6 +86,7 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " gtk+3-demo "' >> $LOCAL_CONF
           echo 'IMAGE_ROOTFS_MAXSIZE = "3145728"' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL += "\
+                    dart-sdk \
                     flutter-auto-runtimerelease \
                     flutter-engine-runtimerelease-sdk-dev \
                     flutter-gallery-runtimerelease \
@@ -234,6 +235,7 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " gtk+3-demo "' >> $LOCAL_CONF
           echo 'IMAGE_ROOTFS_MAXSIZE = "3145728"' >> $LOCAL_CONF
           echo 'CORE_IMAGE_EXTRA_INSTALL += "\
+                    dart-sdk \
                     flutter-auto-runtimedebug \
                     flutter-engine-runtimedebug-sdk-dev \
                     flutter-test-frb-runtimerelease \

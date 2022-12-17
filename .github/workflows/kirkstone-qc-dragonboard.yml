@@ -84,6 +84,7 @@ jobs:
               tzdata-core \
               tzdata-americas \
               default-language-en-us-utf8 \
+              dart-sdk \
               flutter-auto-runtimerelease \
               flutter-gallery-runtimerelease \
               flutter-test-plugins-runtimerelease \
@@ -222,6 +223,7 @@ jobs:
               tzdata-core \
               tzdata-americas \
               default-language-en-us-utf8 \
+              dart-sdk \
               flutter-auto-runtimerelease \
               flutter-gallery-runtimerelease \
               flutter-test-secure-storage-runtimerelease \
