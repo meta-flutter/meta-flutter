@@ -77,11 +77,11 @@ jobs:
           echo 'DL_DIR = "/home/dev/dl"' >> conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> conf/local.conf
-          echo 'BASELIB = "lib64"' >> ./conf/local.conf
           echo 'GLIBC_GENERATE_LOCALES:append = " en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> conf/local.conf
           echo 'IMAGE_LINGUAS:append = " en-us en-gb es-us"' >> conf/local.conf
           echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> conf/local.conf
           echo 'IMAGE_INSTALL:append = "\
+              dart-sdk \
               tzdata-core \
               tzdata-americas \
               default-language-en-us-utf8 \
@@ -219,11 +219,11 @@ jobs:
           echo 'DL_DIR = "/home/dev/dl"' >> conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> conf/local.conf
-          echo 'BASELIB = "lib64"' >> ./conf/local.conf
           echo 'GLIBC_GENERATE_LOCALES:append = " en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> conf/local.conf
           echo 'IMAGE_LINGUAS:append = " en-us en-gb es-us"' >> conf/local.conf
           echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> conf/local.conf
           echo 'IMAGE_INSTALL:append = "\
+              dart-sdk \
               tzdata-core \
               tzdata-americas \
               default-language-en-us-utf8 \

@@ -82,6 +82,7 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " gtk+3-demo "' >> ./conf/local.conf
           echo 'IMAGE_ROOTFS_MAXSIZE = "3145728"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL += "\
+                    dart-sdk \
                     flutter-auto \
                     flutter-engine-sdk-dev \
                     packagegroup-flutter-test-apps \

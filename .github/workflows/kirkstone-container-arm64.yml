@@ -71,7 +71,6 @@ jobs:
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'MACHINE = "containerarm64"' >> ./conf/local.conf
-          echo 'BASELIB = "lib64"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES:append = " virtualization systemd seccomp"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES:append = " wayland opengl"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-engine = " profile debug"' >> conf/local.conf
