@@ -88,18 +88,18 @@ do_install() {
 
     BUILD_DIR="${OUT_DIR}/$(ls ${OUT_DIR})"
 
-    install -d ${D}${datadir}/${PN}
-    cp -R ${BUILD_DIR}/${PN}/* ${D}${datadir}/${PN}/
+    install -d ${D}${datadir}/${BPN}
+    cp -R ${BUILD_DIR}/${BPN}/* ${D}${datadir}/${BPN}/
 
     # enable auto dependency detection and executable stripping
     install -m 0775 ${BUILD_DIR}/dart \
-        ${D}${datadir}/${PN}/bin/dart
+        ${D}${datadir}/${BPN}/bin/dart
 
     install -m 0775 ${BUILD_DIR}/gen_snapshot_product \
-        ${D}${datadir}/${PN}/bin/utils/gen_snapshot
+        ${D}${datadir}/${BPN}/bin/utils/gen_snapshot
 
     install -m 0775 ${BUILD_DIR}/dart_precompiled_runtime_product \
-        ${D}${datadir}/${PN}/bin/dartaotruntime
+        ${D}${datadir}/${BPN}/bin/dartaotruntime
 }
 
 FILES:${PN} += "${datadir}"
