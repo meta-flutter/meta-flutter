@@ -77,7 +77,7 @@ do_compile() {
 
     BUILD_DIR="${OUT_DIR}/$(ls ${OUT_DIR})"
 
-    bbnote `cat ${BUILD_DIR}/args.gn`
+    bbnote "$(cat "${BUILD_DIR}/args.gn")"
 
     autoninja -C "${BUILD_DIR}" create_sdk
 }
@@ -88,18 +88,18 @@ do_install() {
 
     BUILD_DIR="${OUT_DIR}/$(ls ${OUT_DIR})"
 
-    install -d ${D}${datadir}/dart-sdk/${PN}
-    cp -R ${BUILD_DIR}/dart-sdk/* ${D}${datadir}/dart-sdk/${PN}/
+    install -d ${D}${datadir}/${PN}
+    cp -R ${BUILD_DIR}/${PN}/* ${D}${datadir}/${PN}/
 
     # enable auto dependency detection and executable stripping
     install -m 0775 ${BUILD_DIR}/dart \
-        ${D}${datadir}/dart-sdk/${PN}/bin/dart
+        ${D}${datadir}/${PN}/bin/dart
 
     install -m 0775 ${BUILD_DIR}/gen_snapshot_product \
-        ${D}${datadir}/dart-sdk/${PN}/bin/utils/gen_snapshot
+        ${D}${datadir}/${PN}/bin/utils/gen_snapshot
 
     install -m 0775 ${BUILD_DIR}/dart_precompiled_runtime_product \
-        ${D}${datadir}/dart-sdk/${PN}/bin/dartaotruntime
+        ${D}${datadir}/${PN}/bin/dartaotruntime
 }
 
 FILES:${PN} += "${datadir}"
