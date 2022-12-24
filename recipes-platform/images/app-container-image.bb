@@ -16,7 +16,6 @@ IMAGE_INSTALL = " \
     base-files \
     base-passwd \
     netbase \
-    app-container-user \
     ${CONTAINER_SHELL} \
 "
 

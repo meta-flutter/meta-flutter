@@ -9,7 +9,7 @@ SRC_URI = "file://dev_profile"
 S = "${WORKDIR}"
 
 APP_CONTAINER_USER_NAME ??= "dev"
-APP_CONTAINER_USER_ID ??= "1000"
+APP_CONTAINER_USER_ID ??= "5000"
 
 EXCLUDE_FROM_WORLD = "1"
 

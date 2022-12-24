@@ -18,7 +18,7 @@ jobs:
       YOCTO_VERSION: 4.0
       YOCTO_BRANCH: kirkstone
       MACHINE: containerx86-64
-      IMAGE: app-container-image-dart
+      IMAGE: app-container-image-flutter-auto
 
     runs-on: [self-hosted, linux]
 
@@ -90,19 +90,20 @@ jobs:
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
           echo '***************************************'
-          bitbake -e app-container-image-dart | grep "^DISTRO_FEATURES"
+          bitbake -e app-container-image-flutter-auto | grep "^DISTRO_FEATURES"
           echo '***************************************'
           bitbake -e > bb.environment
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
 
-      - name: Build app-container-image-dart
+      - name: Build app-container-image-flutter-auto
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
           . ./poky/oe-init-build-env
-          bitbake app-container-image-dart
+          bitbake app-container-image-flutter-auto -c do_cleansstate
+          bitbake app-container-image-flutter-auto
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
           ls -la tmp/deploy/images/$MACHINE/
