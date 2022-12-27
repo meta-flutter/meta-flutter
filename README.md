@@ -21,6 +21,7 @@ _Updates_:
 
 Dec 26, 2022
 
+* dart-sdk added - building/linking with the Yocto Clang toolchain.
 * Package Groups added - flutter-agl-apps, flutter-test-apps
 * Container Image added - app-container-image, app-container-image-flutter-auto
 * Breaking Changes
