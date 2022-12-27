@@ -1,7 +1,7 @@
 DESCRIPTION = "Flutter Embedder with X11 Backend."
 CVE_PRODUCT = "flutter-x11-client"
 
-REQUIRED_DISTRO_FEATURES = "x11 opengl"
+REQUIRED_DISTRO_FEATURES += "x11"
 
 require sony-flutter.inc
 

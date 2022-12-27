@@ -142,6 +142,7 @@ inherit cargo
 #
 # Dart generation
 #
+do_compile[network] = "1"
 cargo_do_compile:class-native() {    
 
     export RUSTFLAGS
