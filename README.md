@@ -19,13 +19,12 @@ Yocto Layer for Google Flutter related projects.
 
 _Updates_:
 
-Dec 16, 2022
+Dec 26, 2022
 
 * Package Groups added - flutter-agl-apps, flutter-test-apps
 * Container Image added - app-container-image, app-container-image-flutter-auto
 * Breaking Changes
 
-  Removed AGL CI builds.  Will be hosted downstream.
   Removed BBCLASS implementation for -runtimedebug, -runtimeprofile, -runtimerelease
   Removed FLUTTER_RUNTIME
   Flutter Engine runtime variants are now built based on PACKAGECONFIG values: debug, profile, release, jit_release.  The default is release.
