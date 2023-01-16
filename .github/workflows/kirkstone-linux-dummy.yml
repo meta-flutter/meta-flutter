@@ -73,7 +73,7 @@ jobs:
           echo 'DISTRO_FEATURES:append = " x11 wayland opengl"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES_BACKFILL_CONSIDERED = ""' >> ./conf/local.conf
           echo 'INHIBIT_PACKAGE_DEBUG_SPLIT = "1"' >> ./conf/local.conf
-          echo 'PREFERRED_PROVIDER:virtual/kernel = "linux-dummy"' >> ./conf/local.conf
+          echo 'PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += "commercial"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-ffmpeg = " openssl"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-auto = " gstreamer"' >> conf/local.conf

@@ -29,7 +29,7 @@ EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 # Toolchain setup
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
-PREFERRED_PROVIDER:libgcc = "compiler-rt"
+PREFERRED_PROVIDER_libgcc = "compiler-rt"
 
 PACKAGECONFIG ??= "platform-sdk verify-sdk-hash mallinfo2"
 

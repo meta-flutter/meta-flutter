@@ -43,7 +43,7 @@ EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 # For do_configure, do_compile
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
-PREFERRED_PROVIDER:libgcc = "compiler-rt"
+PREFERRED_PROVIDER_libgcc = "compiler-rt"
 
 COMPATIBLE_MACHINE = "(-)"
 COMPATIBLE_MACHINE:aarch64 = "(.*)"

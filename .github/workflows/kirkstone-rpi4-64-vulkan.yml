@@ -16,7 +16,7 @@ jobs:
   
     env:
       YOCTO_BRANCH: "kirkstone"
-      MACHINE: raspberrypi0-2w-64
+      MACHINE: raspberrypi4-64
       
     runs-on: [self-hosted, linux]
     
@@ -58,6 +58,7 @@ jobs:
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.yoctoproject.org/git/meta-selinux.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/meta-flutter/meta-flutter-rpi.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-vulkan.git &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/meta-flutter/meta-flutter-vm.git &
           wait
 
       - name: Configure build
@@ -65,7 +66,7 @@ jobs:
         working-directory: ../rpi4-64-vulkan-kirkstone
         run: |
           rm -rf ${{ env.MACHINE }}/conf || true
-          source ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          source ./poky/oe-init-build-env ${{ env.MACHINE }}
           echo '***************************************'
           sed -i "s|MACHINE ??= \"qemux86-64\"|MACHINE ?= \"${{ env.MACHINE }}\"|g" conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
@@ -80,11 +81,11 @@ jobs:
           echo 'DISTRO_FEATURES:append = " alsa wifi bluetooth usbhost opengl vulkan wayland pam"' >> ./conf/local.conf
           # SELinux
           # echo 'DISTRO_FEATURES:append = " acl xattr pam selinux audit"' >> ./conf/local.conf
-          # echo 'PREFERRED_PROVIDER_virtual/refpolicy = "refpolicy-mls"' >> ./conf/local.conf
+          echo 'PREFERRED_PROVIDER_virtual/refpolicy = "refpolicy-mls"' >> ./conf/local.conf
           # SECCOMP
-          echo '# DISTRO_FEATURES:append = " seccomp"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:append = " seccomp"' >> ./conf/local.conf
           # OSSEC HID
-          # echo '# IMAGE_INSTALL:append = " ossec-hids"' >> ./conf/local.conf
+          # echo 'IMAGE_INSTALL:append = " ossec-hids"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL:append = "\
               openvpn \
               systemd-analyze \
@@ -122,7 +123,6 @@ jobs:
               \
               vulkan-loader \
               vulkan-tools \
-              \
               "' >> ./conf/local.conf
           #
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
@@ -155,8 +155,10 @@ jobs:
           # ENABLE_UART = "1"' >> ./conf/local.conf
           # SERIAL_CONSOLES = "115200;ttyAMA0"' >> ./conf/local.conf
           #
-          echo 'PREFERRED_PROVIDER:jpeg = "libjpeg-turbo"' >> ./conf/local.conf
-          echo 'PREFERRED_PROVIDER:jpeg-native = "libjpeg-turbo-native"' >> ./conf/local.conf
+          echo 'PREFERRED_PROVIDER_jpeg = "libjpeg-turbo"' >> ./conf/local.conf
+          echo 'PREFERRED_PROVIDER_jpeg-native = "libjpeg-turbo-native"' >> ./conf/local.conf
+          #
+          echo 'RUST_PANIC_STRATEGY = "abort"' >> conf/local.conf
           #
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
@@ -175,6 +177,7 @@ jobs:
           ../meta-selinux \
           ../meta-clang \
           ../meta-flutter-rpi \
+          ../meta-flutter-vm \
           ../../meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
@@ -193,16 +196,16 @@ jobs:
         shell: bash
         working-directory: ../rpi4-64-vulkan-kirkstone
         run: |
-          . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
+          . ./poky/oe-init-build-env ${{ env.MACHINE }}
           bitbake rpi-image-flutter-wayland
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/images/raspberrypi4-64/rpi-image-flutter-wayland-raspberrypi4-64.wic.bmap /home/dev/artifacts
-          cp tmp/deploy/images/raspberrypi4-64/rpi-image-flutter-wayland-raspberrypi4-64.wic.bz2 /home/dev/artifacts
+          cp tmp/deploy/images/${{ env.MACHINE }}/rpi-image-flutter-wayland-${{ env.MACHINE }}.wic.bmap /home/dev/artifacts
+          cp tmp/deploy/images/${{ env.MACHINE }}/rpi-image-flutter-wayland-${{ env.MACHINE }}.wic.bz2 /home/dev/artifacts
 
       - name: Publish SD card image artifact
         uses: actions/upload-artifact@v3
         with:
-          name: raspberrypi4-64-weston-flutter-sdimage
+          name: raspberrypi4-64-vulkan-weston-flutter-sdimage
           path: |
              /home/dev/artifacts/*
