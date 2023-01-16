@@ -119,6 +119,10 @@ jobs:
               gstreamer1.0-plugins-good \
               gstreamer1.0-plugins-ugly \
               ffmpeg \
+              \
+              vulkan-loader \
+              vulkan-tools \
+              \
               "' >> ./conf/local.conf
           #
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
@@ -150,8 +154,6 @@ jobs:
           #
           # ENABLE_UART = "1"' >> ./conf/local.conf
           # SERIAL_CONSOLES = "115200;ttyAMA0"' >> ./conf/local.conf
-          #
-          echo 'PREFERRED_PROVIDER:libserialport = "6f9b03e"' >> ./conf/local.conf
           #
           echo 'PREFERRED_PROVIDER:jpeg = "libjpeg-turbo"' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER:jpeg-native = "libjpeg-turbo-native"' >> ./conf/local.conf
