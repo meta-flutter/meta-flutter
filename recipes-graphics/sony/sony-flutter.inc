@@ -33,7 +33,7 @@ require conf/include/flutter-version.inc
 
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
-PREFERRED_PROVIDER:libgcc = "compiler-rt"
+PREFERRED_PROVIDER_libgcc = "compiler-rt"
 
 EXTRA_OECMAKE += "-D USER_PROJECT_PATH=${S}/examples/${PN}"
 
