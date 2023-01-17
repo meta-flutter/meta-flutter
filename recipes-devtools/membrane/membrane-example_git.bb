@@ -135,7 +135,7 @@ CARGO_SRC_DIR = "rust_example"
 
 RUNTIME:class-native = "llvm"
 TOOLCHAIN:class-native = "clang"
-PREFERRED_PROVIDER:libgcc:class-native = "compiler-rt"
+PREFERRED_PROVIDER_libgcc:class-native = "compiler-rt"
 
 inherit cargo
 

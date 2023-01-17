@@ -30,7 +30,7 @@ inherit cmake features_check pkgconfig
 
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
-PREFERRED_PROVIDER:libgcc = "compiler-rt"
+PREFERRED_PROVIDER_libgcc = "compiler-rt"
 
 PACKAGECONFIG ??= "\
     ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'backend-vulkan', 'backend-egl', d)} \
