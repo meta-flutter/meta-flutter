@@ -1398,7 +1398,7 @@ def install_flutter_auto(folder, config, platform_):
             subprocess.call(["cmake", "--version"])
 
             print("** Clang Version")
-            subprocess.call(["/usr/bin/clang++", "--version"])
+            subprocess.call(["clang++", "--version"])
 
         if 'github' == runtime.get('artifact_source'):
 

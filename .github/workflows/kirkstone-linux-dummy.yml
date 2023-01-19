@@ -13,13 +13,13 @@ on:
 jobs:
 
   linux-dummy:
-  
+
     env:
       YOCTO_VERSION: 4.0
       YOCTO_BRANCH: kirkstone
-      
+
     runs-on: [self-hosted, linux]
-    
+
     container:
       image: ghcr.io/meta-flutter/ubuntu-20-dev:main
       options:
@@ -30,16 +30,16 @@ jobs:
         -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/latest:/home/dev/sstate:Z
 
     steps:
-    
+
       - name: Display UID Info
         run: |
           whoami
           id -u
-          
+
       - name: Set Ownership
         run: |
           chown -R dev:dev $HOME .
-          
+
       - uses: actions/checkout@v3
         with:
           path: ''
