@@ -19,6 +19,10 @@ DEPENDS += "\
     wayland-protocols \
     "
 
+RDEPENDS:${PN} += "\
+    ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'vulkan-loader', '', d)} \
+"
+
 REQUIRED_DISTRO_FEATURES = "wayland opengl"
 
 SRCREV ??= "20df3c8a976ee623f1d6d35a66390591ae061bd5"

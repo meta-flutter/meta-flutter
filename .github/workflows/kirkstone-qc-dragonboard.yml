@@ -65,6 +65,8 @@ jobs:
           /home/dev/bin/repo init -u https://github.com/jwinarske/manifests.git -m db820c.xml -b kirkstone
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo`
           chmod +rw conf/conf/*.conf
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/meta-flutter/meta-flutter-vm.git layers/meta-flutter-vm &
+          wait
 
       - name: Configure build
         shell: bash
@@ -101,11 +103,12 @@ jobs:
           echo 'PACKAGECONFIG:append:pn-ffmpeg = " openssl"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-auto = " gstreamer"' >> conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-engine = " desktop-embeddings profile debug"' >> conf/local.conf
+          echo 'RUST_PANIC_STRATEGY = "abort"' >> conf/local.conf
           echo '********** conf/local.conf **********'
           cat conf/local.conf
           echo '***************************************'
           bitbake-layers show-layers
-          bitbake-layers add-layer ../../meta-flutter
+          bitbake-layers add-layer ../../meta-flutter ../layers/meta-flutter-vm
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
@@ -207,6 +210,8 @@ jobs:
           /home/dev/bin/repo init -u https://github.com/jwinarske/manifests.git -m db820c.xml -b kirkstone
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo`
           chmod +rw conf/conf/*.conf
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/meta-flutter/meta-flutter-vm.git layers/meta-flutter-vm &
+          wait
 
       - name: Configure build
         shell: bash
@@ -243,11 +248,12 @@ jobs:
           echo 'PACKAGECONFIG:append:pn-ffmpeg = " openssl"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-auto = " gstreamer"' >> conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-engine = " desktop-embeddings profile debug"' >> conf/local.conf
+          echo 'RUST_PANIC_STRATEGY = "abort"' >> conf/local.conf
           echo '********** conf/local.conf **********'
           cat conf/local.conf
           echo '***************************************'
           bitbake-layers show-layers
-          bitbake-layers add-layer ../../meta-flutter
+          bitbake-layers add-layer ../../meta-flutter ../layers/meta-flutter-vm
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
