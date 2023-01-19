@@ -58,7 +58,6 @@ jobs:
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.yoctoproject.org/git/meta-selinux.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/meta-flutter/meta-flutter-rpi.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-vulkan.git &
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/meta-flutter/meta-flutter-vm.git &
           wait
 
       - name: Configure build
@@ -79,35 +78,14 @@ jobs:
           echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES:remove = "sysvinit x11 usbgadget"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES:append = " alsa wifi bluetooth usbhost opengl vulkan wayland pam"' >> ./conf/local.conf
+          echo 'RUST_PANIC_STRATEGY = "abort"' >> ./conf/local.conf
           # SELinux
-          # echo 'DISTRO_FEATURES:append = " acl xattr pam selinux audit"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:append = " acl xattr pam selinux audit"' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_virtual/refpolicy = "refpolicy-mls"' >> ./conf/local.conf
           # SECCOMP
           echo 'DISTRO_FEATURES:append = " seccomp"' >> ./conf/local.conf
-          # OSSEC HID
-          # echo 'IMAGE_INSTALL:append = " ossec-hids"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL:append = "\
-              openvpn \
-              systemd-analyze \
-              systemd-bash-completion \
-              coreutils \
-              curl \
-              iproute2 \
-              nftables \
-              lsof \
-              ntp ntp-tickadj \
-              zip \
-              \
-              procps \
-              sysfsutils \
-              tcpdump \
-              util-linux \
-              util-linux-blkid \
-              perl-modules \
-              python3-modules \
-              strace \
-              bpftrace \
-              \
+              vulkan-tools \
               dart-sdk \
               tzdata-americas \
               tzdata-core \
@@ -120,46 +98,28 @@ jobs:
               gstreamer1.0-plugins-good \
               gstreamer1.0-plugins-ugly \
               ffmpeg \
-              \
-              vulkan-loader \
-              vulkan-tools \
               "' >> ./conf/local.conf
-          #
           echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
-          #
           echo 'PACKAGECONFIG:append:pn-flutter-engine = " profile debug"' >> conf/local.conf
-          #
           echo 'PACKAGECONFIG:append:pn-weston = " remoting"' >> ./conf/local.conf
-          #
           echo 'PACKAGECONFIG:append:pn-flutter-auto = " gstreamer"' >> conf/local.conf
           echo 'PACKAGECONFIG:append:pn-ffmpeg = " openssl"' >> ./conf/local.conf
-          # 
           echo 'COMBINED_FEATURES += "alsa "' >> ./conf/local.conf
           echo 'LINUX_KERNEL_TYPE = "preempt-rt"' >> ./conf/local.conf
-          #
           echo 'CMDLINE_DEBUG = "quiet"' >> ./conf/local.conf
-          #
           echo 'GPU_MEM = "128"' >> ./conf/local.conf
           echo 'DISPMANX_OFFLINE = "1"' >> ./conf/local.conf
           echo 'DISABLE_OVERSCAN = "1"' >> ./conf/local.conf
-          #
           echo 'DISABLE_RPI_BOOT_LOGO = "1"' >> ./conf/local.conf
           echo 'DISABLE_SPLASH = "1"' >> ./conf/local.conf
           echo 'IMAGE_FEATURES:remove = "splash"' >> ./conf/local.conf
-          #
           echo 'ENABLE_SPI_BUS = "1"' >> ./conf/local.conf
-          #
           echo 'ENABLE_I2C = "1"' >> ./conf/local.conf
           echo 'KERNEL_MODULE_AUTOLOAD:rpi:append = " i2c-dev i2c-bcm2708"' >> ./conf/local.conf
-          #
           # ENABLE_UART = "1"' >> ./conf/local.conf
           # SERIAL_CONSOLES = "115200;ttyAMA0"' >> ./conf/local.conf
-          #
           echo 'PREFERRED_PROVIDER_jpeg = "libjpeg-turbo"' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_jpeg-native = "libjpeg-turbo-native"' >> ./conf/local.conf
-          #
-          echo 'RUST_PANIC_STRATEGY = "abort"' >> conf/local.conf
-          #
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -177,7 +137,6 @@ jobs:
           ../meta-selinux \
           ../meta-clang \
           ../meta-flutter-rpi \
-          ../meta-flutter-vm \
           ../../meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
@@ -206,6 +165,6 @@ jobs:
       - name: Publish SD card image artifact
         uses: actions/upload-artifact@v3
         with:
-          name: raspberrypi4-64-vulkan-weston-flutter-sdimage
+          name: raspberrypi4-64-weston-flutter-vulkan-sdimage
           path: |
              /home/dev/artifacts/*
