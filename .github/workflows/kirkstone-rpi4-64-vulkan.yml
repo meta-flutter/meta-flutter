@@ -86,6 +86,8 @@ jobs:
           echo 'DISTRO_FEATURES:append = " security seccomp"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL:append = "\
               vulkan-tools \
+              sascha-samples \
+              vkcube \
               dart-sdk \
               tzdata-americas \
               tzdata-core \
