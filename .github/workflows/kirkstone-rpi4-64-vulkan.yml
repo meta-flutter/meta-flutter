@@ -91,19 +91,9 @@ jobs:
               tzdata-core \
               flutter-auto \
               packagegroup-flutter-test-apps \
-              gstreamer1.0 \
-              gstreamer1.0-libav \
-              gstreamer1.0-plugins-bad \
-              gstreamer1.0-plugins-base \
-              gstreamer1.0-plugins-good \
-              gstreamer1.0-plugins-ugly \
-              ffmpeg \
               "' >> ./conf/local.conf
-          echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-engine = " profile debug"' >> conf/local.conf
           echo 'PACKAGECONFIG:append:pn-weston = " remoting"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:append:pn-flutter-auto = " gstreamer"' >> conf/local.conf
-          echo 'PACKAGECONFIG:append:pn-ffmpeg = " openssl"' >> ./conf/local.conf
           echo 'COMBINED_FEATURES += "alsa "' >> ./conf/local.conf
           echo 'LINUX_KERNEL_TYPE = "preempt-rt"' >> ./conf/local.conf
           echo 'CMDLINE_DEBUG = "quiet"' >> ./conf/local.conf
