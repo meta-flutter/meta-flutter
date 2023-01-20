@@ -88,6 +88,7 @@ jobs:
               vulkan-tools \
               sascha-samples \
               vkcube \
+              comp-surf-pbr \
               dart-sdk \
               tzdata-americas \
               tzdata-core \
