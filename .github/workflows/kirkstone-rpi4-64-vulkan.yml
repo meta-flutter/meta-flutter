@@ -83,7 +83,7 @@ jobs:
           echo 'DISTRO_FEATURES:append = " acl xattr pam selinux audit"' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_virtual/refpolicy = "refpolicy-mls"' >> ./conf/local.conf
           # SECCOMP
-          echo 'DISTRO_FEATURES:append = " seccomp"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:append = " security seccomp"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL:append = "\
               vulkan-tools \
               dart-sdk \
