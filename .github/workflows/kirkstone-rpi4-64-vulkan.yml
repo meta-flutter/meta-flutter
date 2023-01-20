@@ -129,6 +129,7 @@ jobs:
           ../meta-selinux \
           ../meta-clang \
           ../meta-flutter-rpi \
+          ../meta-vulkan \
           ../../meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
