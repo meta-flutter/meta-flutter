@@ -86,10 +86,13 @@ jobs:
           echo 'DISTRO_FEATURES:append = " security seccomp"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL:append = "\
               vulkan-tools \
-              sascha-samples \
-              vkcube \
-              comp-surf-pbr \
               filament-samples-vk \
+              sascha-samples \
+              swiftshader \
+              vkcube \
+              vkmark \
+              vkrunner \
+              comp-surf-pbr \
               dart-sdk \
               tzdata-americas \
               tzdata-core \
