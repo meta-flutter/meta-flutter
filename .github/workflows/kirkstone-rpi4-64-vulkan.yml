@@ -89,6 +89,7 @@ jobs:
               sascha-samples \
               vkcube \
               comp-surf-pbr \
+              filament-samples-vk \
               dart-sdk \
               tzdata-americas \
               tzdata-core \
