@@ -88,7 +88,6 @@ jobs:
               vulkan-tools \
               filament-samples-vk \
               sascha-samples \
-              swiftshader \
               vkcube \
               vkrunner \
               comp-surf-pbr \
