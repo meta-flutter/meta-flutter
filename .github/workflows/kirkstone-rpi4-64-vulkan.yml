@@ -100,7 +100,7 @@ jobs:
               tzdata-core \
               flutter-auto \
               packagegroup-flutter-test-apps \
-              swiftshader \
+              libvirt libvirt-libvirtd libvirt-virsh kernel-module-kvm \
               crosvm crosvm-direct crosvm-plugin \
               firecracker jailer \
               "' >> ./conf/local.conf
