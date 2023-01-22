@@ -53,7 +53,7 @@ jobs:
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git &
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/agherzan/meta-raspberrypi.git &
+          git clone -b jw/rpi4_kvm             --single-branch https://github.com/meta-flutter/meta-raspberrypi.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.yoctoproject.org/git/meta-security.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.yoctoproject.org/git/meta-selinux.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.yoctoproject.org/git/meta-virtualization.git &
@@ -78,16 +78,20 @@ jobs:
           echo 'IMAGE_LINGUAS:append = " en-us en-gb es-us"' >> ./conf/local.conf
           echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> ./conf/local.conf
           echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
-          echo 'DISTRO_FEATURES:remove = "sysvinit x11 usbgadget"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:remove = "sysvinit x11 usbgadget ptest xen"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES:append = " alsa wifi bluetooth usbhost opengl vulkan wayland pam"' >> ./conf/local.conf
           echo 'RUST_PANIC_STRATEGY = "abort"' >> ./conf/local.conf
+          #
           # SELinux
           echo 'DISTRO_FEATURES:append = " acl xattr pam selinux audit"' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_virtual/refpolicy = "refpolicy-mls"' >> ./conf/local.conf
+          #
           # SECCOMP
           echo 'DISTRO_FEATURES:append = " security seccomp"' >> ./conf/local.conf
+          #
           # Virtualization
           echo 'DISTRO_FEATURES:append = " virtualization kvm"' >> ./conf/local.conf
+          #
           echo 'IMAGE_INSTALL:append = "\
               vulkan-tools \
               filament-samples-vk \
@@ -100,14 +104,15 @@ jobs:
               tzdata-core \
               flutter-auto \
               packagegroup-flutter-test-apps \
-              libvirt libvirt-libvirtd libvirt-virsh kernel-module-kvm \
+              libvirt libvirt-libvirtd libvirt-virsh \
+              kernel-module-kvm kernel-module-kvm-arm64 \
               crosvm crosvm-direct crosvm-plugin \
               firecracker jailer \
               "' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-engine = " profile debug"' >> conf/local.conf
           echo 'PACKAGECONFIG:append:pn-weston = " remoting"' >> ./conf/local.conf
           echo 'COMBINED_FEATURES += "alsa "' >> ./conf/local.conf
-          echo 'LINUX_KERNEL_TYPE = "preempt-rt"' >> ./conf/local.conf
+          # echo 'LINUX_KERNEL_TYPE = "preempt-rt"' >> ./conf/local.conf
           echo 'CMDLINE_DEBUG = "quiet"' >> ./conf/local.conf
           echo 'GPU_MEM = "128"' >> ./conf/local.conf
           echo 'DISPMANX_OFFLINE = "1"' >> ./conf/local.conf
@@ -148,7 +153,18 @@ jobs:
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
           echo '***************************************'
+          bitbake -e virtual/kernel | grep "^KERNEL_FEATURES"
+          echo '***************************************'
+          echo '* kvm-image-minimal'
+          echo '***************************************'
+          bitbake -e kvm-image-minimal | grep "^DISTRO_FEATURES"
+          echo '***************************************'
+          bitbake -e kvm-image-minimal | grep "^IMAGE_FEATURES"
+          echo '***************************************'
+          echo '* rpi-image-flutter-wayland'
+          echo '***************************************'
           bitbake -e rpi-image-flutter-wayland | grep "^DISTRO_FEATURES"
+          echo '***************************************'
           bitbake -e rpi-image-flutter-wayland | grep "^IMAGE_FEATURES"
           echo '***************************************'
           bitbake -e > bb.environment
@@ -161,6 +177,7 @@ jobs:
         working-directory: ../rpi4-64-vulkan-kirkstone
         run: |
           . ./poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake kvm-image-minimal
           bitbake rpi-image-flutter-wayland
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
