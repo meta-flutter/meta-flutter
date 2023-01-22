@@ -56,6 +56,8 @@ jobs:
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/agherzan/meta-raspberrypi.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.yoctoproject.org/git/meta-security.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.yoctoproject.org/git/meta-selinux.git &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.yoctoproject.org/git/meta-virtualization.git &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/meta-flutter/meta-flutter-vm.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/meta-flutter/meta-flutter-rpi.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-vulkan.git &
           wait
@@ -84,6 +86,8 @@ jobs:
           echo 'PREFERRED_PROVIDER_virtual/refpolicy = "refpolicy-mls"' >> ./conf/local.conf
           # SECCOMP
           echo 'DISTRO_FEATURES:append = " security seccomp"' >> ./conf/local.conf
+          # Virtualization
+          echo 'DISTRO_FEATURES:append = " virtualization kvm"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL:append = "\
               vulkan-tools \
               filament-samples-vk \
@@ -96,6 +100,9 @@ jobs:
               tzdata-core \
               flutter-auto \
               packagegroup-flutter-test-apps \
+              swiftshader \
+              crosvm crosvm-direct crosvm-plugin \
+              firecracker jailer \
               "' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-engine = " profile debug"' >> conf/local.conf
           echo 'PACKAGECONFIG:append:pn-weston = " remoting"' >> ./conf/local.conf
@@ -130,6 +137,8 @@ jobs:
           ../meta-openembedded/meta-perl \
           ../meta-security \
           ../meta-selinux \
+          ../meta-virtualization \
+          ../meta-flutter-vm \
           ../meta-clang \
           ../meta-flutter-rpi \
           ../meta-vulkan \
