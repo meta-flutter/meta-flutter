@@ -105,7 +105,6 @@ jobs:
               flutter-auto \
               packagegroup-flutter-test-apps \
               libvirt libvirt-libvirtd libvirt-virsh \
-              kernel-module-kvm kernel-module-kvm-arm64 \
               crosvm crosvm-direct crosvm-plugin \
               firecracker jailer \
               "' >> ./conf/local.conf
