@@ -146,6 +146,7 @@ jobs:
           bitbake -c do_cleansstate flutter-engine
           bitbake -c do_cleansstate flutter-sdk-native
           bitbake -c do_cleansstate packagegroup-flutter-test-apps
+          bitbake -c do_cleansstate sascha-samples
 
       - name: Build rpi-image-weston-flutter
         shell: bash
