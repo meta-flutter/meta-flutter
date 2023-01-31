@@ -32,11 +32,11 @@ After this user is created, login Ubuntu with this user id.
   
 **6. import the docker container:**
     
-    docker import -c "USER weston" -c "WORKDIR /home/weston" app-container-image-flutter-auto-containerx86-64.tar.bz2 app-container:latest
+    sudo docker import -c "USER weston" -c "WORKDIR /home/weston" app-container-image-flutter-auto-containerx86-64.tar.bz2 app-container:latest
 
 **7.  Run the docker container:**
 
-    docker run -it -v /run/user/$UID:/run/user/$UID -v $(pwd)/test:/home/weston/test --user 5000:5000 --gpus all -e XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR -e WAYLAND_DISPLAY=$WAYLAND_DISPLAY 5e1fcf6ffb4c /bin/sh
+    sudo docker run -it -v /run/user/$UID:/run/user/$UID -v $(pwd)/test:/home/weston/test --user 5000:5000 --gpus all -e XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR -e WAYLAND_DISPLAY=$WAYLAND_DISPLAY 5e1fcf6ffb4c /bin/sh
  Note that 5e1fcf6ffb4c is the image id. You might see different number on your system. It can be found by issuing `sudo docker images`. Please update this number accordingly.
  
 **8.  Bring up Weston compositor**
