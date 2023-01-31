@@ -126,7 +126,7 @@ jobs:
               kvmtool dmidecode \
               libvirt libvirt-libvirtd libvirt-virsh \
               crosvm crosvm-direct crosvm-plugin \
-              firecracker jailer \
+              firecracker jailer curl \
               "' >> ./conf/local.conf
           #
           # Flutter
