@@ -156,5 +156,5 @@ To select the compositor which to run your Wayland app from prefix command from 
 
 Run host wayland app in container compositor:
 ```
-WAYLAND_DISPLAY=display-0 flutter-auto --b=$HOME/tmp/flutter/gallery/3.3.10/release
+WAYLAND_DISPLAY=display-1 flutter-auto --b=$HOME/tmp/flutter/gallery/3.3.10/release
 ```
