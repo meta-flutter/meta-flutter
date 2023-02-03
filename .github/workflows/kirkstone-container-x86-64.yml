@@ -73,6 +73,7 @@ jobs:
           echo 'MACHINE = "containerx86-64"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES:append = " virtualization systemd seccomp"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES:append = " wayland opengl"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:remove = " vulkan"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-engine = " profile debug"' >> conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
