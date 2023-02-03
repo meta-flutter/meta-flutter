@@ -1376,7 +1376,7 @@ def install_flutter_auto(folder, config, platform_):
                 subprocess.call(["sudo", "apt", "update", "-y"])
                 subprocess.call([
                     "sudo", "apt", "purge", "-y", 
-                    "clang-%s" % llvm_ver, "lldb-%s" % llvm_ver, "lld-%s" % llvm_ver, 
+                    "clang", "clang-%s" % llvm_ver, "lldb-%s" % llvm_ver, "lld-%s" % llvm_ver, 
                     "libc++-%s-dev" % llvm_ver, "libc++abi-%s-dev" % llvm_ver, "libunwind-dev"
                     ])
                 subprocess.call(["rm", "./llvm.sh"])
