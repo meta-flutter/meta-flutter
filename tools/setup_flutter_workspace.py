@@ -1369,15 +1369,35 @@ def install_flutter_auto(folder, config, platform_):
 
             if os_release.get('NAME') == 'Ubuntu':
 
+                llvm_ver = '12'
+
                 subprocess.call(["sudo", "snap", "install", "cmake", "--classic"])
                 subprocess.call(["sudo", "add-apt-repository", "-y", "ppa:kisak/kisak-mesa"])
                 subprocess.call(["sudo", "apt", "update", "-y"])
-                subprocess.call(
-                    ["sudo", "apt-get", "-y", "install", "libwayland-dev", "wayland-protocols", "mesa-common-dev",
-                     "libegl1-mesa-dev", "libgles2-mesa-dev", "mesa-utils", "clang-12", "lldb-12", "lld-12",
-                     "libc++-12-dev", "libc++abi-12-dev", "libunwind-dev", "libxkbcommon-dev", "vulkan-tools",
+                subprocess.call([
+                    "sudo", "apt", "purge", "-y", 
+                    "clang-%s" % llvm_ver, "lldb-%s" % llvm_ver, "lld-%s" % llvm_ver, 
+                    "libc++-%s-dev" % llvm_ver, "libc++abi-%s-dev" % llvm_ver, "libunwind-dev"
+                    ])
+                subprocess.call(["rm", "./llvm.sh"])
+                subprocess.call(["wget", "https://apt.llvm.org/llvm.sh"])
+                subprocess.call(["chmod", "+x", "./llvm.sh"])
+                subprocess.call(["sed", "-i", 's/add-apt-repository /add-apt-repository -y /g', "./llvm.sh"])
+                subprocess.call(["sudo", "./llvm.sh", "%s" % llvm_ver])
+                subprocess.call(["rm", "./llvm.sh"])
+                subprocess.call([
+                    "sudo", "apt-get", "-y", "install", "clang-%s" % llvm_ver, "lldb-%s" % llvm_ver, "lld-%s" % llvm_ver, 
+                    "libc++-%s-dev" % llvm_ver, "libc++abi-%s-dev" % llvm_ver, "libunwind-%s-dev" % llvm_ver
+                    ])
+                subprocess.call([
+                    "sudo", "apt-get", "-y", "install", "libwayland-dev", "wayland-protocols", "mesa-common-dev",
+                     "libegl1-mesa-dev", "libgles2-mesa-dev", "mesa-utils", "libxkbcommon-dev", "vulkan-tools",
                      "libgstreamer1.0-dev", "libgstreamer-plugins-base1.0-dev", "gstreamer1.0-plugins-base",
-                     "gstreamer1.0-gl", "libavformat-dev"])
+                     "gstreamer1.0-gl", "libavformat-dev"
+                     ])
+
+                print("** Clang Version")
+                subprocess.call(["/usr/lib/llvm-%s/bin/clang++" % llvm_ver, "--version"])
 
             elif os_release.get('NAME') == 'Fedora Linux':
 
@@ -1394,11 +1414,11 @@ def install_flutter_auto(folder, config, platform_):
                                  "gstreamer1-plugins-good", "gstreamer1-plugins-good-extras",
                                  "gstreamer1-plugins-ugly-free", "ffmpeg-devel", "cmake"])
 
+                print("** Clang Version")
+                subprocess.call(["clang++" % llvm_ver, "--version"])
+
             print("** CMake Version")
             subprocess.call(["cmake", "--version"])
-
-            print("** Clang Version")
-            subprocess.call(["clang++", "--version"])
 
         if 'github' == runtime.get('artifact_source'):
 
