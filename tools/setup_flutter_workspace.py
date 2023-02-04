@@ -462,9 +462,6 @@ def get_workspace_repos(base_folder, config):
             cmd = ['git', 'pull', '--all']
             subprocess.check_call(cmd, cwd=git_folder)
 
-        cmd = ['git', 'log', '-1']
-        subprocess.check_call(cmd, cwd=git_folder)
-
     #
     # Create vscode startup tasks
     #
@@ -757,9 +754,6 @@ def get_flutter_sdk(version):
         subprocess.check_call(cmd, cwd=flutter_sdk_path)
 
     print_banner("FLUTTER_SDK: %s" % flutter_sdk_path)
-
-    cmd = ['git', 'log', '-1']
-    subprocess.check_call(cmd, cwd=flutter_sdk_path)
 
     return flutter_sdk_path
 
@@ -1491,6 +1485,9 @@ def install_flutter_auto_github_artifact(token, owner, repo, workflow, github_ar
                     cmd = ["sudo", "apt", "install", "-y", "./%s" % deb_file]
                     subprocess.call(cmd)
 
+                    cmd = ["rm", "./%s" % deb_file]
+                    subprocess.call(cmd)
+
                 if os_release == 'Fedora Linux':
 
                     rpm_file = None
@@ -1508,6 +1505,8 @@ def install_flutter_auto_github_artifact(token, owner, repo, workflow, github_ar
                     cmd = ["sudo", "dnf", "install", "-y", "./%s" % rpm_file]
                     subprocess.call(cmd)
 
+                    cmd = ["rm", "./%s" % rpm_file]
+                    subprocess.call(cmd)
 
                 for f in files_to_remove:
                     cmd = ["rm", f]
