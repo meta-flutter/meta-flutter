@@ -140,7 +140,7 @@ jobs:
           #
           #
           #
-          echo 'LINUX_KERNEL_TYPE = "preempt-rt"' >> ./conf/local.conf
+          # echo 'LINUX_KERNEL_TYPE = "preempt-rt"' >> ./conf/local.conf
           echo 'CMDLINE_DEBUG = "quiet"' >> ./conf/local.conf
           echo 'GPU_MEM = "128"' >> ./conf/local.conf
           echo 'DISPMANX_OFFLINE = "1"' >> ./conf/local.conf
