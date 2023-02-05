@@ -60,7 +60,10 @@ jobs:
           rm -rf conf | true
           /home/dev/bin/repo init -u https://source.codeaurora.org/external/imx/imx-manifest -m imx-5.15.32-2.0.0.xml -b imx-linux-kirkstone
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo`
-          git clone --single-branch --branch kirkstone https://github.com/meta-flutter/meta-flutter-vm sources/meta-flutter-vm
+          git clone --single-branch --branch kirkstone https://github.com/meta-flutter/meta-flutter-vm sources/meta-flutter-vm &
+          git clone --single-branch --branch kirkstone https://git.yoctoproject.org/git/meta-security.git sources/meta-security &
+          git clone --single-branch --branch kirkstone https://git.yoctoproject.org/git/meta-selinux.git sources/meta-selinux &
+          wait
 
       - name: Configure build
         shell: bash
