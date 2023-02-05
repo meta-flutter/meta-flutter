@@ -146,7 +146,9 @@ jobs:
           echo '***************************************'
           bitbake-layers add-layer \
               ../../meta-flutter \
-              ../sources/meta-flutter-vm
+              ../sources/meta-flutter-vm \
+              ../sources/meta-security \
+              ../sources/meta-selinux
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
