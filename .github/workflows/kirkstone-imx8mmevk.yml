@@ -165,13 +165,14 @@ jobs:
         shell: bash
         working-directory: ../imx8mmevk-kirkstone
         run: |
-          DISTRO=${{ env.DISTRO }} MACHINE=${{ env.MACHINE }} source imx-setup-release.sh -b build-wayland
+          source setup-environment build-wayland
           IMAGE=${{ env.IMAGE }}
+          MACHINE=${{ env.MACHINE }}
           ARTIFACTS=/home/dev/artifacts
-          bitbake $IMAGE
+          bitbake ${IMAGE}
           rm -rf ${ARTIFACTS}/*
           cp bb.environment $ARTIFACTS
-          cp tmp/deploy/images/$MACHINE/${IMAGE}-${MACHINE}.wic.bz2 $ARTIFACTS
+          cp tmp/deploy/images/${MACHINE}/${IMAGE}-${MACHINE}.wic.bz2 $ARTIFACTS
 
       - name: Publish SD card image artifact
         uses: actions/upload-artifact@v3
