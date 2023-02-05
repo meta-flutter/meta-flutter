@@ -60,6 +60,7 @@ jobs:
           rm -rf conf | true
           /home/dev/bin/repo init -u https://source.codeaurora.org/external/imx/imx-manifest -m imx-5.15.32-2.0.0.xml -b imx-linux-kirkstone
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo`
+          git clone --single-branch --branch kirkstone https://github.com/meta-flutter/meta-flutter-vm sources/meta-flutter-vm
 
       - name: Configure build
         shell: bash
@@ -91,9 +92,8 @@ jobs:
           #
           # Baseline
           #
-          echo 'DISTRO_FEATURES:append = " systemd alsa wifi bluetooth usbhost"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:append = " systemd wifi bluetooth usbhost"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES:remove = "sysvinit x11 usbgadget ptest xen"' >> ./conf/local.conf
-          echo 'COMBINED_FEATURES += "alsa "' >> ./conf/local.conf
           echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
           #
           # Wayland
@@ -104,6 +104,26 @@ jobs:
           # Vulkan
           #
           echo 'DISTRO_FEATURES:remove = "vulkan"' >> conf/local.conf
+          #
+          # SELinux
+          #
+          echo 'DISTRO_FEATURES:append = " acl xattr pam selinux audit"' >> ./conf/local.conf
+          echo 'PREFERRED_PROVIDER_virtual/refpolicy = "refpolicy-mls"' >> ./conf/local.conf
+          #
+          # SECCOMP
+          #
+          echo 'DISTRO_FEATURES:append = " security seccomp"' >> ./conf/local.conf          
+          #
+          # Virtualization
+          #
+          echo 'DISTRO_FEATURES:append = " virtualization kvm"' >> ./conf/local.conf
+          echo 'RUST_PANIC_STRATEGY = "abort"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = "\
+              kvmtool dmidecode \
+              libvirt libvirt-libvirtd libvirt-virsh \
+              crosvm crosvm-direct crosvm-plugin \
+              firecracker jailer curl \
+              "' >> ./conf/local.conf
           #
           # Flutter
           #
@@ -121,8 +141,9 @@ jobs:
           echo '********** conf/local.conf **********'
           cat conf/local.conf
           echo '***************************************'
-          bitbake-layers show-layers
-          bitbake-layers add-layer ../../meta-flutter
+          bitbake-layers add-layer \
+              ../../meta-flutter \
+              ../sources/meta-flutter-vm
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
@@ -133,16 +154,6 @@ jobs:
           echo '***************************************'
           bitbake -e > bb.environment
           bitbake -c do_cleansstate flutter-sdk-native
-          bitbake -c do_cleansstate flutter-engine
-          bitbake -c do_cleansstate flutter-gallery
-          bitbake -c do_cleansstate flutter-test-texture-egl
-          bitbake -c do_cleansstate flutter-test-video-player
-          bitbake -c do_cleansstate flutter-test-localization
-          bitbake -c do_cleansstate membrane-example
-          bitbake -c do_cleansstate membrane-example-native
-          bitbake -c do_cleansstate flutter-test-membrane
-          bitbake -c do_cleansstate flutter-rust-bridge-example
-          bitbake -c do_cleansstate flutter-test-frb
 
       - name: Build imx-image-core
         shell: bash
