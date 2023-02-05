@@ -148,7 +148,9 @@ jobs:
               ../../meta-flutter \
               ../sources/meta-flutter-vm \
               ../sources/meta-security \
-              ../sources/meta-selinux
+              ../sources/meta-selinux \
+              ../sources/meta-openembedded/meta-perl \
+              ../sources/meta-openembedded/meta-networking
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
