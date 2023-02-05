@@ -65,7 +65,11 @@ jobs:
         shell: bash
         working-directory: ../imx8mmevk-kirkstone
         run: |
-          ACCEPT_FSL_EULA="1" DISTRO=fsl-imx-wayland MACHINE=imx8mmevk source imx-setup-release.sh -b build-wayland
+          rm -rf build-wayland/conf
+          mkdir -p build-wayland/conf
+          echo 'CONF_VERSION = "2"' > build-wayland/conf/local.conf
+          echo 'ACCEPT_FSL_EULA = "1"' >> build-wayland/conf/local.conf
+          DISTRO=fsl-imx-wayland MACHINE=imx8mmevk source imx-setup-release.sh -b build-wayland        
           echo '***************************************'
           echo 'INHERIT += "rm_work"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> conf/local.conf
