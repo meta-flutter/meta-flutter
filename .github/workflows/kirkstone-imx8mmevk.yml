@@ -165,10 +165,10 @@ jobs:
         shell: bash
         working-directory: ../imx8mmevk-kirkstone
         run: |
-          source setup-environment build-wayland
           IMAGE=${{ env.IMAGE }}
           MACHINE=${{ env.MACHINE }}
           ARTIFACTS=/home/dev/artifacts
+          DISTRO=${{ env.DISTRO }} MACHINE=${MACHINE} source setup-environment build-wayland
           bitbake ${IMAGE}
           rm -rf ${ARTIFACTS}/*
           cp bb.environment $ARTIFACTS
