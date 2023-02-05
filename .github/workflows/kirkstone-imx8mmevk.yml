@@ -71,34 +71,53 @@ jobs:
           echo 'ACCEPT_FSL_EULA = "1"' >> build-wayland/conf/local.conf
           DISTRO=fsl-imx-wayland MACHINE=imx8mmevk source imx-setup-release.sh -b build-wayland        
           echo '***************************************'
+          sed -i '/DL_DIR/d' ./conf/local.conf
+          #
           echo 'INHERIT += "rm_work"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> conf/local.conf
-          echo 'GLIBC_GENERATE_LOCALES:append = " en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> conf/local.conf
-          echo 'IMAGE_LINGUAS:append = " en-us en-gb es-us"' >> conf/local.conf
-          echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> conf/local.conf
-          echo 'DISTRO_FEATURES:remove = "vulkan"' >> conf/local.conf
-          echo 'PACKAGECONFIG:append:pn-flutter-engine = " desktop-embeddings profile debug"' >> conf/local.conf
-          echo 'PACKAGECONFIG:append:pn-flutter-auto = " gstreamer"' >> conf/local.conf
-          echo 'PACKAGECONFIG:append:pn-ffmpeg = " openssl"' >> ./conf/local.conf
+          #
+          # Localization
+          #
+          echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> ./conf/local.conf
+          echo 'ENABLE_BINARY_LOCALE_GENERATION = "1"' >> ./conf/local.conf
+          echo 'IMAGE_LINGUAS:append = " en-us en-gb es-us"' >> ./conf/local.conf
+          echo 'GLIBC_GENERATE_LOCALES:append = " en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL:append = "\
-              dart-sdk \
               tzdata-core \
               tzdata-americas \
+              "' >> ./conf/local.conf
+          #
+          # Baseline
+          #
+          echo 'DISTRO_FEATURES:append = " systemd alsa wifi bluetooth usbhost"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:remove = "sysvinit x11 usbgadget ptest xen"' >> ./conf/local.conf
+          echo 'COMBINED_FEATURES += "alsa "' >> ./conf/local.conf
+          echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
+          #
+          # Wayland
+          #
+          echo 'DISTRO_FEATURES:append = " opengl wayland pam"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:append:pn-weston = " remoting"' >> ./conf/local.conf
+          #
+          # Vulkan
+          #
+          echo 'DISTRO_FEATURES:remove = "vulkan"' >> conf/local.conf
+          #
+          # Flutter
+          #
+          echo 'PACKAGECONFIG:append:pn-flutter-engine = " profile debug"' >> conf/local.conf
+          echo 'IMAGE_INSTALL:append = "\
+              dart-sdk \
               flutter-auto \
               packagegroup-flutter-test-apps \
               flutter-pi \
-              gstreamer1.0 \
-              gstreamer1.0-libav \
-              gstreamer1.0-plugins-bad \
-              gstreamer1.0-plugins-base \
-              gstreamer1.0-plugins-good \
-              gstreamer1.0-plugins-ugly \
-              ffmpeg \
-              "' >> conf/local.conf
-          echo 'LICENSE_FLAGS_ACCEPTED += " commercial"' >> conf/local.conf
-          echo 'PACKAGECONFIG:append:pn-weston = " remoting"' >> conf/local.conf
+              "' >> ./conf/local.conf
+          #
+          # Kernel
+          #
+          echo 'LINUX_KERNEL_TYPE = "preempt-rt"' >> ./conf/local.conf
           echo '********** conf/local.conf **********'
           cat conf/local.conf
           echo '***************************************'
