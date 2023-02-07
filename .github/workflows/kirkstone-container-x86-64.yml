@@ -12,13 +12,13 @@ on:
 
 jobs:
 
-  dart-container-x86_64:
+  container-egl-x86_64:
 
     env:
       YOCTO_VERSION: 4.0
       YOCTO_BRANCH: kirkstone
       MACHINE: containerx86-64
-      IMAGE: app-container-image-flutter-auto
+      IMAGE: app-container-image-flutter-auto-egl
 
     runs-on: [self-hosted, linux]
 
@@ -72,7 +72,6 @@ jobs:
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
           echo 'MACHINE = "containerx86-64"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES:append = " virtualization systemd seccomp"' >> ./conf/local.conf
-          echo 'DISTRO_FEATURES:append = " wayland opengl"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES:remove = " vulkan"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-engine = " profile debug"' >> conf/local.conf
           echo '********** ./conf/local.conf **********'
@@ -91,7 +90,7 @@ jobs:
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
           echo '***************************************'
-          bitbake -e app-container-image-flutter-auto | grep "^DISTRO_FEATURES"
+          bitbake -e ${{ env.IMAGE }} | grep "^DISTRO_FEATURES"
           echo '***************************************'
           bitbake -e > bb.environment
           bitbake ca-certificates -c do_cleansstate
@@ -99,13 +98,122 @@ jobs:
           bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-engine -c do_cleansstate
 
-      - name: Build app-container-image-flutter-auto
+      - name: Build app-container-image-flutter-auto-egl
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
           . ./poky/oe-init-build-env
-          bitbake app-container-image-flutter-auto -c do_cleansstate
-          bitbake app-container-image-flutter-auto
+          bitbake ${{ env.IMAGE }} -c do_cleansstate
+          bitbake ${{ env.IMAGE }}
+          rm -rf /home/dev/artifacts/*
+          cp bb.environment /home/dev/artifacts
+          ls -la tmp/deploy/images/$MACHINE/
+          IMAGE=${{ env.IMAGE }}
+          ARTIFACTS=/home/dev/artifacts
+          cp tmp/deploy/images/${MACHINE}/${IMAGE}-${MACHINE}.tar.bz2 $ARTIFACTS
+          cp tmp/deploy/images/${MACHINE}/${IMAGE}-${MACHINE}.manifest $ARTIFACTS
+
+      - name: Publish SD card image artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.MACHINE }}-${{ env.IMAGE }}
+          path: |
+            /home/dev/artifacts/*
+
+  container-vulkan-x86_64:
+
+    env:
+      YOCTO_VERSION: 4.0
+      YOCTO_BRANCH: kirkstone
+      MACHINE: containerx86-64
+      IMAGE: app-container-image-flutter-auto-vulkan
+
+    runs-on: [self-hosted, linux]
+
+    container:
+      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      options:
+        --user 1018
+        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
+        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
+        -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/latest:/home/dev/sstate:Z
+        -v /mnt/raid10/github-ci/artifacts/yocto/kirkstone/latest:/home/dev/artifacts:Z
+
+    steps:
+
+      - name: Display UID Info
+        run: |
+          whoami
+          id -u
+
+      - name: Set Ownership
+        run: |
+          chown -R dev:dev $HOME .
+
+      - uses: actions/checkout@v3
+        with:
+          path: ''
+
+      - name: Fetch poky
+        run: |
+          [ -d ../yocto-kirkstone ] || mkdir -p ../yocto-kirkstone
+          cd ../yocto-kirkstone
+          pwd
+          ls -la
+          rm -rf poky meta-openembedded meta-clang
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/meta-virtualization &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-vulkan.git &
+          wait
+
+      - name: Configure build
+        shell: bash
+        working-directory: ../yocto-kirkstone
+        run: |
+          rm -rf build/conf
+          . ./poky/oe-init-build-env
+          echo '***************************************'
+          echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
+          echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
+          echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
+          echo 'MACHINE = "containerx86-64"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:append = " virtualization systemd seccomp"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:append:pn-flutter-engine = " profile debug"' >> conf/local.conf
+          echo '********** ./conf/local.conf **********'
+          cat ./conf/local.conf
+          echo '***************************************'
+          bitbake-layers show-layers
+          bitbake-layers add-layer \
+              ../meta-openembedded/meta-oe \
+              ../meta-openembedded/meta-python \
+              ../meta-openembedded/meta-networking \
+              ../meta-openembedded/meta-filesystems \
+              ../meta-clang \
+              ../meta-vulkan \
+              ../../meta-flutter
+          bitbake-layers show-layers
+          echo '***************************************'
+          bitbake -e virtual/kernel | grep "^PV"
+          bitbake -e virtual/kernel | grep "^PN"
+          echo '***************************************'
+          bitbake -e ${{ env.IMAGE }} | grep "^DISTRO_FEATURES"
+          echo '***************************************'
+          bitbake -e > bb.environment
+          bitbake ca-certificates -c do_cleansstate
+          bitbake ca-certificates-native -c do_cleansstate
+          bitbake flutter-sdk-native -c do_cleansstate
+          bitbake flutter-engine -c do_cleansstate
+
+      - name: Build app-container-image-flutter-auto-vulkan
+        shell: bash
+        working-directory: ../yocto-kirkstone
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake ${{ env.IMAGE }} -c do_cleansstate
+          bitbake ${{ env.IMAGE }}
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
           ls -la tmp/deploy/images/$MACHINE/

@@ -20,7 +20,7 @@ DEPENDS += "\
     "
 
 RDEPENDS:${PN} += "\
-    ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'vulkan-loader', '', d)} \
+    flutter-engine \
 "
 
 REQUIRED_DISTRO_FEATURES = "wayland opengl"

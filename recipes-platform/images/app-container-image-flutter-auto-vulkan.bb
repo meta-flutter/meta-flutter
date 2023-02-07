@@ -4,10 +4,13 @@ LIC_FILES_CHKSUM = "file://${COREBASE}/meta/COPYING.MIT;md5=3da9cfbcb788c80a0384
 
 require app-container-image.bb
 
-DISTRO_FEATURES:append = " wayland opengl systemd pam"
-DISTRO_FEATURES:remove = "x11"
+DISTRO_FEATURES:remove = " x11"
+DISTRO_FEATURES:append = " vulkan wayland opengl systemd pam"
 
 IMAGE_INSTALL += " \
+    \
+    swiftshader \
+    vulkan-tools \
     \
     flutter-auto-with-logging \
     \
