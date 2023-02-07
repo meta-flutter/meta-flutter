@@ -1387,7 +1387,7 @@ def install_flutter_auto(folder, config, platform_):
                     "sudo", "apt-get", "-y", "install", "libwayland-dev", "wayland-protocols", "mesa-common-dev",
                      "libegl1-mesa-dev", "libgles2-mesa-dev", "mesa-utils", "libxkbcommon-dev", "vulkan-tools",
                      "libgstreamer1.0-dev", "libgstreamer-plugins-base1.0-dev", "gstreamer1.0-plugins-base",
-                     "gstreamer1.0-gl", "libavformat-dev"
+                     "gstreamer1.0-gl", "libavformat-dev", "ninja-build"
                      ])
 
                 print("** Clang Version")
@@ -1406,10 +1406,10 @@ def install_flutter_auto(folder, config, platform_):
                                  "gstreamer1-plugins-bad-free-devel",
                                  "gstreamer1-plugins-bad-free-extras", "gstreamer1-plugins-base-tools",
                                  "gstreamer1-plugins-good", "gstreamer1-plugins-good-extras",
-                                 "gstreamer1-plugins-ugly-free", "ffmpeg-devel", "cmake"])
+                                 "gstreamer1-plugins-ugly-free", "cmake", "ninja-build"])
 
                 print("** Clang Version")
-                subprocess.call(["clang++" % llvm_ver, "--version"])
+                subprocess.call(["clang++", "--version"])
 
             print("** CMake Version")
             subprocess.call(["cmake", "--version"])
@@ -1503,9 +1503,6 @@ def install_flutter_auto_github_artifact(token, owner, repo, workflow, github_ar
                     subprocess.call(cmd)
 
                     cmd = ["sudo", "dnf", "install", "-y", "./%s" % rpm_file]
-                    subprocess.call(cmd)
-
-                    cmd = ["rm", "./%s" % rpm_file]
                     subprocess.call(cmd)
 
                 for f in files_to_remove:
