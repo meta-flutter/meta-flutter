@@ -13,6 +13,7 @@ IMAGE_LINGUAS = ""
 NO_RECOMMENDATIONS = "1"
 
 IMAGE_INSTALL = " \
+    mesa-megadriver \
     base-files \
     base-passwd \
     netbase \
