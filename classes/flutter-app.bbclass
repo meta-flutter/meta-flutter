@@ -185,7 +185,7 @@ do_compile() {
     ${FLUTTER_PREBUILD_CMD}
 
     # determine build type based on what flutter-engine installed
-    FLUTTER_RUNTIME_MODES="$(ls ${STAGING_DIR_TARGET}${datadir}/flutter/${FLUTTER_SDK_VERSION})"
+    FLUTTER_RUNTIME_MODES="$(basename -a $(dirname $(ls ${STAGING_DIR_TARGET}${datadir}/flutter/${FLUTTER_SDK_VERSION}/*/engine_sdk.zip)))"
 
     for FLUTTER_RUNTIME_MODE in $FLUTTER_RUNTIME_MODES; do
 
@@ -283,7 +283,7 @@ do_compile() {
 do_install() {
 
     # determine build type based on what flutter-engine installed
-    FLUTTER_RUNTIME_MODES="$(ls ${STAGING_DIR_TARGET}${datadir}/flutter/${FLUTTER_SDK_VERSION})"
+    FLUTTER_RUNTIME_MODES="$(basename -a $(dirname $(ls ${STAGING_DIR_TARGET}${datadir}/flutter/${FLUTTER_SDK_VERSION}/*/engine_sdk.zip)))"
 
     for FLUTTER_RUNTIME_MODE in $FLUTTER_RUNTIME_MODES; do
 
