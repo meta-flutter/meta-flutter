@@ -133,17 +133,9 @@ do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 
 do_compile() {
 
-    FLUTTER_RUNTIME_MODES="\
-        ${@d.getVarFlags("PACKAGECONFIG").get('debug')} \
-        ${@d.getVarFlags("PACKAGECONFIG").get('profile')} \
-        ${@d.getVarFlags("PACKAGECONFIG").get('release')} \
-        ${@d.getVarFlags("PACKAGECONFIG").get('jit_release')}"
+    FLUTTER_RUNTIME_MODES="$(echo "${PACKAGECONFIG_CONFARGS}" | grep -o -P -e '(?<=--runtime-mode )(\w+)')"
 
     for FLUTTER_RUNTIME_MODE in $FLUTTER_RUNTIME_MODES; do
-        if [ "${FLUTTER_RUNTIME_MODE}" = "--runtime-mode" ]; then
-            continue
-        fi
-
         BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${FLUTTER_RUNTIME_MODE}/g")"
 
         ./flutter/tools/gn ${GN_ARGS_LESS_RUNTIME_MODES} --runtime-mode $FLUTTER_RUNTIME_MODE
@@ -158,17 +150,9 @@ do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
 do_install() {
 
-    FLUTTER_RUNTIME_MODES="\
-        ${@d.getVarFlags("PACKAGECONFIG").get('debug')} \
-        ${@d.getVarFlags("PACKAGECONFIG").get('profile')} \
-        ${@d.getVarFlags("PACKAGECONFIG").get('release')} \
-        ${@d.getVarFlags("PACKAGECONFIG").get('jit_release')}"
+    FLUTTER_RUNTIME_MODES="$(echo "${PACKAGECONFIG_CONFARGS}" | grep -o -P -e '(?<=--runtime-mode )(\w+)')"
 
     for FLUTTER_RUNTIME_MODE in $FLUTTER_RUNTIME_MODES; do
-        if [ "${FLUTTER_RUNTIME_MODE}" = "--runtime-mode" ]; then
-            continue
-        fi
-
         BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${FLUTTER_RUNTIME_MODE}/g")"
 
         install -D -m 0644 ${S}/${BUILD_DIR}/so.unstripped/libflutter_engine.so \
