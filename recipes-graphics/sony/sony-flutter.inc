@@ -20,8 +20,7 @@ RDEPENDS:${PN} += "xkeyboard-config"
 
 REQUIRED_DISTRO_FEATURES += "opengl systemd"
 
-SRC_URI = "git://github.com/sony/flutter-embedded-linux.git;protocol=https;branch=master \
-           file://0001-path-updates.patch"
+SRC_URI = "git://github.com/sony/flutter-embedded-linux.git;protocol=https;branch=master"
 
 SRCREV = "${AUTOREV}"
 
