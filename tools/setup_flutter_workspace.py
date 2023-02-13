@@ -1366,28 +1366,36 @@ def install_flutter_auto(folder, config, platform_):
                 subprocess.call(["sudo", "add-apt-repository", "-y", "ppa:kisak/kisak-mesa"])
                 subprocess.call(["sudo", "apt", "update", "-y"])
                 subprocess.call([
-                    "sudo", "apt", "purge", "-y", "clang", "libunwind-dev", "clang-12", "lldb-12", "lld-12", "clangd-12", 
-                    "clang-tidy-12", "clang-format-12", "clang-tools-12", "llvm-12-dev", "lld-12", "lldb-12", 
-                    "llvm-12-tools", "libomp-12-dev", "libc++-12-dev", "libc++abi-12-dev", "libclang-common-12-dev",
-                    "libclang-12-dev", "libclang-cpp12-dev", "libunwind-12-dev"
+                    "sudo", "apt", "purge", "-y", "clang", "libunwind-dev", "clang-14", "lldb-14", "lld-14", "clangd-14",
+                    "clang-tidy-14", "clang-format-14", "clang-tools-14", "llvm-14-dev", "lld-14", "lldb-14",
+                    "llvm-14-tools", "libomp-14-dev", "libc++-14-dev", "libc++abi-14-dev", "libclang-common-14-dev",
+                    "libclang-14-dev", "libclang-cpp14-dev", "libunwind-14-dev"
                     ])
                 subprocess.call(["rm", "./llvm.sh"])
                 subprocess.call(["wget", "https://apt.llvm.org/llvm.sh"])
                 subprocess.call(["chmod", "+x", "./llvm.sh"])
-                subprocess.call(["sed", "-i", 's/add-apt-repository /add-apt-repository -y /g', "./llvm.sh"])
-                subprocess.call(["sudo", "./llvm.sh", "12"])
+                subprocess.call(["sed", "-i", 's/add-apt-repository "/add-apt-repository -y "/g', "./llvm.sh"])
+                subprocess.call(["sudo", "./llvm.sh", "14"])
                 subprocess.call(["rm", "./llvm.sh"])
                 subprocess.call([
-                    "sudo", "apt-get", "install", "-y", "clang-12", "lldb-12", "lld-12", "clangd-12", 
-                    "clang-tidy-12", "clang-format-12", "clang-tools-12", "llvm-12-dev", "lld-12", "lldb-12", 
-                    "llvm-12-tools", "libomp-12-dev", "libc++-12-dev", "libc++abi-12-dev", "libclang-common-12-dev",
-                    "libclang-12-dev", "libclang-cpp12-dev", "libunwind-12-dev"
+                    "sudo", "apt-get", "install", "-y", "clang-14", "lldb-14", "lld-14", "clangd-14",
+                    "clang-tidy-14", "clang-format-14", "clang-tools-14", "llvm-14-dev", "lld-14", "lldb-14",
+                    "llvm-14-tools", "libomp-14-dev", "libc++-14-dev", "libc++abi-14-dev", "libclang-common-14-dev",
+                    "libclang-14-dev", "libclang-cpp14-dev", "libunwind-14-dev"
                     ])
                 subprocess.call([
                     "sudo", "apt-get", "-y", "install", "libwayland-dev", "wayland-protocols", "mesa-common-dev",
                     "libegl1-mesa-dev", "libgles2-mesa-dev", "mesa-utils", "libxkbcommon-dev", "vulkan-tools",
-                    "libgstreamer1.0-dev", "libgstreamer-plugins-base1.0-dev", "gstreamer1.0-plugins-base",
-                    "gstreamer1.0-gl", "libavformat-dev", "ninja-build"
+                    "ninja-build"
+                    ])
+                subprocess.call([
+                    "sudo", "apt", "-y", "autoremove"
+                    ])
+                subprocess.call([
+                    "which", "clang"
+                    ])
+                subprocess.call([
+                    "clang", "--version"
                     ])
 
             elif os_release.get('NAME') == 'Fedora Linux':
