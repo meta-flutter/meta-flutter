@@ -24,4 +24,5 @@ IMAGE_INSTALL += " \
     binutils \
     strace \
     ldd \
+    gbdserver \
 "
