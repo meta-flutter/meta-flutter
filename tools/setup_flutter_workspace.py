@@ -1390,9 +1390,6 @@ def install_flutter_auto(folder, config, platform_):
                      "gstreamer1.0-gl", "libavformat-dev", "ninja-build"
                      ])
 
-                print("** Clang Version")
-                subprocess.call(["/usr/lib/llvm-%s/bin/clang++" % llvm_ver, "--version"])
-
             elif os_release.get('NAME') == 'Fedora Linux':
 
                 subprocess.call(["sudo", "dnf", "-y", "install", "wayland-devel", "wayland-protocols-devel",
@@ -1407,9 +1404,6 @@ def install_flutter_auto(folder, config, platform_):
                                  "gstreamer1-plugins-bad-free-extras", "gstreamer1-plugins-base-tools",
                                  "gstreamer1-plugins-good", "gstreamer1-plugins-good-extras",
                                  "gstreamer1-plugins-ugly-free", "cmake", "ninja-build"])
-
-                print("** Clang Version")
-                subprocess.call(["clang++", "--version"])
 
             print("** CMake Version")
             subprocess.call(["cmake", "--version"])
