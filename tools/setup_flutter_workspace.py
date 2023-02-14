@@ -1391,12 +1391,6 @@ def install_flutter_auto(folder, config, platform_):
                 subprocess.call([
                     "sudo", "apt", "-y", "autoremove"
                     ])
-                subprocess.call([
-                    "which", "clang"
-                    ])
-                subprocess.call([
-                    "clang", "--version"
-                    ])
 
             elif os_release.get('NAME') == 'Fedora Linux':
 
