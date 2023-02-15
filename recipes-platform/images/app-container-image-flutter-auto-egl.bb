@@ -11,7 +11,6 @@ IMAGE_INSTALL += " \
     \
     flutter-auto-with-logging \
     \
-    packagegroup-flutter-agl-apps \
     packagegroup-flutter-test-apps \
     \
     weston \
