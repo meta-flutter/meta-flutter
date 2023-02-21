@@ -103,8 +103,8 @@ jobs:
         working-directory: ../yocto-kirkstone
         run: |
           . ./poky/oe-init-build-env
-          bitbake app-container-image-flutter-auto -c do_cleansstate
-          bitbake app-container-image-flutter-auto
+          ${{ env.IMAGE }} -c do_cleansstate
+          bitbake ${{ env.IMAGE }}
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
           ls -la tmp/deploy/images/$MACHINE/
