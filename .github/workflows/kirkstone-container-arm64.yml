@@ -12,13 +12,13 @@ on:
 
 jobs:
 
-  dart-container-arm64:
+  container-egl-arm64:
 
     env:
       YOCTO_VERSION: 4.0
       YOCTO_BRANCH: kirkstone
       MACHINE: containerarm64
-      IMAGE: app-container-image-flutter-auto
+      IMAGE: app-container-image-flutter-auto-egl
 
     runs-on: [self-hosted, linux]
 
