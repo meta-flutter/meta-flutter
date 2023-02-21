@@ -90,7 +90,7 @@ jobs:
           bitbake -e virtual/kernel | grep "^PV"
           bitbake -e virtual/kernel | grep "^PN"
           echo '***************************************'
-          bitbake -e app-container-image-flutter-auto | grep "^DISTRO_FEATURES"
+          bitbake -e ${{ env.IMAGE }} | grep "^DISTRO_FEATURES"
           echo '***************************************'
           bitbake -e > bb.environment
           bitbake ca-certificates -c do_cleansstate
