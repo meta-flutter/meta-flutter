@@ -103,7 +103,7 @@ jobs:
         working-directory: ../yocto-kirkstone
         run: |
           . ./poky/oe-init-build-env
-          ${{ env.IMAGE }} -c do_cleansstate
+          bitbake ${{ env.IMAGE }} -c do_cleansstate
           bitbake ${{ env.IMAGE }}
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts
