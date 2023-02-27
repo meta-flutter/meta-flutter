@@ -33,6 +33,14 @@ class GN(FetchMethod):
     def urldata_init(self, ud, d):
         # syntax: gn://<URL>;name=<NAME>;destdir=<D>;proto=<PROTO>
         name = ud.parm.get("name", "src")
+        # URI "name=" is special, can't have path slashes, otherwise we
+        # risk parse errors with things like
+        # SRC_URI[src/flutter.sha256sum].
+        # So always prepend the checkout path with "src/" when not using
+        # the default.
+        if not name.startswith("src"):
+            name = os.path.join("src/", name)
+
         ud.destdir = "" if "destdir" not in ud.parm else ud.parm["destdir"]
         proto = "https" if "proto" not in ud.parm else ud.parm["proto"]
 
