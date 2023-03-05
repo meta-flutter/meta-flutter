@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2021-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "Compositor Surface Static Plugin - PBR"
 DESCRIPTION = "Compositor Surface PBR"
 AUTHOR = "joel.winarske@gmail.com"

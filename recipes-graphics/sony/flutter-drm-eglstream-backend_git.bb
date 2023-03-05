@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2021-2023 Joel Winarske. All rights reserved.
+#
+
 DESCRIPTION = "Flutter Embedder with EGLStream Backend."
 CVE_PRODUCT = "flutter-drm-eglstream"
 

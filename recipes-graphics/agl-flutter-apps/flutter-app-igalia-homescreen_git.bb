@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2021-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "Igalia Flutter Homescreen"
 DESCRIPTION = "A prototype home screen for automotive grade Linux."
 AUTHOR = "Igalia"

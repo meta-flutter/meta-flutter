@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2021-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "Dart SDK"
 DESCRIPTION = "The Dart SDK, including the VM, dart2js, core libraries, and more."
 AUTHOR = "Dart Team"

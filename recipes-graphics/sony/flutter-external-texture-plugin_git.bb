@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2021-2023 Joel Winarske. All rights reserved.
+#
+
 DESCRIPTION = "Flutter Embedder with external texture plugin."
 CVE_PRODUCT = "libexternal_texture_test_plugin.so"
 

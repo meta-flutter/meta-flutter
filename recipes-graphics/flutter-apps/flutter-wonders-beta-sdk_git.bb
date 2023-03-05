@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2021-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "Wonderous Showcase"
 DESCRIPTION = "A showcase app for the Flutter SDK.  Wonderous will \
                educate and entertain as you uncover information \

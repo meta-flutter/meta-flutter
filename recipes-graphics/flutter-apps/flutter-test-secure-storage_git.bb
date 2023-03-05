@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2021-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "Flutter Secure Storage Example"
 DESCRIPTION = "Flutter Secure Storage Example"
 AUTHOR = "mogol"

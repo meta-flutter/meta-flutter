@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2021-2023 Joel Winarske. All rights reserved.
+#
+
 DESCRIPTION = "Flutter Embedder with X11 Backend."
 CVE_PRODUCT = "flutter-x11-client"
 

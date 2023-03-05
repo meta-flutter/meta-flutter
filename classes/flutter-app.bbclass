@@ -1,3 +1,6 @@
+#
+# Copyright (c) 2021-2023 Joel Winarske. All rights reserved.
+#
 # Helper class for building Flutter Application.
 # Assumes that:
 # - Flutter Application does not have a linux folder.  If it does it 

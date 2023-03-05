@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2021-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "Membrane Example shared module"
 HOMEPAGE = "https://github.com/jerel/membrane"
 LICENSE = "Apache-2.0"

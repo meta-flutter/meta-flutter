@@ -1,5 +1,5 @@
 # Copyright 2013 The Flutter Authors. All rights reserved.
-# Copyright 2021 Joel Winarske. All rights reserved.
+# Copyright (c) 2021-2023 Joel Winarske. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 

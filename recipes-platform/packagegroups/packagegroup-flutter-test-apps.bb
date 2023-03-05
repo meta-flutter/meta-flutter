@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2021-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "Package of Flutter Test Apps"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"

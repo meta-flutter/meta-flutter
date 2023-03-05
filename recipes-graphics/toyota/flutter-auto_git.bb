@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2021-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "Flutter Auto"
 DESCRIPTION = "Toyota's Flutter Auto that communicates with AGL-compositor/Wayland compositors"
 AUTHOR = "joel.winarske@toyotaconnected.com"

@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2021-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "Toyota IVI Homescreen"
 DESCRIPTION = "Toyota's Flutter Embedder that communicates with AGL-compositor/Wayland compositors \
                Quarterly Release"
