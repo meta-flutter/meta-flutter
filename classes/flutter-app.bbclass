@@ -80,9 +80,10 @@ python do_archive_pub_cache() {
 
     pub_cache_cmd = \
         'export PUB_CACHE=%s; ' \
+        'export XDG_CONFIG_HOME=%s;' \
         '%s/bin/flutter pub get;' \
         '%s/bin/flutter pub get --offline' % \
-        (pub_cache, flutter_sdk, flutter_sdk)
+        (pub_cache, workdir, flutter_sdk, flutter_sdk)
 
     bb.note("Running %s in %s" % (pub_cache_cmd, app_root))
     runfetchcmd('%s' % (pub_cache_cmd), d, quiet=False, workdir=app_root)
