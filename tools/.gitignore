@@ -1,0 +1,11 @@
+.agl/*
+.config/*
+.flutter-auto/*
+.pub_cache/*
+.tmp/*
+.vscode/*
+app/*
+flutter
+setup_env.sh
+flutter_*.log
+qemu_run.scpt
