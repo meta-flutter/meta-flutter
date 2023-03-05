@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2021-2023 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
 #
 
 SUMMARY = "Membrane Example shared module"

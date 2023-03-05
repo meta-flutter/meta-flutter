@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2021-2023 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
 #
 
 SUMMARY = "Flutter makes it easy and fast to build beautiful apps for mobile and beyond."

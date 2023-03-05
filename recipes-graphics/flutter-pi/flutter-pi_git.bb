@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2021-2023 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
 #
 
 SUMMARY = "A light-weight Flutter Engine Embedder for Raspberry Pi that runs without X."
