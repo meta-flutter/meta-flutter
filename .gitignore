@@ -2,15 +2,3 @@
 
 __pycache__
 .pyc
-
-tools/.agl
-tools/.config
-tools/.flutter-auto
-tools/.pub_cache
-tools/.tmp
-tools/.vscode
-tools/setup_env.sh
-tools/flutter
-tools/app
-tools/flutter_*.log
-tools/qemu_run.scpt
