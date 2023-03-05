@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "Flutter Plugin Test Application"
 DESCRIPTION = "Flutter Plugin Test Application"
 AUTHOR = "Joel Winarske"

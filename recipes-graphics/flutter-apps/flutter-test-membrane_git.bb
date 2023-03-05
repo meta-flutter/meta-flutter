@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "Flutter Membrane Test"
 DESCRIPTION = "Flutter Membrane Test"
 AUTHOR = "Jerel Unruh"

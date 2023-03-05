@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "Localization Test Application"
 DESCRIPTION = "Localization Test Application"
 AUTHOR = "Lakshydeep Vikram"

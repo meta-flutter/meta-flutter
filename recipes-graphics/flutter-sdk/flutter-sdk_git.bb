@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "Flutter makes it easy and fast to build beautiful apps for mobile and beyond."
 DESCRIPTION = "Flutter is Google's SDK for crafting beautiful, fast user experiences for \
                mobile, web, and desktop from a single codebase. Flutter works with \

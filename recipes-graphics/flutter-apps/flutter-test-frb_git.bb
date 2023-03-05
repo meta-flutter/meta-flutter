@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "Flutter Rust Bridge Flutter App Example"
 DESCRIPTION = "Flutter Rust Bridge Test"
 AUTHOR = "fzyzcjy"

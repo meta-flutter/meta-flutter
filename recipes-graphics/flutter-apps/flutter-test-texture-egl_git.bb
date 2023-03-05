@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "ivi-homescreen EGL Texture Test Application"
 DESCRIPTION = "ivi-homescreen EGL Texture Test Application"
 AUTHOR = "Joel Winarske"

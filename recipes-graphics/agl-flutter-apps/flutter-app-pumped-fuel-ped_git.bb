@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "Pumped End Device"
 DESCRIPTION = "Pumped is a combination of 3 core projects to connect \
                vehicle drivers with retail merchants, initially starting \

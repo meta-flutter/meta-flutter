@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "Flutter Engine"
 DESCRIPTION = "Google Flutter Engine for use with Flutter applications"
 AUTHOR = "Flutter Team"
@@ -16,12 +20,12 @@ DEPENDS += "\
     zip-native \
     "
 
-SRC_URI = "gn://github.com/flutter/engine.git;name=flutter \
-           file://0001-clang-toolchain.patch \
-           file://0002-x64-sysroot-assert.patch \
-           file://0001-remove-x11-dependency.patch \
-           file://0001-prevent-redefinition-of-glib_autoptr_clear_AtkObject.patch \
-           "
+SRC_URI = "\
+    gn://github.com/flutter/engine.git;name=flutter \
+    file://0001-clang-toolchain.patch \
+    file://0001-disable-pre-canned-sysroot.patch \
+    file://0001-remove-x11-dependency.patch \
+    "
 
 S = "${WORKDIR}/src"
 
@@ -53,12 +57,14 @@ COMPATIBLE_MACHINE:armv7ve = "(.*)"
 COMPATIBLE_MACHINE:x86 = "(.*)"
 COMPATIBLE_MACHINE:x86-64 = "(.*)"
 
-PACKAGECONFIG ??= "release \
-                   embedder-for-target \
-                   prebuilt-dart-sdk \
-                   fontconfig \
-                   ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'vulkan', '', d)} \
-                  "
+PACKAGECONFIG ??= "\
+    debug release profile \
+    desktop-embeddings \
+    embedder-for-target \
+    fontconfig \
+    mallinfo2 \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'vulkan', '', d)} \
+    "
 
 PACKAGECONFIG[asan] = "--asan"
 PACKAGECONFIG[coverage] = "--coverage"
@@ -72,8 +78,10 @@ PACKAGECONFIG[full-dart-debug] = "--full-dart-debug"
 PACKAGECONFIG[full-dart-sdk] = "--full-dart-sdk"
 PACKAGECONFIG[glfw-shell] = "--build-glfw-shell,--no-build-glfw-shell, glfw"
 PACKAGECONFIG[interpreter] = "--interpreter"
+PACKAGECONFIG[impeller-playground] = "--enable-impeller-playground"
 PACKAGECONFIG[jit_release] = "--runtime-mode jit_release"
 PACKAGECONFIG[lsan] = "--lsan"
+PACKAGECONFIG[mallinfo2] = "--use-mallinfo2"
 PACKAGECONFIG[msan] = "--msan"
 PACKAGECONFIG[prebuilt-dart-sdk] = "--prebuilt-dart-sdk,--no-prebuilt-dart-sdk"
 PACKAGECONFIG[profile] = "--runtime-mode profile"
@@ -81,8 +89,10 @@ PACKAGECONFIG[release] = "--runtime-mode release"
 PACKAGECONFIG[skshaper] = "--enable-skshaper"
 PACKAGECONFIG[static-analyzer] = "--clang-static-analyzer"
 PACKAGECONFIG[tsan] = "--tsan"
+PACKAGECONFIG[trace-gn] = "--trace-gn"
 PACKAGECONFIG[ubsan] = "--ubsan"
 PACKAGECONFIG[unoptimized] = "--unoptimized"
+PACKAGECONFIG[verbose] = "--verbose"
 PACKAGECONFIG[vulkan] = "--enable-vulkan"
 PACKAGECONFIG[vulkan-validation-layers] = "--enable-vulkan-validation-layers"
 
@@ -90,13 +100,15 @@ PACKAGECONFIG[vulkan-validation-layers] = "--enable-vulkan-validation-layers"
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
 CLANG_PATH = "${WORKDIR}/src/buildtools/linux-x64/clang"
 
-
-GN_ARGS = "${PACKAGECONFIG_CONFARGS} --clang --lto --no-goma --no-stripped "
-GN_ARGS:append = " --target-os linux"
-GN_ARGS:append = " --linux-cpu ${@gn_target_arch_name(d)}"
-GN_ARGS:append = " --target-sysroot ${STAGING_DIR_TARGET}"
-GN_ARGS:append = " --target-toolchain ${CLANG_PATH}"
-GN_ARGS:append = " --target-triple ${CLANG_TOOLCHAIN_TRIPLE}"
+GN_ARGS = '\
+    ${PACKAGECONFIG_CONFARGS} \
+    --clang --lto --no-goma --no-stripped \
+    --target-os linux \
+    --linux-cpu ${@gn_target_arch_name(d)} \
+    --target-sysroot ${STAGING_DIR_TARGET} \
+    --target-toolchain ${CLANG_PATH} \
+    --target-triple ${@gn_clang_triple_prefix(d)} \
+'
 
 GN_ARGS:append:armv7 = " --arm-float-abi ${TARGET_FPU}"
 GN_ARGS:append:armv7a = " --arm-float-abi ${TARGET_FPU}"
@@ -113,36 +125,11 @@ TMP_OUT_DIR="${@get_gn_tmp_out_dir(d)}"
 GN_ARGS_LESS_RUNTIME_MODES="${@get_gn_args_less_runtime(d)}"
 
 
-do_unpack[network] = "1"
-do_patch[network] = "1"
-
-do_configure() {
-
-    cd ${S}
-
-    rm -rf fuchsia || true
-
-    # required object files for linking
-    CLANG_VERSION=`ls ${CLANG_PATH}/lib/clang`
-    CLANG_LIB_TARGET_PATH=${CLANG_PATH}/lib/clang/${CLANG_VERSION}/lib/${CLANG_TOOLCHAIN_TRIPLE}
-    mkdir -p ${CLANG_LIB_TARGET_PATH}
-    cp ${STAGING_LIBDIR}/${TARGET_SYS}/*/crtbeginS.o ${CLANG_LIB_TARGET_PATH}/
-    cp ${STAGING_LIBDIR}/${TARGET_SYS}/*/crtendS.o ${CLANG_LIB_TARGET_PATH}/
-}
-do_configure[depends] += "depot-tools-native:do_populate_sysroot"
-
 do_compile() {
 
-    FLUTTER_RUNTIME_MODES="\
-        ${@d.getVarFlags("PACKAGECONFIG").get('debug')} \
-        ${@d.getVarFlags("PACKAGECONFIG").get('profile')} \
-        ${@d.getVarFlags("PACKAGECONFIG").get('release')} \
-        ${@d.getVarFlags("PACKAGECONFIG").get('jit_release')}"
+    FLUTTER_RUNTIME_MODES="${@bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d)}"
 
     for FLUTTER_RUNTIME_MODE in $FLUTTER_RUNTIME_MODES; do
-        if [ "${FLUTTER_RUNTIME_MODE}" = "--runtime-mode" ]; then
-            continue
-        fi
 
         BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${FLUTTER_RUNTIME_MODE}/g")"
 
@@ -158,16 +145,9 @@ do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
 do_install() {
 
-    FLUTTER_RUNTIME_MODES="\
-        ${@d.getVarFlags("PACKAGECONFIG").get('debug')} \
-        ${@d.getVarFlags("PACKAGECONFIG").get('profile')} \
-        ${@d.getVarFlags("PACKAGECONFIG").get('release')} \
-        ${@d.getVarFlags("PACKAGECONFIG").get('jit_release')}"
+    FLUTTER_RUNTIME_MODES="${@bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d)}"
 
     for FLUTTER_RUNTIME_MODE in $FLUTTER_RUNTIME_MODES; do
-        if [ "${FLUTTER_RUNTIME_MODE}" = "--runtime-mode" ]; then
-            continue
-        fi
 
         BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${FLUTTER_RUNTIME_MODE}/g")"
 

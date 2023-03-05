@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "Embedded Linux embedding for Flutter"
 AUTHOR = "Sony Group Corporation"
 HOMEPAGE = "https://github.com/sony/flutter-embedded-linux"

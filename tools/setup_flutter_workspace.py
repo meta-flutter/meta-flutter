@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
 #
+# Copyright (c) 2022-2023 Joel Winarske. All rights reserved.
+# Copyright (c) 2023 Toyota Connected North America. All rights reserved.
+#
+#
 # Script that creates a Flutter Workspace
 #
 # Creates flutter workspace:

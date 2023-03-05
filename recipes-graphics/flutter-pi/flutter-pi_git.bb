@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "A light-weight Flutter Engine Embedder for Raspberry Pi that runs without X."
 DESCRIPTION = "A light-weight Flutter Engine Embedder for Raspberry Pi. Inspired by \
                https://github.com/chinmaygarde/flutter_from_scratch. Flutter-pi also \

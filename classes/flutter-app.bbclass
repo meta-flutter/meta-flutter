@@ -1,3 +1,6 @@
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
 # Helper class for building Flutter Application.
 # Assumes that:
 # - Flutter Application does not have a linux folder.  If it does it 
@@ -26,6 +29,7 @@ PREFERRED_PROVIDER_libgcc = "compiler-rt"
 FLUTTER_PREBUILD_CMD ??= ""
 FLUTTER_APPLICATION_PATH ??= "."
 FLUTTER_BUILD_ARGS ??= "bundle -v"
+APP_AOT_EXTRA_DART_DEFINES ??= ""
 FLUTTER_APPLICATION_INSTALL_PREFIX ??= ""
 FLUTTER_INSTALL_DIR = "${datadir}${FLUTTER_APPLICATION_INSTALL_PREFIX}/${PUBSPEC_APPNAME}"
 
@@ -185,7 +189,7 @@ do_compile() {
 
     ${FLUTTER_PREBUILD_CMD}
 
-    # determine build type based on what flutter-engine installed
+    # determine build type based on what flutter-engine installed.
     FLUTTER_RUNTIME_MODES="$(ls ${STAGING_DIR_TARGET}${datadir}/flutter/${FLUTTER_SDK_VERSION})"
 
     for FLUTTER_RUNTIME_MODE in $FLUTTER_RUNTIME_MODES; do
@@ -238,6 +242,7 @@ do_compile() {
                 --no-print-incremental-dependencies \
                 -Ddart.vm.profile=${FLUTTER_APP_VM_PROFILE} \
                 -Ddart.vm.product=${FLUTTER_APP_VM_PRODUCT} \
+                ${APP_AOT_EXTRA_DART_DEFINES} \
                 ${FLUTTER_APP_DEBUG_FLAGS} ${FLUTTER_APP_PROFILE_FLAGS} --aot --tfa \
                 --packages .dart_tool/package_config.json \
                 ${FLUTTER_APP_APP_DILL} \

@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
+
 DESCRIPTION = "Flutter Embedder with DRM GBM Backend."
 CVE_PRODUCT = "flutter-drm-gbm-backend"
 

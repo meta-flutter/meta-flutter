@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "Setup dev user"
 DESCRIPTION = "Defines user for container usage that is not root (uid=0)"
 SECTION = "devtools"

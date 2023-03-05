@@ -4,7 +4,8 @@ BitBake 'Fetch' implementations
 This fetcher is created for gclient.
 The main target is flutter-engine, so for other gclient projects, this fetcher might not work.
 
-Copyright (c) 2021-2022 Woven Alpha, Inc
+Copyright (c) 2020-2022 Woven Alpha, Inc
+Copyright (c) 2023 Joel Winarske. All rights reserved.
 """
 
 import os

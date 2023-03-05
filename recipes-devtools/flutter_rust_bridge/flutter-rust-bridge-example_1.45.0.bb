@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "flutter_rust_bridge_example"
 HOMEPAGE = "https://github.com/fzyzcjy/flutter_rust_bridge"
 LICENSE = "MIT"

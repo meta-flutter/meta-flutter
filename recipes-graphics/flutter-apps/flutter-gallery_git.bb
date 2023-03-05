@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "Flutter Gallery Application"
 DESCRIPTION = "Flutter Gallery Application"
 AUTHOR = "Google"
