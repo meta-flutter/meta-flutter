@@ -20,12 +20,16 @@ DEPENDS += "\
     zip-native \
     "
 
-SRC_URI = "\
-    gn://github.com/flutter/engine.git;name=flutter \
+FLUTTER_ENGINE_PATCHES ?= "\
     file://0001-clang-toolchain.patch \
     file://0001-disable-pre-canned-sysroot.patch \
     file://0001-remove-x11-dependency.patch \
     file://0001-Disable-x11.patch \
+    "
+
+SRC_URI = "\
+    gn://github.com/flutter/engine.git;name=flutter \
+    ${FLUTTER_ENGINE_PATCHES} \
     "
 
 S = "${WORKDIR}/src"
