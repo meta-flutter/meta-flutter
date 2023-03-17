@@ -144,6 +144,12 @@ Then run:
 
     bitbake <image name> -c populate_sdk
 
+
+Note: when using SDK you may need to add the following after installation:
+
+    $ export SDK_ROOT=<install folder>/sysroots/x86_64-nodistrosdk-linux/usr/share/flutter/sdk
+    $ git config --global --add safe.directory $SDK_ROOT
+
 ## General Yocto Notes
 
 When building on systems with GCC version > than uninative in Yocto distro add the following to conf/local.conf
