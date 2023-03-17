@@ -136,12 +136,11 @@ class GN(FetchMethod):
         if path:
             cmd = "PATH=\"%s\" %s" % (path, cmd)
         bb.note("Unpacking %s to %s" % (file, unpackdir))
-        ret = subprocess.call(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir)
-
-        if ret != 0:
-            raise UnpackError("Unpack command %s failed with return value %s" % (cmd, ret), ud.url)
-
-        return
+        try:
+            subprocess.check_output(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir, 
+                                    stderr=subprocess.STDOUT, universal_newlines=True)
+        except subprocess.CalledProcessError as e:
+            raise UnpackError("Unpack command %s failed with return value %s\n%s" % (cmd, e.returncode), ud.url, e.stdout)
 
 
     def clean(self, ud, d):
