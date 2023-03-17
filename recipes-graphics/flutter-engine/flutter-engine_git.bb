@@ -25,6 +25,7 @@ SRC_URI = "\
     file://0001-clang-toolchain.patch \
     file://0001-disable-pre-canned-sysroot.patch \
     file://0001-remove-x11-dependency.patch \
+    file://0001-Disable-x11.patch \
     "
 
 S = "${WORKDIR}/src"
@@ -59,7 +60,6 @@ COMPATIBLE_MACHINE:x86-64 = "(.*)"
 
 PACKAGECONFIG ??= "\
     debug release profile \
-    desktop-embeddings \
     embedder-for-target \
     fontconfig \
     mallinfo2 \
@@ -93,8 +93,7 @@ PACKAGECONFIG[trace-gn] = "--trace-gn"
 PACKAGECONFIG[ubsan] = "--ubsan"
 PACKAGECONFIG[unoptimized] = "--unoptimized"
 PACKAGECONFIG[verbose] = "--verbose"
-PACKAGECONFIG[vulkan] = "--enable-vulkan"
-PACKAGECONFIG[vulkan-validation-layers] = "--enable-vulkan-validation-layers"
+PACKAGECONFIG[vulkan] = "--enable-vulkan,, wayland"
 
 
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
