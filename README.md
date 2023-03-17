@@ -19,6 +19,16 @@ Yocto Layer for Google Flutter related projects.
 
 _Updates_:
 
+March 17, 2023
+* FLUTTER_APP_RUNTIME_MODES - allows setting runtime mode per app.  Deprecates use of FLUTTER_APP_SKIP_DEBUG_INSTALL.
+* APP_AOT_EXTRA_DART_DEFINES - allows setting Dart defines for AOT builds
+* Local version patch override. allows overriding patch set applied.  Could also be in bbappend.
+
+March 5, 2023
+* 3.7.6 support introduced
+* Toyota OSS 0223
+* local resolution of Flutter SDK and Engine Versions - LTS
+
 Dec 26, 2022
 
 * dart-sdk added - building/linking with the Yocto Clang toolchain.

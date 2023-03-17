@@ -42,7 +42,7 @@ PUB_CACHE_ARCHIVE = "flutter-pub-cache-${PUBSPEC_APPNAME}-${SRCREV}.tar.bz2"
 
 FLUTTER_SDK = "${STAGING_DIR_NATIVE}/usr/share/flutter/sdk"
 
-FLUTTER_APP_SKIP_DEBUG_INSTALL ??= "true"
+FLUTTER_APP_RUNTIME_MODES ?= "release"
 
 
 python () {
@@ -194,6 +194,11 @@ do_compile() {
 
     for FLUTTER_RUNTIME_MODE in $FLUTTER_RUNTIME_MODES; do
 
+        if [[ "${FLUTTER_APP_RUNTIME_MODES}" != *"$FLUTTER_RUNTIME_MODE"* ]]; then
+            bbnote "Skipping build for: ${FLUTTER_RUNTIME_MODE}"
+            continue
+        fi
+
         bbnote "[${FLUTTER_RUNTIME_MODE}] flutter build ${FLUTTER_BUILD_ARGS}: Starting"
 
         rm -rf build || true
@@ -286,6 +291,7 @@ do_compile() {
     done
 }
 
+
 do_install() {
 
     # determine build type based on what flutter-engine installed
@@ -293,7 +299,8 @@ do_install() {
 
     for FLUTTER_RUNTIME_MODE in $FLUTTER_RUNTIME_MODES; do
 
-        if [ "${FLUTTER_RUNTIME_MODE}" = "debug" ] && [ "${FLUTTER_APP_SKIP_DEBUG_INSTALL}" = "true" ]; then
+        if [[ "${FLUTTER_APP_RUNTIME_MODES}" != *"$FLUTTER_RUNTIME_MODE"* ]]; then
+            bbnote "Skipping install for: ${FLUTTER_RUNTIME_MODE}"
             continue
         fi
 
