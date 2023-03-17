@@ -20,6 +20,7 @@ Yocto Layer for Google Flutter related projects.
 _Updates_:
 
 March 17, 2023
+* APP_GEN_SNAPSHOT_FLAGS - allows setting gen_snapshot flags like `--no-use-integer-division`
 * FLUTTER_APP_RUNTIME_MODES - allows setting runtime mode per app.  Deprecates use of FLUTTER_APP_SKIP_DEBUG_INSTALL.
 * APP_AOT_EXTRA_DART_DEFINES - allows setting Dart defines for AOT builds
 * Local version patch override. allows overriding patch set applied.  Could also be in bbappend.

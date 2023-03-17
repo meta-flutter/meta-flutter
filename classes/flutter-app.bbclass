@@ -32,6 +32,7 @@ FLUTTER_BUILD_ARGS ??= "bundle -v"
 APP_AOT_EXTRA_DART_DEFINES ??= ""
 FLUTTER_APPLICATION_INSTALL_PREFIX ??= ""
 FLUTTER_INSTALL_DIR = "${datadir}${FLUTTER_APPLICATION_INSTALL_PREFIX}/${PUBSPEC_APPNAME}"
+APP_GEN_SNAPSHOT_FLAGS ??= ""
 
 FLUTTER_APP_DISABLE_NATIVE_PLUGINS ??= ""
 
@@ -279,6 +280,7 @@ do_compile() {
             #
             ${S}/engine_sdk/sdk/clang_x64/gen_snapshot \
                 --deterministic \
+                ${APP_GEN_SNAPSHOT_FLAGS} \
                 --snapshot_kind=app-aot-elf \
                 --elf=libapp.so \
                 --strip \
