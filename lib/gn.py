@@ -140,7 +140,7 @@ class GN(FetchMethod):
             subprocess.check_output(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir, 
                                     stderr=subprocess.STDOUT, universal_newlines=True)
         except subprocess.CalledProcessError as e:
-            raise UnpackError("Unpack command %s failed with return value %s\n%s" % (cmd, e.returncode), ud.url, e.stdout)
+            raise UnpackError("Unpack command %s failed with return value %s\n%s" % (cmd, e.returncode, e.stdout), ud.url)
 
 
     def clean(self, ud, d):
