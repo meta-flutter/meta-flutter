@@ -64,7 +64,7 @@ COMPATIBLE_MACHINE:x86 = "(.*)"
 COMPATIBLE_MACHINE:x86-64 = "(.*)"
 
 PACKAGECONFIG ??= "\
-    debug release profile \
+    debug profile release \
     embedder-for-target \
     fontconfig \
     mallinfo2 \
@@ -135,6 +135,7 @@ GN_ARGS_LESS_RUNTIME_MODES="${@get_gn_args_less_runtime(d)}"
 do_compile() {
 
     FLUTTER_RUNTIME_MODES="${@bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d)}"
+    bbnote "FLUTTER_RUNTIME_MODES=${FLUTTER_RUNTIME_MODES}"
 
     for MODE in $FLUTTER_RUNTIME_MODES; do
 
@@ -160,47 +161,49 @@ do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 do_install() {
 
     FLUTTER_RUNTIME_MODES="${@bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d)}"
+    bbnote "FLUTTER_RUNTIME_MODES=${FLUTTER_RUNTIME_MODES}"
 
-    for FLUTTER_RUNTIME_MODE in $FLUTTER_RUNTIME_MODES; do
+    for MODE in $FLUTTER_RUNTIME_MODES; do
 
-        BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${FLUTTER_RUNTIME_MODE}/g")"
+        BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${MODE}/g")"
 
         install -D -m 0644 ${S}/${BUILD_DIR}/so.unstripped/libflutter_engine.so \
-            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/lib/libflutter_engine.so
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/lib/libflutter_engine.so
 
         if ${@bb.utils.contains('PACKAGECONFIG', 'desktop-embeddings', 'true', 'false', d)}; then
             install -D -m 0644 ${S}/${BUILD_DIR}/so.unstripped/libflutter_linux_gtk.so \
-                ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/lib/libflutter_linux_gtk.so
+                ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/lib/libflutter_linux_gtk.so
         fi
 
         install -D -m 0644 ${S}/${BUILD_DIR}/flutter_embedder.h ${D}${includedir}/flutter_embedder.h
 
         install -D -m 0644 ${S}/${BUILD_DIR}/icudtl.dat \
-            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/data/icudtl.dat
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/data/icudtl.dat
 
         # create SDK
         install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/analyze_snapshot \
-            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/sdk/clang_x64/analyze_snapshot
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/analyze_snapshot
         install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/blobcat \
-            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/sdk/clang_x64/blobcat
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/blobcat
         install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/dart \
-            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/sdk/clang_x64/dart
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/dart
         install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/flatc \
-            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/sdk/clang_x64/flatc
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/flatc
         install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/gen_snapshot \
-            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/sdk/clang_x64/gen_snapshot
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/gen_snapshot
         install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/impellerc \
-            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/sdk/clang_x64/impellerc
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/impellerc
 
         cd ${S}/flutter
-        echo $SRCREV                   > ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/sdk/engine.version
-        echo $FLUTTER_ENGINE_REPO_URL >> ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/sdk/engine.version
-        echo $FLUTTER_SDK_VERSION     >> ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/sdk/flutter_sdk.version
-        echo $RUNTIME_MODE            >> ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/sdk/flutter.runtime
+        echo $SRCREV                   > ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/engine.version
+        echo $FLUTTER_ENGINE_REPO_URL >> ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/engine.version
+        echo $FLUTTER_SDK_VERSION     >> ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/flutter_sdk.version
+        echo $RUNTIME_MODE            >> ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/flutter.runtime
 
-        cd ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/
+        cd ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/
         zip -r engine_sdk.zip sdk
         rm -rf sdk
+
     done
 }
 do_install[network] = "1"
