@@ -6,7 +6,7 @@
 			"type": "host",
 			"flutter_runtime": "debug",
 			"runtime": {
-				"backend": "vulkan",
+				"backend": "egl",
 				"config": {
 					"width": 1920,
 					"height": 1080,
