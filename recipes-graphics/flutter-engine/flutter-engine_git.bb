@@ -25,6 +25,7 @@ FLUTTER_ENGINE_PATCHES ?= "\
     file://0001-disable-pre-canned-sysroot.patch \
     file://0001-remove-x11-dependency.patch \
     file://0001-Disable-x11.patch \
+    file://0001-remove-angle.patch \
     "
 
 SRC_URI = "\
@@ -67,7 +68,8 @@ PACKAGECONFIG ??= "\
     embedder-for-target \
     fontconfig \
     mallinfo2 \
-    ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'vulkan', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'vulkan impeller-vulkan', '', d)} \
+    impeller-playground \
     "
 
 PACKAGECONFIG[asan] = "--asan"
@@ -98,6 +100,8 @@ PACKAGECONFIG[ubsan] = "--ubsan"
 PACKAGECONFIG[unoptimized] = "--unoptimized"
 PACKAGECONFIG[verbose] = "--verbose"
 PACKAGECONFIG[vulkan] = "--enable-vulkan,, wayland"
+PACKAGECONFIG[impeller-vulkan] = "--enable-impeller-vulkan"
+
 
 
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
@@ -132,13 +136,20 @@ do_compile() {
 
     FLUTTER_RUNTIME_MODES="${@bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d)}"
 
-    for FLUTTER_RUNTIME_MODE in $FLUTTER_RUNTIME_MODES; do
+    for MODE in $FLUTTER_RUNTIME_MODES; do
 
-        BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${FLUTTER_RUNTIME_MODE}/g")"
+        # make it easy to parse
+        BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${MODE}/g")"
+        ARGS_FILE="${WORKDIR}/src/${BUILD_DIR}/args.gn"
 
-        ./flutter/tools/gn ${GN_ARGS_LESS_RUNTIME_MODES} --runtime-mode $FLUTTER_RUNTIME_MODE
+        # remove in case this is a rebuild and you're not using rm_work.bbclass
+        rm -rf ${WORKDIR}/src/${BUILD_DIR} | true
 
-        echo ${ARGS_GN} >> "${WORKDIR}/src/${BUILD_DIR}/args.gn"
+        ./flutter/tools/gn ${GN_ARGS_LESS_RUNTIME_MODES} --runtime-mode $MODE
+
+        echo ${GN_TUNE_ARGS} >> "${ARGS_FILE}"
+
+        bbnote `echo ${ARGS_FILE}`
 
         autoninja -C ${BUILD_DIR}
     done
@@ -168,8 +179,18 @@ do_install() {
             ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/data/icudtl.dat
 
         # create SDK
-        install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/gen_snapshot \
+        install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/analyze_snapshot \
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/sdk/clang_x64/analyze_snapshot
+        install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/blobcat \
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/sdk/clang_x64/blobcat
+        install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/dart \
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/sdk/clang_x64/dart
+        install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/flatc \
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/sdk/clang_x64/flatc
+        install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/gen_snapshot \
             ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/sdk/clang_x64/gen_snapshot
+        install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/impellerc \
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/sdk/clang_x64/impellerc
 
         cd ${S}/flutter
         echo $SRCREV                   > ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/sdk/engine.version
