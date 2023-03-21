@@ -1403,7 +1403,7 @@ def install_flutter_auto(folder, config, platform_):
                                  "mesa-libGLU-devel", "mesa-libgbm-devel", "mesa-libglapi", "mesa-libxatracker",
                                  "mesa-vulkan-drivers", "vulkan-tools", "libunwind-devel", "libxkbcommon-devel",
                                  "clang", "clang-analyzer", "clang-devel", "clang-libs", "clang-resource-filesystem",
-                                 "clang-tools-extra", "lld", "lld-libs", "lldb", "libcxx", "libcxx-devel",
+                                 "llvm-devel", "clang-tools-extra", "lld", "lld-libs", "lldb", "libcxx", "libcxx-devel",
                                  "libcxx-static", "libcxxabi", "libcxxabi-devel", "libcxxabi-static",
                                  "gstreamer1-devel", "gstreamer1-plugins-base-devel",
                                  "gstreamer1-plugins-bad-free-devel",
