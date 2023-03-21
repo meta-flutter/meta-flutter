@@ -149,7 +149,7 @@ do_compile() {
 
         echo ${GN_TUNE_ARGS} >> "${ARGS_FILE}"
 
-        bbnote `echo ${ARGS_FILE}`
+        bbnote `cat ${ARGS_FILE}`
 
         autoninja -C ${BUILD_DIR}
     done
