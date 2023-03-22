@@ -1,11 +1,51 @@
 {
   "base_url": "https://storage.googleapis.com/flutter_infra_release/releases",
   "current_release": {
-    "beta": "1a0a03a41d6613c10bab23508dee456f184b181b",
+    "beta": "f732038a8cf4562ce38a1d7debb30209ae3da896",
     "dev": "13a2fb10b838971ce211230f8ffdd094c14af02c",
-    "stable": "12cb4eb7a009f52b347b62ade7cb4854b926af72"
+    "stable": "2ad6cd72c040113b47ee9055e722606a490ef0da"
   },
   "releases": [
+    {
+      "archive": "beta/linux/flutter_linux_3.9.0-0.1.pre-beta.tar.xz",
+      "channel": "beta",
+      "dart_sdk_arch": "x64",
+      "dart_sdk_version": "3.0.0 (build 3.0.0-290.1.beta)",
+      "hash": "f732038a8cf4562ce38a1d7debb30209ae3da896",
+      "release_date": "2023-03-16T00:03:32.853116Z",
+      "sha256": "29de474d4a1c6844f3560666d88a754dc4b4c7cafd58503f265ac4718eaf1f96",
+      "version": "3.9.0-0.1.pre"
+    },
+    {
+      "archive": "beta/linux/flutter_linux_3.9.0-0.1.pre-beta.tar.xz",
+      "channel": "beta",
+      "dart_sdk_arch": "x64",
+      "dart_sdk_version": "3.0.0 (build 3.0.0-290.1.beta)",
+      "hash": "8b9b90e75107181aadc303d8d7422205863a35dd",
+      "release_date": "2023-03-15T23:41:24.161758Z",
+      "sha256": "15c63afafa2fd7dd6f477b31c393e7d7e2bfbe08b38c7d6de1169280aae1f9e1",
+      "version": "3.9.0-0.1.pre"
+    },
+    {
+      "archive": "beta/linux/flutter_linux_3.9.0-0.1.pre-beta.tar.xz",
+      "channel": "beta",
+      "dart_sdk_arch": "x64",
+      "dart_sdk_version": "3.0.0 (build 3.0.0-290.1.beta)",
+      "hash": "f3d140022d6a68df8b0e3776594819ce0ee94e2d",
+      "release_date": "2023-03-15T22:58:49.073713Z",
+      "sha256": "3d5bf90f9a536ee55bf417f2b1d932c727fa6ff41af8fbe6d81d10732ded193c",
+      "version": "3.9.0-0.1.pre"
+    },
+    {
+      "archive": "stable/linux/flutter_linux_3.7.7-stable.tar.xz",
+      "channel": "stable",
+      "dart_sdk_arch": "x64",
+      "dart_sdk_version": "2.19.4",
+      "hash": "2ad6cd72c040113b47ee9055e722606a490ef0da",
+      "release_date": "2023-03-08T20:53:23.713703Z",
+      "sha256": "cdd49597e88c35e5de5184e9acff433dfbb3c075b74ef7b27790af7f57ce2420",
+      "version": "3.7.7"
+    },
     {
       "archive": "stable/linux/flutter_linux_3.7.6-stable.tar.xz",
       "channel": "stable",

@@ -873,8 +873,8 @@ def get_artifacts(config, flutter_sdk_path, flutter_auto_folder, agl_folder):
 
         flutter_runtime = platform_['flutter_runtime']
 
-        if platform_['id'] == 'AGL-qemu' and platform_['type'] == 'qemu':
-            install_agl_qemu_image(agl_folder, config, platform_)
+        # if platform_['id'] == 'AGL-qemu' and platform_['type'] == 'qemu':
+        #    install_agl_qemu_image(agl_folder, config, platform_)
 
         if get_host_type() == 'linux' and arch == "x86_64":
             if platform_['id'] == 'desktop-auto' and platform_['type'] == 'host':
