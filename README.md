@@ -2,21 +2,6 @@
 
 Yocto Layer for Google Flutter related projects.
 
-[![kirkstone-agl-renesas-m3](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-agl-renesas-m3.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-agl-renesas-m3.yml)
-
-[![kirkstone-agl-x86_64](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-agl-x86_64.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-agl-x86_64.yml)
-
-[![kirkstone-imx8mmevk](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-imx8mmevk.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-imx8mmevk.yml)
-
-[![kirkstone-linux-dummy](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-linux-dummy.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-linux-dummy.yml)
-
-[![kirkstone-qc-dragonboard](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-qc-dragonboard.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-qc-dragonboard.yml)
-
-[![kirkstone-rpi-zero2w-64](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-rpi-zero2w-64.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-rpi-zero2w-64.yml)
-
-[![kirkstone-rm32mp15](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-stm32mp15.yml/badge.svg?branch=kirkstone)](https://github.com/meta-flutter/meta-flutter/actions/workflows/kirkstone-stm32mp15.yml)
-
-
 _Updates_:
 
 March 17, 2023
