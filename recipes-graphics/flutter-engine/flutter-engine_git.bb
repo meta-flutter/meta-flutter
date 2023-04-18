@@ -18,6 +18,7 @@ DEPENDS += "\
     compiler-rt \
     libcxx \
     zip-native \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)} \
     "
 
 FLUTTER_ENGINE_PATCHES ?= "\
