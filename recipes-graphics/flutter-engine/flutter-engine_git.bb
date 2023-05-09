@@ -183,17 +183,18 @@ do_install() {
 
         # create SDK
         install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/analyze_snapshot \
-            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/analyze_snapshot
-        install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/blobcat \
-            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/blobcat
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/analyze_snapshot || true
         install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/dart \
-            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/dart
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/dart || true
         install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/flatc \
-            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/flatc
-        install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/gen_snapshot \
-            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/gen_snapshot
-        install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/impellerc \
-            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/impellerc
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/flatc || true
+        
+        if ${@bb.utils.contains('PACKAGECONFIG', 'impeller-vulkan', 'true', 'false', d)}; then
+            install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/blobcat \
+                ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/blobcat
+            install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/impellerc \
+                ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/impellerc
+        fi
 
         cd ${S}/flutter
         echo $SRCREV                   > ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/engine.version
