@@ -196,6 +196,9 @@ do_install() {
                 ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/impellerc
         fi
 
+        install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/gen_snapshot \
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/gen_snapshot
+            
         cd ${S}/flutter
         echo $SRCREV                   > ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/engine.version
         echo $FLUTTER_ENGINE_REPO_URL >> ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/engine.version
