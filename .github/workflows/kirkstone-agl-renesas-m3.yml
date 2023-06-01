@@ -100,27 +100,21 @@ jobs:
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-engine-runtimedebug -c do_cleansstate
-          bitbake flutter-engine-runtimerelease -c do_cleansstate
-          bitbake flutter-engine-runtimeprofile -c do_cleansstate
-          bitbake flutter-gallery-runtimedebug -c do_cleansstate
-          bitbake flutter-gallery-runtimerelease -c do_cleansstate
-          bitbake flutter-gallery-runtimeprofile -c do_cleansstate
-          bitbake flutter-auto-runtimedebug -c do_cleansstate
-          bitbake flutter-auto-runtimerelease -c do_cleansstate
-          bitbake flutter-auto-runtimeprofile -c do_cleansstate
+          bitbake flutter-engine -c do_cleansstate
+          bitbake flutter-gallery -c do_cleansstate
+          bitbake flutter-auto -c do_cleansstate
 
-      - name: Build agl-image-flutter-runtimedebug
+      - name: Build agl-image-flutter
         shell: bash
         working-directory: ${{ env.WORKSPACE }}
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
-          bitbake agl-image-flutter-runtimedebug
+          bitbake agl-image-flutter
           cp bb.environment /home/dev/artifacts
           cd tmp/deploy/images/${{ env.MACHINE }}
-          cp agl-image-flutter-runtimedebug-m3ulcb-*.rootfs.wic.bmap /home/dev/artifacts
-          cp agl-image-flutter-runtimedebug-m3ulcb-*.rootfs.wic.xz /home/dev/artifacts
+          cp agl-image-flutter-m3ulcb-*.rootfs.wic.bmap /home/dev/artifacts
+          cp agl-image-flutter-m3ulcb-*.rootfs.wic.xz /home/dev/artifacts
           mkdir -p /home/dev/artifacts/boot
           cp bootparam_sa0.srec /home/dev/artifacts
           cp bl2-m3ulcb.srec /home/dev/artifacts
@@ -129,26 +123,26 @@ jobs:
           cp tee-m3ulcb.srec /home/dev/artifacts
           cp u-boot-elf-m3ulcb-*.srec /home/dev/artifacts
 
-      - name: Publish agl-image-flutter-runtimedebug artifacts
+      - name: Publish agl-image-flutter artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: agl-image-flutter-runtimedebug-m3ulcb-linux
+          name: agl-image-flutter-m3ulcb-linux
           path: |
              /home/dev/artifacts/*
 
-      - name: Build agl-image-flutter-runtimedebug SDK
+      - name: Build agl-image-flutter SDK
         shell: bash
         working-directory: ${{ env.WORKSPACE }}
         run: |
           . ./build/agl-init-build-env
           rm -rf /home/dev/artifacts/*
-          bitbake agl-image-flutter-runtimedebug -c do_populate_sdk
+          bitbake agl-image-flutter -c do_populate_sdk
           cp bb.environment /home/dev/artifacts
-          cp tmp/deploy/sdk/poky-agl-glibc-*-agl-image-flutter-runtimedebug-*.sh /home/dev/artifacts
+          cp tmp/deploy/sdk/poky-agl-glibc-*-agl-image-flutter-*.sh /home/dev/artifacts
 
-      - name: Publish agl-image-flutter-runtimedebug SDK artifact
+      - name: Publish agl-image-flutter SDK artifact
         uses: actions/upload-artifact@v3
         with:
-          name: agl-image-flutter-runtimedebug-sdk-m3ulcb-linux
+          name: agl-image-flutter-sdk-m3ulcb-linux
           path: |
              /home/dev/artifacts/*
