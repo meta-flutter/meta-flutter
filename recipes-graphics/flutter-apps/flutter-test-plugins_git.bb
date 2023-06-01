@@ -32,7 +32,7 @@ RDEPENDS:${PN} += "\
     "
 
 SRCREV = "c18845d2404394180a30c4583e1e865cdd00d433"
-SRC_URI = "git://github.com/meta-flutter/tests.git;lfs=1;branch=main;protocol=https;destsuffix=git \
+SRC_URI = "git://github.com/meta-flutter/tests.git;lfs=0;branch=main;protocol=https;destsuffix=git \
            file://lsb-release"
 
 S = "${WORKDIR}/git"
