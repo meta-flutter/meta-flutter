@@ -29,7 +29,7 @@ RDEPENDS:${PN} += "\
 
 REQUIRED_DISTRO_FEATURES = "wayland opengl"
 
-SRCREV ??= "4dbc64f275824dd7459da18a7b149d888435e6e8"
+SRCREV ??= "41a3eceeaa771772edfd18f7a3b27c9a50ce08f0"
 SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=agl"
 
 S = "${WORKDIR}/git"
