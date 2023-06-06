@@ -301,7 +301,7 @@ do_install() {
 
     for FLUTTER_RUNTIME_MODE in $FLUTTER_RUNTIME_MODES; do
 
-        if [[ "${FLUTTER_APP_RUNTIME_MODES}" != *"$FLUTTER_RUNTIME_MODE"* ]]; then
+        if ! echo "${FLUTTER_APP_RUNTIME_MODES}" | grep -qw "$FLUTTER_RUNTIME_MODE"; then
             bbnote "Skipping install for: ${FLUTTER_RUNTIME_MODE}"
             continue
         fi
