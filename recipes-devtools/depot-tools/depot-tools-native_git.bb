@@ -33,10 +33,6 @@ do_install() {
     cp -rTv ${S}/. ${D}${datadir}/depot_tools
 }
 
-FILES:${PN}-dev = "${datadir}/depot_tools/*"
-
-INSANE_SKIP:${PN}-dev = "already-stripped"
-
-BBCLASSEXTEND += "native"
+INSANE_SKIP:${PN} = "already-stripped"
 
 # vim:set ts=4 sw=4 sts=4 expandtab:
