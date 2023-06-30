@@ -17,7 +17,7 @@ DEPENDS += "\
     libcxx \
     "
 
-SRCREV = "f16b62ea92cc0f04cfd9166992f93419e425c809"
+SRCREV = "9830d0d6cb3f9988ad9056a84d55a73cd8299e87"
 SRC_URI = "gn://github.com/dart-lang/sdk.git;name=sdk \
            file://0001-External-Toolchain.patch"
 

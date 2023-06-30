@@ -15,18 +15,17 @@ CVE_PRODUCT = "libflutter_engine.so"
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 DEPENDS += "\
-    compiler-rt \
-    libcxx \
     zip-native \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)} \
     "
+
+VULKAN_BACKENDS="${@bb.utils.filter('DISTRO_FEATURES', 'wayland x11', d)}"
 
 FLUTTER_ENGINE_PATCHES ?= "\
     file://0001-clang-toolchain.patch \
     file://0001-disable-pre-canned-sysroot.patch \
     file://0001-remove-x11-dependency.patch \
-    file://0001-Disable-x11.patch \
-    file://0001-remove-angle.patch \
+    file://0001-disable-x11.patch \
     "
 
 SRC_URI = "\
@@ -49,12 +48,13 @@ GN_CUSTOM_VARS ?= '\
     "download_windows_deps": False, \
     "download_linux_deps": False,   \
 }'
+# https://github.com/flutter/flutter/issues/127606
+GN_CUSTOM_DEPS ?= '\
+{\
+    "src/third_party/dart/third_party/pkg/tools": \
+    "https://dart.googlesource.com/tools.git@545d7e1c73ce21b8c91f638021f9d487d324a501" \
+}'
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
-
-# For do_configure, do_compile
-RUNTIME = "llvm"
-TOOLCHAIN = "clang"
-PREFERRED_PROVIDER_libgcc = "compiler-rt"
 
 COMPATIBLE_MACHINE = "(-)"
 COMPATIBLE_MACHINE:aarch64 = "(.*)"
@@ -70,7 +70,6 @@ PACKAGECONFIG ??= "\
     fontconfig \
     mallinfo2 \
     ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'vulkan impeller-vulkan', '', d)} \
-    impeller-playground \
     "
 
 PACKAGECONFIG[asan] = "--asan"
@@ -85,7 +84,6 @@ PACKAGECONFIG[full-dart-debug] = "--full-dart-debug"
 PACKAGECONFIG[full-dart-sdk] = "--full-dart-sdk"
 PACKAGECONFIG[glfw-shell] = "--build-glfw-shell,--no-build-glfw-shell, glfw"
 PACKAGECONFIG[interpreter] = "--interpreter"
-PACKAGECONFIG[impeller-playground] = "--enable-impeller-playground"
 PACKAGECONFIG[jit_release] = "--runtime-mode jit_release"
 PACKAGECONFIG[lsan] = "--lsan"
 PACKAGECONFIG[mallinfo2] = "--use-mallinfo2"
@@ -93,7 +91,6 @@ PACKAGECONFIG[msan] = "--msan"
 PACKAGECONFIG[prebuilt-dart-sdk] = "--prebuilt-dart-sdk,--no-prebuilt-dart-sdk"
 PACKAGECONFIG[profile] = "--runtime-mode profile"
 PACKAGECONFIG[release] = "--runtime-mode release"
-PACKAGECONFIG[skshaper] = "--enable-skshaper"
 PACKAGECONFIG[static-analyzer] = "--clang-static-analyzer"
 PACKAGECONFIG[tsan] = "--tsan"
 PACKAGECONFIG[trace-gn] = "--trace-gn"
@@ -102,8 +99,6 @@ PACKAGECONFIG[unoptimized] = "--unoptimized"
 PACKAGECONFIG[verbose] = "--verbose"
 PACKAGECONFIG[vulkan] = "--enable-vulkan,, wayland"
 PACKAGECONFIG[impeller-vulkan] = "--enable-impeller-vulkan"
-
-
 
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
 CLANG_PATH = "${WORKDIR}/src/buildtools/linux-x64/clang"

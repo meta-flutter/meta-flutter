@@ -16,8 +16,6 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=49fada46694956cdf2fc0292d72d888c"
 
 DEPENDS += "\
-    compiler-rt \
-    libcxx \
     libdrm \
     libinput \
     libxkbcommon \
@@ -40,10 +38,6 @@ SRCREV = "${AUTOREV}"
 S = "${WORKDIR}/git"
 
 inherit pkgconfig cmake features_check
-
-RUNTIME = "llvm"
-TOOLCHAIN = "clang"
-PREFERRED_PROVIDER_libgcc = "compiler-rt"
 
 PACKAGECONFIG ??= "text_input raw_keyboard gstreamer"
 

@@ -10,11 +10,5 @@ inherit packagegroup
 
 RDEPENDS:${PN} += " \
     flutter-gallery \
-    flutter-test-frb \
-    flutter-test-membrane \
-    flutter-test-animated-background \
-    flutter-test-membrane \
-    flutter-test-secure-storage \
-    flutter-test-video-player \
-    flutter-test-localization \
+    flutter-test-texture-egl \
 "
