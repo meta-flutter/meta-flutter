@@ -35,11 +35,11 @@ SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;b
 
 S = "${WORKDIR}/git"
 
-inherit cmake features_check pkgconfig 
-
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
 PREFERRED_PROVIDER_libgcc = "compiler-rt"
+
+inherit cmake features_check pkgconfig 
 
 PACKAGECONFIG ??= "\
     ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'backend-vulkan', 'backend-egl', d)} \

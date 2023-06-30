@@ -24,7 +24,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=e49f4652534af377a713df3d9dec60cb"
 
 SRC_URI = "git://github.com/bernardpumped/ped.git;protocol=https;branch=agl"
 
-SRCREV = "58f762e9e33002af5e6806f54f513fe5f24cc715"
+SRCREV = "d4a14816ee090ddd6e6a2dc64b90b76ebfb44c76"
 
 S = "${WORKDIR}/git"
 

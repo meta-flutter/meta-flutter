@@ -48,6 +48,7 @@ class GN(FetchMethod):
         ud.basename = "*"
 
         custom_vars = d.getVar("GN_CUSTOM_VARS")
+        custom_deps = d.getVar("GN_CUSTOM_DEPS")
         sync_opt = d.getVar("EXTRA_GN_SYNC")
 
         depot_tools_path = d.getVar("DEPOT_TOOLS")
@@ -59,9 +60,10 @@ class GN(FetchMethod):
         "managed": False,
         "name": "%s",
         "url": "%s",
-        "custom_vars": %s
+        "custom_vars": %s,
+        "custom_deps": %s
     }
-]''' % (name, uri, custom_vars)
+]''' % (name, uri, custom_vars, custom_deps)
 
         srcrev = d.getVar("SRCREV")
         dl_dir = d.getVar("DL_DIR")

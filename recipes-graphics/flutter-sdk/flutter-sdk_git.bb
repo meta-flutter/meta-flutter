@@ -52,6 +52,9 @@ do_compile() {
     flutter config --no-analytics
     dart --disable-analytics
 
+    rm -rf ${S}/bin/cache | true
+    flutter precache
+
     bbnote `flutter config`
     bbnote `flutter doctor -v`
 }

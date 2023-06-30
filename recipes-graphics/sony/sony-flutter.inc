@@ -11,9 +11,7 @@ LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=d45359c88eb146940e4bede4f08c821a"
 
 DEPENDS += "\
-    compiler-rt \
     flutter-engine \
-    libcxx \
     libinput \
     libxkbcommon \
     systemd \
@@ -33,10 +31,6 @@ S = "${WORKDIR}/git"
 inherit pkgconfig cmake features_check
 
 require conf/include/flutter-version.inc
-
-RUNTIME = "llvm"
-TOOLCHAIN = "clang"
-PREFERRED_PROVIDER_libgcc = "compiler-rt"
 
 EXTRA_OECMAKE += "-D USER_PROJECT_PATH=${S}/examples/${PN}"
 
