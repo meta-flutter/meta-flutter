@@ -8,7 +8,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=c2c05f9bdd5fc0b458037c2d1fb8d95e"
 SRC_URI = "git://chromium.googlesource.com/chromium/tools/depot_tools;protocol=https;branch=main \
            file://0001-disable-ninjalog_upload.patch"
 
-SRCREV = "64b61755572b1d03b3a43f1a29b617dcae3a3fe0"
+SRCREV = "3a56ba9d9c9d22bc78e24f96a9096247d53649f8"
 
 S = "${WORKDIR}/git"
 
