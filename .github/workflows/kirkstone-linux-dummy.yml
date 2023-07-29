@@ -23,7 +23,7 @@ jobs:
     container:
       image: ghcr.io/meta-flutter/ubuntu-20-dev:main
       options:
-        --user 1018
+        --user 1001
         --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
         --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
