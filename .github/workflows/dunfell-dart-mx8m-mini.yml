@@ -22,7 +22,7 @@ jobs:
   
     env:
       YOCTO_BRANCH: dunfell
-      YOCTO_VERSION: 3.1.10
+      YOCTO_VERSION: 3.1.27
       MACHINE: imx8mm-var-dart
       DISTRO: fslc-wayland
       
@@ -31,10 +31,15 @@ jobs:
     container:
       image: ghcr.io/meta-flutter/meta-flutter/ubuntu-18-dev:main
       options:
-        --user 1001
-        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
-        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
-        -v /run/user/1001/podman/podman.socket:/var/run/docker.sock:Z
+        --user 1001:1001
+        --ipc host
+        --privileged
+        --security-opt label=disable
+        --pid host
+        --userns keep-id
+        --ulimit host 
+        --mount type=devpts,destination=/dev/pts
+        --security-opt label=disable
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/yocto/dunfell/dart-mx8m-mini:/home/dev/sstate:Z
         -v /mnt/raid10/github-ci/artifacts/dart-mx8m-mini:/home/dev/artifacts:Z
