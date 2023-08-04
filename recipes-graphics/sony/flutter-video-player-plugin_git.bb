@@ -1,7 +1,11 @@
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
+
 DESCRIPTION = "Flutter Embedder with video player plugin."
 CVE_PRODUCT = "libvideo_player_plugin.so"
 
-REQUIRED_DISTRO_FEATURES = "wayland opengl"
+REQUIRED_DISTRO_FEATURES += "wayland"
 
 require sony-flutter.inc
 

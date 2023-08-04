@@ -146,12 +146,12 @@ jobs:
               gstreamer1.0-plugins-ugly \
               vulkan-tools vulkan-loader \
               libdrm-tests \
-              flutter-engine-runtimerelease \
-              flutter-gallery-runtimerelease \
-              flutter-auto-runtimerelease \
+              flutter-engine \
+              flutter-gallery \
+              flutter-auto \
               adwaita-icon-theme-cursors \
               sascha-samples \
-              flutter-test-frb-runtimerelease \
+              flutter-test-frb \
               "' >> ./conf/local.conf
           bitbake demo-image-weston
           rm -rf /home/dev/artifacts/*

@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "Flutter makes it easy and fast to build beautiful apps for mobile and beyond."
 DESCRIPTION = "Flutter is Google's SDK for crafting beautiful, fast user experiences for \
                mobile, web, and desktop from a single codebase. Flutter works with \
@@ -7,6 +11,7 @@ AUTHOR = "Google"
 HOMEPAGE = "https://flutter.dev/"
 BUGTRACKER = "https://github.com/flutter/flutter/issues"
 SECTION = "graphics"
+CVE_PRODUCT = ""
 
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=1d84cf16c48e571923f837136633a265"
@@ -46,6 +51,9 @@ do_compile() {
     flutter config --enable-custom-devices
     flutter config --no-analytics
     dart --disable-analytics
+
+    rm -rf ${S}/bin/cache | true
+    flutter precache
 
     bbnote `flutter config`
     bbnote `flutter doctor -v`

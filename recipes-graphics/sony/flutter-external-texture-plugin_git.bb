@@ -1,7 +1,11 @@
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
+
 DESCRIPTION = "Flutter Embedder with external texture plugin."
 CVE_PRODUCT = "libexternal_texture_test_plugin.so"
 
-REQUIRED_DISTRO_FEATURES = "wayland opengl"
+REQUIRED_DISTRO_FEATURES += "wayland"
 
 require sony-flutter.inc
 

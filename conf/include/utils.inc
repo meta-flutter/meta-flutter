@@ -1,3 +1,6 @@
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
 
 def get_binary_pkg_arch(d):
     """Returns an architecture name corresponding to available download."""
