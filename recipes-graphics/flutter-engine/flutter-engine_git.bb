@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "Flutter Engine"
 DESCRIPTION = "Google Flutter Engine for use with Flutter applications"
 AUTHOR = "Flutter Team"
@@ -6,21 +10,28 @@ BUGTRACKER = "https://github.com/flutter/flutter/issues"
 SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://flutter/LICENSE;md5=a60894397335535eb10b54e2fff9f265"
-
+CVE_PRODUCT = "libflutter_engine.so"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 DEPENDS += "\
-    compiler-rt \
-    libcxx \
     zip-native \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)} \
     "
 
-SRC_URI = "gn://github.com/flutter/engine.git;name=flutter \
-           file://0001-clang-toolchain.patch \
-           file://0002-x64-sysroot-assert.patch \
-           file://0001-remove-x11-dependency.patch \
-           "
+VULKAN_BACKENDS="${@bb.utils.filter('DISTRO_FEATURES', 'wayland x11', d)}"
+
+FLUTTER_ENGINE_PATCHES ?= "\
+    file://0001-clang-toolchain.patch \
+    file://0001-disable-pre-canned-sysroot.patch \
+    file://0001-remove-x11-dependency.patch \
+    file://0001-disable-x11.patch \
+    "
+
+SRC_URI = "\
+    gn://github.com/flutter/engine.git;name=flutter \
+    ${FLUTTER_ENGINE_PATCHES} \
+    "
 
 S = "${WORKDIR}/src"
 
@@ -28,11 +39,7 @@ inherit gn-for-flutter python3native features_check pkgconfig
 
 require conf/include/gn-utils.inc
 require conf/include/flutter-version.inc
-require conf/include/flutter-runtime.inc
 
-BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"
-
-PREFERRED_PROVIDER_${PN} = "${PN}"
 
 # For gn.bbclass
 GN_CUSTOM_VARS ?= '\
@@ -41,12 +48,13 @@ GN_CUSTOM_VARS ?= '\
     "download_windows_deps": False, \
     "download_linux_deps": False,   \
 }'
+# https://github.com/flutter/flutter/issues/127606
+GN_CUSTOM_DEPS ?= '\
+{\
+    "src/third_party/dart/third_party/pkg/tools": \
+    "https://dart.googlesource.com/tools.git@545d7e1c73ce21b8c91f638021f9d487d324a501" \
+}'
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
-
-# For do_configure, do_compile
-RUNTIME = "llvm"
-TOOLCHAIN = "clang"
-PREFERRED_PROVIDER_libgcc = "compiler-rt"
 
 COMPATIBLE_MACHINE = "(-)"
 COMPATIBLE_MACHINE_aarch64 = "(.*)"
@@ -56,12 +64,13 @@ COMPATIBLE_MACHINE_armv7ve = "(.*)"
 COMPATIBLE_MACHINE_x86 = "(.*)"
 COMPATIBLE_MACHINE_x86-64 = "(.*)"
 
-PACKAGECONFIG ??= "embedder-for-target \
-                   prebuilt-dart-sdk \
-                   fontconfig \
-                   ${FLUTTER_RUNTIME} \
-                   ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'vulkan', '', d)} \
-                  "
+PACKAGECONFIG ??= "\
+    debug profile release \
+    embedder-for-target \
+    fontconfig \
+    mallinfo2 \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'vulkan impeller-vulkan', '', d)} \
+    "
 
 PACKAGECONFIG[asan] = "--asan"
 PACKAGECONFIG[coverage] = "--coverage"
@@ -77,32 +86,32 @@ PACKAGECONFIG[glfw-shell] = "--build-glfw-shell,--no-build-glfw-shell, glfw"
 PACKAGECONFIG[interpreter] = "--interpreter"
 PACKAGECONFIG[jit_release] = "--runtime-mode jit_release"
 PACKAGECONFIG[lsan] = "--lsan"
+PACKAGECONFIG[mallinfo2] = "--use-mallinfo2"
 PACKAGECONFIG[msan] = "--msan"
 PACKAGECONFIG[prebuilt-dart-sdk] = "--prebuilt-dart-sdk,--no-prebuilt-dart-sdk"
 PACKAGECONFIG[profile] = "--runtime-mode profile"
 PACKAGECONFIG[release] = "--runtime-mode release"
-PACKAGECONFIG[skshaper] = "--enable-skshaper"
 PACKAGECONFIG[static-analyzer] = "--clang-static-analyzer"
 PACKAGECONFIG[tsan] = "--tsan"
+PACKAGECONFIG[trace-gn] = "--trace-gn"
 PACKAGECONFIG[ubsan] = "--ubsan"
 PACKAGECONFIG[unoptimized] = "--unoptimized"
-PACKAGECONFIG[vulkan] = "--enable-vulkan"
-PACKAGECONFIG[vulkan-validation-layers] = "--enable-vulkan-validation-layers"
-
+PACKAGECONFIG[verbose] = "--verbose"
+PACKAGECONFIG[vulkan] = "--enable-vulkan,, wayland"
+PACKAGECONFIG[impeller-vulkan] = "--enable-impeller-vulkan"
 
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
 CLANG_PATH = "${WORKDIR}/src/buildtools/linux-x64/clang"
 
-ARGS_GN_FILE = "${WORKDIR}/src/${OUT_DIR_REL}/args.gn"
-
-OUT_DIR_REL = "${@get_out_dir(d)}"
-
-GN_ARGS = "${PACKAGECONFIG_CONFARGS} --clang --lto --no-goma --no-stripped "
-GN_ARGS_append = " --target-os linux"
-GN_ARGS_append = " --linux-cpu ${@gn_target_arch_name(d)}"
-GN_ARGS_append = " --target-sysroot ${STAGING_DIR_TARGET}"
-GN_ARGS_append = " --target-toolchain ${CLANG_PATH}"
-GN_ARGS_append = " --target-triple ${CLANG_TOOLCHAIN_TRIPLE}"
+GN_ARGS = '\
+    ${PACKAGECONFIG_CONFARGS} \
+    --clang --lto --no-goma --no-stripped \
+    --target-os linux \
+    --linux-cpu ${@gn_target_arch_name(d)} \
+    --target-sysroot ${STAGING_DIR_TARGET} \
+    --target-toolchain ${CLANG_PATH} \
+    --target-triple ${@gn_clang_triple_prefix(d)} \
+'
 
 GN_ARGS_append_armv7 = " --arm-float-abi ${TARGET_FPU}"
 GN_ARGS_append_armv7a = " --arm-float-abi ${TARGET_FPU}"
@@ -114,76 +123,101 @@ ARGS_GN_append_armv7 = "arm_tune = \"${@gn_get_tune_features(d)}\""
 ARGS_GN_append_armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\""
 ARGS_GN_append_armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
 
-do_unpack[network] = "1"
-do_patch[network] = "1"
+TMP_OUT_DIR="${@get_gn_tmp_out_dir(d)}"
 
-do_configure() {
-    cd ${S}
+GN_ARGS_LESS_RUNTIME_MODES="${@get_gn_args_less_runtime(d)}"
 
-    # required object files to link
-    CLANG_VERSION=`ls ${CLANG_PATH}/lib/clang`
-    CLANG_LIB_TARGET_PATH=${CLANG_PATH}/lib/clang/${CLANG_VERSION}/lib/${CLANG_TOOLCHAIN_TRIPLE}
-    mkdir -p ${CLANG_LIB_TARGET_PATH}
-    cp ${STAGING_LIBDIR}/${TARGET_SYS}/*/crtbeginS.o ${CLANG_LIB_TARGET_PATH}/
-    cp ${STAGING_LIBDIR}/${TARGET_SYS}/*/crtendS.o ${CLANG_LIB_TARGET_PATH}/
-
-    ./flutter/tools/gn ${GN_ARGS}
-
-    echo ${ARGS_GN} >> ${ARGS_GN_FILE}
-}
-do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 
 do_compile() {
-    cd ${S}
 
-    rm -rf fuchsia || true
-    autoninja -C ${OUT_DIR_REL}
+    FLUTTER_RUNTIME_MODES="${@bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d)}"
+    bbnote "FLUTTER_RUNTIME_MODES=${FLUTTER_RUNTIME_MODES}"
+
+    for MODE in $FLUTTER_RUNTIME_MODES; do
+
+        # make it easy to parse
+        BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${MODE}/g")"
+        ARGS_FILE="${WORKDIR}/src/${BUILD_DIR}/args.gn"
+
+        # remove in case this is a rebuild and you're not using rm_work.bbclass
+        rm -rf ${WORKDIR}/src/${BUILD_DIR} | true
+
+        ./flutter/tools/gn ${GN_ARGS_LESS_RUNTIME_MODES} --runtime-mode $MODE
+
+        echo ${GN_TUNE_ARGS} >> "${ARGS_FILE}"
+
+        bbnote `cat ${ARGS_FILE}`
+
+        autoninja -C ${BUILD_DIR}
+    done
 }
-do_compile[network] = "0"
 do_compile[depends] += "depot-tools-native:do_populate_sysroot"
 do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
 do_install() {
 
-    install -D -m0644 ${S}/${OUT_DIR_REL}/so.unstripped/libflutter_engine.so \
-        ${D}${libdir}/libflutter_engine.so
-    
-    if ${@bb.utils.contains('PACKAGECONFIG', 'desktop-embeddings', 'true', 'false', d)}; then
-        install -m0644 ${S}/${OUT_DIR_REL}/so.unstripped/libflutter_linux_gtk.so ${D}${libdir}
-    fi
+    FLUTTER_RUNTIME_MODES="${@bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d)}"
+    bbnote "FLUTTER_RUNTIME_MODES=${FLUTTER_RUNTIME_MODES}"
 
-    install -D -m0644 ${S}/${OUT_DIR_REL}/flutter_embedder.h \
-        ${D}${includedir}/flutter_embedder.h
+    for MODE in $FLUTTER_RUNTIME_MODES; do
 
-    install -D -m0644 ${S}/${OUT_DIR_REL}/icudtl.dat \
-        ${D}${datadir}/flutter/icudtl.dat
+        BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${MODE}/g")"
 
-    # create SDK
-    install -D -m0755 ${S}/${OUT_DIR_REL}/clang_x64/gen_snapshot \
-        ${D}${datadir}/flutter/sdk/clang_x64/gen_snapshot
-    
-    cd ${S}/flutter
-    echo `git rev-parse HEAD` > ${D}${datadir}/flutter/sdk/engine.version
-    echo ${FLUTTER_ENGINE_REPO_URL} >> ${D}${datadir}/flutter/sdk/engine.version
-    echo ${@get_flutter_sdk_version(d)} >> ${D}${datadir}/flutter/sdk/flutter_sdk.version
-    echo ${FLUTTER_RUNTIME} >> ${D}${datadir}/flutter/sdk/flutter.runtime
+        install -D -m 0644 ${S}/${BUILD_DIR}/so.unstripped/libflutter_engine.so \
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/lib/libflutter_engine.so
 
-    cd ${D}/${datadir}/flutter
-    zip -r engine_sdk.zip sdk
-    rm -rf sdk
+        if ${@bb.utils.contains('PACKAGECONFIG', 'desktop-embeddings', 'true', 'false', d)}; then
+            install -D -m 0644 ${S}/${BUILD_DIR}/so.unstripped/libflutter_linux_gtk.so \
+                ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/lib/libflutter_linux_gtk.so
+        fi
+
+        install -D -m 0644 ${S}/${BUILD_DIR}/flutter_embedder.h ${D}${includedir}/flutter_embedder.h
+
+        install -D -m 0644 ${S}/${BUILD_DIR}/icudtl.dat \
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/data/icudtl.dat
+
+        # create SDK
+        install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/analyze_snapshot \
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/analyze_snapshot || true
+        install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/dart \
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/dart || true
+        install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/flatc \
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/flatc || true
+        
+        if ${@bb.utils.contains('PACKAGECONFIG', 'impeller-vulkan', 'true', 'false', d)}; then
+            install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/blobcat \
+                ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/blobcat
+            install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/impellerc \
+                ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/impellerc
+        fi
+
+        install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/gen_snapshot \
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/gen_snapshot
+            
+        cd ${S}/flutter
+        echo $SRCREV                   > ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/engine.version
+        echo $FLUTTER_ENGINE_REPO_URL >> ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/engine.version
+        echo $FLUTTER_SDK_VERSION     >> ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/flutter_sdk.version
+        echo $RUNTIME_MODE            >> ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/flutter.runtime
+
+        cd ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/
+        zip -r engine_sdk.zip sdk
+        rm -rf sdk
+
+    done
 }
 do_install[network] = "1"
 do_install[depends] += "zip-native:do_populate_sysroot"
 
 PACKAGES =+ "${PN}-sdk-dev"
 
+INSANE_SKIP_${PN} += " libdir"
 FILES_${PN} = "\
-    ${libdir} \
-    ${datadir}/flutter/icudtl.dat \
+    ${datadir}/flutter \
     "
 
 FILES_${PN}-sdk-dev = "\
-    ${datadir}/flutter/engine_sdk.zip \
+    ${datadir}/flutter/${FLUTTER_SDK_TAG}/*/engine_sdk.zip \
     "
 
 FILES_${PN}-dev = "\
@@ -192,6 +226,6 @@ FILES_${PN}-dev = "\
 
 python () {
     d.setVar('SRCREV', gn_get_engine_commit(d))
-}
 
-RPROVIDES_${PN} = "flutter-engine-${@gn_get_flutter_runtime_name(d)}"
+    d.setVar('FLUTTER_SDK_VERSION', get_flutter_sdk_version(d))
+}

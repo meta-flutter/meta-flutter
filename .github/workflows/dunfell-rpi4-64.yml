@@ -106,9 +106,9 @@ jobs:
         run: |
           . ./sources/poky/oe-init-build-env ${{ env.MACHINE }}
           echo 'CORE_IMAGE_EXTRA_INSTALL_append = " \
-              flutter-pi-runtimerelease \
-              flutter-gallery-runtimerelease \
-              flutter-test-frb-runtimerelease \
+              flutter-pi \
+              flutter-gallery \
+              flutter-test-frb \
               kmscube libdrm-tests \
               gstreamer1.0-libav \
               gstreamer1.0-plugins-bad \
@@ -124,6 +124,6 @@ jobs:
       - name: Publish SD card image artifact
         uses: actions/upload-artifact@v3
         with:
-          name: rpi4-drm-flutter-runtimedebug-dunfell-sdimage
+          name: rpi4-drm-flutter-dunfell-sdimage
           path: |
              /home/dev/artifacts/*

@@ -1,0 +1,1 @@
+export PATH=/usr/share/dart-sdk/2.18.6/bin:/home/dev/.pub-cache/bin:$PATH

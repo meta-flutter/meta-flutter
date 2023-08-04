@@ -1,4 +1,4 @@
-# Copyright (c) 2021-2022 Woven Alpha, Inc
+# Copyright (c) 2020-2022 Woven Alpha, Inc
 
 python () {
     import gn
@@ -20,6 +20,7 @@ DEPOT_TOOLS ??= "${STAGING_DIR_NATIVE}/usr/share/depot_tools"
 PYTHON2_PATH ??= "bootstrap-2@3.8.9.chromium.14_bin/python/bin"
 EXTRA_GN_SYNC ??= ""
 GN_CUSTOM_VARS ??= "{}"
+GN_CUSTOM_DEPS ??= "{}"
 do_fetch[depends] += " \
     ca-certificates-native:do_populate_sysroot \
     curl-native:do_populate_sysroot \

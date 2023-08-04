@@ -4,7 +4,8 @@ BitBake 'Fetch' implementations
 This fetcher is created for gclient.
 The main target is flutter-engine, so for other gclient projects, this fetcher might not work.
 
-Copyright (c) 2021-2022 Woven Alpha, Inc
+Copyright (c) 2020-2022 Woven Alpha, Inc
+Copyright (c) 2023 Joel Winarske. All rights reserved.
 """
 
 import os
@@ -47,6 +48,7 @@ class GN(FetchMethod):
         ud.basename = "*"
 
         custom_vars = d.getVar("GN_CUSTOM_VARS")
+        custom_deps = d.getVar("GN_CUSTOM_DEPS")
         sync_opt = d.getVar("EXTRA_GN_SYNC")
 
         depot_tools_path = d.getVar("DEPOT_TOOLS")
@@ -58,9 +60,10 @@ class GN(FetchMethod):
         "managed": False,
         "name": "%s",
         "url": "%s",
-        "custom_vars": %s
+        "custom_vars": %s,
+        "custom_deps": %s
     }
-]''' % (name, uri, custom_vars)
+]''' % (name, uri, custom_vars, custom_deps)
 
         srcrev = d.getVar("SRCREV")
         dl_dir = d.getVar("DL_DIR")
@@ -135,12 +138,11 @@ class GN(FetchMethod):
         if path:
             cmd = "PATH=\"%s\" %s" % (path, cmd)
         bb.note("Unpacking %s to %s" % (file, unpackdir))
-        ret = subprocess.call(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir)
-
-        if ret != 0:
-            raise UnpackError("Unpack command %s failed with return value %s" % (cmd, ret), ud.url)
-
-        return
+        try:
+            subprocess.check_output(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir, 
+                                    stderr=subprocess.STDOUT, universal_newlines=True)
+        except subprocess.CalledProcessError as e:
+            raise UnpackError("Unpack command %s failed with return value %s\n%s" % (cmd, e.returncode, e.stdout), ud.url)
 
 
     def clean(self, ud, d):

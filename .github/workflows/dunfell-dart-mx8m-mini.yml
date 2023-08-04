@@ -93,9 +93,7 @@ jobs:
           echo 'GLIBC_GENERATE_LOCALES = "en_US.UTF-8"' >> ./conf/local.conf
           sed -i "/IMAGE_LINGUAS/d" ./conf/local.conf
           echo 'IMAGE_LINGUAS = "en-us"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG_pn-flutter-auto-runtimedebug = "gles2 context_version_2"' >> ./conf/bblayers.conf
-          echo 'PACKAGECONFIG_pn-flutter-auto-runtimeprofile = "gles2 context_version_2"' >> ./conf/bblayers.conf
-          echo 'PACKAGECONFIG_pn-flutter-auto-runtimerelease = "gles2 context_version_2"' >> ./conf/bblayers.conf
+          echo 'PACKAGECONFIG_pn-flutter-auto = "gles2 context_version_2"' >> ./conf/bblayers.conf
           echo 'CLANGSDK = "1"' >> ./conf/local.conf
           echo 'TOOLCHAIN_HOST_TASK_append = " nativesdk-flutter-sdk"' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_libserialport = "6f9b03e"' >> ./conf/local.conf
@@ -158,124 +156,72 @@ jobs:
           bitbake fsl-image-gui
           rm -rf /home/dev/artifacts/*
 
-      - name: Build flutter-engine-runtimedebug
+      - name: Build flutter-engine
         shell: bash
         working-directory: ../${{ env.MACHINE }}
         run: |
           . sources/poky/oe-init-build-env build
-          bitbake flutter-engine-runtimedebug -c do_cleansstate
-          bitbake flutter-engine-runtimedebug
+          bitbake flutter-engine -c do_cleansstate
+          bitbake flutter-engine
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64/flutter-engine-runtimedebug-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/aarch64/flutter-engine-git*.rpm /home/dev/artifacts
 
-      - name: Publish flutter-engine-runtimedebug artifacts
+      - name: Publish flutter-engine artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: flutter-engine-runtimedebug-imx8mm-var-dart
+          name: flutter-engine-imx8mm-var-dart
           path: |
              /home/dev/artifacts/*.rpm
       
-      - name: Build flutter-auto-runtimedebug
+      - name: Build flutter-auto
         shell: bash
         working-directory: ../${{ env.MACHINE }}
         run: |
           . sources/poky/oe-init-build-env build
-          bitbake flutter-auto-runtimedebug -c do_cleansstate
-          bitbake flutter-auto-runtimedebug
+          bitbake flutter-auto -c do_cleansstate
+          bitbake flutter-auto
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64_mx8mm/flutter-auto-runtimedebug-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/aarch64_mx8mm/flutter-auto-git*.rpm /home/dev/artifacts
 
-      - name: Publish flutter-auto-runtimedebug artifacts
+      - name: Publish flutter-auto artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: flutter-auto-runtimedebug-imx8mm-var-dart
+          name: flutter-auto-imx8mm-var-dart
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build flutter-pi-runtimedebug
+      - name: Build flutter-pi
         shell: bash
         working-directory: ../${{ env.MACHINE }}
         run: |
           . sources/poky/oe-init-build-env build
-          bitbake flutter-pi-runtimedebug -c do_cleansstate
-          bitbake flutter-pi-runtimedebug
+          bitbake flutter-pi -c do_cleansstate
+          bitbake flutter-pi
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64_mx8mm/flutter-pi-runtimedebug-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/aarch64_mx8mm/flutter-pi-git*.rpm /home/dev/artifacts
 
-      - name: Publish flutter-pi-runtimedebug artifacts
+      - name: Publish flutter-pi artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: flutter-pi-runtimedebug-imx8mm-var-dart
+          name: flutter-pi-imx8mm-var-dart
           path: |
              /home/dev/artifacts/*.rpm
 
-      - name: Build flutter-engine-runtimeprofile
-        shell: bash
-        working-directory: ../${{ env.MACHINE }}
-        run: |
-          . sources/poky/oe-init-build-env build
-          bitbake flutter-engine-runtimeprofile -c do_cleansstate
-          bitbake flutter-engine-runtimeprofile
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64/flutter-engine-runtimeprofile-git*.rpm /home/dev/artifacts
-
-      - name: Publish flutter-engine-runtimeprofile artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: flutter-engine-runtimeprofile-imx8mm-var-dart
-          path: |
-             /home/dev/artifacts/*.rpm
-
-      - name: Build flutter-engine-runtimerelease
-        shell: bash
-        working-directory: ../${{ env.MACHINE }}
-        run: |
-          . sources/poky/oe-init-build-env build
-          bitbake flutter-engine-runtimerelease -c do_cleansstate
-          bitbake flutter-engine-runtimerelease
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64/flutter-engine-runtimerelease-git*.rpm /home/dev/artifacts
-
-      - name: Publish flutter-engine-runtimerelease artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: flutter-engine-runtimerelease-imx8mm-var-dart
-          path: |
-             /home/dev/artifacts/*.rpm
-
-      - name: Build flutter-gallery-runtimedebug
+      - name: Build flutter-gallery
         shell: bash
         working-directory: ../${{ env.MACHINE }}
         run: |
           . sources/poky/oe-init-build-env build
           bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-gallery-runtimedebug -c do_cleansstate
-          bitbake flutter-gallery-runtimedebug
+          bitbake flutter-gallery -c do_cleansstate
+          bitbake flutter-gallery
           rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64/flutter-gallery-runtimedebug-git*.rpm /home/dev/artifacts
+          cp tmp/deploy/rpm/aarch64/flutter-gallery-git*.rpm /home/dev/artifacts
       
-      - name: Publish flutter-gallery-runtimedebug artifacts
+      - name: Publish flutter-gallery artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: flutter-gallery-runtimedebug-imx8mm-var-dart
-          path: |
-             /home/dev/artifacts/*.rpm
-
-      - name: Build flutter-gallery-runtimerelease
-        shell: bash
-        working-directory: ../${{ env.MACHINE }}
-        run: |
-          . sources/poky/oe-init-build-env build
-          bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-gallery-runtimerelease -c do_cleansstate
-          bitbake flutter-gallery-runtimerelease
-          rm -rf /home/dev/artifacts/*
-          cp tmp/deploy/rpm/aarch64/flutter-gallery-runtimerelease-git*.rpm /home/dev/artifacts
-      
-      - name: Publish flutter-gallery-runtimerelease artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: flutter-gallery-runtimerelease-imx8mm-var-dart
+          name: flutter-gallery-imx8mm-var-dart
           path: |
              /home/dev/artifacts/*.rpm
 
@@ -284,10 +230,10 @@ jobs:
         working-directory: ../${{ env.MACHINE }}
         run: |
           . sources/poky/oe-init-build-env build
-          echo 'IMAGE_INSTALL_append = " flutter-engine-runtimerelease"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " flutter-gallery-runtimerelease"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " flutter-auto-runtimerelease"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL_append = " flutter-pi-runtimerelease"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " flutter-engine"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " flutter-gallery"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " flutter-auto"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL_append = " flutter-pi"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL_append = " adwaita-icon-theme-cursors"' >> ./conf/local.conf
           bitbake fsl-image-gui
           rm -rf /home/dev/artifacts/*
@@ -296,7 +242,7 @@ jobs:
       - name: Publish bootable SD card image
         uses: actions/upload-artifact@v3
         with:
-          name: fsl-image-gui-${{ env.MACHINE }}-flutter-runtimedebug-sdimage
+          name: fsl-image-gui-${{ env.MACHINE }}-flutter-sdimage
           path: |
              /home/dev/artifacts/*
 
@@ -312,6 +258,6 @@ jobs:
       - name: Publish fsl-image-gui SDK artifact
         uses: actions/upload-artifact@v3
         with:
-          name: fsl-image-gui-${{ env.MACHINE }}-flutter-runtimedebug-sdk-linux
+          name: fsl-image-gui-${{ env.MACHINE }}-flutter-sdk-linux
           path: |
              /home/dev/artifacts/*

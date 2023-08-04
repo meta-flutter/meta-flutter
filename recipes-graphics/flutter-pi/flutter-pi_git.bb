@@ -1,3 +1,7 @@
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
+
 SUMMARY = "A light-weight Flutter Engine Embedder for Raspberry Pi that runs without X."
 DESCRIPTION = "A light-weight Flutter Engine Embedder for Raspberry Pi. Inspired by \
                https://github.com/chinmaygarde/flutter_from_scratch. Flutter-pi also \
@@ -7,12 +11,11 @@ AUTHOR = "Hannes Winkler"
 HOMEPAGE = "https://github.com/ardera/flutter-pi"
 BUGTRACKER = "https://github.com/ardera/flutter-pi/issues"
 SECTION = "graphics"
+CVE_PRODUCT = "flutter-pi"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=49fada46694956cdf2fc0292d72d888c"
 
 DEPENDS += "\
-    compiler-rt \
-    libcxx \
     libdrm \
     libinput \
     libxkbcommon \
@@ -36,12 +39,6 @@ S = "${WORKDIR}/git"
 
 inherit pkgconfig cmake features_check
 
-require conf/include/flutter-runtime.inc
-
-RUNTIME = "llvm"
-TOOLCHAIN = "clang"
-PREFERRED_PROVIDER_libgcc = "compiler-rt"
-
 PACKAGECONFIG ??= "text_input raw_keyboard gstreamer"
 
 PACKAGECONFIG[text_input]   = "-DBUILD_TEXT_INPUT_PLUGIN=ON,             -DBUILD_TEXT_INPUT_PLUGIN=OFF, libinput libxkbcommon"
@@ -63,7 +60,5 @@ FILES_PN} = "\
     ${bindir} \
     "
 
-BBCLASSEXTEND = "runtimerelease runtimeprofile runtimedebug"
-
-DEPENDS += "flutter-engine-${@gn_get_flutter_runtime_name(d)}"
-RDEPENDS_${PN} += "flutter-engine-${@gn_get_flutter_runtime_name(d)}"
+DEPENDS += "flutter-engine"
+RDEPENDS_${PN} += "flutter-engine"

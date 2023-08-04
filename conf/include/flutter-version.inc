@@ -1,6 +1,8 @@
-# Copyright (c) 2021-2023 Joel Winarske. All rights reserved.
+#
+# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+#
 
-FLUTTER_SDK_TAG ??= "3.3.9"
+FLUTTER_SDK_TAG ??= "3.10.6"
 
 def get_flutter_archive(d):
     return _get_flutter_release_info(d, "archive")
@@ -23,8 +25,7 @@ def _get_flutter_release_info(d, key):
         if flutter_sdk_tag == "AUTOINC":
             flutter_sdk_tag = releases_linux_json["current_release"]["stable"]
 
-        releases = releases_linux_json["releases"]
-        for r in releases:
+        for r in releases_linux_json["releases"]:
             if r["version"] == flutter_sdk_tag or r["hash"] == flutter_sdk_tag:
                 ret = r[key]
                 break
