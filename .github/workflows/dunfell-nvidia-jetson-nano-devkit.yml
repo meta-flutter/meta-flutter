@@ -20,15 +20,21 @@ jobs:
       DEMO_BRANCH: dunfell-l4t-r32.5.0
       MACHINE: jetson-nano-devkit
       DISTRO: tegrademo
-      
+
     runs-on: [self-hosted, linux]
     
     container:
       image: ghcr.io/meta-flutter/meta-flutter/ubuntu-18-dev:main
       options:
-        --user 1001
-        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
-        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        --user 1001:1001
+        --ipc host
+        --privileged
+        --security-opt label=disable
+        --pid host
+        --userns keep-id
+        --ulimit host 
+        --mount type=devpts,destination=/dev/pts
+        --security-opt label=disable
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/yocto/dunfell/nvidia-jetson-nano-devkit:/home/dev/sstate:Z
         -v /mnt/raid10/github-ci/artifacts/nvidia-jetson-nano-devkit:/home/dev/artifacts:Z
