@@ -15,31 +15,32 @@ jobs:
   linux-dummy:
 
     env:
-      YOCTO_VERSION: 4.0
       YOCTO_BRANCH: kirkstone
 
     runs-on: [self-hosted, linux]
 
     container:
-      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      image: ghcr.io/meta-flutter/meta-flutter/ubuntu-20-dev:main
       options:
-        --user 1001
-        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
-        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        --user 1001:1001
+        --ipc host
+        --privileged
+        --security-opt label=disable
+        --pid host
+        --userns keep-id
+        --ulimit host 
+        --mount type=devpts,destination=/dev/pts
+        --security-opt label=disable
+        --group-add keep-groups
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/latest:/home/dev/sstate:Z
 
     steps:
 
-      - name: Display UID Info
-        run: |
-          whoami
-          id -u
-
       - name: Set Ownership
         run: |
           chown -R dev:dev $HOME .
-
+          
       - uses: actions/checkout@v3
         with:
           path: ''
@@ -67,7 +68,6 @@ jobs:
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
           echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> ./conf/local.conf
-          echo 'SSTATE_MIRRORS += "file://.* http://sstate.yoctoproject.org/${{ env.YOCTO_VERSION }}/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES:remove = "sysvinit"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES:append = " x11 wayland opengl"' >> ./conf/local.conf
@@ -77,7 +77,7 @@ jobs:
           echo 'LICENSE_FLAGS_ACCEPTED += "commercial"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-ffmpeg = " openssl"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-auto = " gstreamer"' >> conf/local.conf
-          echo 'PACKAGECONFIG:append:pn-flutter-engine = " desktop-embeddings debug profile"' >> conf/local.conf
+          echo 'PACKAGECONFIG:append:pn-flutter-engine = " desktop-embeddings"' >> conf/local.conf
           echo 'IMAGE_INSTALL:append = " \
               gstreamer1.0 \
               gstreamer1.0-libav \
@@ -114,17 +114,8 @@ jobs:
         working-directory: ../yocto-kirkstone
         run: |
           . ./poky/oe-init-build-env
+          bitbake core-image-minimal -c do_cleansstate
           bitbake core-image-minimal
-
-      - name: Build dart-sdk
-        shell: bash
-        working-directory: ../yocto-kirkstone
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake dart-sdk-native -c do_cleansstate
-          bitbake dart-sdk-native
-          bitbake dart-sdk -c do_cleansstate
-          bitbake dart-sdk
 
       - name: Build flutter-engine
         shell: bash
@@ -134,48 +125,13 @@ jobs:
           bitbake flutter-engine -c do_cleansstate
           bitbake flutter-engine
 
-      - name: Build flutter-test-frb
-        shell: bash
-        working-directory: ../yocto-kirkstone
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-rust-bridge-example -c do_cleansstate
-          bitbake flutter-test-frb -c do_cleansstate
-          bitbake flutter-test-frb
-
-      - name: Build flutter-test-membrane
+      - name: Build membrane-example
         shell: bash
         working-directory: ../yocto-kirkstone
         run: |
           . ./poky/oe-init-build-env
           bitbake membrane-example -c do_cleansstate
           bitbake membrane-example-native -c do_cleansstate
-          bitbake flutter-test-membrane -c do_cleansstate
-          bitbake flutter-test-membrane
-
-      - name: Build flutter-test-animated-background
-        shell: bash
-        working-directory: ../yocto-kirkstone
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-test-animated-background -c do_cleansstate
-          bitbake flutter-test-animated-background
-
-      - name: Build flutter-app-igalia-homescreen
-        shell: bash
-        working-directory: ../yocto-kirkstone
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-app-igalia-homescreen -c do_cleansstate
-          bitbake flutter-app-igalia-homescreen
-
-      - name: Build flutter-app-pumped-fuel-ped
-        shell: bash
-        working-directory: ../yocto-kirkstone
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-app-pumped-fuel-ped -c do_cleansstate
-          bitbake flutter-app-pumped-fuel-ped
 
       - name: Build flutter-auto
         shell: bash
@@ -225,14 +181,6 @@ jobs:
           bitbake flutter-external-texture-plugin -c do_cleansstate
           bitbake flutter-external-texture-plugin
 
-      - name: Build video player plugin
-        shell: bash
-        working-directory: ../yocto-kirkstone
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-video-player-plugin -c do_cleansstate
-          bitbake flutter-video-player-plugin
-
       - name: Build Wayland Client
         shell: bash
         working-directory: ../yocto-kirkstone
@@ -257,22 +205,6 @@ jobs:
           bitbake flutter-gallery -c do_cleansstate
           bitbake flutter-gallery
 
-      - name: Build flutter-test-plugins
-        shell: bash
-        working-directory: ../yocto-kirkstone
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-test-plugins -c do_cleansstate
-          bitbake flutter-test-plugins
-
-      - name: Build flutter-test-secure-storage
-        shell: bash
-        working-directory: ../yocto-kirkstone
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-test-secure-storage -c do_cleansstate
-          bitbake flutter-test-secure-storage
-
       - name: Build flutter-test-texture-egl
         shell: bash
         working-directory: ../yocto-kirkstone
@@ -280,19 +212,3 @@ jobs:
           . ./poky/oe-init-build-env
           bitbake flutter-test-texture-egl -c do_cleansstate
           bitbake flutter-test-texture-egl
-
-      - name: Build flutter-test-video-player
-        shell: bash
-        working-directory: ../yocto-kirkstone
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-test-video-player -c do_cleansstate
-          bitbake flutter-test-video-player
-
-      - name: Build flutter-test-localization
-        shell: bash
-        working-directory: ../yocto-kirkstone
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-test-localization -c do_cleansstate
-          bitbake flutter-test-localization

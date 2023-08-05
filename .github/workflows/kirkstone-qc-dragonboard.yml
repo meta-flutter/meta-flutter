@@ -26,11 +26,18 @@ jobs:
     runs-on: [self-hosted, linux]
     
     container:
-      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      image: ghcr.io/meta-flutter/meta-flutter/ubuntu-20-dev:main
       options:
-        --user 1001
-        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
-        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        --user 1001:1001
+        --ipc host
+        --privileged
+        --security-opt label=disable
+        --pid host
+        --userns keep-id
+        --ulimit host 
+        --mount type=devpts,destination=/dev/pts
+        --security-opt label=disable
+        --group-add keep-groups
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/db820c:/home/dev/sstate:Z
         -v /mnt/raid10/github-ci/artifacts/db820c:/home/dev/artifacts:Z
@@ -38,15 +45,10 @@ jobs:
 
     steps:
     
-      - name: Display UID Info
-        run: |
-          whoami
-          id -u
-          
       - name: Set Ownership
         run: |
           chown -R dev:dev $HOME .
-          
+
       - uses: actions/checkout@v3
         with:
           path: ''
@@ -83,7 +85,6 @@ jobs:
           echo 'IMAGE_LINGUAS:append = " en-us en-gb es-us"' >> conf/local.conf
           echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> conf/local.conf
           echo 'IMAGE_INSTALL:append = "\
-              dart-sdk \
               tzdata-core \
               tzdata-americas \
               default-language-en-us-utf8 \
@@ -121,16 +122,9 @@ jobs:
           bitbake -c do_cleansstate flutter-sdk-native
           bitbake -c do_cleansstate flutter-engine
           bitbake -c do_cleansstate flutter-gallery
-          bitbake -c do_cleansstate flutter-test-plugins
-          bitbake -c do_cleansstate flutter-test-secure-storage
           bitbake -c do_cleansstate flutter-test-texture-egl
-          bitbake -c do_cleansstate flutter-test-video-player
-          bitbake -c do_cleansstate flutter-test-localization
           bitbake -c do_cleansstate membrane-example
           bitbake -c do_cleansstate membrane-example-native
-          bitbake -c do_cleansstate flutter-test-membrane
-          bitbake -c do_cleansstate flutter-rust-bridge-example
-          bitbake -c do_cleansstate flutter-test-frb
 
       - name: Build rpb-weston-image
         shell: bash
@@ -141,6 +135,7 @@ jobs:
           MACHINE=${{ env.MACHINE }}
           ARTIFACTS=/home/dev/artifacts
           . ./setup-environment $MACHINE
+          bitbake $IMAGE -c do_cleansstate
           bitbake $IMAGE
           rm -rf ${ARTIFACTS}/*
           cp bb.environment $ARTIFACTS
@@ -172,22 +167,24 @@ jobs:
     runs-on: [self-hosted, linux]
     
     container:
-      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      image: ghcr.io/meta-flutter/meta-flutter/ubuntu-20-dev:main
       options:
-        --user 1001
-        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
-        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        --user 1001:1001
+        --ipc host
+        --privileged
+        --security-opt label=disable
+        --pid host
+        --userns keep-id
+        --ulimit host
+        --mount type=devpts,destination=/dev/pts
+        --security-opt label=disable
+        --group-add keep-groups
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/db410c:/home/dev/sstate:Z
         -v /mnt/raid10/github-ci/artifacts/db410c:/home/dev/artifacts:Z
 
     steps:
     
-      - name: Display UID Info
-        run: |
-          whoami
-          id -u
-          
       - name: Set Ownership
         run: |
           chown -R dev:dev $HOME .
@@ -228,7 +225,6 @@ jobs:
           echo 'IMAGE_LINGUAS:append = " en-us en-gb es-us"' >> conf/local.conf
           echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> conf/local.conf
           echo 'IMAGE_INSTALL:append = "\
-              dart-sdk \
               tzdata-core \
               tzdata-americas \
               default-language-en-us-utf8 \
@@ -266,16 +262,9 @@ jobs:
           bitbake -c do_cleansstate flutter-sdk-native
           bitbake -c do_cleansstate flutter-engine
           bitbake -c do_cleansstate flutter-gallery
-          bitbake -c do_cleansstate flutter-test-plugins
-          bitbake -c do_cleansstate flutter-test-secure-storage
           bitbake -c do_cleansstate flutter-test-texture-egl
-          bitbake -c do_cleansstate flutter-test-video-player
-          bitbake -c do_cleansstate flutter-test-localization
           bitbake -c do_cleansstate membrane-example
           bitbake -c do_cleansstate membrane-example-native
-          bitbake -c do_cleansstate flutter-test-membrane
-          bitbake -c do_cleansstate flutter-rust-bridge-example
-          bitbake -c do_cleansstate flutter-test-frb
 
       - name: Build rpb-weston-image
         shell: bash
@@ -286,6 +275,7 @@ jobs:
           MACHINE=${{ env.MACHINE }}
           ARTIFACTS=/home/dev/artifacts
           . ./setup-environment $MACHINE
+          bitbake $IMAGE -c do_cleansstate
           bitbake $IMAGE
           rm -rf ${ARTIFACTS}/*
           cp bb.environment $ARTIFACTS

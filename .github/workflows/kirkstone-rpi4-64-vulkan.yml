@@ -17,15 +17,22 @@ jobs:
     env:
       YOCTO_BRANCH: "kirkstone"
       MACHINE: raspberrypi4-64
-      
+
     runs-on: [self-hosted, linux]
     
     container:
-      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      image: ghcr.io/meta-flutter/meta-flutter/ubuntu-20-dev:main
       options:
-        --user 1001
-        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
-        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        --user 1001:1001
+        --ipc host
+        --privileged
+        --security-opt label=disable
+        --pid host
+        --userns keep-id
+        --ulimit host 
+        --mount type=devpts,destination=/dev/pts
+        --security-opt label=disable
+        --group-add keep-groups
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/zero2w-drm/latest:/home/dev/sstate:Z
         -v /mnt/raid10/github-ci/artifacts/zero2w/drm:/home/dev/artifacts:Z
@@ -53,7 +60,7 @@ jobs:
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git &
-          git clone -b jw/rpi4_kvm             --single-branch https://github.com/meta-flutter/meta-raspberrypi.git &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/meta-flutter/meta-raspberrypi.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.yoctoproject.org/git/meta-security.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.yoctoproject.org/git/meta-selinux.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.yoctoproject.org/git/meta-virtualization.git &
@@ -133,7 +140,6 @@ jobs:
           #
           echo 'PACKAGECONFIG:append:pn-flutter-engine = " profile debug"' >> conf/local.conf
           echo 'IMAGE_INSTALL:append = "\
-              dart-sdk \
               flutter-auto \
               packagegroup-flutter-test-apps \
               "' >> ./conf/local.conf
@@ -194,13 +200,13 @@ jobs:
           bitbake -c do_cleansstate flutter-sdk-native
           bitbake -c do_cleansstate packagegroup-flutter-test-apps
           bitbake -c do_cleansstate sascha-samples
-          bitbake -c do_cleansstate flutter-test-animated-background
 
       - name: Build rpi-image-weston-flutter
         shell: bash
         working-directory: ../rpi4-64-vulkan-kirkstone
         run: |
           . ./poky/oe-init-build-env ${{ env.MACHINE }}
+          bitbake rpi-image-flutter-wayland -c do_cleansstate
           bitbake rpi-image-flutter-wayland
           rm -rf /home/dev/artifacts/*
           cp bb.environment /home/dev/artifacts

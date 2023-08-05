@@ -1,4 +1,4 @@
-name: kirkstone-imx8mmevk
+name: kirkstone-nitrogen8m
 
 on:
   pull_request:
@@ -12,33 +12,35 @@ on:
 
 jobs:
 
-  kirkstone-fsl-wayland:
+  kirkstone-fsl-image-multimedia:
   
     env:
-      YOCTO_BRANCH: "kirkstone"
-      MACHINE: imx8mmevk
+      YOCTO_BRANCH: kirkstone
+      MACHINE: nitrogen8m
       DISTRO: fsl-imx-wayland
-      IMAGE: imx-image-core
+      IMAGE: fsl-image-multimedia
       
     runs-on: [self-hosted, linux]
     
     container:
-      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      image: ghcr.io/meta-flutter/meta-flutter/ubuntu-20-dev:main
       options:
-        --user 1001
-        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
-        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        --user 1001:1001
+        --ipc host
+        --privileged
+        --security-opt label=disable
+        --pid host
+        --userns keep-id
+        --ulimit host 
+        --mount type=devpts,destination=/dev/pts
+        --security-opt label=disable
+        --group-add keep-groups
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/imx8mmevk:/home/dev/sstate:Z
         -v /mnt/raid10/github-ci/artifacts/imx8mmevk:/home/dev/artifacts:Z
 
     steps:
     
-      - name: Display UID Info
-        run: |
-          whoami
-          id -u
-          
       - name: Set Ownership
         run: |
           chown -R dev:dev $HOME .
@@ -49,8 +51,8 @@ jobs:
 
       - name: Fetch poky
         run: |
-          [ -d ../imx8mmevk-kirkstone ] || mkdir -p ../imx8mmevk-kirkstone
-          cd ../imx8mmevk-kirkstone
+          [ -d ../nitrogen8m-kirkstone ] || mkdir -p ../nitrogen8m-kirkstone
+          cd ../nitrogen8m-kirkstone
           rm -rf sources || true
           ls -la
           git config --list
@@ -58,29 +60,28 @@ jobs:
           git config --global user.name "Joel Winarske"
           git config --list
           rm -rf conf | true
-          /home/dev/bin/repo init -u https://source.codeaurora.org/external/imx/imx-manifest -m imx-5.15.32-2.0.0.xml -b imx-linux-kirkstone
-          /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo`
-          git clone --single-branch --branch kirkstone https://github.com/meta-flutter/meta-flutter-vm sources/meta-flutter-vm &
-          git clone --single-branch --branch kirkstone https://git.yoctoproject.org/git/meta-security.git sources/meta-security &
-          git clone --single-branch --branch kirkstone https://git.yoctoproject.org/git/meta-selinux.git sources/meta-selinux &
+          /home/dev/bin/repo init -u https://github.com/Freescale/fsl-community-bsp-platform -b ${{ env.YOCTO_BRANCH }}
+          /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
+          git clone --single-branch -b ${{ env.YOCTO_BRANCH }} https://github.com/MarkusVolk/meta-wayland.git sources/meta-wayland &
+          git clone --single-branch -b ${{ env.YOCTO_BRANCH }} https://git.yoctoproject.org/git/meta-security.git sources/meta-security &
+          git clone --single-branch -b ${{ env.YOCTO_BRANCH }} https://git.yoctoproject.org/git/meta-selinux.git sources/meta-selinux &
           wait
 
       - name: Configure build
         shell: bash
-        working-directory: ../imx8mmevk-kirkstone
+        working-directory: ../nitrogen8m-kirkstone
         run: |
           rm -rf build-wayland/conf
           mkdir -p build-wayland/conf
           echo 'CONF_VERSION = "2"' > build-wayland/conf/local.conf
           echo 'ACCEPT_FSL_EULA = "1"' >> build-wayland/conf/local.conf
-          DISTRO=fsl-imx-wayland MACHINE=imx8mmevk source imx-setup-release.sh -b build-wayland        
+          DISTRO=fsl-imx-wayland MACHINE=${{ env.MACHINE }} source setup-environment build-wayland
           echo '***************************************'
           sed -i '/DL_DIR/d' ./conf/local.conf
           #
           echo 'INHERIT += "rm_work"' >> ./conf/local.conf
           echo 'DL_DIR = "/home/dev/dl"' >> conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> conf/local.conf
-          echo 'SSTATE_MIRRORS = "file://.* file:///home/dev/sstate/PATH"' >> conf/local.conf
           #
           # Localization
           #
@@ -110,29 +111,27 @@ jobs:
           #
           # SELinux
           #
-          echo 'DISTRO_FEATURES:append = " acl xattr pam selinux audit"' >> ./conf/local.conf
-          echo 'PREFERRED_PROVIDER_virtual/refpolicy = "refpolicy-mls"' >> ./conf/local.conf
+          #echo 'DISTRO_FEATURES:append = " acl xattr pam selinux audit"' >> ./conf/local.conf
+          #echo 'PREFERRED_PROVIDER_virtual/refpolicy = "refpolicy-mls"' >> ./conf/local.conf
           #
           # SECCOMP
           #
-          echo 'DISTRO_FEATURES:append = " security seccomp"' >> ./conf/local.conf          
+          #echo 'DISTRO_FEATURES:append = " security seccomp"' >> ./conf/local.conf          
           #
           # Virtualization
           #
-          echo 'DISTRO_FEATURES:append = " virtualization kvm"' >> ./conf/local.conf
-          echo 'RUST_PANIC_STRATEGY = "abort"' >> ./conf/local.conf
-          echo 'IMAGE_INSTALL:append = "\
-              kvmtool dmidecode \
-              libvirt libvirt-libvirtd libvirt-virsh \
-              crosvm crosvm-direct crosvm-plugin \
-              firecracker jailer curl \
-              "' >> ./conf/local.conf
+          #echo 'DISTRO_FEATURES:append = " virtualization kvm"' >> ./conf/local.conf
+          #echo 'RUST_PANIC_STRATEGY = "abort"' >> ./conf/local.conf
+          #echo 'IMAGE_INSTALL:append = "\
+          #    kvmtool dmidecode \
+          #    libvirt libvirt-libvirtd libvirt-virsh \
+          #    crosvm crosvm-direct crosvm-plugin \
+          #    firecracker jailer curl \
+          #    "' >> ./conf/local.conf
           #
           # Flutter
           #
-          echo 'PACKAGECONFIG:append:pn-flutter-engine = " profile debug"' >> conf/local.conf
           echo 'IMAGE_INSTALL:append = "\
-              dart-sdk \
               flutter-auto \
               packagegroup-flutter-test-apps \
               flutter-pi \
@@ -140,16 +139,14 @@ jobs:
           #
           # Kernel
           #
-          echo 'LINUX_KERNEL_TYPE = "preempt-rt"' >> ./conf/local.conf
+          #echo 'LINUX_KERNEL_TYPE = "preempt-rt"' >> ./conf/local.conf
           echo '********** conf/local.conf **********'
           cat conf/local.conf
           echo '***************************************'
           bitbake-layers add-layer \
               ../../meta-flutter \
-              ../sources/meta-flutter-vm \
-              ../sources/meta-security \
-              ../sources/meta-selinux \
-              ../sources/meta-openembedded/meta-perl
+              ../sources/meta-openembedded/meta-perl \
+              ../sources/meta-wayland
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
@@ -161,14 +158,15 @@ jobs:
           bitbake -e > bb.environment
           bitbake -c do_cleansstate flutter-sdk-native
 
-      - name: Build imx-image-core
+      - name: Build fsl-image-multimedia
         shell: bash
-        working-directory: ../imx8mmevk-kirkstone
+        working-directory: ../nitrogen8m-kirkstone
         run: |
           IMAGE=${{ env.IMAGE }}
           MACHINE=${{ env.MACHINE }}
           ARTIFACTS=/home/dev/artifacts
           DISTRO=${{ env.DISTRO }} MACHINE=${MACHINE} source setup-environment build-wayland
+          bitbake ${IMAGE} -c do_cleansstate
           bitbake ${IMAGE}
           rm -rf ${ARTIFACTS}/*
           cp bb.environment $ARTIFACTS

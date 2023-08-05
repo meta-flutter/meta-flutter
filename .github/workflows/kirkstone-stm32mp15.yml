@@ -19,15 +19,22 @@ jobs:
       DISTRO: openstlinux-weston
       WORKSPACE: stm32mp15-kirkstone
       FLAVOR: weston
-      
+
     runs-on: [self-hosted, linux]
     
     container:
-      image: ghcr.io/meta-flutter/ubuntu-18-dev:main
+      image: ghcr.io/meta-flutter/meta-flutter/ubuntu-20-dev:main
       options:
-        --user 1001
-        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
-        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        --user 1001:1001
+        --ipc host
+        --privileged
+        --security-opt label=disable
+        --pid host
+        --userns keep-id
+        --ulimit host 
+        --mount type=devpts,destination=/dev/pts
+        --security-opt label=disable
+        --group-add keep-groups
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/stm32mp15:/home/dev/sstate:Z
         -v /mnt/raid10/github-ci/artifacts/kirkstone/stm32mp15:/home/dev/artifacts:Z
@@ -52,7 +59,7 @@ jobs:
           rm -rf layers
           git config --global user.name "Joel Winarske"
           git config --global user.email "joel.winarske@gmail.com"
-          /home/dev/bin/repo init -u https://github.com/STMicroelectronics/oe-manifest.git -b refs/tags/openstlinux-5.15-yocto-kirkstone-mp1-v22.07.27
+          /home/dev/bin/repo init -u https://github.com/STMicroelectronics/oe-manifest.git -b refs/tags/openstlinux-5.15-yocto-kirkstone-mp1-v23.07.26
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
           git clone -b kirkstone https://github.com/kraj/meta-clang.git layers/meta-clang &
           wait
@@ -82,7 +89,6 @@ jobs:
           echo 'CORE_IMAGE_EXTRA_INSTALL:remove = " gtk+3-demo "' >> ./conf/local.conf
           echo 'IMAGE_ROOTFS_MAXSIZE = "3145728"' >> ./conf/local.conf
           echo 'CORE_IMAGE_EXTRA_INSTALL += "\
-                    dart-sdk \
                     flutter-auto \
                     flutter-engine-sdk-dev \
                     packagegroup-flutter-test-apps \
@@ -122,14 +128,13 @@ jobs:
           bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-engine -c do_cleansstate
-          bitbake -c do_cleansstate flutter-rust-bridge-example
-          bitbake -c do_cleansstate flutter-test-frb
 
       - name: Build st-image-weston
         shell: bash
         working-directory: ../${{ env.WORKSPACE }}
         run: |
           source layers/meta-st/scripts/envsetup.sh --no-ui
+          bitbake st-image-weston -c do_cleansstate
           bitbake st-image-weston
           rm -rf /home/dev/artifacts/*
           mkdir -p /home/dev/artifacts/arm-trusted-firmware
