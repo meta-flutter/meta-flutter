@@ -35,4 +35,4 @@ SERIAL_CONSOLES = ""
 # We assume rngd is running on the host
 VIRTUAL-RUNTIME_rngd = ""
 
-EXTRA_IMAGEDEPENDS:remove = "arm-trusted-firmware optee-os u-boot"
+EXTRA_IMAGEDEPENDS_remove = "arm-trusted-firmware optee-os u-boot"
