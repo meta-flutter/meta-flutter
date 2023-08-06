@@ -31,13 +31,13 @@ jobs:
         --user 1001:1001
         --ipc host
         --privileged
-        --security-opt label=disable
         --pid host
         --userns keep-id
         --ulimit host 
         --mount type=devpts,destination=/dev/pts
         --security-opt label=disable
         --group-add keep-groups
+        --pids-limit 5000
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/db820c:/home/dev/sstate:Z
         -v /mnt/raid10/github-ci/artifacts/db820c:/home/dev/artifacts:Z
@@ -105,6 +105,7 @@ jobs:
           echo 'PACKAGECONFIG:append:pn-flutter-auto = " gstreamer"' >> conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-engine = " desktop-embeddings profile debug"' >> conf/local.conf
           echo 'RUST_PANIC_STRATEGY = "abort"' >> conf/local.conf
+          echo 'PACKAGE_CLASSES = "package_ipk"' >> ./conf/local.conf
           echo '********** conf/local.conf **********'
           cat conf/local.conf
           echo '***************************************'
@@ -125,6 +126,7 @@ jobs:
           bitbake -c do_cleansstate flutter-test-texture-egl
           bitbake -c do_cleansstate membrane-example
           bitbake -c do_cleansstate membrane-example-native
+          bitbake -c do_cleansstate ncurses
 
       - name: Build rpb-weston-image
         shell: bash
@@ -172,13 +174,13 @@ jobs:
         --user 1001:1001
         --ipc host
         --privileged
-        --security-opt label=disable
         --pid host
         --userns keep-id
         --ulimit host
         --mount type=devpts,destination=/dev/pts
         --security-opt label=disable
         --group-add keep-groups
+        --pids-limit 5000
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/db410c:/home/dev/sstate:Z
         -v /mnt/raid10/github-ci/artifacts/db410c:/home/dev/artifacts:Z
@@ -245,6 +247,7 @@ jobs:
           echo 'PACKAGECONFIG:append:pn-flutter-auto = " gstreamer"' >> conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-engine = " desktop-embeddings profile debug"' >> conf/local.conf
           echo 'RUST_PANIC_STRATEGY = "abort"' >> conf/local.conf
+          echo 'PACKAGE_CLASSES = "package_ipk"' >> ./conf/local.conf
           echo '********** conf/local.conf **********'
           cat conf/local.conf
           echo '***************************************'
@@ -265,6 +268,7 @@ jobs:
           bitbake -c do_cleansstate flutter-test-texture-egl
           bitbake -c do_cleansstate membrane-example
           bitbake -c do_cleansstate membrane-example-native
+          bitbake -c do_cleansstate ncurses
 
       - name: Build rpb-weston-image
         shell: bash

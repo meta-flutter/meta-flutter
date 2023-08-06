@@ -17,8 +17,8 @@ jobs:
     env:
       YOCTO_BRANCH: kirkstone
       MACHINE: nitrogen8m
-      DISTRO: fsl-imx-wayland
       IMAGE: fsl-image-multimedia
+      DISTRO: fslc-wayland
       
     runs-on: [self-hosted, linux]
     
@@ -28,13 +28,13 @@ jobs:
         --user 1001:1001
         --ipc host
         --privileged
-        --security-opt label=disable
         --pid host
         --userns keep-id
-        --ulimit host 
+        --ulimit host
         --mount type=devpts,destination=/dev/pts
         --security-opt label=disable
         --group-add keep-groups
+        --pids-limit 5000
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/imx8mmevk:/home/dev/sstate:Z
         -v /mnt/raid10/github-ci/artifacts/imx8mmevk:/home/dev/artifacts:Z
@@ -62,20 +62,23 @@ jobs:
           rm -rf conf | true
           /home/dev/bin/repo init -u https://github.com/Freescale/fsl-community-bsp-platform -b ${{ env.YOCTO_BRANCH }}
           /home/dev/bin/repo sync --force-sync --no-clone-bundle -j `grep -c ^processor /proc/cpuinfo` &
-          git clone --single-branch -b ${{ env.YOCTO_BRANCH }} https://github.com/MarkusVolk/meta-wayland.git sources/meta-wayland &
-          git clone --single-branch -b ${{ env.YOCTO_BRANCH }} https://git.yoctoproject.org/git/meta-security.git sources/meta-security &
-          git clone --single-branch -b ${{ env.YOCTO_BRANCH }} https://git.yoctoproject.org/git/meta-selinux.git sources/meta-selinux &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git sources/meta-clang &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/MarkusVolk/meta-wayland.git sources/meta-wayland &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.yoctoproject.org/git/meta-selinux.git sources/meta-selinux &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.yoctoproject.org/meta-virtualization sources/meta-virtualization &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.yoctoproject.org/git/meta-security.git sources/meta-security &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/meta-flutter/meta-flutter-vm.git sources/meta-flutter-vm &
           wait
 
       - name: Configure build
         shell: bash
         working-directory: ../nitrogen8m-kirkstone
         run: |
-          rm -rf build-wayland/conf
-          mkdir -p build-wayland/conf
-          echo 'CONF_VERSION = "2"' > build-wayland/conf/local.conf
-          echo 'ACCEPT_FSL_EULA = "1"' >> build-wayland/conf/local.conf
-          DISTRO=fsl-imx-wayland MACHINE=${{ env.MACHINE }} source setup-environment build-wayland
+          rm -rf build/conf
+          mkdir -p build/conf
+          echo 'CONF_VERSION = "2"' > build/conf/local.conf
+          echo 'ACCEPT_FSL_EULA = "1"' >> build/conf/local.conf
+          DISTRO=${{ env.DISTRO }} MACHINE=${{ env.MACHINE }} source setup-environment build
           echo '***************************************'
           sed -i '/DL_DIR/d' ./conf/local.conf
           #
@@ -104,6 +107,9 @@ jobs:
           #
           echo 'DISTRO_FEATURES:append = " opengl wayland pam"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-weston = " remoting"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = "\
+              wlroots-tinywl \
+              "' >> ./conf/local.conf
           #
           # Vulkan
           #
@@ -111,23 +117,23 @@ jobs:
           #
           # SELinux
           #
-          #echo 'DISTRO_FEATURES:append = " acl xattr pam selinux audit"' >> ./conf/local.conf
-          #echo 'PREFERRED_PROVIDER_virtual/refpolicy = "refpolicy-mls"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:append = " acl xattr pam selinux audit"' >> ./conf/local.conf
+          echo 'PREFERRED_PROVIDER_virtual/refpolicy = "refpolicy-mls"' >> ./conf/local.conf
           #
           # SECCOMP
           #
-          #echo 'DISTRO_FEATURES:append = " security seccomp"' >> ./conf/local.conf          
+          echo 'DISTRO_FEATURES:append = " security seccomp"' >> ./conf/local.conf          
           #
           # Virtualization
           #
-          #echo 'DISTRO_FEATURES:append = " virtualization kvm"' >> ./conf/local.conf
-          #echo 'RUST_PANIC_STRATEGY = "abort"' >> ./conf/local.conf
-          #echo 'IMAGE_INSTALL:append = "\
-          #    kvmtool dmidecode \
-          #    libvirt libvirt-libvirtd libvirt-virsh \
-          #    crosvm crosvm-direct crosvm-plugin \
-          #    firecracker jailer curl \
-          #    "' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:append = " virtualization kvm"' >> ./conf/local.conf
+          echo 'RUST_PANIC_STRATEGY = "abort"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = "\
+              kvmtool dmidecode \
+              libvirt libvirt-libvirtd libvirt-virsh \
+              crosvm crosvm-direct crosvm-plugin \
+              firecracker jailer curl \
+              "' >> ./conf/local.conf
           #
           # Flutter
           #
@@ -139,14 +145,22 @@ jobs:
           #
           # Kernel
           #
-          #echo 'LINUX_KERNEL_TYPE = "preempt-rt"' >> ./conf/local.conf
+          echo 'LINUX_KERNEL_TYPE = "preempt-rt"' >> ./conf/local.conf
+          echo 'PACKAGE_CLASSES = "package_ipk"' >> ./conf/local.conf
           echo '********** conf/local.conf **********'
           cat conf/local.conf
           echo '***************************************'
           bitbake-layers add-layer \
-              ../../meta-flutter \
+              ../sources/meta-clang \
               ../sources/meta-openembedded/meta-perl \
-              ../sources/meta-wayland
+              ../sources/meta-openembedded/meta-networking \
+              ../sources/meta-openembedded/meta-filesystems \
+              ../sources/meta-security \
+              ../sources/meta-selinux \
+              ../sources/meta-virtualization \
+              ../sources/meta-flutter-vm \
+              ../sources/meta-wayland \
+              ../../meta-flutter
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
@@ -165,7 +179,7 @@ jobs:
           IMAGE=${{ env.IMAGE }}
           MACHINE=${{ env.MACHINE }}
           ARTIFACTS=/home/dev/artifacts
-          DISTRO=${{ env.DISTRO }} MACHINE=${MACHINE} source setup-environment build-wayland
+          DISTRO=${{ env.DISTRO }} MACHINE=${{ env.MACHINE }} source setup-environment build
           bitbake ${IMAGE} -c do_cleansstate
           bitbake ${IMAGE}
           rm -rf ${ARTIFACTS}/*

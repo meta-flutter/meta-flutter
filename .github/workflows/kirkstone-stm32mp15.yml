@@ -28,13 +28,13 @@ jobs:
         --user 1001:1001
         --ipc host
         --privileged
-        --security-opt label=disable
         --pid host
         --userns keep-id
         --ulimit host 
         --mount type=devpts,destination=/dev/pts
         --security-opt label=disable
         --group-add keep-groups
+        --pids-limit 5000
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/stm32mp15:/home/dev/sstate:Z
         -v /mnt/raid10/github-ci/artifacts/kirkstone/stm32mp15:/home/dev/artifacts:Z
@@ -99,6 +99,7 @@ jobs:
                     "' >> ./conf/local.conf
           echo 'PACKAGECONFIG:pn-flutter-auto = "backend-egl mouse-cursor package-info secure-storage text-input texture-test-egl"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-engine = " profile debug"' >> conf/local.conf
+          echo 'PACKAGE_CLASSES = "package_ipk"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'

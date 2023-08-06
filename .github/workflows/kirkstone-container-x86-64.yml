@@ -34,6 +34,7 @@ jobs:
         --mount type=devpts,destination=/dev/pts
         --security-opt label=disable
         --group-add keep-groups
+        --pids-limit 5000
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/latest:/home/dev/sstate:Z
         -v /mnt/raid10/github-ci/artifacts/yocto/kirkstone/latest:/home/dev/artifacts:Z
@@ -98,6 +99,9 @@ jobs:
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-engine -c do_cleansstate
+          bitbake ncurses-native -c do_cleansstate
+          bitbake ncurses -c do_cleansstate
+          bitbake xkeyboard-config -c do_cleansstate
 
       - name: Build app-container-image-flutter-auto-egl
         shell: bash
@@ -136,12 +140,13 @@ jobs:
         --user 1001:1001
         --ipc host
         --privileged
-        --security-opt label=disable
         --pid host
         --userns keep-id
         --ulimit host 
         --mount type=devpts,destination=/dev/pts
         --security-opt label=disable
+        --group-add keep-groups
+        --pids-limit 5000
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/latest:/home/dev/sstate:Z
         -v /mnt/raid10/github-ci/artifacts/yocto/kirkstone/latest:/home/dev/artifacts:Z
@@ -212,6 +217,9 @@ jobs:
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-engine -c do_cleansstate
+          bitbake ncurses-native -c do_cleansstate
+          bitbake ncurses -c do_cleansstate
+          bitbake xkeyboard-config -c do_cleansstate
 
       - name: Build app-container-image-flutter-auto-vulkan
         shell: bash

@@ -25,13 +25,13 @@ jobs:
         --user 1001:1001
         --ipc host
         --privileged
-        --security-opt label=disable
         --pid host
         --userns keep-id
         --ulimit host 
         --mount type=devpts,destination=/dev/pts
         --security-opt label=disable
         --group-add keep-groups
+        --pids-limit 5000
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/latest:/home/dev/sstate:Z
 
@@ -87,6 +87,7 @@ jobs:
               gstreamer1.0-plugins-ugly \
               ffmpeg \
               "' >> ./conf/local.conf
+          echo 'PACKAGE_CLASSES = "package_ipk"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
@@ -108,6 +109,8 @@ jobs:
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
+          bitbake ncurses-native -c do_cleansstate
+          bitbake ncurses -c do_cleansstate
 
       - name: Build core-image-minimal
         shell: bash

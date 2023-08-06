@@ -26,13 +26,13 @@ jobs:
         --user 1001:1001
         --ipc host
         --privileged
-        --security-opt label=disable
         --pid host
         --userns keep-id
         --ulimit host 
         --mount type=devpts,destination=/dev/pts
         --security-opt label=disable
         --group-add keep-groups
+        --pids-limit 5000
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/zero2w-drm/latest:/home/dev/sstate:Z
         -v /mnt/raid10/github-ci/artifacts/zero2w/drm:/home/dev/artifacts:Z
@@ -72,7 +72,9 @@ jobs:
           echo 'GLIBC_GENERATE_LOCALES:append = " en_US.UTF-8 es_US.UTF-8 en_GB.UTF-8"' >> ./conf/local.conf
           echo 'IMAGE_LINGUAS:append = " en-us en-gb es-us"' >> ./conf/local.conf
           echo 'DEFAULT_TIMEZONE = "America/Los_Angeles"' >> ./conf/local.conf
+          echo 'PACKAGE_CLASSES = "package_ipk"' >> ./conf/local.conf
           echo 'IMAGE_INSTALL:append = "\
+              opkg \
               default-language-en-us-utf8 \
               tzdata-americas \
               tzdata-core \

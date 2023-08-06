@@ -26,13 +26,13 @@ jobs:
         --user 1001:1001
         --ipc host
         --privileged
-        --security-opt label=disable
         --pid host
         --userns keep-id
         --ulimit host 
         --mount type=devpts,destination=/dev/pts
         --security-opt label=disable
         --group-add keep-groups
+        --pids-limit 5000
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/zero2w-drm/latest:/home/dev/sstate:Z
         -v /mnt/raid10/github-ci/artifacts/zero2w/drm:/home/dev/artifacts:Z
@@ -98,6 +98,7 @@ jobs:
           echo 'DISTRO_FEATURES:remove = "sysvinit x11 usbgadget ptest xen"' >> ./conf/local.conf
           echo 'COMBINED_FEATURES += "alsa "' >> ./conf/local.conf
           echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
+          echo 'IMAGE_INSTALL:append = "opkg"' >> ./conf/local.conf
           #
           # Wayland
           #
@@ -161,6 +162,7 @@ jobs:
           # SERIAL_CONSOLES = "115200;ttyAMA0"' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_jpeg = "libjpeg-turbo"' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_jpeg-native = "libjpeg-turbo-native"' >> ./conf/local.conf
+          echo 'PACKAGE_CLASSES = "package_ipk"' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
