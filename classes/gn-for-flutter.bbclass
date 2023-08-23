@@ -1,8 +1,10 @@
 # Copyright (c) 2020-2022 Woven Alpha, Inc
 
 python () {
+    from bb.utils import export_proxies
     import gn
     bb.fetch2.methods.append(gn.GN())
+    export_proxies(d)
 }
 
 DEPENDS += " \
@@ -31,10 +33,6 @@ do_fetch[depends] += " \
 
 do_configure[network] = "1"
 do_configure:prepend() {
-    export http_proxy=${http_proxy}
-    export https_proxy=${https_proxy}
-    export HTTP_PROXY=${HTTP_PROXY}
-    export HTTPS_PROXY=${HTTPS_PROXY}
     export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:${PATH}
     export DEPOT_TOOLS_UPDATE=0
     export GCLIENT_PY3=0
@@ -42,10 +40,6 @@ do_configure:prepend() {
 
 do_compile[network] = "1"
 do_compile:prepend() {
-    export http_proxy=${http_proxy}
-    export https_proxy=${https_proxy}
-    export HTTP_PROXY=${HTTP_PROXY}
-    export HTTPS_PROXY=${HTTPS_PROXY}
     export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:${PATH}
     export DEPOT_TOOLS_UPDATE=0
     export GCLIENT_PY3=0

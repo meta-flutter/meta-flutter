@@ -36,13 +36,15 @@ do_unpack[network] = "1"
 do_patch[network] = "1"
 do_compile[network] = "1"
 
+python () {
+    from bb.utils import export_proxies
+    export_proxies(d)
+}
+
 do_compile() {
     export CURL_CA_BUNDLE=${STAGING_DIR_NATIVE}/etc/ssl/certs/ca-certificates.crt
     export PATH=${S}/bin:$PATH
     export PUB_CACHE=${S}/.pub-cache
-
-    export http_proxy=${http_proxy}
-    export https_proxy=${https_proxy}
 
     bbnote "Flutter SDK: ${FLUTTER_SDK_TAG}"
 

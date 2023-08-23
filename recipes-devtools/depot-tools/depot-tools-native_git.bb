@@ -14,6 +14,11 @@ S = "${WORKDIR}/git"
 
 inherit native
 
+python () {
+    from bb.utils import export_proxies
+    export_proxies(d)
+}
+
 do_compile[network] = "1"
 do_compile() {
 
