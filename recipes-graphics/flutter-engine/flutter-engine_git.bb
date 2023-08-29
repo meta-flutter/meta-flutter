@@ -48,12 +48,6 @@ GN_CUSTOM_VARS ?= '\
     "download_windows_deps": False, \
     "download_linux_deps": False,   \
 }'
-# https://github.com/flutter/flutter/issues/127606
-GN_CUSTOM_DEPS ?= '\
-{\
-    "src/third_party/dart/third_party/pkg/tools": \
-    "https://dart.googlesource.com/tools.git@545d7e1c73ce21b8c91f638021f9d487d324a501" \
-}'
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 
 COMPATIBLE_MACHINE = "(-)"
