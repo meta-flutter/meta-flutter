@@ -2,7 +2,7 @@
 # Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
 #
 
-FLUTTER_SDK_TAG ??= "3.10.6"
+FLUTTER_SDK_TAG ??= "3.13.2"
 
 def get_flutter_archive(d):
     return _get_flutter_release_info(d, "archive")
