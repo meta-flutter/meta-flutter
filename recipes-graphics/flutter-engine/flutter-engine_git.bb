@@ -35,7 +35,7 @@ SRC_URI = "\
 
 S = "${WORKDIR}/src"
 
-inherit gn-for-flutter python3native features_check pkgconfig
+inherit gn-fetcher python3native features_check pkgconfig
 
 require conf/include/gn-utils.inc
 require conf/include/flutter-version.inc
