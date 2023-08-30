@@ -23,7 +23,7 @@ SRC_URI = "gn://github.com/dart-lang/sdk.git;name=sdk \
 
 S = "${WORKDIR}/sdk"
 
-inherit gn-for-flutter python3native pkgconfig
+inherit gn-fetcher python3native pkgconfig
 
 require conf/include/gn-utils.inc
 

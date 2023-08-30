@@ -1,4 +1,7 @@
 # Copyright (c) 2020-2022 Woven Alpha, Inc
+#
+# SPDX-License-Identifier: MIT
+#
 
 python () {
     import gn
