@@ -69,6 +69,8 @@ PACKAGECONFIG ??= "\
     embedder-for-target \
     fontconfig \
     mallinfo2 \
+    impeller-3d \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'opengl', 'impeller-opengles', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'vulkan impeller-vulkan', '', d)} \
     "
 
@@ -98,7 +100,9 @@ PACKAGECONFIG[ubsan] = "--ubsan"
 PACKAGECONFIG[unoptimized] = "--unoptimized"
 PACKAGECONFIG[verbose] = "--verbose"
 PACKAGECONFIG[vulkan] = "--enable-vulkan,, wayland"
+PACKAGECONFIG[impeller-opengles] = "--enable-impeller-opengles"
 PACKAGECONFIG[impeller-vulkan] = "--enable-impeller-vulkan"
+PACKAGECONFIG[impeller-3d] = "--enable-impeller-3d"
 
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
 CLANG_PATH = "${WORKDIR}/src/buildtools/linux-x64/clang"
