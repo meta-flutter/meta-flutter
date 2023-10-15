@@ -28,7 +28,7 @@ RDEPENDS:${PN} += "\
 
 REQUIRED_DISTRO_FEATURES = "wayland opengl"
 
-SRCREV ??= "e961ec088a6d92276322ad7417cef1a32e8381a6"
+SRCREV ??= "0e4661b1ac4a6fbced8a7ce6416fd663c66f2944"
 SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=main"
 
 S = "${WORKDIR}/git"
@@ -55,6 +55,7 @@ PACKAGECONFIG ??= "\
     pc-accessibility \
     pc-desktop-window \
     pc-logging \
+    pc-google-sign-in \
     texture-test-egl \
     texture-navi-render-egl \
     "
@@ -84,6 +85,7 @@ PACKAGECONFIG[pc-desktop-window] = "-DBUILD_PLUGIN_DESKTOP_WINDOW=ON, -DBUILD_PL
 PACKAGECONFIG[pc-secure-storage] = "-DBUILD_PLUGIN_SECURE_STORAGE=ON, -DBUILD_PLUGIN_SECURE_STORAGE=OFF, libsecret"
 PACKAGECONFIG[pc-integration-test] = "-DBUILD_PLUGIN_INTEGRATION_TEST=ON, -DBUILD_PLUGIN_INTEGRATION_TEST=OFF"
 PACKAGECONFIG[pc-logging] = "-DBUILD_PLUGIN_LOGGING=ON, -DBUILD_PLUGIN_LOGGING=OFF"
+PACKAGECONFIG[pc-google-sign-in] = "-DBUILD_PLUGIN_GOOGLE_SIGN_IN=ON, -DBUILD_PLUGIN_GOOGLE_SIGN_IN=OFF, libcurl"
 PACKAGECONFIG[texture-test-egl] = "-DBUILD_TEXTURE_TEST_EGL=ON, -DBUILD_TEXTURE_TEST_EGL=OFF"
 PACKAGECONFIG[texture-navi-render-egl] = "-DBUILD_TEXTURE_NAVI_RENDER_EGL=ON, -DBUILD_TEXTURE_NAVI_RENDER_EGL=OFF"
 
