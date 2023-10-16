@@ -2,8 +2,8 @@
 # Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
 #
 
-SUMMARY = "Toyota IVI Homescreen"
-DESCRIPTION = "Toyota's Flutter Embedder that communicates with AGL-compositor/Wayland compositors"
+SUMMARY = "Toyota Flutter Auto"
+DESCRIPTION = "Toyota's ivi-homescreen renamed to flutter-auto"
 AUTHOR = "joel.winarske@toyotaconnected.com"
 HOMEPAGE = "https://github.com/toyota-connected/ivi-homescreen"
 BUGTRACKER = "https://github.com/toyota-connected/ivi-homescreen/issues"
@@ -27,8 +27,8 @@ RDEPENDS:${PN} += "\
 
 REQUIRED_DISTRO_FEATURES = "wayland opengl"
 
-SRCREV ??= "13e3e1283c4f799ef81d2270a108c7a5797a2273"
-SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=main"
+SRCREV ??= "d48ec986ff06f926dce8c721571e194ddf9da1d9"
+SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=agl"
 
 S = "${WORKDIR}/git"
 
