@@ -103,5 +103,3 @@ cmake_do_install:append() {
 }
 
 BBCLASSEXTEND = "verbose-logs"
-
-RDEPENDS:${PN} = "flutter-engine"
