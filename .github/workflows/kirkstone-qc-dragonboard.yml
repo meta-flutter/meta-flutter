@@ -28,19 +28,15 @@ jobs:
     container:
       image: ghcr.io/meta-flutter/meta-flutter/ubuntu-20-dev:main
       options:
-        --user 1001:1001
-        --ipc host
-        --privileged
-        --pid host
-        --userns keep-id
-        --ulimit host 
-        --mount type=devpts,destination=/dev/pts
+        --userns=keep-id -e USER_ID=$UID -e GROUP_ID=$GID
         --security-opt label=disable
-        --group-add keep-groups
-        --pids-limit 5000
-        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
-        -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/db820c:/home/dev/sstate:Z
-        -v /mnt/raid10/github-ci/artifacts/db820c:/home/dev/artifacts:Z
+        --tmpfs /tmp
+        -w $PWD -v $PWD:$PWD
+        -e SSH_AUTH_SOCK
+        -v $SSH_AUTH_SOCK:$SSH_AUTH_SOCK
+        -v /mnt/raid10/github-ci/download:/home/dev/dl
+        -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/db820c:/home/dev/sstate
+        -v /mnt/raid10/github-ci/artifacts/db820c:/home/dev/artifacts
         -v /mnt/raid10/github-ci/qc/apq8096:/lib/firmware/qcom/apq8096
 
     steps:
@@ -171,19 +167,15 @@ jobs:
     container:
       image: ghcr.io/meta-flutter/meta-flutter/ubuntu-20-dev:main
       options:
-        --user 1001:1001
-        --ipc host
-        --privileged
-        --pid host
-        --userns keep-id
-        --ulimit host
-        --mount type=devpts,destination=/dev/pts
+        --userns=keep-id -e USER_ID=$UID -e GROUP_ID=$GID
         --security-opt label=disable
-        --group-add keep-groups
-        --pids-limit 5000
-        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
-        -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/db410c:/home/dev/sstate:Z
-        -v /mnt/raid10/github-ci/artifacts/db410c:/home/dev/artifacts:Z
+        --tmpfs /tmp
+        -w $PWD -v $PWD:$PWD
+        -e SSH_AUTH_SOCK
+        -v $SSH_AUTH_SOCK:$SSH_AUTH_SOCK
+        -v /mnt/raid10/github-ci/download:/home/dev/dl
+        -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/db410c:/home/dev/sstate
+        -v /mnt/raid10/github-ci/artifacts/db410c:/home/dev/artifacts
 
     steps:
     
