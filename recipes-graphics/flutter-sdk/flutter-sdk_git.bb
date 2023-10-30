@@ -43,6 +43,10 @@ do_compile() {
 
     export http_proxy=${http_proxy}
     export https_proxy=${https_proxy}
+    export HTTP_PROXY=${HTTP_PROXY}
+    export HTTPS_PROXY=${HTTPS_PROXY}
+    export NO_PROXY=localhost,127.0.0.1,::1
+
 
     bbnote "Flutter SDK: ${FLUTTER_SDK_TAG}"
 
