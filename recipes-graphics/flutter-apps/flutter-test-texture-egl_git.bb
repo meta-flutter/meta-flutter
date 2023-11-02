@@ -21,6 +21,4 @@ PUBSPEC_APPNAME = "test_egl"
 FLUTTER_APPLICATION_PATH = "textures/test_egl"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
-FLUTTER_BUILD_ARGS = "bundle"
-
 inherit flutter-app

@@ -4,6 +4,46 @@ Yocto Layer for Google Flutter related projects.
 
 _Updates_:
 
+Nov 2, 2023
+1. Includes dart_plugin_registrant.dart file in AOT
+  https://github.com/meta-flutter/meta-flutter/issues/115
+2. filter dart_plugin_registrant.dart against unused platforms.
+3. path_provider is dependent on xdg-user-dirs if you want official xdg directories,
+  otherwise methods return home path.  For apps that are dependent on xdg-user-dirs
+  add xdg-user-dirs to your RDEPENDS, and run `xdg-user-dirs-update`
+  on birthday boot from user that runs homescreen/flutter-auto.
+4. ivi-homescreen/flutter-auto known working apps included in meta-flutter:
+  * flutter_markdown_example
+  * google_maps_flutter_example
+    runs - not plumbed into proprietary module
+  * path_provider_example
+    run xdg-user-dirs-update same user as the homescreen/flutter-auto runs as
+  * animated_background_example
+  * gallery
+  * go_router_examples
+  * google_sign_in_example
+  * extension_google_sign_in_example
+  * shared_preferences_example
+  * file_selector_example
+    runs, and zenity starts
+    works on desktop homescreen/flutter-auto
+    For AGL app activation code needed
+  * url_launcher_example
+    url launch works, webview launch/close not wired in
+    For AGL app activation code needed
+  * camera_example
+    runs, does not talk to flutter-auto
+  * wonders
+    does not display anything
+    shared_preference plugin issue - needs investigation
+    appears to be pigeon related
+  * in_app_purchase_example
+    does not display anything
+    appears to be pigeon related 
+  * video_player_example
+    runs, does not talk to homescreen/flutter-auto.  Needs update to work with pigeon
+  
+
 March 17, 2023
 * APP_GEN_SNAPSHOT_FLAGS - allows setting gen_snapshot flags like `--no-use-integer-division`
 * FLUTTER_APP_RUNTIME_MODES - allows setting runtime mode per app.  Deprecates use of FLUTTER_APP_SKIP_DEBUG_INSTALL.
