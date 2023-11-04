@@ -4,6 +4,14 @@ Yocto Layer for Google Flutter related projects.
 
 _Updates_:
 
+Nov 4,2023
+1. Dart AOT plugin registration is working in all tested cases.
+  This is confirmed on 3.13.9 using the --source flag during
+  kernel snapshot creation.  The scenario where some apps were 
+  correctly calling _PluginRegistrant.register and not others,
+  was resolved by setting the --obfuscate flag for the gen_snapshot
+  invocation.  This is now enabled by default for release/profile builds.
+
 Nov 2, 2023
 1. Includes dart_plugin_registrant.dart file in AOT
   https://github.com/meta-flutter/meta-flutter/issues/115
