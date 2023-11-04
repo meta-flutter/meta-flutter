@@ -21,15 +21,15 @@ DEPENDS += " \
     unzip-native \
     "
 
+FLUTTER_APPLICATION_PATH ??= ""
 FLUTTER_PREBUILD_CMD ??= ""
-FLUTTER_APPLICATION_PATH ??= "."
 FLUTTER_BUILD_ARGS ??= "bundle"
-APP_AOT_EXTRA_DART_DEFINES ??= ""
-FLUTTER_APPLICATION_INSTALL_PREFIX ??= ""
-FLUTTER_INSTALL_DIR = "${datadir}${FLUTTER_APPLICATION_INSTALL_PREFIX}/${PUBSPEC_APPNAME}"
+
+APP_AOT_EXTRA ??= ""
 APP_GEN_SNAPSHOT_FLAGS ??= ""
 
-FLUTTER_APP_DISABLE_NATIVE_PLUGINS ??= ""
+FLUTTER_APPLICATION_INSTALL_PREFIX ??= ""
+FLUTTER_INSTALL_DIR = "${datadir}${FLUTTER_APPLICATION_INSTALL_PREFIX}/${PUBSPEC_APPNAME}"
 
 FLUTTER_PUB_CMD ??= "get"
 
@@ -175,159 +175,154 @@ do_compile[network] = "1"
 python do_compile() {
     import shutil
 
+    pubspec_yaml = get_pubspec_yaml(d)
+    pubspec_appname = d.getVar("PUBSPEC_APPNAME")
+    if pubspec_appname != pubspec_yaml["name"]:
+        bb.error("Set PUBSPEC_APPNAME to match name value in pubspec.yaml")
+    
     flutter_sdk = d.getVar('FLUTTER_SDK')
 
     env = os.environ
-    env['PATH'] = '%s/bin:%s' % (flutter_sdk, d.getVar('PATH'))
-    env['PUB_CACHE'] = '%s' % d.getVar('PUB_CACHE')
+    env['PATH'] = f'{flutter_sdk}/bin:{d.getVar("PATH")}'
+    env['PUB_CACHE'] = d.getVar('PUB_CACHE')
 
     staging_dir_target = d.getVar('STAGING_DIR_TARGET')
-    env['PKG_CONFIG_PATH'] = '%s/usr/lib/pkgconfig:%s/usr/share/pkgconfig:%s' % \
-        (staging_dir_target, staging_dir_target, d.getVar("PKG_CONFIG_PATH"))
+    env['PKG_CONFIG_PATH'] = f'{staging_dir_target}/usr/lib/pkgconfig:{staging_dir_target}/usr/share/pkgconfig:{d.getVar("PKG_CONFIG_PATH")}'
     
-    env = os.environ
-    bb.note('%s' % env)
+    bb.note(f'{env}')
 
     source_dir = d.getVar('S')
     flutter_application_path = d.getVar('FLUTTER_APPLICATION_PATH')
     source_root = os.path.join(source_dir, flutter_application_path)
     cmd = d.getVar('FLUTTER_PREBUILD_CMD')
-    if cmd is not None:
+    if cmd != '':
         run_command(d, cmd, source_root, env)
 
     datadir = d.getVar('datadir')
     flutter_sdk_version = d.getVar('FLUTTER_SDK_VERSION')
     
     # determine build type based on what flutter-engine installed.
-    flutter_runtime_modes = os.listdir('%s%s/flutter/%s' % (staging_dir_target, datadir, flutter_sdk_version))
+    flutter_runtime_modes = os.listdir(f'{staging_dir_target}{datadir}/flutter/{flutter_sdk_version}')
 
     flutter_app_runtime_modes = d.getVar('FLUTTER_APP_RUNTIME_MODES')
     flutter_build_args = d.getVar('FLUTTER_BUILD_ARGS')
 
     for runtime_mode in flutter_runtime_modes:
         if runtime_mode not in flutter_app_runtime_modes:
-            bb.note('Skipping build for: %s' % runtime_mode)
+            bb.note(f'Skipping build for: {runtime_mode}')
             continue
 
-        bb.note('[%s] flutter build %s: Starting' % (runtime_mode, flutter_build_args))
+        bb.note(f'[{runtime_mode}] flutter build {flutter_build_args}: Starting')
 
         run_command(d, 'flutter clean', source_root, env)
 
-        if runtime_mode is 'jit_release':
-            bb.note('flutter build %s --local-engine' % flutter_build_args)
-            cmd = ('flutter build %s --local-engine' % flutter_build_args)
+        if runtime_mode == 'jit_release':
+            cmd = (f'flutter build {flutter_build_args} --local-engine')
             run_command(cmd, source_root, env)
         else:
-            cmd = 'flutter build %s' % flutter_build_args
+            cmd = f'flutter build {flutter_build_args}'
             run_command(d, cmd, source_root, env)
 
-        bb.note('[%s] flutter build %s: Completed\n' % (runtime_mode, flutter_build_args))
+        bb.note(f'[{runtime_mode}] flutter build {flutter_build_args}: Completed')
 
-        if runtime_mode is 'release' or 'profile':
+        if runtime_mode == 'release' or 'profile':
 
-            bb.note('kernel_snapshot_%s: Starting' % runtime_mode)
+            bb.note(f'kernel_snapshot_{runtime_mode}: Starting')
 
-            flutter_app_sdk_root = '%s/bin/cache/artifacts/engine/common/flutter_patched_sdk/' % flutter_sdk
+            flutter_app_sdk_root = f'{flutter_sdk}/bin/cache/artifacts/engine/common/flutter_patched_sdk/'
             flutter_app_vm_product = "false"
-            if runtime_mode is 'release':
-                flutter_app_sdk_root = '%s/bin/cache/artifacts/engine/common/flutter_patched_sdk_product/' % flutter_sdk
+            if runtime_mode == 'release':
+                flutter_app_sdk_root = f'{flutter_sdk}/bin/cache/artifacts/engine/common/flutter_patched_sdk_product/'
                 flutter_app_vm_product = "true"
 
             flutter_app_profile_flags = ''
             flutter_app_vm_profile = 'false'
-            if runtime_mode is 'profile':
+            if runtime_mode == 'profile':
                 flutter_app_profile_flags = '--track-widget-creation' 
                 flutter_app_vm_profile = 'true'
 
             flutter_app_debug_flags = ''
             flutter_app_app_dill = '--output-dill .dart_tool/flutter_build/*/app.dill'
-            if runtime_mode is 'debug':
+            if runtime_mode == 'debug':
                 flutter_app_debug_flags = '--enable-asserts'
                 flutter_app_app_dill = '.dart_tool/flutter_build/*/app.dill'
 
             flutter_source_file = ''
             flutter_source_package = ''
             flutter_source_defines = ''
-            dart_plugin_registrant_file = '%s/%s/.dart_tool/flutter_build/dart_plugin_registrant.dart' % (source_dir, flutter_application_path)
+            dart_plugin_registrant_file = f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/dart_plugin_registrant.dart'
             if os.path.isfile(dart_plugin_registrant_file):
-                d.setVar("DART_PLUGIN_REGISTRANT_FILE", dart_plugin_registrant_file)
-                filter_plugin_registrant(d)
-                flutter_source_file = '--source file://%s' % dart_plugin_registrant_file
+                filter_plugin_registrant(dart_plugin_registrant_file)
+                flutter_source_file = f'--source file://{dart_plugin_registrant_file}'
                 flutter_source_package = '--source package:flutter/src/dart_plugin_registrant.dart'
-                flutter_source_defines = '-Dflutter.dart_plugin_registrant=file://%s' % dart_plugin_registrant_file
+                flutter_source_defines = f'-Dflutter.dart_plugin_registrant=file://{dart_plugin_registrant_file}'
 
             flutter_native_assets = ''
             if os.path.isfile('.dart_tool/flutter_build/*/native_assets.yaml'):
-                flutter_native_assets = '--native-assets %s/%s/.dart_tool/flutter_build/*/native_assets.yaml' % (source_dir, flutter_application_path)
+                flutter_native_assets = f'--native-assets {source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/native_assets.yaml'
 
-            cmd = '%s/bin/cache/dart-sdk/bin/dart \
-                --verbose \
+            app_aot_extra = d.getVar("APP_AOT_EXTRA")
+            cmd = f'{flutter_sdk}/bin/cache/dart-sdk/bin/dart \
                 --disable-analytics \
-                --disable-dart-dev %s/bin/cache/artifacts/engine/linux-x64/frontend_server.dart.snapshot \
-                --sdk-root %s \
+                --disable-dart-dev {flutter_sdk}/bin/cache/artifacts/engine/linux-x64/frontend_server.dart.snapshot \
+                --sdk-root {flutter_app_sdk_root} \
                 --target=flutter \
                 --no-print-incremental-dependencies \
-                -Ddart.vm.profile=%s \
-                -Ddart.vm.product=%s \
-                %s %s %s --aot --tfa \
+                -Ddart.vm.profile={flutter_app_vm_profile} \
+                -Ddart.vm.product={flutter_app_vm_product} \
+                {app_aot_extra} \
+                {flutter_app_debug_flags} \
+                {flutter_app_profile_flags} \
+                --aot \
+                --tfa \
                 --target-os linux \
                 --packages .dart_tool/package_config.json \
-                %s \
+                {flutter_app_app_dill} \
                 --depfile .dart_tool/flutter_build/*/kernel_snapshot.d \
-                %s %s %s %s \
-                package:%s/main.dart' % (
-                    flutter_sdk, flutter_sdk,
-                    flutter_app_sdk_root,
-                    flutter_app_vm_profile, flutter_app_vm_product,
-                    d.getVar("APP_AOT_EXTRA_DART_DEFINES"),
-                    flutter_app_debug_flags, flutter_app_profile_flags, flutter_app_app_dill,
-                    flutter_source_file, flutter_source_package, flutter_source_defines,
-                    flutter_native_assets,
-                    d.getVar("PUBSPEC_APPNAME")
-                )
+                {flutter_source_file} \
+                {flutter_source_package} \
+                {flutter_source_defines} \
+                {flutter_native_assets} \
+                --verbosity=error \
+                package:{pubspec_appname}/main.dart'
 
             run_command(d, cmd, source_root, env)
 
-            bb.note('kernel_snapshot_%s: Complete' % runtime_mode)
+            bb.note(f'kernel_snapshot_{runtime_mode}: Complete')
 
             # remove kernel_blob.bin to save space
             try:
-                os.remove('%s/%s/build/flutter_assets/kernel_blob.bin' % (source_dir, flutter_application_path))
+                os.remove(f'{source_dir}/{flutter_application_path}/build/flutter_assets/kernel_blob.bin')
             except OSError:
                 pass
 
             # create empty file for apps that check for kernel_blob.bin
-            cmd = 'touch %s/%s/build/flutter_assets/kernel_blob.bin' % (source_dir, flutter_application_path)
-            run_command(d, cmd, source_root, env)
+            run_command(d, 'touch build/flutter_assets/kernel_blob.bin', source_root, env)
 
-            bb.note('aot_elf_%s: Started' % runtime_mode)
+            bb.note(f'aot_elf_{runtime_mode}: Started')
 
             #
             # Extract Engine SDK
             #
-            shutil.rmtree('%s/engine_sdk' % source_dir, ignore_errors=True)
+            shutil.rmtree(f'{source_dir}/engine_sdk', ignore_errors=True)
 
-            cmd = 'unzip %s/flutter/%s/%s/engine_sdk.zip -d %s/engine_sdk' % (
-                d.getVar('STAGING_DATADIR'),
-                flutter_sdk_version,
-                runtime_mode,
-                source_dir)
-
+            staging_datadir = d.getVar('STAGING_DATADIR')
+            cmd = f'unzip {staging_datadir}/flutter/{flutter_sdk_version}/{runtime_mode}/engine_sdk.zip \
+                -d {source_dir}/engine_sdk'
             run_command(d, cmd, source_root, env)
 
             #
             # Create libapp.so
             #
-            cmd = '%s/engine_sdk/sdk/clang_x64/gen_snapshot \
-                --deterministic %s \
+            app_gen_snapshot_flags = d.getVar("APP_GEN_SNAPSHOT_FLAGS")
+            cmd = f'{source_dir}/engine_sdk/sdk/clang_x64/gen_snapshot \
+                --deterministic \
                 --snapshot_kind=app-aot-elf \
                 --elf=libapp.so \
                 --strip \
-                .dart_tool/flutter_build/*/app.dill' % (
-                    source_dir,
-                    d.getVar("APP_GEN_SNAPSHOT_FLAGS")
-                )
-
+                --obfuscate \
+                {app_gen_snapshot_flags} \
+                .dart_tool/flutter_build/*/app.dill'
             run_command(d, cmd, source_root, env)
 }
 

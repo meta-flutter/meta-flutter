@@ -3,35 +3,56 @@
 # SPDX-License-Identifier: MIT
 #
 
-def get_pubspec_appname(d):
-    import yaml
 
+def get_pubspec_yaml_filepath(d):
     source_dir = d.getVar("S")
     flutter_application_path = d.getVar("FLUTTER_APPLICATION_PATH")
-    pubspec_yaml = os.path.join(source_dir, flutter_application_path, 'pubspec.yaml')
+    filepath = os.path.join(source_dir, flutter_application_path, 'pubspec.yaml')
 
-    bb.warn("source_dir [%s]" % source_dir)
-    bb.warn("flutter_application_path [%s]" % flutter_application_path)
-    bb.warn("pubspec_yaml [%s]" % pubspec_yaml)
+    bb.debug(1, f'source_dir [{source_dir}]')
+    bb.debug(1, f'flutter_application_path [{flutter_application_path}]')
+    bb.debug(1, f'pubspec_yaml filepath [{filepath}]')
 
-    if not os.path.exists(pubspec_yaml):
+    if not os.path.exists(filepath):
         bb.error("pubspec.yaml not found, check FLUTTER_APPLICATION_PATH value")
 
-    with open(pubspec_yaml, "r") as stream:
+    return filepath
+
+
+def write_pubspec_obj_to_file(d, obj):
+    """ Writes YAML object to file """
+    import yaml
+
+    filepath = get_pubspec_yaml_filepath(d)
+    with open(filepath, 'w') as outfile:
+        yaml.dump(obj, outfile)
+
+
+def get_pubspec_yaml(d):
+    """ Returns python object of pubspec.yaml """
+    import yaml
+
+    filepath = get_pubspec_yaml_filepath(d)
+
+    data_loaded = None
+    with open(filepath, "r") as stream:
         try:
             data_loaded = yaml.safe_load(stream)
+
         except yaml.YAMLError as exc:
-            bb.error("Failed loading %s - %s" % (exc, pubspec_yaml))
+            bb.error(f'Failed loading {exc} - {filepath}')
 
-        return data_loaded["name"]
+        return data_loaded
 
-    bb.error("failed to open %s" % pubspec_yaml)
 
-def filter_plugin_registrant(d):
+def get_pubspec_appname(d):
+    """ Returns the application name from the pubspec.yaml """
+    yaml = get_pubspec_yaml(d)
+    return yaml["name"]
+
+
+def filter_plugin_registrant(dart_file):
     """ Removes unused items from the dart plugin registrant file """
-    import os
-
-    dart_file = d.getVar("DART_PLUGIN_REGISTRANT_FILE")
 
     if not os.path.exists(dart_file):
         return
