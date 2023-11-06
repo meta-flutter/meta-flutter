@@ -13,11 +13,13 @@ require conf/include/flutter-version.inc
 require conf/include/app-utils.inc
 require conf/include/common.inc
 
+inherit python3-dir
 
 DEPENDS += " \
     ca-certificates-native \
     flutter-engine \
     flutter-sdk-native \
+    python3-pyyaml-native \
     unzip-native \
     "
 
@@ -39,6 +41,8 @@ PUB_CACHE_ARCHIVE = "flutter-pub-cache-${PUBSPEC_APPNAME}-${SRCREV}.tar.bz2"
 FLUTTER_SDK = "${STAGING_DIR_NATIVE}/usr/share/flutter/sdk"
 
 FLUTTER_APP_RUNTIME_MODES ?= "release"
+
+PYTHON3_SITEPACKAGES_DIR = "${STAGING_DIR_NATIVE}${PYTHON_SITEPACKAGES_DIR}"
 
 
 python () {

@@ -21,6 +21,7 @@ def get_pubspec_yaml_filepath(d):
 
 def write_pubspec_obj_to_file(d, obj):
     """ Writes YAML object to file """
+    os.sys.path.append(d.getVar('PYTHON3_SITEPACKAGES_DIR'))
     import yaml
 
     filepath = get_pubspec_yaml_filepath(d)
@@ -30,6 +31,7 @@ def write_pubspec_obj_to_file(d, obj):
 
 def get_pubspec_yaml(d):
     """ Returns python object of pubspec.yaml """
+    os.sys.path.append(d.getVar('PYTHON3_SITEPACKAGES_DIR'))
     import yaml
 
     filepath = get_pubspec_yaml_filepath(d)
