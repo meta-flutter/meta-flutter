@@ -1,5 +1,11 @@
 # Changelog
 
+Nov 8, 2023
+1. Update engine_sdk.zip contents to enable impeller 3d aot generation from host
+2. Support unpotimized builds with IsCreationCurrentThreadCurrent patch
+  https://github.com/flutter/flutter/issues/129533
+  https://github.com/flutter/flutter/issues/135345
+
 Nov 6, 2023
 1. Use pyyaml from Yocto build not from system
 

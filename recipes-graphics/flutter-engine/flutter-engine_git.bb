@@ -26,6 +26,7 @@ FLUTTER_ENGINE_PATCHES ?= "\
     file://0001-disable-pre-canned-sysroot.patch \
     file://0001-remove-x11-dependency.patch \
     file://0001-disable-x11.patch \
+    file://0001-IsCreationThreadCurrent-workaround.patch \
     "
 
 SRC_URI = "\
@@ -181,7 +182,13 @@ do_install() {
             ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/dart || true
         install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/flatc \
             ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/flatc || true
-        
+
+        # include patched sdk for local-engine scenarios
+        install -d ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/flutter_patched_sdk
+        install -m 0644 ${S}/${BUILD_DIR}/flutter_patched_sdk/*.dill* \
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/flutter_patched_sdk || true
+
+        # include impeller tools
         if ${@bb.utils.contains('PACKAGECONFIG', 'impeller-vulkan', 'true', 'false', d)}; then
             install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/blobcat \
                 ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/blobcat
@@ -193,10 +200,10 @@ do_install() {
             ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/gen_snapshot
             
         cd ${S}/flutter
-        echo $SRCREV                   > ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/engine.version
-        echo $FLUTTER_ENGINE_REPO_URL >> ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/engine.version
-        echo $FLUTTER_SDK_VERSION     >> ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/flutter_sdk.version
-        echo $RUNTIME_MODE            >> ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/flutter.runtime
+        echo "${SRCREV}"                   > ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/engine.version
+        echo "${FLUTTER_ENGINE_REPO_URL}" >> ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/engine.version
+        echo "${FLUTTER_SDK_VERSION}"      > ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/flutter_sdk.version
+        echo "${MODE}"                     > ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/flutter.runtime
 
         cd ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/
         zip -r engine_sdk.zip sdk
