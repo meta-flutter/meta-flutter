@@ -14,44 +14,30 @@ def get_pubspec_yaml_filepath(d):
     bb.debug(1, f'pubspec_yaml filepath [{filepath}]')
 
     if not os.path.exists(filepath):
-        bb.error("pubspec.yaml not found, check FLUTTER_APPLICATION_PATH value")
+        bb.fatal("pubspec.yaml not found, check FLUTTER_APPLICATION_PATH value")
 
     return filepath
 
 
-def write_pubspec_obj_to_file(d, obj):
-    """ Writes YAML object to file """
-    os.sys.path.append(d.getVar('PYTHON3_SITEPACKAGES_DIR'))
-    import yaml
-
-    filepath = get_pubspec_yaml_filepath(d)
-    with open(filepath, 'w') as outfile:
-        yaml.dump(obj, outfile)
-
-
-def get_pubspec_yaml(d):
-    """ Returns python object of pubspec.yaml """
-    os.sys.path.append(d.getVar('PYTHON3_SITEPACKAGES_DIR'))
-    import yaml
-
-    filepath = get_pubspec_yaml_filepath(d)
-
-    data_loaded = None
-    with open(filepath, "r") as stream:
-        try:
-            data_loaded = yaml.safe_load(stream)
-
-        except yaml.YAMLError as exc:
-            bb.error(f'Failed loading {exc} - {filepath}')
-
-        return data_loaded
-
-
-def get_pubspec_appname(d):
+def get_pubspec_yaml_appname(d):
     """ Returns the application name from the pubspec.yaml """
-    yaml = get_pubspec_yaml(d)
-    return yaml["name"]
 
+    filepath = get_pubspec_yaml_filepath(d)
+    with open(filepath, "r") as f:
+        lines = f.readlines()
+
+    import re
+    pattern = re.compile(r'^name:\s+(\w+)$')
+    name = ''
+    for line in lines:
+        m = pattern.match(line)
+        if m:
+           name = m.group(1)
+           break
+    if not m:
+        bb.fatal("'name' not found in pubspec.yaml")
+
+    return name
 
 def filter_plugin_registrant(dart_file):
     """ Removes unused items from the dart plugin registrant file """

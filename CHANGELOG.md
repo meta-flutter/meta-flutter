@@ -1,5 +1,11 @@
 # Changelog
 
+Nov 9, 2023
+1. Replace pyyaml use with re to avoid mixing host and Yocto -native
+   Python bits.
+2. Changed a couple of pubspec.yaml name errors to bb.fatal to stop
+   build immediately, as do_compile will fail.
+
 Nov 8, 2023
 1. Update engine_sdk.zip contents to enable impeller 3d aot generation from host
 2. Support unpotimized builds with IsCreationCurrentThreadCurrent patch

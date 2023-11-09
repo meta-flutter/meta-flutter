@@ -13,13 +13,10 @@ require conf/include/flutter-version.inc
 require conf/include/app-utils.inc
 require conf/include/common.inc
 
-inherit python3-dir
-
 DEPENDS += " \
     ca-certificates-native \
     flutter-engine \
     flutter-sdk-native \
-    python3-pyyaml-native \
     unzip-native \
     "
 
@@ -179,11 +176,11 @@ do_compile[network] = "1"
 python do_compile() {
     import shutil
 
-    pubspec_yaml = get_pubspec_yaml(d)
+    pubspec_yaml_appname = get_pubspec_yaml_appname(d)
     pubspec_appname = d.getVar("PUBSPEC_APPNAME")
-    if pubspec_appname != pubspec_yaml["name"]:
-        bb.error("Set PUBSPEC_APPNAME to match name value in pubspec.yaml")
-    
+    if pubspec_appname != pubspec_yaml_appname:
+        bb.fatal("Set PUBSPEC_APPNAME to match name value in pubspec.yaml")
+
     flutter_sdk = d.getVar('FLUTTER_SDK')
 
     env = os.environ
