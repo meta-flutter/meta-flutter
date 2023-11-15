@@ -3,8 +3,6 @@
 #
 # Helper class for building Flutter Application.
 # Assumes that:
-# - Flutter Application does not have a linux folder.  If it does it 
-#   will incorrectly link to Linux GTK embedder.  We don't want that.
 # - S is defined and points to source directory.
 # - PUBSPEC_APPNAME is defined correctly.  This is the name value from pubspec.yml.
 #
