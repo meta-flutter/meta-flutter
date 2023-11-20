@@ -22,6 +22,8 @@ FLUTTER_APPLICATION_PATH ??= ""
 FLUTTER_PREBUILD_CMD ??= ""
 FLUTTER_BUILD_ARGS ??= "bundle"
 
+FLUTTER_OBFUSCATE_ENALBE ??= "enable"
+
 APP_AOT_EXTRA ??= ""
 APP_GEN_SNAPSHOT_FLAGS ??= ""
 
@@ -310,6 +312,11 @@ python do_compile() {
                 -d {source_dir}/engine_sdk'
             run_command(d, cmd, source_root, env)
 
+            app_obfuscate_flags = ''
+            flutter_enable_obfuscate = d.getVar('FLUTTER_OBFUSCATE_ENALBE')
+            if flutter_enable_obfuscate == 'enable':
+                app_obfuscate_flags = '--obfuscate'
+			
             #
             # Create libapp.so
             #
@@ -319,7 +326,7 @@ python do_compile() {
                 --snapshot_kind=app-aot-elf \
                 --elf=libapp.so \
                 --strip \
-                --obfuscate \
+                {app_obfuscate_flags} \
                 {app_gen_snapshot_flags} \
                 .dart_tool/flutter_build/*/app.dill'
             run_command(d, cmd, source_root, env)
