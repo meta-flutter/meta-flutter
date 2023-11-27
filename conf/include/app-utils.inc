@@ -59,6 +59,8 @@ def filter_plugin_registrant(dart_file):
                 continue
             elif line.find('import') != -1 and line.find('_macos') != -1:
                 continue
+            elif line.find('import') != -1 and line.find('_web') != -1:
+                continue
             elif line.find('(Platform.isAndroid)') != -1:
                 discard = True
                 continue
@@ -69,6 +71,9 @@ def filter_plugin_registrant(dart_file):
                 discard = True
                 continue
             elif line.find('(Platform.isWindows)') != -1:
+                discard = True
+                continue
+            elif line.find('(Platform.isWeb)') != -1:
                 discard = True
                 continue
             elif line.find('(Platform.isLinux)') != -1:
