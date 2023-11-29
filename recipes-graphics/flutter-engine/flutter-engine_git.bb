@@ -64,7 +64,6 @@ PACKAGECONFIG ??= "\
     embedder-for-target \
     fontconfig \
     mallinfo2 \
-    impeller-3d \
     ${@bb.utils.contains('DISTRO_FEATURES', 'opengl', 'impeller-opengles', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'vulkan impeller-vulkan', '', d)} \
     "
