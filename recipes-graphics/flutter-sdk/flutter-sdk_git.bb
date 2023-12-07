@@ -36,6 +36,11 @@ do_unpack[network] = "1"
 do_patch[network] = "1"
 do_compile[network] = "1"
 
+do_clean_cache() {
+    rm -rf ${S}/bin/cache | true
+}
+addtask clean_cache before do_compile after do_configure
+
 do_compile() {
     export CURL_CA_BUNDLE=${STAGING_DIR_NATIVE}/etc/ssl/certs/ca-certificates.crt
     export PATH=${S}/bin:$PATH
@@ -56,7 +61,6 @@ do_compile() {
     flutter config --no-analytics
     dart --disable-analytics
 
-    rm -rf ${S}/bin/cache | true
     flutter precache
 
     bbnote `flutter config`
@@ -64,9 +68,6 @@ do_compile() {
 }
 
 do_install() {
-    rm -rf ${S}/bin/cache/pkg/sky_engine/
-    rm -rf ${S}/bin/cache/artifacts/*
-
     chmod a+rw ${S} -R
 
     install -d ${D}${datadir}/flutter/sdk
