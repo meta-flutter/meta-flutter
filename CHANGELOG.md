@@ -1,5 +1,11 @@
 # Changelog
 
+Jan 4, 2024
+1. Support building Flutter Web apps
+2. Remove Rust workaround for macro_proc2 (prevents build error)
+3. disable engine unit tests (improves build time)
+4. Move --obfuscate to a variable that can be overriden
+
 Nov 9, 2023
 1. Replace pyyaml use with re to avoid mixing host and Yocto -native
    Python bits.
