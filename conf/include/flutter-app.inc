@@ -23,7 +23,7 @@ FLUTTER_PREBUILD_CMD ??= ""
 FLUTTER_BUILD_ARGS ??= "bundle"
 
 APP_AOT_EXTRA ??= ""
-APP_GEN_SNAPSHOT_FLAGS ??= ""
+APP_GEN_SNAPSHOT_FLAGS ??= "--obfuscate"
 
 FLUTTER_APPLICATION_INSTALL_PREFIX ??= ""
 FLUTTER_INSTALL_DIR = "${datadir}${FLUTTER_APPLICATION_INSTALL_PREFIX}/${PUBSPEC_APPNAME}"
@@ -319,7 +319,6 @@ python do_compile() {
                 --snapshot_kind=app-aot-elf \
                 --elf=libapp.so \
                 --strip \
-                --obfuscate \
                 {app_gen_snapshot_flags} \
                 .dart_tool/flutter_build/*/app.dill'
             run_command(d, cmd, source_root, env)
