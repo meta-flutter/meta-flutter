@@ -1,1 +1,0 @@
-S = "${RUSTSRC}/library/test"
