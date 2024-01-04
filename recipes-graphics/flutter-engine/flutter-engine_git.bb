@@ -64,6 +64,7 @@ PACKAGECONFIG ??= "\
     embedder-for-target \
     fontconfig \
     mallinfo2 \
+    impeller-3d \
     ${@bb.utils.contains('DISTRO_FEATURES', 'opengl', 'impeller-opengles', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'vulkan impeller-vulkan', '', d)} \
     "
@@ -109,6 +110,7 @@ GN_ARGS = '\
     --target-sysroot ${STAGING_DIR_TARGET} \
     --target-toolchain ${CLANG_PATH} \
     --target-triple ${@gn_clang_triple_prefix(d)} \
+    --no-enable-unittests \
 '
 
 GN_ARGS:append:armv7 = " --arm-float-abi ${TARGET_FPU}"
