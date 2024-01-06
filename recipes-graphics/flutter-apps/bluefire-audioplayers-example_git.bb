@@ -2,7 +2,7 @@
 # Copyright (c) 2023 Joel Winarske. All rights reserved.
 #
 
-SUMMARY = "AudioPlayers Example"
+SUMMARY = "AudioPlayers Functional Test Case"
 DESCRIPTION = "A Flutter plugin to play multiple audio files simultaneously"
 AUTHOR = "Blue Fire"
 HOMEPAGE = "https://github.com/bluefireteam/audioplayers"
