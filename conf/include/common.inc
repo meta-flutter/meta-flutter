@@ -13,6 +13,7 @@ FLUTTER_APPLICATION_PATH ??= ""
 FLUTTER_PREBUILD_CMD ??= ""
 
 APP_AOT_EXTRA ??= ""
+APP_AOT_ENTRY_FILE ??= "main.dart"
 APP_GEN_SNAPSHOT_FLAGS ??= "--obfuscate"
 
 FLUTTER_APP_RUNTIME_MODES ?= "release"
@@ -298,6 +299,7 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
                 flutter_native_assets = f'--native-assets {source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/native_assets.yaml'
 
             app_aot_extra = d.getVar("APP_AOT_EXTRA")
+            app_aot_entry_file = d.getVar("APP_AOT_ENTRY_FILE")
             cmd = f'{flutter_sdk}/bin/cache/dart-sdk/bin/dart \
                 --disable-analytics \
                 --disable-dart-dev {flutter_sdk}/bin/cache/artifacts/engine/linux-x64/frontend_server.dart.snapshot \
@@ -320,7 +322,7 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
                 {flutter_source_defines} \
                 {flutter_native_assets} \
                 --verbosity=error \
-                package:{pubspec_appname}/main.dart'
+                package:{pubspec_appname}/{app_aot_entry_file}'
 
             run_command(d, cmd, source_root, env)
 
