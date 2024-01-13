@@ -58,6 +58,7 @@ do_compile() {
     flutter config --clear-features
     flutter config --enable-linux-desktop
     flutter config --enable-custom-devices
+    flutter config --enable-web
     flutter config --no-analytics
     dart --disable-analytics
 
