@@ -12,7 +12,7 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=ad4a5a1c16c771bac65521dacef3900e"
 
-SRCREV = "3bb93366161a787b07c45d8ce98c7405b40fbf1f"
+SRCREV = "57c2b54c3e1a839d1f6754a487b85b44e027b46d"
 SRC_URI = "git://github.com/mogol/flutter_secure_storage.git;lfs=0;branch=develop;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"

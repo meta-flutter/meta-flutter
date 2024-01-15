@@ -12,7 +12,8 @@ SECTION = "graphics"
 LICENSE = "CLOSED"
 
 SRCREV = "d5991328a1675ea24ce4033127de6e39e2a6c9b4"
-SRC_URI = "git://github.com/flutter/super_dash.git;lfs=0;branch=main;protocol=https;destsuffix=git"
+SRC_URI = "git://github.com/flutter/super_dash.git;lfs=0;branch=main;protocol=https;destsuffix=git \
+           file://super_dash/0001-ivi-homescreen-support.patch"
 
 S = "${WORKDIR}/git"
 
