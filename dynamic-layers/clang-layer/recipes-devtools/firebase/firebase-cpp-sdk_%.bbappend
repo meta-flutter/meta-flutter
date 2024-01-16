@@ -2,7 +2,6 @@
 DEPENDS += "\
     compiler-rt \
     libcxx \
-    ninja-native \
     "
 
 RUNTIME = "llvm"

@@ -22,9 +22,11 @@ RDEPENDS:${PN} += "xkeyboard-config"
 
 REQUIRED_DISTRO_FEATURES += "opengl systemd"
 
-SRC_URI = "git://github.com/sony/flutter-embedded-linux.git;protocol=https;branch=master"
+SRC_REPO ??= "github.com/sony/flutter-embedded-linux.git"
+SRC_REPO_BRANCH ??= "master"
 
-SRCREV = "${AUTOREV}"
+SRC_URI = "git://${SRC_REPO};protocol=https;branch=${SRC_REPO_BRANCH}"
+SRCREV ??= "28de1eb56d6afff0ae7bdc68787a0ae620ccc51d"
 
 S = "${WORKDIR}/git"
 
