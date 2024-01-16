@@ -184,6 +184,18 @@ python do_restore_pub_cache() {
         raise UnpackError("Restore .dart_tool command %s failed with return value %s" % (cmd, ret), localpath)
 }
 
+
+#
+# clean pub cache archive
+#
+python do_cleanall:append() {
+    import shutil
+    pub_cache_archive = d.getVar("PUB_CACHE_ARCHIVE")
+    bb.note("Removing [%s]" % (pub_cache_archive))
+    shutil.rmtree(pub_cache_archive, ignore_errors=True)
+}
+
+
 do_compile[network] = "1"
 python do_compile() {
 
