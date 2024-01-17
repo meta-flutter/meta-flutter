@@ -235,6 +235,7 @@ python do_compile() {
 def build_web(d, source_root, env):
 
     run_command(d, 'flutter clean', source_root, env)
+    run_command(d, 'flutter pub get --offline', source_root, env)
 
     flutter_build_args = d.getVar('FLUTTER_BUILD_ARGS')
 
@@ -264,6 +265,7 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
         bb.note(f'[{runtime_mode}] flutter build {flutter_build_args}: Starting')
 
         run_command(d, 'flutter clean', source_root, env)
+        run_command(d, 'flutter pub get --offline', source_root, env)
 
         if runtime_mode == 'jit_release':
             cmd = (f'flutter build {flutter_build_args} --local-engine')
