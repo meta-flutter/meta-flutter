@@ -25,3 +25,5 @@ PUBSPEC_APPNAME = "super_dash"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 inherit flutter-app
+
+do_compile[network] = "1"

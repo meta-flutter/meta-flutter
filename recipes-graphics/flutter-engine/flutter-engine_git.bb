@@ -61,6 +61,7 @@ COMPATIBLE_MACHINE:x86-64 = "(.*)"
 
 PACKAGECONFIG ??= "\
     debug profile release \
+    desktop-embeddings \
     embedder-for-target \
     fontconfig \
     mallinfo2 \
