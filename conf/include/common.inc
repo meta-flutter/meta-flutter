@@ -12,6 +12,9 @@ DEPENDS += " \
 FLUTTER_APPLICATION_PATH ??= ""
 FLUTTER_PREBUILD_CMD ??= ""
 
+PUB_CACHE_EXTRA_ARCHIVE_CMD ??= ""
+PUB_CACHE_EXTRA_ARCHIVE_PATH ??= ""
+
 APP_AOT_EXTRA ??= ""
 APP_AOT_ENTRY_FILE ??= "main.dart"
 APP_GEN_SNAPSHOT_FLAGS ??= "--obfuscate"
@@ -93,6 +96,24 @@ python do_archive_pub_cache() {
 
     workdir = d.getVar("WORKDIR")
     flutter_sdk = os.path.join(d.getVar("STAGING_DATADIR_NATIVE"), 'flutter/sdk')
+    app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
+
+    #
+    # App hook to include something in archive 
+    #
+    pub_cache_extra_archive_cmd = d.getVar("PUB_CACHE_EXTRA_ARCHIVE_CMD")
+    pub_cache_extra_archive_path = d.getVar("PUB_CACHE_EXTRA_ARCHIVE_PATH")
+    if pub_cache_extra_archive_cmd != None:
+        path = d.getVar("PATH")
+        cmd = \
+            'export PUB_CACHE=%s; ' \
+            'export XDG_CONFIG_HOME=%s;' \
+            'export PATH=%s/bin:%s:%s;' \
+            '%s' % \
+            (pub_cache, workdir, flutter_sdk, path, pub_cache_extra_archive_path, pub_cache_extra_archive_cmd)
+
+        bb.note("Running [%s] in %s" % (cmd, app_root))
+        runfetchcmd(f'{cmd}', d, quiet=False, workdir=app_root)
 
     #
     # go online to fetch, then mark offline
@@ -106,9 +127,8 @@ python do_archive_pub_cache() {
         '%s/bin/flutter pub get --offline' % \
         (pub_cache, workdir, flutter_sdk, flutter_sdk, flutter_sdk, flutter_sdk)
 
-    app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
     bb.note("Running [%s] in %s" % (pub_cache_cmd, app_root))
-    runfetchcmd('%s' % (pub_cache_cmd), d, quiet=False, workdir=app_root)
+    runfetchcmd(f'{pub_cache_cmd}', d, quiet=False, workdir=app_root)
 
     cp_cmd = \
         'mkdir -p %s/.project | true; ' \

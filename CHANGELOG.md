@@ -2,8 +2,7 @@
 
 Jan 16, 2024
 1. Offline build support.  If you have already ran do_archive_pub_cache on a flutter recipe, 
-   you can now build it without a network connection.  The exception which requires a network connection:
-    bluefire-audioplayers-example
+   you can now build it without a network connection.
   Note: if you have pub-cache archive files populated in the DL_DIR it will skip the network fetch.
 2. remove all ${AUTOREV} references.
 3. remove do_compile[network] = "1" from flutter-app template.

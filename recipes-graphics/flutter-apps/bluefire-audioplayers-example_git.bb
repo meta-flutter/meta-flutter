@@ -23,16 +23,13 @@ SRC_URI = "git://github.com/bluefireteam/audioplayers.git;lfs=0;branch=main;prot
 
 S = "${WORKDIR}/git"
 
-FLUTTER_PREBUILD_CMD="\
-    flutter pub global activate melos; \
-    export PATH=$PATH:${WORKDIR}/pub_cache/bin; \
-    melos bootstrap \
-"
+PUB_CACHE_EXTRA_ARCHIVE_PATH = "${WORKDIR}/pub_cache/bin"
+
+PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \
+    melos bootstrap"
 
 PUBSPEC_APPNAME = "audioplayers_example"
 FLUTTER_APPLICATION_PATH = "packages/audioplayers/example"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 inherit flutter-app
-
-do_compile[network] = "1"
