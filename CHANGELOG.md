@@ -1,5 +1,12 @@
 # Changelog
 
+Jan 16, 2024
+1. remove all ${AUTOREV} references.
+
+Jan 15, 2024
+1. firebase-cpp-sdk
+2. patches to enable firebase on various apps
+
 Jan 4, 2024
 1. Support building Flutter Web apps
 2. Remove Rust workaround for macro_proc2 (prevents build error)

@@ -6,7 +6,7 @@ SUMMARY = "Sentry SDK for C, C++ and native applications."
 DESCRIPTION = "Sentry Native SDK"
 AUTHOR = "Sentry"
 HOMEPAGE = "https://github.com/getsentry/sentry-native"
-BUGTRACKER = "https://github.com/getsentry/sentry-native"
+BUGTRACKER = "https://github.com/getsentry/sentry-native/issues"
 SECTION = "devtools"
 
 LICENSE = "MIT"
