@@ -134,8 +134,8 @@ jobs:
           echo 'IMAGE_INSTALL:append = "\
               dart-sdk \
               flutter-auto \
+              ivi-homescreen \
               packagegroup-flutter-test-apps \
-              flutter-pi \
               "' >> ./conf/local.conf
           #
           # Kernel
