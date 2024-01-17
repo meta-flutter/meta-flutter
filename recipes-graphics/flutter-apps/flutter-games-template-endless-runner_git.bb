@@ -12,7 +12,7 @@ SECTION = "graphics"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=b7eeb61b41ae366e94383bca5e113fce"
 
-SRCREV = "acd048d2b5654421e1dbf41355aa5647233c9e24"
+SRCREV = "0564aeb572bf141eee182da0b81d2d1b060f9024"
 SRC_URI = "git://github.com/flutter/games.git;lfs=0;branch=main;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"
@@ -22,3 +22,5 @@ FLUTTER_APPLICATION_PATH = "templates/endless_runner"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 inherit flutter-app
+
+do_compile[network] = "1"

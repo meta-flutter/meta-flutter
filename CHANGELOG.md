@@ -1,7 +1,23 @@
 # Changelog
 
 Jan 16, 2024
-1. remove all ${AUTOREV} references.
+1. Offline build support.  If you have already ran do_archive_pub_cache on a flutter recipe, 
+   you can now build it without a network connection.  The exception which requires a network connection:
+    bluefire-audioplayers-example
+  Note: if you have pub-cache archive files populated in the DL_DIR it will skip the network fetch.
+2. remove all ${AUTOREV} references.
+3. remove do_compile[network] = "1" from flutter-app template.
+  - requires app recipes to add as needed.
+4. set pub cache offline after a flutter clean.
+5. flutter-sdk-native
+  - remove deletion of ${S}/bin/cache/pkg/sky_engine/ and ${S}/bin/cache/artifacts/*
+    most likely will require update for SDK
+  - update to append to do_unpack
+6. flutter-app template do_cleanall will remove pub cache archive from DL_DIR
+7. create the app pub-cache from the flutter-sdk pub-cache
+8. remove unused var FLUTTER_PUB_CMD
+9. update pub cache archive name to include ${PN}
+10. include the desktop embedder (GTK) library in flutter-engine by default
 
 Jan 15, 2024
 1. firebase-cpp-sdk

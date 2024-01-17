@@ -21,10 +21,8 @@ FLUTTER_APP_RUNTIME_MODES ?= "release"
 FLUTTER_APPLICATION_INSTALL_PREFIX ??= ""
 FLUTTER_INSTALL_DIR = "${datadir}${FLUTTER_APPLICATION_INSTALL_PREFIX}/${PUBSPEC_APPNAME}"
 
-FLUTTER_PUB_CMD ??= "get"
-
 PUB_CACHE = "${WORKDIR}/pub_cache"
-PUB_CACHE_ARCHIVE = "flutter-pub-cache-${PUBSPEC_APPNAME}-${SRCREV}.tar.bz2"
+PUB_CACHE_ARCHIVE = "flutter-pub-cache-${PN}-${SRCREV}.tar.bz2"
 
 FLUTTER_SDK = "${STAGING_DIR_NATIVE}/usr/share/flutter/sdk"
 
@@ -75,6 +73,7 @@ python do_archive_pub_cache() {
 
     import errno
     import multiprocessing
+    import shutil
     from   bb.fetch2 import FetchError
     from   bb.fetch2 import runfetchcmd
 
@@ -84,35 +83,37 @@ python do_archive_pub_cache() {
     if os.access(localpath, os.R_OK):
         return
 
-    workdir = d.getVar("WORKDIR")
+    #
+    # clean existing pub-cache, populate from the flutter-sdk-native pub-cache
+    #
     pub_cache = d.getVar("PUB_CACHE")
-    os.makedirs(pub_cache, exist_ok=True)
+    shutil.rmtree(f'{pub_cache}', ignore_errors=True)
+    flutter_sdk_pub_cache = os.path.join(d.getVar("STAGING_DATADIR_NATIVE"), 'flutter/sdk/.pub-cache')
+    shutil.copytree(flutter_sdk_pub_cache, pub_cache)
 
-    flutter_sdk = os.path.join(d.getVar("STAGING_DIR_NATIVE"), 'usr/share/flutter/sdk')
-    app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
-    pub_cmd = d.getVar("FLUTTER_PUB_CMD")
+    workdir = d.getVar("WORKDIR")
+    flutter_sdk = os.path.join(d.getVar("STAGING_DATADIR_NATIVE"), 'flutter/sdk')
 
+    #
+    # go online to fetch, then mark offline
+    #
     pub_cache_cmd = \
         'export PUB_CACHE=%s; ' \
         'export XDG_CONFIG_HOME=%s;' \
         '%s/bin/flutter config --no-analytics;' \
+        '%s/bin/flutter clean;' \
         '%s/bin/flutter pub get;' \
         '%s/bin/flutter pub get --offline' % \
-        (pub_cache, workdir, flutter_sdk, flutter_sdk, flutter_sdk)
+        (pub_cache, workdir, flutter_sdk, flutter_sdk, flutter_sdk, flutter_sdk)
 
+    app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
     bb.note("Running [%s] in %s" % (pub_cache_cmd, app_root))
     runfetchcmd('%s' % (pub_cache_cmd), d, quiet=False, workdir=app_root)
 
     cp_cmd = \
         'mkdir -p %s/.project | true; ' \
-        'cp -r .dart_tool %s/.project/ | true; ' \
-        'cp -r .packages %s/.project/ | true; ' \
-        'cp -r .dart_tool %s/.project/ | true; ' \
-        'cp -r .flutter-plugins %s/.project/ | true; ' \
-        'cp -r .flutter-plugins-dependencies %s/.project/ | true; ' \
-        'cp -r .metadata %s/.project/ | true; ' \
-        'cp -r .packages %s/.project/ | true; ' \
-        % (pub_cache, pub_cache, pub_cache, pub_cache, pub_cache, pub_cache, pub_cache, pub_cache)
+        'cp -r .* %s/.project/ | true; ' \
+        % (pub_cache, pub_cache)
 
     bb.note("Running [%s] in %s" % (cp_cmd, app_root))
 
@@ -189,14 +190,20 @@ python do_restore_pub_cache() {
 # clean pub cache archive
 #
 python do_cleanall:append() {
-    import shutil
-    pub_cache_archive = d.getVar("PUB_CACHE_ARCHIVE")
-    bb.note("Removing [%s]" % (pub_cache_archive))
-    shutil.rmtree(pub_cache_archive, ignore_errors=True)
+    localfile = d.getVar("PUB_CACHE_ARCHIVE")
+    localpath = os.path.join(d.getVar("DL_DIR"), localfile)
+
+    bb.note("Removing [%s]" % (localpath))
+
+    try:
+        os.remove(localpath)
+    except OSError:
+        pass
 }
 
-
-do_compile[network] = "1"
+#
+# Compile
+#
 python do_compile() {
 
     pubspec_yaml_appname = get_pubspec_yaml_appname(d)
@@ -234,14 +241,14 @@ python do_compile() {
 
 def build_web(d, source_root, env):
 
-    run_command(d, 'flutter clean', source_root, env)
+    build_folder = os.path.join(source_root, 'build')
+    if os.path.exists(build_folder):
+        run_command(d, 'flutter clean', source_root, env)
+
     run_command(d, 'flutter pub get --offline', source_root, env)
 
     flutter_build_args = d.getVar('FLUTTER_BUILD_ARGS')
-
-    cmd = f'flutter build web {flutter_build_args}'
-
-    run_command(d, cmd, source_root, env)
+    run_command(d, f'flutter build web {flutter_build_args}', source_root, env)
 
     bb.note(f'Flutter build web {flutter_build_args}: Completed')
 
@@ -264,7 +271,10 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
 
         bb.note(f'[{runtime_mode}] flutter build {flutter_build_args}: Starting')
 
-        run_command(d, 'flutter clean', source_root, env)
+        build_folder = os.path.join(source_root, 'build')
+        if os.path.exists(build_folder):
+            run_command(d, 'flutter clean', source_root, env)
+
         run_command(d, 'flutter pub get --offline', source_root, env)
 
         if runtime_mode == 'jit_release':

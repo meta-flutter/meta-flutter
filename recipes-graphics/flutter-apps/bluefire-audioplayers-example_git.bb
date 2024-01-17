@@ -34,3 +34,5 @@ FLUTTER_APPLICATION_PATH = "packages/audioplayers/example"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 inherit flutter-app
+
+do_compile[network] = "1"
