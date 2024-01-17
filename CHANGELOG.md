@@ -1,12 +1,24 @@
 # Changelog
 
+Jan 17, 2024
+
+1. Update packagegroups
+2. Update CI
+3. baseflow-geolocator runtime dep.  Note this needs DBUS access configuration.
+4. Note this layer has optional dependencies on https://github.com/jwinarske/meta-vulkan
+   - filament-vk
+   - swiftshader
+5. Fltuter 3.16.7
+
 Jan 16, 2024
-1. Offline build support.  If you have already ran do_archive_pub_cache on a flutter recipe, 
-   you can now build it without a network connection.
+
+1. Offline build support. If you have already ran do_archive_pub_cache on a flutter recipe, you can now build it without a network connection.
+
   Note: if you have pub-cache archive files populated in the DL_DIR it will skip the network fetch.
+
 2. remove all ${AUTOREV} references.
 3. remove do_compile[network] = "1" from flutter-app template.
-  - requires app recipes to add as needed.
+* requires app recipes to add as needed.
 4. set pub cache offline after a flutter clean.
 5. flutter-sdk-native
   - remove deletion of ${S}/bin/cache/pkg/sky_engine/ and ${S}/bin/cache/artifacts/*

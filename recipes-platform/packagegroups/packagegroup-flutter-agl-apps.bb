@@ -9,5 +9,5 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS:${PN} += " \
-    flutter-app-pumped-fuel-ped \
+    pumpedfuel-ped \
 "

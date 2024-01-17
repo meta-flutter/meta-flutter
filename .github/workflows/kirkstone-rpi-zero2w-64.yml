@@ -75,8 +75,8 @@ jobs:
               default-language-en-us-utf8 \
               tzdata-americas \
               tzdata-core \
+              ivi-homescreen \
               flutter-auto \
-              flutter-pi \
               packagegroup-flutter-test-apps \
               gstreamer1.0 \
               gstreamer1.0-libav \

@@ -177,6 +177,14 @@ jobs:
           bitbake flutter-app-pumped-fuel-ped -c do_cleansstate
           bitbake flutter-app-pumped-fuel-ped
 
+      - name: Build ivi-homescreen
+        shell: bash
+        working-directory: ../yocto-kirkstone
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake ivi-homescreen -c do_cleansstate
+          bitbake ivi-homescreen
+
       - name: Build flutter-auto
         shell: bash
         working-directory: ../yocto-kirkstone
@@ -192,14 +200,6 @@ jobs:
           . ./poky/oe-init-build-env
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
-
-      - name: Build ivi-homescreen
-        shell: bash
-        working-directory: ../yocto-kirkstone
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake ivi-homescreen -c do_cleansstate
-          bitbake ivi-homescreen
 
       - name: Build flutter-drm-eglstream-backend
         shell: bash

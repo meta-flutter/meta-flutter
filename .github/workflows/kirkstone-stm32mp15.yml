@@ -120,7 +120,6 @@ jobs:
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
-          bitbake flutter-pi -c do_cleansstate
           bitbake flutter-engine -c do_cleansstate
           bitbake -c do_cleansstate flutter-rust-bridge-example
           bitbake -c do_cleansstate flutter-test-frb

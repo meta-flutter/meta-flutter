@@ -87,9 +87,9 @@ jobs:
               tzdata-core \
               tzdata-americas \
               default-language-en-us-utf8 \
+              ivi-homescreen \
               flutter-auto \
               packagegroup-flutter-test-apps \
-              flutter-pi \
               gstreamer1.0 \
               gstreamer1.0-libav \
               gstreamer1.0-plugins-bad \
@@ -233,7 +233,6 @@ jobs:
               tzdata-americas \
               default-language-en-us-utf8 \
               flutter-auto \
-              flutter-pi \
               packagegroup-flutter-test-apps \
               gstreamer1.0 \
               gstreamer1.0-libav \
