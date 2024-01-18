@@ -15,6 +15,7 @@ jobs:
   kirkstone-fsl-wayland:
   
     env:
+      DOCKER_HOST: unix:///run/user/1001/podman/podman.sock
       YOCTO_BRANCH: "kirkstone"
       MACHINE: imx8mmevk
       DISTRO: fsl-imx-wayland
@@ -23,11 +24,9 @@ jobs:
     runs-on: [self-hosted, linux]
     
     container:
-      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      image: ghcr.io/meta-flutter/meta-flutter/ubuntu-20-dev:main
       options:
-        --user 1001
-        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
-        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        --user 1001 --device /dev/fuse --security-opt label=disable --tmpfs /tmp --userns=keep-id
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/yocto/kirkstone/imx8mmevk:/home/dev/sstate:Z
         -v /mnt/raid10/github-ci/artifacts/imx8mmevk:/home/dev/artifacts:Z

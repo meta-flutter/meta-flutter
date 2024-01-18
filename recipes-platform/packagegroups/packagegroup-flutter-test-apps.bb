@@ -15,6 +15,7 @@ RDEPENDS:${PN} += " \
     flutter-animated-background \
     \
     flutter-packages-example-extension-google-sign-in \
+    flutter-packages-example-file-selector \
     flutter-packages-example-go-router \
     flutter-packages-example-google-sign-in \
     flutter-packages-example-markdown \

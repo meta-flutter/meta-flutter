@@ -23,5 +23,3 @@ FLUTTER_APPLICATION_PATH = "packages/file_selector/file_selector/example"
 FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 inherit flutter-app
-
-RDEPENDS:${PN} += "zenity"
