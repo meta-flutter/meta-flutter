@@ -25,7 +25,7 @@ FLUTTER_APPLICATION_INSTALL_PREFIX ??= ""
 FLUTTER_INSTALL_DIR = "${datadir}${FLUTTER_APPLICATION_INSTALL_PREFIX}/${PUBSPEC_APPNAME}"
 
 PUB_CACHE = "${WORKDIR}/pub_cache"
-PUB_CACHE_ARCHIVE = "flutter-pub-cache-${PN}-${SRCREV}.tar.bz2"
+PUB_CACHE_ARCHIVE = "flutter-pub-cache-${PN}-${SRCREV}-${FLUTTER_SDK_TAG}.tar.bz2"
 
 FLUTTER_SDK = "${STAGING_DIR_NATIVE}/usr/share/flutter/sdk"
 
