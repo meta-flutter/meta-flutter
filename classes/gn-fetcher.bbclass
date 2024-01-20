@@ -1,4 +1,7 @@
 # Copyright (c) 2020-2022 Woven Alpha, Inc
+#
+# SPDX-License-Identifier: MIT
+#
 
 python () {
     import gn
@@ -35,6 +38,7 @@ do_configure_prepend() {
     export https_proxy=${https_proxy}
     export HTTP_PROXY=${HTTP_PROXY}
     export HTTPS_PROXY=${HTTPS_PROXY}
+    export NO_PROXY=localhost,127.0.0.1,::1
     export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:${PATH}
     export DEPOT_TOOLS_UPDATE=0
     export GCLIENT_PY3=0
@@ -46,6 +50,7 @@ do_compile_prepend() {
     export https_proxy=${https_proxy}
     export HTTP_PROXY=${HTTP_PROXY}
     export HTTPS_PROXY=${HTTPS_PROXY}
+    export NO_PROXY=localhost,127.0.0.1,::1
     export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON2_PATH}:${PATH}
     export DEPOT_TOOLS_UPDATE=0
     export GCLIENT_PY3=0

@@ -19,6 +19,7 @@ IMAGE_INSTALL += " \
     \
     weston \
     weston-init \
+    wayland-utils \
     \
     binutils \
     strace \

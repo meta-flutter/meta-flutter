@@ -77,6 +77,30 @@ def gn_clang_triple_prefix(d):
 
     bb.fatal('Unsuported GN_TARGET_ARCH_NAME value: "%s"' % build_arch)
 
+# gn_get_engine_commit
+#
+# if repo is not default use FLUTTER_ENGINE_COMMIT
+# otherwise use FLUTTER_SDK_TAG value
+#
+# You would need to set FLUTTER_SDK_TAG to match your custom repo
+#
+def gn_get_engine_commit(d):
+    """ Sets FLUTTER_ENGINE_COMMIT variable """
+    import json
+    import inspect
+    ret = ""
+    flutter_tag = d.getVar("FLUTTER_SDK_TAG")
+    cwd = os.path.dirname(inspect.getfile(lambda: None))
+    with open(os.path.join(cwd, 'engine-revision.json'), encoding='utf-8') as f:
+        engine_json = json.load(f)
+        ret = engine_json.get(flutter_tag, '')
+
+    if ret == "":
+        raise ValueError("Unable to get engine commit")
+
+    bb.debug(1, f"Engine commit for {flutter_tag} is {ret}")
+    return ret
+
 def parse_args(d):
     """Parses the Package Config arguments."""
     import argparse

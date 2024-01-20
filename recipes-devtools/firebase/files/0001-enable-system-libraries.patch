@@ -1,0 +1,1140 @@
+From cb0f88be0f47ffa6a52dd93ba4e47e593cfb7e75 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Mon, 15 Jan 2024 09:12:14 -0800
+Subject: [PATCH] enable sys libs
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ CMakeLists.txt           | 898 ++++++++++++++++++++-------------------
+ app/CMakeLists.txt       |   4 +-
+ app/rest/CMakeLists.txt  |  10 +-
+ app/rest/gzipheader.cc   |   2 +-
+ app/rest/zlibwrapper.cc  |   2 +-
+ app/rest/zlibwrapper.h   |   2 +-
+ app/src/app_common.cc    |   2 +
+ database/CMakeLists.txt  |   7 +-
+ firestore/CMakeLists.txt |   1 +
+ 9 files changed, 474 insertions(+), 454 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 74644b571..53e112319 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -85,95 +85,93 @@ option(FIREBASE_GITHUB_ACTION_BUILD
+ option(FIREBASE_QUICK_TEST
+        "Enable quick tests will skip tests which requires access to the SECRET" OFF)
+ 
++option(FIREBASE_USE_SYSTEM_LIBS "Enable use of system libraries" OFF)
++
+ find_program(FIREBASE_PYTHON_EXECUTABLE
+-  NAMES python3 python
+-  DOC "The Python interpreter to use, such as one from a venv"
+-  REQUIRED
++        NAMES python3 python
++        DOC "The Python interpreter to use, such as one from a venv"
++        REQUIRED
+ )
+ 
+-set(FIREBASE_XCODE_TARGET_FORMAT "frameworks" CACHE STRING
+-                                 "Format to output, 'frameworks' or 'libraries'")
++set(FIREBASE_XCODE_TARGET_FORMAT "frameworks" CACHE STRING "Format to output, 'frameworks' or 'libraries'")
+ 
+ # Define this directory to be the root of the C++ SDK, which the libraries can
+ # then refer to.
+ set(FIREBASE_CPP_SDK_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
+ 
+-project (firebase NONE)
+-enable_language(C)
+-enable_language(CXX)
+ 
+-if(NOT DEFINED CMAKE_CXX_COMPILER_LAUNCHER)
+-  find_program(CCACHE_PROGRAM ccache)
+-  if (CCACHE_PROGRAM)
+-    set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}" CACHE STRING "Compiler launcher for C")
+-    set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}" CACHE STRING "Compiler launcher for CXX")
+-  endif()
+-endif()
++if (NOT DEFINED CMAKE_CXX_COMPILER_LAUNCHER)
++    find_program(CCACHE_PROGRAM ccache)
++    if (CCACHE_PROGRAM)
++        set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}" CACHE STRING "Compiler launcher for C")
++        set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}" CACHE STRING "Compiler launcher for CXX")
++    endif ()
++endif ()
+ 
+ list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_CURRENT_LIST_DIR}/cmake)
+ include(external_rules)
+ include(cpp_pack)
+ 
+-if(FIREBASE_CPP_BUILD_TESTS OR FIREBASE_CPP_BUILD_STUB_TESTS)
+-  enable_testing()
+-  include(test_rules)
+-  # Copy the custom CTest file into the binary directory, so that it is used.
+-  configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/CTestCustom.cmake
+-               ${CMAKE_BINARY_DIR})
+-endif()
++if (FIREBASE_CPP_BUILD_TESTS OR FIREBASE_CPP_BUILD_STUB_TESTS)
++    enable_testing()
++    include(test_rules)
++    # Copy the custom CTest file into the binary directory, so that it is used.
++    configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/CTestCustom.cmake
++            ${CMAKE_BINARY_DIR})
++endif ()
+ 
+ if (PLATFORM STREQUAL TVOS OR PLATFORM STREQUAL SIMULATOR_TVOS)
+-  #  GMA and FDL are not supported on tvOS.
+-  set(FIREBASE_INCLUDE_DYNAMIC_LINKS OFF)
+-  set(FIREBASE_INCLUDE_GMA OFF)
+-endif()
++    #  GMA and FDL are not supported on tvOS.
++    set(FIREBASE_INCLUDE_DYNAMIC_LINKS OFF)
++    set(FIREBASE_INCLUDE_GMA OFF)
++endif ()
+ 
+ # Occasionally ANDROID is not being set correctly when invoked by gradle, so
+ # set it manually if ANDROID_NDK has been defined.
+-if(DEFINED ANDROID_NDK)
+-  set(ANDROID ON)
+-endif()
++if (DEFINED ANDROID_NDK)
++    set(ANDROID ON)
++endif ()
+ 
+-if(NOT ANDROID AND NOT IOS)
+-  set(DESKTOP ON)
+-else()
+-  set(DESKTOP OFF)
+-endif()
++if (NOT ANDROID AND NOT IOS)
++    set(DESKTOP ON)
++else ()
++    set(DESKTOP OFF)
++endif ()
+ 
+ # For OSX, if the architectures we are building for do not match the current
+ # host, treat it as cross-compiling.
+-if(DESKTOP AND APPLE)
+-  if(NOT "${CMAKE_OSX_ARCHITECTURES}" MATCHES "${CMAKE_HOST_SYSTEM_PROCESSOR}")
+-    message("Cross-compiling ENABLED")
+-    set(CMAKE_CROSSCOMPILING ON CACHE BOOL "" FORCE)
+-  endif()
+-endif()
+-
+-if(APPLE)
+-  # For iOS and macOS, disable nullability completeness warning, as it makes the
+-  # build output for our Objective-C++ files much too verbose.
+-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-nullability-completeness")
+-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-nullability-completeness")
+-endif()
+-
+-if(DESKTOP AND NOT MSVC AND NOT APPLE)
+-  # Linux-specific option.
+-  if (FIREBASE_LINUX_USE_CXX11_ABI)
+-    add_definitions(-D_GLIBCXX_USE_CXX11_ABI=1)
+-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=1")
+-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=1")
+-  else()
+-    add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
+-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=0")
+-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=0")
+-  endif()
+-endif()
+-
+-if(FIREBASE_GITHUB_ACTION_BUILD)
+-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFIREBASE_GITHUB_ACTION_BUILD=1")
+-else()
+-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFIREBASE_GITHUB_ACTION_BUILD=0")
+-endif()
++if (DESKTOP AND APPLE)
++    if (NOT "${CMAKE_OSX_ARCHITECTURES}" MATCHES "${CMAKE_HOST_SYSTEM_PROCESSOR}")
++        message("Cross-compiling ENABLED")
++        set(CMAKE_CROSSCOMPILING ON CACHE BOOL "" FORCE)
++    endif ()
++endif ()
++
++if (APPLE)
++    # For iOS and macOS, disable nullability completeness warning, as it makes the
++    # build output for our Objective-C++ files much too verbose.
++    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-nullability-completeness")
++    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-nullability-completeness")
++endif ()
++
++if (DESKTOP AND NOT MSVC AND NOT APPLE)
++    # Linux-specific option.
++    if (FIREBASE_LINUX_USE_CXX11_ABI)
++        add_definitions(-D_GLIBCXX_USE_CXX11_ABI=1)
++        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=1")
++        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=1")
++    else ()
++        add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
++        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=0")
++        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=0")
++    endif ()
++endif ()
++
++if (FIREBASE_GITHUB_ACTION_BUILD)
++    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFIREBASE_GITHUB_ACTION_BUILD=1")
++else ()
++    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFIREBASE_GITHUB_ACTION_BUILD=0")
++endif ()
+ 
+ # Set directories needed by the Firebase subprojects
+ # Directory to store generated files.
+@@ -182,20 +180,20 @@ set(FIREBASE_GEN_FILE_DIR ${CMAKE_BINARY_DIR}/generated)
+ set(FIREBASE_SCRIPT_DIR ${CMAKE_CURRENT_LIST_DIR})
+ 
+ if (MSVC)
+-  if (MSVC_RUNTIME_LIBRARY_STATIC)
+-    add_compile_options(
+-      $<$<CONFIG:>:/MT>
+-      $<$<CONFIG:Debug>:/MTd>
+-      $<$<CONFIG:Release>:/MT>
+-  )
+-  else()
+-    add_compile_options(
+-      $<$<CONFIG:>:/MD>
+-      $<$<CONFIG:Debug>:/MDd>
+-      $<$<CONFIG:Release>:/MD>
+-  )
+-  endif()
+-endif()
++    if (MSVC_RUNTIME_LIBRARY_STATIC)
++        add_compile_options(
++                $<$<CONFIG:>:/MT>
++                $<$<CONFIG:Debug>:/MTd>
++                $<$<CONFIG:Release>:/MT>
++        )
++    else ()
++        add_compile_options(
++                $<$<CONFIG:>:/MD>
++                $<$<CONFIG:Debug>:/MDd>
++                $<$<CONFIG:Release>:/MD>
++        )
++    endif ()
++endif ()
+ 
+ # Set variables that are used by download_external_sources.
+ set(FIREBASE_SOURCE_DIR ${PROJECT_SOURCE_DIR})
+@@ -213,9 +211,9 @@ set(FIREBASE_DOWNLOAD_DIR ${PROJECT_BINARY_DIR}/downloads)
+ #     core.
+ #   * iOS gets the Firestore core from the FirebaseFirestore CocoaPod and
+ #     does not build the core via CMake.
+-if(FIREBASE_INCLUDE_FIRESTORE AND DESKTOP)
+-  set(FIRESTORE_USE_EXTERNAL_CMAKE_BUILD ON)
+-endif()
++if (FIREBASE_INCLUDE_FIRESTORE AND DESKTOP)
++    set(FIRESTORE_USE_EXTERNAL_CMAKE_BUILD ON)
++endif ()
+ 
+ # Disable compiling the Objective-C (and Swift) stuff from the
+ # firebase-ios-sdk since it's not needed and can sometimes fail to build.
+@@ -224,134 +222,136 @@ set(FIRESTORE_INCLUDE_OBJC OFF CACHE BOOL "Disabled for the CPP SDK")
+ # Disable re2 build tests
+ set(RE2_BUILD_TESTING OFF CACHE BOOL "")
+ 
+-if(FIREBASE_CPP_USE_PRIOR_GRADLE_BUILD)
+-  # Quote meta characters in ${CMAKE_CURRENT_LIST_DIR} so we can
+-  # match it in a regex.
+-  # For example, '/path/with/+meta/char.acters' will become
+-  # '/path/with/\+meta/char\.acters'.
+-  string(REGEX REPLACE
+-         "([][+.*()^])" "\\\\\\1"  # Yes, this many \'s is correct.
+-         current_list_dir_regex
+-         "${CMAKE_CURRENT_LIST_DIR}")
+-  # Figure out where app's binary_dir was.
+-  string(REGEX REPLACE
+-    "${current_list_dir_regex}/[^/]+/(.*)"
+-    "${CMAKE_CURRENT_LIST_DIR}/app/\\1"
+-    APP_BINARY_DIR "${FIREBASE_BINARY_DIR}")
+-
+-  set(FIRESTORE_SOURCE_DIR ${APP_BINARY_DIR}/external/src/firestore)
+-else()
+-  # Run the CMake build logic that will download all the external dependencies.
+-  message(STATUS "Downloading external project dependencies...")
+-  download_external_sources()
+-  message(STATUS "Download complete.")
+-
+-  set(FIRESTORE_SOURCE_DIR ${FIREBASE_BINARY_DIR}/external/src/firestore)
+-endif()
+-
+-if(DESKTOP)
+-  # Use the static versions of the OpenSSL libraries.
+-  set(OPENSSL_USE_STATIC_LIBS TRUE)
+-  if (MSVC)
+-    # Get the correct version of the OpenSSL libraries based on building for MT.
+-    if ("${CMAKE_CXX_FLAGS_DEBUG}" MATCHES "/MTd" OR
+-        "${CMAKE_CXX_FLAGS_RELEASE}" MATCHES "/MT")
+-      set(OPENSSL_MSVC_STATIC_RT TRUE)
+-    else()
+-      set(OPENSSL_MSVC_STATIC_RT FALSE)
+-    endif()
+-  endif()
+-
+-  if(FIREBASE_USE_BORINGSSL)
+-    # Use BoringSSL instead of OpenSSL.
+-    set(BORINGSSL_ROOT_DIR ${PROJECT_BINARY_DIR}/external/src/boringssl CACHE STRING "" FORCE)
+-    set(BORINGSSL_BINARY_DIR ${PROJECT_BINARY_DIR}/external/src/boringssl-build CACHE STRING "" FORCE)
+-    set(OPENSSL_ROOT_DIR ${BORINGSSL_ROOT_DIR} CACHE STRING "" FORCE)
+-
+-    # The call below to build_external_dependencies will make sure that these
+-    # libraries exist before the libraries are imported via add_library.
++if (FIREBASE_CPP_USE_PRIOR_GRADLE_BUILD)
++    # Quote meta characters in ${CMAKE_CURRENT_LIST_DIR} so we can
++    # match it in a regex.
++    # For example, '/path/with/+meta/char.acters' will become
++    # '/path/with/\+meta/char\.acters'.
++    string(REGEX REPLACE
++            "([][+.*()^])" "\\\\\\1"  # Yes, this many \'s is correct.
++            current_list_dir_regex
++            "${CMAKE_CURRENT_LIST_DIR}")
++    # Figure out where app's binary_dir was.
++    string(REGEX REPLACE
++            "${current_list_dir_regex}/[^/]+/(.*)"
++            "${CMAKE_CURRENT_LIST_DIR}/app/\\1"
++            APP_BINARY_DIR "${FIREBASE_BINARY_DIR}")
++
++    set(FIRESTORE_SOURCE_DIR ${APP_BINARY_DIR}/external/src/firestore)
++else ()
++    # Run the CMake build logic that will download all the external dependencies.
++#    message(STATUS "Downloading external project dependencies...")
++#    download_external_sources()
++#    message(STATUS "Download complete.")
++
++#    set(FIRESTORE_SOURCE_DIR ${FIREBASE_BINARY_DIR}/external/src/firestore)
++endif ()
++
++if (DESKTOP)
++    # Use the static versions of the OpenSSL libraries.
++    set(OPENSSL_USE_STATIC_LIBS TRUE)
+     if (MSVC)
+-      if (CMAKE_BUILD_TYPE)
+-        set(BORINGSSL_LIB_SUBDIR "${CMAKE_BUILD_TYPE}")
+-      else()
+-        set(BORINGSSL_LIB_SUBDIR "Debug")
+-      endif()
+-      set(OPENSSL_SSL_LIBRARY ${BORINGSSL_BINARY_DIR}/ssl/${BORINGSSL_LIB_SUBDIR}/ssl.lib CACHE FILEPATH "" FORCE)
+-      set(OPENSSL_CRYPTO_LIBRARY ${BORINGSSL_BINARY_DIR}/crypto/${BORINGSSL_LIB_SUBDIR}/crypto.lib CACHE FILEPATH "" FORCE)
+-    else()
+-      set(OPENSSL_SSL_LIBRARY ${BORINGSSL_BINARY_DIR}/ssl/libssl.a CACHE FILEPATH "" FORCE)
+-      set(OPENSSL_CRYPTO_LIBRARY ${BORINGSSL_BINARY_DIR}/crypto/libcrypto.a CACHE FILEPATH "" FORCE)
+-    endif()
+-  endif()
+-endif()
+-
+-
+-if(DESKTOP)
+-  message(STATUS "Building external project dependencies...")
+-  build_external_dependencies()
+-  message(STATUS "Build of external project dependencies complete.")
+-  
+-  if(FIREBASE_USE_BORINGSSL)
+-    set(OPENSSL_FOUND TRUE CACHE BOOL "" FORCE)
+-    set(OPENSSL_NO_ASM TRUE)  # Force cross-platform BoringSSL, no ASM.
+-    set(OPENSSL_INCLUDE_DIR ${BORINGSSL_ROOT_DIR}/include CACHE PATH "" FORCE)
+-    set(OPENSSL_CRYPTO_LIBRARIES ${OPENSSL_CRYPTO_LIBRARY})
+-    set(OPENSSL_SSL_LIBRARIES ${OPENSSL_SSL_LIBRARY})
+-    set(OPENSSL_LIBRARIES ${OPENSSL_SSL_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARIES})
+-    set(OPENSSL_VERSION '1.1.0' CACHE STRING "" FORCE)
+-  
+-    add_library(OpenSSL::SSL STATIC IMPORTED)
+-    add_library(OpenSSL::Crypto STATIC IMPORTED)
+-    set_target_properties(OpenSSL::SSL PROPERTIES
+-      IMPORTED_LOCATION "${OPENSSL_SSL_LIBRARY}"
+-      INTERFACE_INCLUDE_DIRECTORIES "${OPENSSL_INCLUDE_DIR}"
+-      INTERFACE_LINK_LIBRARIES OpenSSL::Crypto
+-    )
+-  
+-    set_target_properties(OpenSSL::Crypto PROPERTIES
+-      IMPORTED_LOCATION "${OPENSSL_CRYPTO_LIBRARY}"
+-      INTERFACE_INCLUDE_DIRECTORIES "${OPENSSL_INCLUDE_DIR}"
+-    )
+-    # Now if we do find_package(OpenSSL) it should give us BoringSSL.
+-    find_package(OpenSSL)
+-  
+-    if(NOT "${OPENSSL_INCLUDE_DIR}" MATCHES boringssl OR
+-       NOT "${OPENSSL_SSL_LIBRARY}" MATCHES boringssl OR
+-       NOT "${OPENSSL_CRYPTO_LIBRARY}" MATCHES boringssl)
+-      message(FATAL_ERROR "BoringSSL was not configured correctly.\nINCLUDE_DIR=${OPENSSL_INCLUDE_DIR}\nSSL_LIBRARY=${OPENSSL_SSL_LIBRARY}\nCRYPTO_LIBRARY=${OPENSSL_CRYPTO_LIBRARY}")
+-    endif()
+-  else()
+-    # Don't use BoringSSL, use OpenSSL. If you are linking against the libraries directly
+-    # from source, you probably want this instead.
+-    #
+-    # If the find_package fails to find OpenSSL, set OPENSSL_ROOT_DIR to OpenSSL'S install
+-    # location on your system.
+-    find_package(OpenSSL REQUIRED)
+-  endif()
+-endif()
++        # Get the correct version of the OpenSSL libraries based on building for MT.
++        if ("${CMAKE_CXX_FLAGS_DEBUG}" MATCHES "/MTd" OR
++                "${CMAKE_CXX_FLAGS_RELEASE}" MATCHES "/MT")
++            set(OPENSSL_MSVC_STATIC_RT TRUE)
++        else ()
++            set(OPENSSL_MSVC_STATIC_RT FALSE)
++        endif ()
++    endif ()
++
++    if (FIREBASE_USE_BORINGSSL)
++        # Use BoringSSL instead of OpenSSL.
++        set(BORINGSSL_ROOT_DIR ${PROJECT_BINARY_DIR}/external/src/boringssl CACHE STRING "" FORCE)
++        set(BORINGSSL_BINARY_DIR ${PROJECT_BINARY_DIR}/external/src/boringssl-build CACHE STRING "" FORCE)
++        set(OPENSSL_ROOT_DIR ${BORINGSSL_ROOT_DIR} CACHE STRING "" FORCE)
++
++        # The call below to build_external_dependencies will make sure that these
++        # libraries exist before the libraries are imported via add_library.
++        if (MSVC)
++            if (CMAKE_BUILD_TYPE)
++                set(BORINGSSL_LIB_SUBDIR "${CMAKE_BUILD_TYPE}")
++            else ()
++                set(BORINGSSL_LIB_SUBDIR "Debug")
++            endif ()
++            set(OPENSSL_SSL_LIBRARY ${BORINGSSL_BINARY_DIR}/ssl/${BORINGSSL_LIB_SUBDIR}/ssl.lib CACHE FILEPATH "" FORCE)
++            set(OPENSSL_CRYPTO_LIBRARY ${BORINGSSL_BINARY_DIR}/crypto/${BORINGSSL_LIB_SUBDIR}/crypto.lib CACHE FILEPATH "" FORCE)
++        else ()
++            set(OPENSSL_SSL_LIBRARY ${BORINGSSL_BINARY_DIR}/ssl/libssl.a CACHE FILEPATH "" FORCE)
++            set(OPENSSL_CRYPTO_LIBRARY ${BORINGSSL_BINARY_DIR}/crypto/libcrypto.a CACHE FILEPATH "" FORCE)
++        endif ()
++    endif ()
++endif ()
++
++
++if (DESKTOP)
++    message(STATUS "Building external project dependencies...")
++    build_external_dependencies()
++    message(STATUS "Build of external project dependencies complete.")
++
++    if (FIREBASE_USE_BORINGSSL)
++        set(OPENSSL_FOUND TRUE CACHE BOOL "" FORCE)
++        set(OPENSSL_NO_ASM TRUE)  # Force cross-platform BoringSSL, no ASM.
++        set(OPENSSL_INCLUDE_DIR ${BORINGSSL_ROOT_DIR}/include CACHE PATH "" FORCE)
++        set(OPENSSL_CRYPTO_LIBRARIES ${OPENSSL_CRYPTO_LIBRARY})
++        set(OPENSSL_SSL_LIBRARIES ${OPENSSL_SSL_LIBRARY})
++        set(OPENSSL_LIBRARIES ${OPENSSL_SSL_LIBRARIES} ${OPENSSL_CRYPTO_LIBRARIES})
++        set(OPENSSL_VERSION '1.1.0' CACHE STRING "" FORCE)
++
++        add_library(OpenSSL::SSL STATIC IMPORTED)
++        add_library(OpenSSL::Crypto STATIC IMPORTED)
++        set_target_properties(OpenSSL::SSL PROPERTIES
++                IMPORTED_LOCATION "${OPENSSL_SSL_LIBRARY}"
++                INTERFACE_INCLUDE_DIRECTORIES "${OPENSSL_INCLUDE_DIR}"
++                INTERFACE_LINK_LIBRARIES OpenSSL::Crypto
++        )
++
++        set_target_properties(OpenSSL::Crypto PROPERTIES
++                IMPORTED_LOCATION "${OPENSSL_CRYPTO_LIBRARY}"
++                INTERFACE_INCLUDE_DIRECTORIES "${OPENSSL_INCLUDE_DIR}"
++        )
++        # Now if we do find_package(OpenSSL) it should give us BoringSSL.
++        find_package(OpenSSL)
++
++        if (NOT "${OPENSSL_INCLUDE_DIR}" MATCHES boringssl OR
++                NOT "${OPENSSL_SSL_LIBRARY}" MATCHES boringssl OR
++                NOT "${OPENSSL_CRYPTO_LIBRARY}" MATCHES boringssl)
++            message(FATAL_ERROR "BoringSSL was not configured correctly.\nINCLUDE_DIR=${OPENSSL_INCLUDE_DIR}\nSSL_LIBRARY=${OPENSSL_SSL_LIBRARY}\nCRYPTO_LIBRARY=${OPENSSL_CRYPTO_LIBRARY}")
++        endif ()
++    else ()
++        # Don't use BoringSSL, use OpenSSL. If you are linking against the libraries directly
++        # from source, you probably want this instead.
++        #
++        # If the find_package fails to find OpenSSL, set OPENSSL_ROOT_DIR to OpenSSL'S install
++        # location on your system.
++        find_package(PkgConfig REQUIRED)
++        pkg_search_module(OPENSSL IMPORTED_TARGET REQUIRED openssl)
++    endif ()
++endif ()
+ 
+ # Include Firestore's external build early to resolve conflicts on packages.
+-if(FIRESTORE_USE_EXTERNAL_CMAKE_BUILD)
+-  if(APPLE)
+-    # On Apple, set GRPC_BAZEL_BUILD to fix an issue with __thread.
+-    # Setting this define makes gRPC use pthread's thread-local storage
+-    # instead of GCC's.
+-    add_definitions(-DGRPC_BAZEL_BUILD=1)
+-  endif()
+-  set(FIRESTORE_BINARY_DIR ${FIRESTORE_SOURCE_DIR}-build)
+-
+-  if(FIREBASE_CPP_BUILD_TESTS OR FIREBASE_CPP_BUILD_STUB_TESTS)
+-    set(FIREBASE_IOS_BUILD_TESTS ON
+-    CACHE BOOL "Force Firestore build tests to match")
+-  else()
+-    set(FIREBASE_IOS_BUILD_TESTS OFF
+-    CACHE BOOL "Force Firestore build tests to match")
+-  endif()
+-
+-  add_subdirectory(${FIRESTORE_SOURCE_DIR} ${FIRESTORE_BINARY_DIR})
+-
+-  copy_subdirectory_definition(${FIRESTORE_SOURCE_DIR} NANOPB_SOURCE_DIR)
+-endif()
++if (FIRESTORE_USE_EXTERNAL_CMAKE_BUILD)
++    if (APPLE)
++        # On Apple, set GRPC_BAZEL_BUILD to fix an issue with __thread.
++        # Setting this define makes gRPC use pthread's thread-local storage
++        # instead of GCC's.
++        add_definitions(-DGRPC_BAZEL_BUILD=1)
++    endif ()
++    set(FIRESTORE_BINARY_DIR ${CMAKE_BINARY_DIR})
++
++    if (FIREBASE_CPP_BUILD_TESTS OR FIREBASE_CPP_BUILD_STUB_TESTS)
++        set(FIREBASE_IOS_BUILD_TESTS ON
++                CACHE BOOL "Force Firestore build tests to match")
++    else ()
++        set(FIREBASE_IOS_BUILD_TESTS OFF
++                CACHE BOOL "Force Firestore build tests to match")
++    endif ()
++
++    message(STATUS "Firestore Source Dir ${FIRESTORE_SOURCE_DIR}")
++#    add_subdirectory(${FIRESTORE_SOURCE_DIR} ${FIRESTORE_BINARY_DIR})
++
++#    copy_subdirectory_definition(${FIRESTORE_SOURCE_DIR} NANOPB_SOURCE_DIR)
++endif ()
+ 
+ # Disable the Flatbuffer build tests, install and flathash
+ set(FLATBUFFERS_BUILD_TESTS OFF CACHE BOOL "")
+@@ -362,276 +362,288 @@ set(FLATBUFFERS_FLATHASH OFF CACHE BOOL "")
+ set(LEVELDB_BUILD_TESTS OFF CACHE BOOL "")
+ 
+ # Disable building flatc if cross compiling
+-if(IOS OR ANDROID OR CMAKE_CROSSCOMPILING)
+-  set(FLATBUFFERS_BUILD_FLATC OFF CACHE BOOL "")
+-endif()
+-
+-if(FIREBASE_CPP_USE_PRIOR_GRADLE_BUILD)
+-  message(STATUS "flatbuffers is added with APP_BINARY_DIR ${APP_BINARY_DIR}")
+-  add_external_library(flatbuffers BINARY_DIR "${APP_BINARY_DIR}")
+-else()
+-  message(STATUS "flatbuffers is added normally")
+-  add_external_library(flatbuffers)
+-endif()
+-
+-if(FIREBASE_CPP_BUILD_TESTS OR FIREBASE_CPP_BUILD_STUB_TESTSAND)
+-  if (NOT FIRESTORE_USE_EXTERNAL_CMAKE_BUILD)
+-    # Firestore's external build pulls in GoogleTest
+-    add_external_library(googletest)
+-  endif()
+-endif()
+-
+-if((FIREBASE_INCLUDE_DATABASE AND DESKTOP) AND NOT FIREBASE_INCLUDE_FIRESTORE)
+-  # LevelDB is needed for Desktop and Firestore, but if firestore is being built
+-  # LevelDB will already be included.
+-  add_external_library(leveldb)
+-endif()
++if (IOS OR ANDROID OR CMAKE_CROSSCOMPILING)
++    set(FLATBUFFERS_BUILD_FLATC OFF CACHE BOOL "")
++endif ()
++
++if (FIREBASE_CPP_USE_PRIOR_GRADLE_BUILD)
++    message(STATUS "flatbuffers is added with APP_BINARY_DIR ${APP_BINARY_DIR}")
++    add_external_library(flatbuffers BINARY_DIR "${APP_BINARY_DIR}")
++else ()
++    message(STATUS "flatbuffers is added normally")
++    if (FIREBASE_USE_SYSTEM_LIBS)
++        find_package(Flatbuffers CONFIG REQUIRED)
++        set(FLATBUFFERS_FLATC_EXECUTABLE flatc)
++        if (NOT BUILD_FLAT_BUFFERS_PATH)
++            include(${Flatbuffers_DIR}/BuildFlatBuffers.cmake)
++        else ()
++            include(${BUILD_FLAT_BUFFERS_PATH})
++        endif ()
++    else ()
++        add_external_library(flatbuffers)
++    endif ()
++endif ()
++
++if (FIREBASE_CPP_BUILD_TESTS OR FIREBASE_CPP_BUILD_STUB_TESTSAND)
++    if (NOT FIRESTORE_USE_EXTERNAL_CMAKE_BUILD)
++        # Firestore's external build pulls in GoogleTest
++#        add_external_library(googletest)
++    endif ()
++endif ()
++
++if ((FIREBASE_INCLUDE_DATABASE AND DESKTOP) AND NOT FIREBASE_INCLUDE_FIRESTORE)
++    # LevelDB is needed for Desktop and Firestore, but if firestore is being built
++    # LevelDB will already be included.
++#    add_external_library(leveldb)
++endif ()
+ 
+ # Some of the external libraries are not used for mobile.
+-if(DESKTOP)
+-  # Build curl as a static library
+-  set(CURL_STATICLIB ON CACHE BOOL "")
+-  if (WIN32)
+-    # Enable Windows native SSL/TLS in libcurl.
+-    set(CMAKE_USE_SCHANNEL ON CACHE BOOL "")
+-  endif()
+-
+-  # Current Curl library defaults to requiring some dependencies we don't need, disable them.
+-  set(CMAKE_USE_LIBSSH2 OFF)
+-  set(HTTP_ONLY ON)
+-  set(BUILD_TESTING OFF)
+-  if(APPLE AND CMAKE_CROSSCOMPILING AND NOT CMAKE_TOOLCHAIN_FILE)
+-    # curl's CMake file checks for CMAKE_TOOLCHAIN_FILE rather than checking
+-    # CMAKE_CROSSCOMPILING when determining whether we are cross-compiling.
+-    # So if CMAKE_CROSSCOMPILING is set and we don't have a CMAKE_TOOLCHAIN_FILE,
+-    # just add a null one now so curl is happy. This only happens on Mac when
+-    # building for arm64/x86_64 on the opposite machine.
+-    set(CMAKE_TOOLCHAIN_FILE /dev/null)
+-  endif()
+-  add_external_library(curl)
+-
+-  add_external_library(libuv)
+-
+-  add_external_library(zlib)
+-
+-  add_external_library(uWebSockets)
+-
+-  # Binutils on Mac doesn't support thread-local storage (required by
+-  # websockets), but because we only use websockets via the scheduler, we don't
+-  # need it. Deactivate this by blanking out the __thread keyword.
+-  set(websockets_additional_defines "-D__thread=")
+-
+-  # uWebSockets does not come with a CMakeLists file, so define the target.
+-  # Note that since it depends on OpenSSL, only do so if that was found.
+-  if (OPENSSL_FOUND)
+-    if (MSVC OR APPLE)
+-      set(uWebSockets_extra_src)
+-    else()
+-      # Epoll is only used on Linux, otherwise LibUV is used.
+-      set(uWebSockets_extra_src
+-          ${UWEBSOCKETS_SOURCE_DIR}/src/Epoll.cpp)
+-    endif()
+-    add_library(libuWS STATIC
+-        ${uWebSockets_extra_src}
+-        ${UWEBSOCKETS_SOURCE_DIR}/src/Extensions.cpp
+-        ${UWEBSOCKETS_SOURCE_DIR}/src/Group.cpp
+-        ${UWEBSOCKETS_SOURCE_DIR}/src/HTTPSocket.cpp
+-        ${UWEBSOCKETS_SOURCE_DIR}/src/Hub.cpp
+-        ${UWEBSOCKETS_SOURCE_DIR}/src/Networking.cpp
+-        ${UWEBSOCKETS_SOURCE_DIR}/src/Node.cpp
+-        ${UWEBSOCKETS_SOURCE_DIR}/src/Socket.cpp
+-        ${UWEBSOCKETS_SOURCE_DIR}/src/WebSocket.cpp)
+-    if(MSVC)
+-      set(websockets_additional_defines
+-        ${websockets_additional_defines}
+-        -DWIN32_LEAN_AND_MEAN # Ensure that windows doesn't include winsock.h by
+-                              # default, as it can cause issues when libraries try
+-                              # to include winsock2.h later on in the process.
+-        -DUSE_LIBUV=1
+-      )
+-    elseif(APPLE)
+-      set(websockets_additional_defines
+-        ${websockets_additional_defines}
+-        -DUSE_LIBUV=1
+-      )
+-    endif()
+-
+-    target_compile_definitions(libuWS
+-      PRIVATE
+-        ${websockets_additional_defines}
+-    )
+-    target_include_directories(libuWS
+-      PUBLIC
+-        ${LIBUV_SOURCE_DIR}/include
+-        ${UWEBSOCKETS_SOURCE_DIR}
+-        ${ZLIB_SOURCE_DIR}
+-        ${ZLIB_BINARY_DIR}
+-      PRIVATE
+-        ${OPENSSL_INCLUDE_DIR}
+-    )
+-    target_link_libraries(libuWS
+-      PRIVATE
+-        OpenSSL::SSL
+-        OpenSSL::Crypto
+-        uv_a
+-        zlibstatic
+-    )
+-  endif()
+-endif()
+-
+-if(DESKTOP AND NOT CMAKE_CROSSCOMPILING)
+-  # Desktop platforms do not need to declare this dependency, as they will build
+-  # flatc correctly when needed.
+-  set(FIREBASE_FLATBUFFERS_DEPENDENCIES "")
+-else()
+-  # Mobile platforms build flatc externally so that it works on the platform
+-  # performing the build.
+-  set(firebase_external_flatc_build_dir "${FLATBUFFERS_BINARY_DIR}-flatc")
+-  set(firebase_external_flatc "${firebase_external_flatc_build_dir}/flatc")
+-
+-  if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+-    # Fix path slash direction (windows paths use '\' instead of '/')
+-    string(REPLACE "/" "\\"
+-                  firebase_external_flatc_build_dir_win
+-                  ${firebase_external_flatc_build_dir})
+-    set(firebase_external_flatc_build_dir
+-        ${firebase_external_flatc_build_dir_win})
+-    unset(firebase_external_flatc_build_dir_win)
+-
+-    # Building on Windows places the executable in a /Debug/ folder
+-    set(firebase_external_flatc
+-        "${firebase_external_flatc_build_dir}/Debug/flatc")
+-  endif()
+-
+-  set(FLATBUFFERS_FLATC_EXECUTABLE ${firebase_external_flatc} CACHE STRING "")
+-
+-  # Setup the flatc custom build target.
+-  # These commands are executed from within the current context, which has set
+-  # variables for the target platform. We use "env -i" to clear these
+-  # variables, and manually keep the PATH to regular bash path.
+-  # If we didn't do this, we'd end up building flatc for the target platform
+-  # instead of the building platform, and thus couldn't use flatc on the
+-  # building platform.
+-  set(firebase_command_line_path "$ENV{PATH}")
+-
+-  if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+-    # OS - Specific Command Joiner
+-    set(COMMAND_CONCAT &)
+-
+-    #Windows doesn't have an 'env' command
+-    set(ENV_COMMAND "")
+-  else()
+-    set(COMMAND_CONCAT &&)
+-    set(ENV_COMMAND env -i PATH=${firebase_command_line_path})
+-  endif()
+-
+-  # The cmake executable to use when compiling flatc. Normally, the default
+-  # value (finding cmake in the PATH) is fine; however, in cases where cmake is
+-  # *not* in the PATH (e.g. when building from CLion using the Android
+-  # toolchain) it must be specified via via this cache variable.
+-  set(FIREBASE_FLATC_CMAKE_COMMAND "cmake" CACHE FILEPATH
+-    "The cmake command to use when compiling flatc.")
+-
+-  # Build flatc by invoking the cmake build, with only the flatc target.
+-  file(MAKE_DIRECTORY ${firebase_external_flatc_build_dir})
+-  add_custom_command(
+-    OUTPUT ${firebase_external_flatc}
+-    COMMAND cd ${firebase_external_flatc_build_dir} ${COMMAND_CONCAT}
++if (DESKTOP)
++    # Build curl as a static library
++    set(CURL_STATICLIB ON CACHE BOOL "")
++    if (WIN32)
++        # Enable Windows native SSL/TLS in libcurl.
++        set(CMAKE_USE_SCHANNEL ON CACHE BOOL "")
++    endif ()
++
++    # Current Curl library defaults to requiring some dependencies we don't need, disable them.
++    set(CMAKE_USE_LIBSSH2 OFF)
++    set(HTTP_ONLY ON)
++    set(BUILD_TESTING OFF)
++    if (APPLE AND CMAKE_CROSSCOMPILING AND NOT CMAKE_TOOLCHAIN_FILE)
++        # curl's CMake file checks for CMAKE_TOOLCHAIN_FILE rather than checking
++        # CMAKE_CROSSCOMPILING when determining whether we are cross-compiling.
++        # So if CMAKE_CROSSCOMPILING is set and we don't have a CMAKE_TOOLCHAIN_FILE,
++        # just add a null one now so curl is happy. This only happens on Mac when
++        # building for arm64/x86_64 on the opposite machine.
++        set(CMAKE_TOOLCHAIN_FILE /dev/null)
++    endif ()
++
++    if (FIREBASE_USE_SYSTEM_LIBS)
++        find_package(PkgConfig REQUIRED)
++        pkg_check_modules(CURL REQUIRED IMPORTED_TARGET libcurl GLOBAL)
++        pkg_check_modules(UV REQUIRED IMPORTED_TARGET libuv GLOBAL)
++        pkg_check_modules(Z REQUIRED IMPORTED_TARGET zlib GLOBAL)
++    endif ()
++#    add_external_library(uWebSockets)
++
++    # Binutils on Mac doesn't support thread-local storage (required by
++    # websockets), but because we only use websockets via the scheduler, we don't
++    # need it. Deactivate this by blanking out the __thread keyword.
++    set(websockets_additional_defines "-D__thread=")
++
++    # uWebSockets does not come with a CMakeLists file, so define the target.
++    # Note that since it depends on OpenSSL, only do so if that was found.
++    if (OPENSSL_FOUND)
++        if (MSVC OR APPLE)
++            set(uWebSockets_extra_src)
++        else ()
++            # Epoll is only used on Linux, otherwise LibUV is used.
++            set(uWebSockets_extra_src
++                    ${UWEBSOCKETS_SOURCE_DIR}/src/Epoll.cpp)
++        endif ()
++        add_library(libuWS STATIC
++                ${uWebSockets_extra_src}
++                ${UWEBSOCKETS_SOURCE_DIR}/src/Extensions.cpp
++                ${UWEBSOCKETS_SOURCE_DIR}/src/Group.cpp
++                ${UWEBSOCKETS_SOURCE_DIR}/src/HTTPSocket.cpp
++                ${UWEBSOCKETS_SOURCE_DIR}/src/Hub.cpp
++                ${UWEBSOCKETS_SOURCE_DIR}/src/Networking.cpp
++                ${UWEBSOCKETS_SOURCE_DIR}/src/Node.cpp
++                ${UWEBSOCKETS_SOURCE_DIR}/src/Socket.cpp
++                ${UWEBSOCKETS_SOURCE_DIR}/src/WebSocket.cpp)
++        if (MSVC)
++            set(websockets_additional_defines
++                    ${websockets_additional_defines}
++                    -DWIN32_LEAN_AND_MEAN # Ensure that windows doesn't include winsock.h by
++                    # default, as it can cause issues when libraries try
++                    # to include winsock2.h later on in the process.
++                    -DUSE_LIBUV=1
++            )
++        elseif (APPLE)
++            set(websockets_additional_defines
++                    ${websockets_additional_defines}
++                    -DUSE_LIBUV=1
++            )
++        endif ()
++
++        target_compile_definitions(libuWS
++                PRIVATE
++                ${websockets_additional_defines}
++        )
++        target_include_directories(libuWS
++                PUBLIC
++                ${LIBUV_SOURCE_DIR}/include
++                ${UWEBSOCKETS_SOURCE_DIR}
++                ${ZLIB_SOURCE_DIR}
++                ${ZLIB_BINARY_DIR}
++                PRIVATE
++                ${OPENSSL_INCLUDE_DIR}
++        )
++        target_link_libraries(libuWS
++                PRIVATE
++                ${OPENSSL_LINK_LIBRARIES}
++                uv_a
++                zstatic
++        )
++    endif ()
++endif ()
++
++if (NOT)
++if (DESKTOP AND NOT CMAKE_CROSSCOMPILING)
++    # Desktop platforms do not need to declare this dependency, as they will build
++    # flatc correctly when needed.
++    set(FIREBASE_FLATBUFFERS_DEPENDENCIES "")
++else ()
++    # Mobile platforms build flatc externally so that it works on the platform
++    # performing the build.
++    set(firebase_external_flatc_build_dir "${FLATBUFFERS_BINARY_DIR}-flatc")
++    set(firebase_external_flatc "${firebase_external_flatc_build_dir}/flatc")
++
++    if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
++        # Fix path slash direction (windows paths use '\' instead of '/')
++        string(REPLACE "/" "\\"
++                firebase_external_flatc_build_dir_win
++                ${firebase_external_flatc_build_dir})
++        set(firebase_external_flatc_build_dir
++                ${firebase_external_flatc_build_dir_win})
++        unset(firebase_external_flatc_build_dir_win)
++
++        # Building on Windows places the executable in a /Debug/ folder
++        set(firebase_external_flatc
++                "${firebase_external_flatc_build_dir}/Debug/flatc")
++    endif ()
++
++#    set(FLATBUFFERS_FLATC_EXECUTABLE ${firebase_external_flatc} CACHE STRING "")
++
++    # Setup the flatc custom build target.
++    # These commands are executed from within the current context, which has set
++    # variables for the target platform. We use "env -i" to clear these
++    # variables, and manually keep the PATH to regular bash path.
++    # If we didn't do this, we'd end up building flatc for the target platform
++    # instead of the building platform, and thus couldn't use flatc on the
++    # building platform.
++    set(firebase_command_line_path "$ENV{PATH}")
++
++    if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
++        # OS - Specific Command Joiner
++        set(COMMAND_CONCAT &)
++
++        #Windows doesn't have an 'env' command
++        set(ENV_COMMAND "")
++    else ()
++        set(COMMAND_CONCAT &&)
++        set(ENV_COMMAND env -i PATH=${firebase_command_line_path})
++    endif ()
++
++    # The cmake executable to use when compiling flatc. Normally, the default
++    # value (finding cmake in the PATH) is fine; however, in cases where cmake is
++    # *not* in the PATH (e.g. when building from CLion using the Android
++    # toolchain) it must be specified via via this cache variable.
++    set(FIREBASE_FLATC_CMAKE_COMMAND "cmake" CACHE FILEPATH
++            "The cmake command to use when compiling flatc.")
++
++    # Build flatc by invoking the cmake build, with only the flatc target.
++    file(MAKE_DIRECTORY ${firebase_external_flatc_build_dir})
++    add_custom_command(
++            OUTPUT ${firebase_external_flatc}
++            COMMAND cd ${firebase_external_flatc_build_dir} ${COMMAND_CONCAT}
+             ${ENV_COMMAND} ${FIREBASE_FLATC_CMAKE_COMMAND} ${FLATBUFFERS_SOURCE_DIR} ${COMMAND_CONCAT}
+             ${ENV_COMMAND} ${FIREBASE_FLATC_CMAKE_COMMAND} --build . --target flatc
+-    COMMENT "Building flatc (the FlatBuffer schema compiler)")
++            COMMENT "Building flatc (the FlatBuffer schema compiler)")
+ 
+-  # Add a target so that we can run the custom commands before the code build.
+-  add_custom_target(
+-    firebase_flatc_prebuild
+-    DEPENDS ${firebase_external_flatc})
++    # Add a target so that we can run the custom commands before the code build.
++    add_custom_target(
++            firebase_flatc_prebuild
++            DEPENDS ${firebase_external_flatc})
+ 
+-  # Set a variable that the dependencies can use, to trigger the build before
+-  # using flatbuffers.
+-  set(FIREBASE_FLATBUFFERS_DEPENDENCIES "firebase_flatc_prebuild")
+-endif()
++    # Set a variable that the dependencies can use, to trigger the build before
++    # using flatbuffers.
++    set(FIREBASE_FLATBUFFERS_DEPENDENCIES "firebase_flatc_prebuild")
++endif ()
++endif ()
+ 
+ include(binary_to_array)
+ include(firebase_cpp_gradle)
+ 
+ # Ensure min/max macros don't get declared on Windows
+ # (so we can use std::min/max), before including the Firebase subdirectories.
+-if(MSVC)
+-  add_definitions(-DNOMINMAX)
+-endif()
++if (MSVC)
++    add_definitions(-DNOMINMAX)
++endif ()
+ 
+-add_subdirectory(ios_pod)
++# add_subdirectory(ios_pod)
+ 
+ # If we're building tests, we need to include the 'testing' folder before any
+ # of the tests actually get built.
+-if(FIREBASE_CPP_BUILD_TESTS OR FIREBASE_CPP_BUILD_STUB_TESTS)
+-  add_subdirectory(testing)
+-endif()
++if (FIREBASE_CPP_BUILD_TESTS OR FIREBASE_CPP_BUILD_STUB_TESTS)
++    add_subdirectory(testing)
++endif ()
+ 
+ # Custom target containing all generated headers, used to generate docs only.
+ add_custom_target(FIREBASE_GENERATED_HEADERS)
+ 
+-if(NOT FIREBASE_CPP_USE_PRIOR_GRADLE_BUILD)
+-  add_subdirectory(app)
+-  add_dependencies(FIREBASE_GENERATED_HEADERS FIREBASE_APP_GENERATED_HEADERS)
+-else()
+-  # Add firebase_app as a target on the previously built app.
+-  add_library(firebase_app STATIC IMPORTED GLOBAL)
+-  file(MAKE_DIRECTORY "${APP_BINARY_DIR}/generated")
+-  file(MAKE_DIRECTORY "${FIREBASE_BINARY_DIR}/generated")
+-  set(app_include_dirs
+-      "${CMAKE_CURRENT_LIST_DIR}/app/src/include"
+-      "${APP_BINARY_DIR}/generated"
+-      "${FIREBASE_BINARY_DIR}/generated"
+-  )
+-  set_target_properties(firebase_app PROPERTIES
+-    IMPORTED_LOCATION "${APP_BINARY_DIR}/libfirebase_app.a"
+-    INTERFACE_INCLUDE_DIRECTORIES "${app_include_dirs}"
+-  )
+-endif()
++if (NOT FIREBASE_CPP_USE_PRIOR_GRADLE_BUILD)
++    add_subdirectory(app)
++    add_dependencies(FIREBASE_GENERATED_HEADERS FIREBASE_APP_GENERATED_HEADERS)
++else ()
++    # Add firebase_app as a target on the previously built app.
++    add_library(firebase_app STATIC IMPORTED GLOBAL)
++    file(MAKE_DIRECTORY "${APP_BINARY_DIR}/generated")
++    file(MAKE_DIRECTORY "${FIREBASE_BINARY_DIR}/generated")
++    set(app_include_dirs
++            "${CMAKE_CURRENT_LIST_DIR}/app/src/include"
++            "${APP_BINARY_DIR}/generated"
++            "${FIREBASE_BINARY_DIR}/generated"
++    )
++    set_target_properties(firebase_app PROPERTIES
++            IMPORTED_LOCATION "${APP_BINARY_DIR}/libfirebase_app.a"
++            INTERFACE_INCLUDE_DIRECTORIES "${app_include_dirs}"
++    )
++endif ()
+ 
+ if (FIREBASE_INCLUDE_ANALYTICS)
+-  add_subdirectory(analytics)
+-  add_dependencies(FIREBASE_GENERATED_HEADERS FIREBASE_ANALYTICS_GENERATED_HEADERS)
+-endif()
++    add_subdirectory(analytics)
++    add_dependencies(FIREBASE_GENERATED_HEADERS FIREBASE_ANALYTICS_GENERATED_HEADERS)
++endif ()
+ if (FIREBASE_INCLUDE_APP_CHECK)
+-  add_subdirectory(app_check)
+-endif()
++    add_subdirectory(app_check)
++endif ()
+ if (FIREBASE_INCLUDE_AUTH)
+-  add_subdirectory(auth)
+-endif()
++    add_subdirectory(auth)
++endif ()
+ if (FIREBASE_INCLUDE_DATABASE)
+-  add_subdirectory(database)
+-endif()
++    add_subdirectory(database)
++endif ()
+ if (FIREBASE_INCLUDE_DYNAMIC_LINKS)
+-  add_subdirectory(dynamic_links)
+-endif()
++    add_subdirectory(dynamic_links)
++endif ()
+ if (FIREBASE_INCLUDE_FIRESTORE)
+-  add_subdirectory(firestore)
+-  add_dependencies(FIREBASE_GENERATED_HEADERS FIREBASE_FIRESTORE_GENERATED_HEADERS)
+-endif()
++    add_subdirectory(firestore)
++    add_dependencies(FIREBASE_GENERATED_HEADERS FIREBASE_FIRESTORE_GENERATED_HEADERS)
++endif ()
+ if (FIREBASE_INCLUDE_FUNCTIONS)
+-  add_subdirectory(functions)
+-endif()
++    add_subdirectory(functions)
++endif ()
+ if (FIREBASE_INCLUDE_GMA)
+-  add_subdirectory(gma)
+-endif()
++    add_subdirectory(gma)
++endif ()
+ if (FIREBASE_INCLUDE_INSTALLATIONS)
+-  add_subdirectory(installations)
+-endif()
++    add_subdirectory(installations)
++endif ()
+ if (FIREBASE_INCLUDE_MESSAGING)
+-  add_subdirectory(messaging)
+-endif()
++    add_subdirectory(messaging)
++endif ()
+ if (FIREBASE_INCLUDE_REMOTE_CONFIG)
+-  add_subdirectory(remote_config)
+-endif()
++    add_subdirectory(remote_config)
++endif ()
+ if (FIREBASE_INCLUDE_STORAGE)
+-  add_subdirectory(storage)
+-endif()
++    add_subdirectory(storage)
++endif ()
+ 
+ # Place the CMake and gradle build files provided to easily link against the
+ # prebuilt libraries at the root of the package.
+ cpp_pack_dir(
+-  "${CMAKE_CURRENT_LIST_DIR}/release_build_files/"
+-  .
++        "${CMAKE_CURRENT_LIST_DIR}/release_build_files/"
++        .
+ )
+diff --git a/app/CMakeLists.txt b/app/CMakeLists.txt
+index 544bf77fd..e56e0b971 100644
+--- a/app/CMakeLists.txt
++++ b/app/CMakeLists.txt
+@@ -440,7 +440,9 @@ endif()
+ cpp_pack_library(firebase_app "")
+ cpp_pack_public_headers()
+ if (NOT ANDROID AND NOT IOS)
+-  cpp_pack_library(flatbuffers "deps/app/external")
++  if (NOT FIREBASE_USE_SYSTEM_LIBS)
++    cpp_pack_library(flatbuffers "deps/app/external")
++  endif ()
+ endif()
+ 
+ if (IOS)
+diff --git a/app/rest/CMakeLists.txt b/app/rest/CMakeLists.txt
+index 8d58c94f9..67e2fa3de 100644
+--- a/app/rest/CMakeLists.txt
++++ b/app/rest/CMakeLists.txt
+@@ -137,7 +137,9 @@ if(FIREBASE_CPP_BUILD_TESTS)
+ endif()
+ 
+ cpp_pack_library(firebase_rest_lib "deps/app")
+-cpp_pack_library(libcurl "deps/app/external")
+-cpp_pack_library(zlibstatic "deps/app/external")
+-cpp_pack_library_file(${OPENSSL_SSL_LIBRARY} "deps/app/external")
+-cpp_pack_library_file(${OPENSSL_CRYPTO_LIBRARY} "deps/app/external")
++if (NOT FIREBASE_USE_SYSTEM_LIBS)
++    cpp_pack_library(libcurl "deps/app/external")
++    cpp_pack_library(zlibstatic "deps/app/external")
++    cpp_pack_library_file(${OPENSSL_SSL_LIBRARY} "deps/app/external")
++    cpp_pack_library_file(${OPENSSL_CRYPTO_LIBRARY} "deps/app/external")
++endif ()
+diff --git a/app/rest/gzipheader.cc b/app/rest/gzipheader.cc
+index ba00ffdb3..ffecf1f47 100644
+--- a/app/rest/gzipheader.cc
++++ b/app/rest/gzipheader.cc
+@@ -23,7 +23,7 @@
+ 
+ #include "app/src/assert.h"
+ #include "app/src/util.h"
+-#include "zlib/zlib.h"  // for Z_DEFAULT_COMPRESSION
++#include "zlib.h"  // for Z_DEFAULT_COMPRESSION
+ 
+ namespace firebase {
+ 
+diff --git a/app/rest/zlibwrapper.cc b/app/rest/zlibwrapper.cc
+index 89ef9becb..b6bfd82e9 100644
+--- a/app/rest/zlibwrapper.cc
++++ b/app/rest/zlibwrapper.cc
+@@ -27,7 +27,7 @@
+ #include "app/src/assert.h"
+ #include "app/src/log.h"
+ #include "zconf.h"
+-#include "zlib/zlib.h"
++#include "zlib.h"
+ 
+ // The GZIP header (see RFC 1952):
+ //   +---+---+---+---+---+---+---+---+---+---+
+diff --git a/app/rest/zlibwrapper.h b/app/rest/zlibwrapper.h
+index 70bc70f9e..e5a402d39 100644
+--- a/app/rest/zlibwrapper.h
++++ b/app/rest/zlibwrapper.h
+@@ -17,7 +17,7 @@
+  * limitations under the License.
+  */
+ 
+-#include "zlib/zlib.h"
++#include "zlib.h"
+ 
+ namespace firebase {
+ 
+diff --git a/app/src/app_common.cc b/app/src/app_common.cc
+index 9e38e6312..2cf2a3ce9 100644
+--- a/app/src/app_common.cc
++++ b/app/src/app_common.cc
+@@ -154,6 +154,8 @@ const char* kCppRuntimeOrStl = "libcpp";
+ const char* kCpuArchitecture = "x86_64";
+ #elif __i386__
+ const char* kCpuArchitecture = "x86";
++#elif __aarch64__
++const char* kCpuArchitecture = "arm64";
+ #else
+ #error Unknown Linux architecture.
+ #endif  // Architecture
+diff --git a/database/CMakeLists.txt b/database/CMakeLists.txt
+index 8c3550d34..1b3551d45 100644
+--- a/database/CMakeLists.txt
++++ b/database/CMakeLists.txt
+@@ -173,8 +173,7 @@ else()
+       firebase_rest_lib
+       leveldb
+       libuWS
+-      OpenSSL::SSL
+-      OpenSSL::Crypto)
++      ${OPENSSL_LINK_LIBRARIES})
+ 
+   set(additional_DEFINES
+       -DFIREBASE_TARGET_DESKTOP=1)
+@@ -253,6 +252,8 @@ endif()
+ cpp_pack_library(firebase_database "")
+ cpp_pack_public_headers()
+ if (NOT ANDROID AND NOT IOS)
+-  cpp_pack_library(uv_a "deps/database/external")
++  if (NOT FIREBASE_USE_SYSTEM_LIBS)
++    cpp_pack_library(uv_a "deps/database/external")
++  endif ()
+   cpp_pack_library(libuWS "deps/database/external")
+ endif()
+diff --git a/firestore/CMakeLists.txt b/firestore/CMakeLists.txt
+index e3a31f3eb..0b81b5dfd 100644
+--- a/firestore/CMakeLists.txt
++++ b/firestore/CMakeLists.txt
+@@ -367,6 +367,7 @@ else()
+     target_include_directories(firebase_firestore
+       PRIVATE
+         ${FLATBUFFERS_SOURCE_DIR}/include
++        ${CMAKE_SOURCE_DIR}/third_party/nanopb/spm_headers
+     )
+   endif()
+ endif()
+-- 
+2.43.0
+
