@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
 #
 
 SUMMARY = "A light-weight Flutter Engine Embedder for Raspberry Pi that runs without X."
@@ -16,15 +16,17 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=49fada46694956cdf2fc0292d72d888c"
 
 DEPENDS += "\
+    flutter-engine \
     libdrm \
     libinput \
     libxkbcommon \
     virtual/egl \
    "
 
-RDEPENDS_${PN} += "\
-    xkeyboard-config \
+RDEPENDS:${PN} += "\
+    flutter-engine \
     fontconfig \
+    xkeyboard-config \
     "
 
 REQUIRED_DISTRO_FEATURES = "opengl"
@@ -33,7 +35,7 @@ SRC_REPO ??= "github.com/ardera/flutter-pi.git"
 SRC_REPO_BRANCH ??= "master"
 
 SRC_URI = "git://${SRC_REPO};protocol=https;branch=${SRC_REPO_BRANCH}"
-SRCREV = "${AUTOREV}"
+SRCREV ??= "75e72fef8e8ce65ec72a002c00d9c6db4d1479d3"
 
 S = "${WORKDIR}/git"
 
@@ -54,11 +56,9 @@ PACKAGECONFIG[ubsan]        = "-DENABLE_UBSAN=ON,                        -DENABL
 PACKAGECONFIG[mtrace]       = "-DENABLE_MTRACE=ON,                       -DENABLE_MTRACE=OFF"
 
 # prevent use of network to pull header
-EXTRA_OECMAKE += "-D FLUTTER_EMBEDDER_HEADER=${STAGING_DIR_TARGET}/include/flutter_embedder.h -D FILESYSTEM_LAYOUT=meta-flutter"
-
-FILES_PN} = "\
-    ${bindir} \
+EXTRA_OECMAKE += "\
+    -D FLUTTER_EMBEDDER_HEADER=${STAGING_DIR_TARGET}/include/flutter_embedder.h \
+    -D FILESYSTEM_LAYOUT=meta-flutter \
     "
 
-DEPENDS += "flutter-engine"
-RDEPENDS_${PN} += "flutter-engine"
+FILES:${PN} = "${bindir}"

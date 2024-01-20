@@ -19,6 +19,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=1d84cf16c48e571923f837136633a265"
 DEPENDS += "\
     ca-certificates-native \
     curl-native \
+    ninja-native \
     unzip-native \
     "
 
@@ -27,42 +28,96 @@ RDEPENDS_nativesdk-${PN} += "ca-certificates-native curl-native perl perl-module
 
 require conf/include/flutter-version.inc
 
-SRC_URI = "https://storage.googleapis.com/flutter_infra_release/releases/${@get_flutter_archive(d)};name=flutter-sdk"
+inherit pkgconfig
+
+SRC_URI = "\
+    https://storage.googleapis.com/flutter_infra_release/releases/${@get_flutter_archive(d)};name=flutter-sdk \
+    https://storage.googleapis.com/flutter_infra_release/flutter/fonts/3012db47f3130e62f7cc0beabff968a33cbec8d8/fonts.zip;name=fonts;destsuffix=${D}${datadir}/flutter/sdk/bin/cache/artifacts/material_fonts \
+"
 SRC_URI[flutter-sdk.sha256sum] = "${@get_flutter_sha256(d)}"
+SRC_URI[fonts.sha256sum] = "e56fa8e9bb4589fde964be3de451f3e5b251e4a1eafb1dc98d94add034dd5a86"
 
 S = "${WORKDIR}/flutter"
 
+def getstatusoutput(cmd, cwd, env):
+    from subprocess import check_output, CalledProcessError, STDOUT
+
+    try:
+        data = check_output(cmd, shell=True, universal_newlines=True, stderr=STDOUT, cwd=cwd, env=env)
+        status = 0
+    except CalledProcessError as ex:
+        data = ex.output
+        status = ex.returncode
+    if data[-1:] == '\n':
+        data = data[:-1]
+    return status, data
+
+def run_command(d, cmd, cwd, env):
+    import subprocess
+    import re
+
+    # replace all consecutive whitespace characters (tabs, newlines etc.) with a single space
+    cmd = re.sub('\s{2,}', ' ', cmd)
+
+    bb.note('Running [%s] in %s' % (cmd, cwd))
+    (retval, output) = getstatusoutput(cmd, cwd, env)
+    if retval:
+        bb.error("failed %s (cmd was %s)%s" % (retval, cmd, ":\n%s" % output if output else ""))
+        return
+
+    bb.note(f'{output}')
+
+
 do_unpack[network] = "1"
-do_patch[network] = "1"
-do_compile[network] = "1"
+python do_unpack_append() {
+    import shutil
 
-do_compile() {
-    export CURL_CA_BUNDLE=${STAGING_DIR_NATIVE}/etc/ssl/certs/ca-certificates.crt
-    export PATH=${S}/bin:$PATH
-    export PUB_CACHE=${S}/.pub-cache
+    # clean cache folder if it exists
+    source_dir = d.getVar('S')
+    shutil.rmtree(f'{source_dir}/bin/cache', ignore_errors=True)
 
-    export http_proxy=${http_proxy}
-    export https_proxy=${https_proxy}
+    env = os.environ
 
-    bbnote "Flutter SDK: ${FLUTTER_SDK_TAG}"
+    staging_dir_native = d.getVar('STAGING_DIR_NATIVE')
+    env['CURL_CA_BUNDLE'] = f'{staging_dir_native}/etc/ssl/certs/ca-certificates.crt'
 
-    flutter config --clear-features
-    flutter config --enable-linux-desktop
-    flutter config --enable-custom-devices
-    flutter config --no-analytics
-    dart --disable-analytics
+    path = env['PATH']
+    env['PATH']           = f'{source_dir}/bin:{path}'
+    env['PUB_CACHE']      = f'{source_dir}/.pub-cache'
 
-    rm -rf ${S}/bin/cache | true
-    flutter precache
+    http_proxy = d.getVar('http_proxy')
+    if http_proxy != None:
+        env['http_proxy']     = f'{http_proxy}'
 
-    bbnote `flutter config`
-    bbnote `flutter doctor -v`
+    https_proxy = d.getVar('https_proxy')
+    if https_proxy != None:
+        env['https_proxy']    = f'{https_proxy}'
+
+    http_proxy_ = d.getVar('HTTP_PROXY')
+    if http_proxy_ != None:
+        env['HTTP_PROXY']     = f'{http_proxy_}'
+
+    https_proxy_ = d.getVar('HTTPS_PROXY')
+    if https_proxy_ != None:
+        env['HTTPS_PROXY']    = f'{https_proxy_}'
+
+    env['NO_PROXY']       = 'localhost,127.0.0.1,::1'
+
+    flutter_sdk_tag = d.getVar('FLUTTER_SDK_TAG')
+    bb.note(f'Flutter SDK: {flutter_sdk_tag}')
+
+    run_command(d, 'flutter config --clear-features', source_dir, env)
+    run_command(d, 'flutter config --enable-linux-desktop', source_dir, env)
+    run_command(d, 'flutter config --enable-custom-devices', source_dir, env)
+    run_command(d, 'flutter config --enable-web', source_dir, env)
+    run_command(d, 'flutter config --no-analytics', source_dir, env)
+    run_command(d, 'dart --disable-analytics', source_dir, env)
+    run_command(d, 'flutter precache', source_dir, env)
+    run_command(d, 'flutter config --list', source_dir, env)
+    run_command(d, 'flutter doctor -v', source_dir, env)
 }
 
 do_install() {
-    rm -rf ${S}/bin/cache/pkg/sky_engine/
-    rm -rf ${S}/bin/cache/artifacts/*
-
     chmod a+rw ${S} -R
 
     install -d ${D}${datadir}/flutter/sdk

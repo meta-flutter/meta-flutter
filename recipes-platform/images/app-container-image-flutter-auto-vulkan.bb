@@ -13,6 +13,7 @@ DISTRO_FEATURES_append = " vulkan wayland opengl systemd pam"
 
 IMAGE_INSTALL += " \
     \
+    swiftshader \
     vulkan-tools \
     \
     flutter-auto-with-logging \
@@ -21,6 +22,7 @@ IMAGE_INSTALL += " \
     \
     weston \
     weston-init \
+    wayland-utils \
     \
     binutils \
     strace \

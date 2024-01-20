@@ -26,6 +26,7 @@ FLUTTER_ENGINE_PATCHES ?= "\
     file://0001-disable-pre-canned-sysroot.patch \
     file://0001-remove-x11-dependency.patch \
     file://0001-disable-x11.patch \
+    file://0001-IsCreationThreadCurrent-workaround.patch \
     "
 
 SRC_URI = "\
@@ -48,12 +49,6 @@ GN_CUSTOM_VARS ?= '\
     "download_windows_deps": False, \
     "download_linux_deps": False,   \
 }'
-# https://github.com/flutter/flutter/issues/127606
-GN_CUSTOM_DEPS ?= '\
-{\
-    "src/third_party/dart/third_party/pkg/tools": \
-    "https://dart.googlesource.com/tools.git@545d7e1c73ce21b8c91f638021f9d487d324a501" \
-}'
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 
 COMPATIBLE_MACHINE = "(-)"
@@ -66,6 +61,7 @@ COMPATIBLE_MACHINE_x86-64 = "(.*)"
 
 PACKAGECONFIG ??= "\
     debug profile release \
+    desktop-embeddings \
     embedder-for-target \
     fontconfig \
     mallinfo2 \
@@ -115,6 +111,7 @@ GN_ARGS = '\
     --target-sysroot ${STAGING_DIR_TARGET} \
     --target-toolchain ${CLANG_PATH} \
     --target-triple ${@gn_clang_triple_prefix(d)} \
+    --no-enable-unittests \
 '
 
 GN_ARGS_append_armv7 = " --arm-float-abi ${TARGET_FPU}"
@@ -187,7 +184,13 @@ do_install() {
             ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/dart || true
         install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/flatc \
             ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/flatc || true
-        
+
+        # include patched sdk for local-engine scenarios
+        install -d ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/flutter_patched_sdk
+        install -m 0644 ${S}/${BUILD_DIR}/flutter_patched_sdk/*.dill* \
+            ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/flutter_patched_sdk || true
+
+        # include impeller tools
         if ${@bb.utils.contains('PACKAGECONFIG', 'impeller-vulkan', 'true', 'false', d)}; then
             install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/blobcat \
                 ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/blobcat
@@ -199,10 +202,10 @@ do_install() {
             ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/clang_x64/gen_snapshot
             
         cd ${S}/flutter
-        echo $SRCREV                   > ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/engine.version
-        echo $FLUTTER_ENGINE_REPO_URL >> ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/engine.version
-        echo $FLUTTER_SDK_VERSION     >> ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/flutter_sdk.version
-        echo $RUNTIME_MODE            >> ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/flutter.runtime
+        echo "${SRCREV}"                   > ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/engine.version
+        echo "${FLUTTER_ENGINE_REPO_URL}" >> ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/engine.version
+        echo "${FLUTTER_SDK_VERSION}"      > ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/flutter_sdk.version
+        echo "${MODE}"                     > ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/sdk/flutter.runtime
 
         cd ${D}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${MODE}/
         zip -r engine_sdk.zip sdk

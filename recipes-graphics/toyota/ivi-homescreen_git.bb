@@ -3,7 +3,7 @@
 #
 
 SUMMARY = "Toyota IVI Homescreen"
-DESCRIPTION = "Toyota's Flutter Embedder"
+DESCRIPTION = "Toyota's Flutter Embedder that communicates with AGL-compositor/Wayland compositors"
 AUTHOR = "joel.winarske@toyotaconnected.com"
 HOMEPAGE = "https://github.com/toyota-connected/ivi-homescreen"
 BUGTRACKER = "https://github.com/toyota-connected/ivi-homescreen/issues"
@@ -27,7 +27,7 @@ RDEPENDS_${PN} += "\
 
 REQUIRED_DISTRO_FEATURES = "wayland opengl"
 
-SRCREV ??= "0e4661b1ac4a6fbced8a7ce6416fd663c66f2944"
+SRCREV ??= "a3113ea6b6df4ccdc4e1c057e41128cc586dc0c9"
 SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=main"
 
 S = "${WORKDIR}/git"
@@ -36,9 +36,12 @@ inherit cmake features_check pkgconfig
 
 PACKAGECONFIG ??= "\
     client-xdg \
-    dart-vm-logging \
+    \
     ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'backend-vulkan', 'backend-egl', d)} \
-    transparency \
+    \
+    egl-transparency \
+    egl-3d \
+    \
     pc-isolate \
     pc-restoration \
     pc-platform \
@@ -55,16 +58,25 @@ PACKAGECONFIG ??= "\
     pc-desktop-window \
     pc-logging \
     pc-google-sign-in \
+    \
     texture-test-egl \
     texture-navi-render-egl \
+    \
+    dart-vm-logging \
     "
 
+PACKAGECONFIG[backend-drm] = "-DBUILD_BACKEND_WAYLAND_DRM=ON -DBUILD_BACKEND_WAYLAND_DRM=OFF"
 PACKAGECONFIG[backend-egl] = "-DBUILD_BACKEND_WAYLAND_EGL=ON -DBUILD_BACKEND_WAYLAND_VULKAN=OFF"
 PACKAGECONFIG[backend-vulkan] = "-DBUILD_BACKEND_WAYLAND_VULKAN=ON -DBUILD_BACKEND_WAYLAND_EGL=OFF"
-PACKAGECONFIG[backend-drm] = "-DBUILD_BACKEND_WAYLAND_DRM=ON -DBUILD_BACKEND_WAYLAND_DRM=OFF"
+
 PACKAGECONFIG[client-agl] = "-DENABLE_AGL_CLIENT=ON, -DENABLE_AGL_CLIENT=OFF"
 PACKAGECONFIG[client-ivi-shell] = "-DENABLE_IVI_SHELL_CLIENT=ON, -DENABLE_IVI_SHELL_CLIENT=OFF"
 PACKAGECONFIG[client-xdg] = "-DENABLE_XDG_CLIENT=ON, -DENABLE_XDG_CLIENT=OFF"
+
+PACKAGECONFIG[egl-3d] = "-DBUILD_EGL_ENABLE_3D=ON, -DBUILD_EGL_ENABLE_3D=OFF"
+PACKAGECONFIG[egl-transparency] = "-DBUILD_EGL_TRANSPARENCY=ON, -DBUILD_EGL_TRANSPARENCY=OFF"
+PACKAGECONFIG[egl-multisample] = "-DBUILD_EGL_ENABLE_MULTISAMPLE=ON, -DBUILD_EGL_ENABLE_MULTISAMPLE=OFF"
+
 PACKAGECONFIG[pc-isolate] = "-DBUILD_PLUGIN_ISOLATE=ON, -DBUILD_PLUGIN_ISOLATE=OFF"
 PACKAGECONFIG[pc-restoration] = "-DBUILD_PLUGIN_RESTORATION=ON, -DBUILD_PLUGIN_RESTORATION=OFF"
 PACKAGECONFIG[pc-platform] = "-DBUILD_PLUGIN_PLATFORM=ON, -DBUILD_PLUGIN_PLATFORM=OFF"
@@ -85,13 +97,14 @@ PACKAGECONFIG[pc-secure-storage] = "-DBUILD_PLUGIN_SECURE_STORAGE=ON, -DBUILD_PL
 PACKAGECONFIG[pc-integration-test] = "-DBUILD_PLUGIN_INTEGRATION_TEST=ON, -DBUILD_PLUGIN_INTEGRATION_TEST=OFF"
 PACKAGECONFIG[pc-logging] = "-DBUILD_PLUGIN_LOGGING=ON, -DBUILD_PLUGIN_LOGGING=OFF"
 PACKAGECONFIG[pc-google-sign-in] = "-DBUILD_PLUGIN_GOOGLE_SIGN_IN=ON, -DBUILD_PLUGIN_GOOGLE_SIGN_IN=OFF, curl"
+PACKAGECONFIG[pc-file-selector] = "-DBUILD_PLUGIN_FILE_SELECTOR=ON, -DBUILD_PLUGIN_FILE_SELECTOR=OFF"
+
 PACKAGECONFIG[texture-test-egl] = "-DBUILD_TEXTURE_TEST_EGL=ON, -DBUILD_TEXTURE_TEST_EGL=OFF"
 PACKAGECONFIG[texture-navi-render-egl] = "-DBUILD_TEXTURE_NAVI_RENDER_EGL=ON, -DBUILD_TEXTURE_NAVI_RENDER_EGL=OFF"
 
 PACKAGECONFIG[dart-vm-logging] = "-DENABLE_DART_VM_LOGGING=ON, -DENABLE_DART_VM_LOGGING=OFF"
 PACKAGECONFIG[dlt] = "-DENABLE_DLT=ON, -DENABLE_DLT=OFF"
 PACKAGECONFIG[sentry-native] = "-DBUILD_CRASH_HANDLER=ON, -DBUILD_CRASH_HANDLER=OFF, sentry-native"
-PACKAGECONFIG[transparency] = "-DBUILD_EGL_TRANSPARENCY=ON, -DBUILD_EGL_TRANSPARENCY=OFF"
 
 PACKAGECONFIG[verbose] = "-DCMAKE_BUILD_TYPE=Debug"
 
@@ -102,6 +115,4 @@ cmake_do_install_append() {
     rm -rf ${D}${libdir}
 }
 
-BBCLASSEXTEND = "with-logging"
-
-RDEPENDS_${PN} = "flutter-engine"
+BBCLASSEXTEND = "verbose-logs"
