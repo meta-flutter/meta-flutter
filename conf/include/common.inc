@@ -306,7 +306,7 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
 
         bb.note(f'[{runtime_mode}] flutter build {flutter_build_args}: Completed')
 
-        if runtime_mode == 'release' or 'profile':
+        if runtime_mode == 'release' or runtime_mode == 'profile':
 
             bb.note(f'kernel_snapshot_{runtime_mode}: Starting')
 

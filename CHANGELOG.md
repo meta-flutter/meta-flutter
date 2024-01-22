@@ -1,5 +1,8 @@
 # Changelog
 
+Jan 22, 2024
+1. Fix debug builds for apps
+
 Jan 19, 2024
 1. Add `FLUTTER_SDK_TAG` to pub-cache archive filename.  When updating SDK version this will update pub-cache correctly now network is disabled for compile.
 2. Move flutter-packages-example-file-selector_git.bb to dynamic-layers/gnome-layer/recipes-graphics/flutter-apps/ since it has a runtime dependency on meta-gnome.
