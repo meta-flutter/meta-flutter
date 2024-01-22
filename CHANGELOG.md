@@ -1,5 +1,8 @@
 # Changelog
 
+Jan 22, 2024
+1. Fix debug builds for apps
+
 Jan 19, 2024
 1. Update dunfell from kirkstone
    see kirstone CHANGELOG.md for details
