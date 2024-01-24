@@ -16,6 +16,8 @@ inherit native
 
 do_compile[network] = "1"
 do_compile() {
+    export http_proxy=${http_proxy}
+    export https_proxy=${https_proxy}
 
     # force bootstrap download to get python2
     
