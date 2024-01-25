@@ -75,7 +75,7 @@ def filter_plugin_registrant(dart_file):
                 f.write('    if (Platform.isLinux) {\n')
                 discard = False
                 continue
-            elif line is '    }\n':
+            elif line == '    }\n':
                 f.write(line)
                 discard = False
                 continue
