@@ -21,6 +21,5 @@ SRC_URI = "git://github.com/gskinnerTeam/flutter-wonderous-app.git;lfs=0;branch=
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "wonders"
-FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 inherit flutter-app

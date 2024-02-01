@@ -19,6 +19,5 @@ S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "google_sign_in_example"
 FLUTTER_APPLICATION_PATH = "packages/google_sign_in/google_sign_in/example"
-FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 inherit flutter-app

@@ -19,6 +19,5 @@ S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "url_launcher_example"
 FLUTTER_APPLICATION_PATH = "packages/url_launcher/url_launcher/example"
-FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 inherit flutter-app
