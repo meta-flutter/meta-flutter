@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "camera_example"
 FLUTTER_APPLICATION_PATH = "packages/camera/camera/example"
-FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 inherit flutter-app

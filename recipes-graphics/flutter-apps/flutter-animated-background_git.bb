@@ -19,6 +19,5 @@ S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "animated_background_example"
 FLUTTER_APPLICATION_PATH = "example"
-FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 inherit flutter-app

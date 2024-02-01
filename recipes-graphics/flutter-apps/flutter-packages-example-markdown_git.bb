@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "flutter_markdown_example"
 FLUTTER_APPLICATION_PATH = "packages/flutter_markdown/example"
-FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 inherit flutter-app

@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "firebase_core_example"
 FLUTTER_APPLICATION_PATH = "packages/firebase_core/firebase_core/example"
-FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 inherit flutter-app
