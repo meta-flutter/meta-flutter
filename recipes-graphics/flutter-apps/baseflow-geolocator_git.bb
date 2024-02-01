@@ -23,6 +23,5 @@ S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "geolocator_linux_example"
 FLUTTER_APPLICATION_PATH = "geolocator_linux/example"
-FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 inherit flutter-app

@@ -1,5 +1,16 @@
 # Changelog
 
+Feb 1, 2024
+1. Defaults FLUTTER_APPLICATION_INSTALL_PREFIX to "${datadir}/flutter". Remove reference from all app recipes.
+2. Allow overriding FLUTTER_APPLICATION_INSTALL_PREFIX.  In support of user home path install.
+
+Jan 31, 2024
+1. Remove bbappend for ghost recipe.  Not released yet.
+2. Flutter 3.16.9
+
+Jan 24, 2024
+1. Add http(s)_proxy export to depot_tools
+
 Jan 22, 2024
 1. Fix debug builds for apps
 

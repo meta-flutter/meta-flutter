@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "cloud_firestore_example"
 FLUTTER_APPLICATION_PATH = "packages/cloud_firestore/cloud_firestore/example"
-FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 inherit flutter-app

@@ -23,6 +23,5 @@ S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "go_router_examples"
 FLUTTER_APPLICATION_PATH = "packages/go_router/example"
-FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 inherit flutter-app

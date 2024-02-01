@@ -18,7 +18,6 @@ SRC_URI = "git://github.com/flutter/gallery.git;lfs=0;branch=main;protocol=https
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "gallery"
-FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 inherit flutter-web
 

@@ -22,7 +22,6 @@ APP_AOT_EXTRA = "-DFLUTTER_APP_FLAVOR=prod"
 APP_AOT_ENTRY_FILE = "main_prod.dart"
 
 PUBSPEC_APPNAME = "super_dash"
-FLUTTER_APPLICATION_INSTALL_PREFIX = "/flutter"
 
 inherit flutter-app
 
