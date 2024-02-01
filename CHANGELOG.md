@@ -3,6 +3,7 @@
 Feb 1, 2024
 1. Defaults FLUTTER_APPLICATION_INSTALL_PREFIX to "${datadir}/flutter". Remove reference from all app recipes.
 2. Allow overriding FLUTTER_APPLICATION_INSTALL_PREFIX.  In support of user home path install.
+3. Introduce FLUTTER_ENGINE_INSTALL_PREFIX.  This allows overriding the flutter engine install prefix.
 
 Jan 31, 2024
 1. Remove bbappend for ghost recipe.  Not released yet.
