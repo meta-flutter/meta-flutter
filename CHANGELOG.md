@@ -1,7 +1,7 @@
 # Changelog
 
 Feb 3, 2024
-1. 1st manual autoroll.  Adds 116 flutter apps
+1. 1st manual autoroll using workspace automation `roll_meta_flutter.py`.  Total 108 flutter apps
 2. remove filtering of dart_plugin_registrant.dart.  Fixes build break
 
 Feb 1, 2024
