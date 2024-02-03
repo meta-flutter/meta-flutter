@@ -333,7 +333,6 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
             flutter_source_defines = ''
             dart_plugin_registrant_file = f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/dart_plugin_registrant.dart'
             if os.path.isfile(dart_plugin_registrant_file):
-                filter_plugin_registrant(dart_plugin_registrant_file)
                 flutter_source_file = f'--source file://{dart_plugin_registrant_file}'
                 flutter_source_package = '--source package:flutter/src/dart_plugin_registrant.dart'
                 flutter_source_defines = f'-Dflutter.dart_plugin_registrant=file://{dart_plugin_registrant_file}'
