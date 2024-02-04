@@ -301,5 +301,24 @@
             "localization",
             "plugins"
         ]
+    },
+    {
+        "uri": "https://github.com/fluttercommunity/plus_plugins.git",
+        "branch": "main",
+        "license_file": "LICENSE",
+        "license_type": "BSD-3-Clause",
+        "author": "Flutter Community",
+        "exclude": [
+            "",
+            "packages/android_alarm_manager_plus",
+            "packages/android_intent_plus",
+            "packages/battery_plus/battery_plus",
+            "packages/connectivity_plus/connectivity_plus",
+            "packages/device_info_plus/device_info_plus",
+            "packages/network_info_plus/network_info_plus",
+            "packages/package_info_plus/package_info_plus",
+            "packages/sensors_plus/sensors_plus",
+            "packages/share_plus/share_plus"
+        ]
     }
 ]
