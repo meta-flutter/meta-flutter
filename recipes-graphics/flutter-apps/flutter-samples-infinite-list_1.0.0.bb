@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/flutter/samples.git;lfs=1;branch=main;protocol=https
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "infinitelist"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-infinite-list"
 FLUTTER_APPLICATION_PATH = "infinite_list"
 
 inherit flutter-app

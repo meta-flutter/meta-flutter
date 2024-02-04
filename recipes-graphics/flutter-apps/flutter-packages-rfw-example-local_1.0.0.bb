@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=http
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "local"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-rfw-example-local"
 FLUTTER_APPLICATION_PATH = "packages/rfw/example/local"
 
 inherit flutter-app

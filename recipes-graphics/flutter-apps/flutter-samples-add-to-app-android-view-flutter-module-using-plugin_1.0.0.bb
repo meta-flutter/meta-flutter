@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/flutter/samples.git;lfs=1;branch=main;protocol=https
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "flutter_module_using_plugin"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-add-to-app-android-view-flutter-module-using-plugin"
 FLUTTER_APPLICATION_PATH = "add_to_app/android_view/flutter_module_using_plugin"
 
 inherit flutter-app

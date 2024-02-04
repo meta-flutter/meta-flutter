@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=http
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "video_player_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-video-player-video-player-example"
 FLUTTER_APPLICATION_PATH = "packages/video_player/video_player/example"
 
 inherit flutter-app

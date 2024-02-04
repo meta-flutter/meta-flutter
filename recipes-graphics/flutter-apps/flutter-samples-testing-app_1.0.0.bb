@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/flutter/samples.git;lfs=1;branch=main;protocol=https
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "testing_app"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-testing-app"
 FLUTTER_APPLICATION_PATH = "testing_app"
 
 inherit flutter-app

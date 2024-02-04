@@ -17,6 +17,7 @@ SRC_URI = "git://github.com/flutter/games.git;lfs=1;branch=main;protocol=https;d
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "basic"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-games-templates-basic"
 FLUTTER_APPLICATION_PATH = "templates/basic"
 
 inherit flutter-app

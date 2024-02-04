@@ -3,6 +3,8 @@
 Feb 3, 2024
 1. 1st manual autoroll using workspace automation `roll_meta_flutter.py`.  Total 108 flutter apps
 2. remove filtering of dart_plugin_registrant.dart.  Fixes build break
+3. FLUTTER_APPLICATION_INSTALL_SUFFIX.  No change in install path behavior.  Allows overriding install path suffix.
+
 
 Feb 1, 2024
 1. Defaults FLUTTER_APPLICATION_INSTALL_PREFIX to "${datadir}/flutter". Remove reference from all app recipes.

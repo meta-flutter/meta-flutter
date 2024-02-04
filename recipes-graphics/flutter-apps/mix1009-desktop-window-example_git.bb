@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/mix1009/desktop_window.git;lfs=0;branch=master;proto
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "desktop_window_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "mix1009-desktop-window-example"
 FLUTTER_APPLICATION_PATH = "example"
 
 inherit flutter-app
