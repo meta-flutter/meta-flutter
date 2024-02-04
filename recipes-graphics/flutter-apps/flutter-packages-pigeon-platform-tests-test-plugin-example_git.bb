@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=http
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "test_plugin_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-pigeon-platform-tests-test-plugin-example"
 FLUTTER_APPLICATION_PATH = "packages/pigeon/platform_tests/test_plugin/example"
 
 inherit flutter-app

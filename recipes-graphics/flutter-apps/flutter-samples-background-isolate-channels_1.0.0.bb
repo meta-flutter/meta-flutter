@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/flutter/samples.git;lfs=1;branch=main;protocol=https
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "background_isolate_channels"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-background-isolate-channels"
 FLUTTER_APPLICATION_PATH = "background_isolate_channels"
 
 inherit flutter-app

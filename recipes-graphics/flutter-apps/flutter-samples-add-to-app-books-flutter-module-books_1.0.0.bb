@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/flutter/samples.git;lfs=1;branch=main;protocol=https
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "flutter_module_books"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-add-to-app-books-flutter-module-books"
 FLUTTER_APPLICATION_PATH = "add_to_app/books/flutter_module_books"
 
 inherit flutter-app

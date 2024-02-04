@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=http
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "url_launcher_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-url-launcher-url-launcher-linux-example"
 FLUTTER_APPLICATION_PATH = "packages/url_launcher/url_launcher_linux/example"
 
 inherit flutter-app

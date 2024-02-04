@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/flutter/samples.git;lfs=1;branch=main;protocol=https
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "simplistic_editor"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-simplistic-editor"
 FLUTTER_APPLICATION_PATH = "simplistic_editor"
 
 inherit flutter-app

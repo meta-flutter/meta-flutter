@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/flutter/samples.git;lfs=1;branch=main;protocol=https
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "splash_screen_sample"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-android-splash-screen"
 FLUTTER_APPLICATION_PATH = "android_splash_screen"
 
 inherit flutter-app

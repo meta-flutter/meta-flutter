@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/meta-flutter/flutter_animated_background.git;lfs=0;b
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "animated_background_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "meta-flutter-flutter-animated-background-example"
 FLUTTER_APPLICATION_PATH = "example"
 
 inherit flutter-app

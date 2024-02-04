@@ -17,6 +17,7 @@ SRC_URI = "git://github.com/bdero/flutter-scene-example.git;lfs=0;branch=master;
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "scene_demo"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "bdero-flutter-scene-example-scene-demo"
 FLUTTER_APPLICATION_PATH = ""
 
 inherit flutter-app

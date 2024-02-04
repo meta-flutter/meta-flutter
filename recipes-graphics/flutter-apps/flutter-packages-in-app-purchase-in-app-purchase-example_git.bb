@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=http
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "in_app_purchase_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-in-app-purchase-in-app-purchase-example"
 FLUTTER_APPLICATION_PATH = "packages/in_app_purchase/in_app_purchase/example"
 
 inherit flutter-app

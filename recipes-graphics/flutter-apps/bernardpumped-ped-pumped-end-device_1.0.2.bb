@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/bernardpumped/ped.git;lfs=0;branch=next_main;protoco
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "pumped_end_device"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "bernardpumped-ped-pumped-end-device"
 FLUTTER_APPLICATION_PATH = ""
 
 inherit flutter-app

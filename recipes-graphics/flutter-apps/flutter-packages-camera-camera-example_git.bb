@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=http
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "camera_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-camera-camera-example"
 FLUTTER_APPLICATION_PATH = "packages/camera/camera/example"
 
 inherit flutter-app
