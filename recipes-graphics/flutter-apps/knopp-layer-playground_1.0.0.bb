@@ -17,6 +17,7 @@ SRC_URI = "git://github.com/knopp/layer_playground.git;lfs=0;branch=main;protoco
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "layer_playground"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "knopp-layer-playground"
 FLUTTER_APPLICATION_PATH = ""
 
 inherit flutter-app

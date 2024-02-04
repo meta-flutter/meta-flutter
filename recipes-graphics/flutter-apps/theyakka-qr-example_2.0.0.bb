@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/theyakka/qr.flutter.git;lfs=0;branch=master;protocol
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "theyakka-qr-example"
 FLUTTER_APPLICATION_PATH = "example"
 
 inherit flutter-app

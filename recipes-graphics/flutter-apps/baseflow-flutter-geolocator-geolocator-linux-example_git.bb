@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/Baseflow/flutter-geolocator.git;lfs=1;branch=main;pr
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "geolocator_linux_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "baseflow-flutter-geolocator-geolocator-linux-example"
 FLUTTER_APPLICATION_PATH = "geolocator_linux/example"
 
 inherit flutter-app

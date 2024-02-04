@@ -22,6 +22,7 @@ PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \
     melos bootstrap"
 
 PUBSPEC_APPNAME = "firebase_app_check_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "firebase-flutterfire-packages-firebase-app-check-firebase-app-check-example"
 FLUTTER_APPLICATION_PATH = "packages/firebase_app_check/firebase_app_check/example"
 
 inherit flutter-app

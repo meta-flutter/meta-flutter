@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=http
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "go_router_examples"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-go-router-example"
 FLUTTER_APPLICATION_PATH = "packages/go_router/example"
 
 inherit flutter-app

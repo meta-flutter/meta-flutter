@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/meta-flutter/tests;lfs=0;branch=main;protocol=https;
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "test_egl"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "meta-flutter-tests-textures-test-egl"
 FLUTTER_APPLICATION_PATH = "textures/test_egl"
 
 inherit flutter-app

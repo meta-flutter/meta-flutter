@@ -22,6 +22,7 @@ PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \
     melos bootstrap"
 
 PUBSPEC_APPNAME = "firebase_in_app_messaging_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "firebase-flutterfire-packages-firebase-in-app-messaging-firebase-in-app-messaging-example"
 FLUTTER_APPLICATION_PATH = "packages/firebase_in_app_messaging/firebase_in_app_messaging/example"
 
 inherit flutter-app

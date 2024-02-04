@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/flutter/samples.git;lfs=1;branch=main;protocol=https
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "federated_plugin_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-experimental-federated-plugin-federated-plugin-example"
 FLUTTER_APPLICATION_PATH = "experimental/federated_plugin/federated_plugin/example"
 
 inherit flutter-app

@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=http
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "file_selector_linux_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-file-selector-file-selector-linux-example"
 FLUTTER_APPLICATION_PATH = "packages/file_selector/file_selector_linux/example"
 
 inherit flutter-app

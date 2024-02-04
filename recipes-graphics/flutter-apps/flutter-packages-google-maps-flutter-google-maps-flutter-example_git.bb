@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=http
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "google_maps_flutter_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-google-maps-flutter-google-maps-flutter-example"
 FLUTTER_APPLICATION_PATH = "packages/google_maps_flutter/google_maps_flutter/example"
 
 inherit flutter-app

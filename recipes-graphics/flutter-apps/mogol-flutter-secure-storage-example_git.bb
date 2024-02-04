@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/mogol/flutter_secure_storage.git;lfs=0;branch=develo
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "flutter_secure_storage_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "mogol-flutter-secure-storage-example"
 FLUTTER_APPLICATION_PATH = "flutter_secure_storage/example"
 
 inherit flutter-app

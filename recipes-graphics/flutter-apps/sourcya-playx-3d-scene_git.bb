@@ -20,6 +20,7 @@ SRC_URI = "git://github.com/playx-flutter/playx-3d-scene.git;lfs=0;branch=main;p
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "my_fox_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "sourcya-playx-3d-scene"
 FLUTTER_APPLICATION_PATH = "example"
 
 inherit flutter-app

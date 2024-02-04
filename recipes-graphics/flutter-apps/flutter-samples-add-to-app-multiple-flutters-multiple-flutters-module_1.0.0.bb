@@ -18,6 +18,7 @@ SRC_URI = "git://github.com/flutter/samples.git;lfs=1;branch=main;protocol=https
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "multiple_flutters_module"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-add-to-app-multiple-flutters-multiple-flutters-module"
 FLUTTER_APPLICATION_PATH = "add_to_app/multiple_flutters/multiple_flutters_module"
 
 inherit flutter-app

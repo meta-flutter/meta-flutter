@@ -22,6 +22,7 @@ PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \
     melos bootstrap"
 
 PUBSPEC_APPNAME = "firebase_ml_model_downloader_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "firebase-flutterfire-packages-firebase-ml-model-downloader-firebase-ml-model-downloader-example"
 FLUTTER_APPLICATION_PATH = "packages/firebase_ml_model_downloader/firebase_ml_model_downloader/example"
 
 inherit flutter-app
