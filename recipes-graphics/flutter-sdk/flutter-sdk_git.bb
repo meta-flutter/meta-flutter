@@ -70,10 +70,10 @@ def run_command(d, cmd, cwd, env):
 
 do_unpack[network] = "1"
 do_unpack[depends] += " \
-    ca-certificates-native:do_prepare_recipe_sysroot \
-    curl-native:do_prepare_recipe_sysroot \
-    ninja-native:do_prepare_recipe_sysroot \
-    unzip-native:do_prepare_recipe_sysroot \
+    ca-certificates-native:do_populate_sysroot \
+    curl-native:do_populate_sysroot \
+    ninja-native:do_populate_sysroot \
+    unzip-native:do_populate_sysroot \
 "
 python do_unpack:append() {
     import shutil
