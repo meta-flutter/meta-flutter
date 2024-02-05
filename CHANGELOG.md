@@ -1,5 +1,11 @@
 # Changelog
 
+Feb 5, 2024
+1. Unable to find `curl` fix.
+   `occasional` flutter-sdk-native build failures on clean source tree.
+   Initial issue may be related to host machine HW thread count.  Not reproducible
+   on 32+ HW threads.
+
 Feb 4, 2024
 1. Improved recipe names
 2. Add AWS amplify-flutter apps
