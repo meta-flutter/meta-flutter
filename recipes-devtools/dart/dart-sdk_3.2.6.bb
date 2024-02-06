@@ -13,27 +13,23 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=29b4ad63b1f1509efea6629404336393"
 
 
 DEPENDS += "\
-    compiler-rt \
-    libcxx \
+    curl-native \
+    depot-tools-native \
+    ninja-native \
     "
 
-SRCREV = "8d5b878d0a8a06326227cde88221eea7e15ee0c4"
-SRC_URI = "gn://github.com/dart-lang/sdk.git;name=sdk \
-           file://0001-External-Toolchain.patch"
+SRCREV = "3b128c5454834a1aaef37d9bb12595e7c217ab61"
+SRC_URI = "gn://github.com/dart-lang/sdk.git;gn_name=sdk"
 
 S = "${WORKDIR}/sdk"
 
-inherit gn-fetcher python3native pkgconfig
+inherit gn-fetcher pkgconfig
 
 require conf/include/gn-utils.inc
 
 # For gn.bbclass
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 
-# Toolchain setup
-RUNTIME = "llvm"
-TOOLCHAIN = "clang"
-PREFERRED_PROVIDER_libgcc = "compiler-rt"
 
 PACKAGECONFIG ??= "platform-sdk verify-sdk-hash mallinfo2"
 
@@ -58,10 +54,9 @@ GN_ARGS:append:x86-64 = " --arch x64"
 GN_ARGS:append:riscv32 = " --arch riscv32"
 GN_ARGS:append:riscv64 = " --arch riscv64"
 
-
 OUT_DIR = "${S}/out"
 
-do_compile() {
+do_configure() {
     cd ${S}
 
     # we only build one mode type
@@ -78,33 +73,38 @@ do_compile() {
 
     bbnote "GN_ARGS: ${GN_ARGS}"
     ${PYTHON} ./tools/gn.py ${GN_ARGS}
+}
+do_configure[network] = "1"
+do_configure[depends] += " \
+    depot-tools-native:do_populate_sysroot \
+    "
+
+do_compile() {
+    cd ${S}
+    export DART_USE_SYSROOT="${TARGET_SYSROOT}"
+    export DART_USE_TOOLCHAIN="${STAGING_DIR_NATIVE}/usr/bin"
 
     BUILD_DIR="${OUT_DIR}/$(ls ${OUT_DIR})"
 
     bbnote "$(cat "${BUILD_DIR}/args.gn")"
 
-    autoninja -C "${BUILD_DIR}" create_sdk
+    ninja -C "${BUILD_DIR}" create_sdk $PARALLEL_MAKE
 }
-do_compile[depends] += "depot-tools-native:do_populate_sysroot"
+do_compile[depends] += " \
+    depot-tools-native:do_populate_sysroot \
+    "
 do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
 do_install() {
 
     BUILD_DIR="${OUT_DIR}/$(ls ${OUT_DIR})"
 
-    install -d ${D}${datadir}/${BPN}
-    cp -R ${BUILD_DIR}/${BPN}/* ${D}${datadir}/${BPN}/
+    install -d ${D}${datadir}/dart-sdk
 
-    # enable auto dependency detection and executable stripping
-    install -m 0775 ${BUILD_DIR}/dart \
-        ${D}${datadir}/${BPN}/bin/dart
-
-    install -m 0775 ${BUILD_DIR}/gen_snapshot_product \
-        ${D}${datadir}/${BPN}/bin/utils/gen_snapshot
-
-    install -m 0775 ${BUILD_DIR}/dart_precompiled_runtime_product \
-        ${D}${datadir}/${BPN}/bin/dartaotruntime
+    cp -R ${BUILD_DIR}/dart-sdk/* ${D}${datadir}/dart-sdk/
 }
+
+INSANE_SKIP:${PN} = "already-stripped ldflags"
 
 FILES:${PN} += "${datadir}"
 

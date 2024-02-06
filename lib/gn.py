@@ -5,7 +5,7 @@ This fetcher is created for gclient.
 The main target is flutter-engine, so for other gclient projects, this fetcher might not work.
 
 Copyright (c) 2020-2022 Woven Alpha, Inc
-Copyright (c) 2023 Joel Winarske. All rights reserved.
+Copyright (c) 2023-2024 Joel Winarske. All rights reserved.
 """
 
 import os
@@ -32,38 +32,30 @@ class GN(FetchMethod):
         return False
 
     def urldata_init(self, ud, d):
-        # syntax: gn://<URL>;name=<NAME>;destdir=<D>;proto=<PROTO>
-        name = ud.parm.get("name", "src")
-        # URI "name=" is special, can't have path slashes, otherwise we
-        # risk parse errors with things like
-        # SRC_URI[src/flutter.sha256sum].
-        # So always prepend the checkout path with "src/" when not using
-        # the default.
-        if not name.startswith("src"):
-            name = os.path.join("src/", name)
+        # syntax: gn://<URL>;gn_name=<NAME>;destdir=<D>;proto=<PROTO>
+        name = ud.parm.get("gn_name", "src")
 
         ud.destdir = "" if "destdir" not in ud.parm else ud.parm["destdir"]
         proto = "https" if "proto" not in ud.parm else ud.parm["proto"]
 
         ud.basename = "*"
 
+        uri = ud.url.split(';')[0].replace('gn://', f'{proto}://')
+
+        deps_file = d.getVar("GN_DEPS_FILE")
         custom_vars = d.getVar("GN_CUSTOM_VARS")
         custom_deps = d.getVar("GN_CUSTOM_DEPS")
-        sync_opt = d.getVar("EXTRA_GN_SYNC")
 
-        depot_tools_path = d.getVar("DEPOT_TOOLS")
-        python2_path = d.getVar("PYTHON2_PATH")
-
-        uri = ud.url.split(";")[0].replace("gn://", "%s://" % (proto))
-        gclient_config = '''solutions = [
-    {
-        "managed": False,
-        "name": "%s",
-        "url": "%s",
-        "custom_vars": %s,
-        "custom_deps": %s
-    }
-]''' % (name, uri, custom_vars, custom_deps)
+        gclient_config = f'''solutions = [
+  {{
+    "name": "{name}",
+    "url": "{uri}",
+    "deps_file": "{deps_file}",
+    "managed": False,
+    "custom_deps": {custom_deps},
+    "custom_vars": {custom_vars},
+  }},
+]'''
 
         srcrev = d.getVar("SRCREV")
         dl_dir = d.getVar("DL_DIR")
@@ -73,27 +65,31 @@ class GN(FetchMethod):
         ud.localfile = ud.syncdir + "-" + srcrev + ".tar.bz2"
         ud.localpath = os.path.join(gndir, ud.localfile)
 
-        ud.basecmd = "export PATH=\"%s:%s:${PATH}\"; export DEPOT_TOOLS_UPDATE=0; export GCLIENT_PY3=0; \
-            export CURL_CA_BUNDLE=%s; \
-            gclient.py config --spec '%s' && \
-            gclient.py sync %s --revision %s %s -v" % (
-                depot_tools_path, os.path.join(depot_tools_path, python2_path),
-                d.getVar('CURL_CA_BUNDLE'),
-                gclient_config,
-                sync_opt, srcrev, d.getVar('PARALLEL_MAKE'))
+        sync_opt = d.getVar("EXTRA_GN_SYNC")
+        curl_ca_bundle = d.getVar('CURL_CA_BUNDLE')
+        parallel_make = d.getVar('PARALLEL_MAKE')
+
+        depot_tools_path = d.getVar("DEPOT_TOOLS")
+        python3_folder = os.path.join(depot_tools_path, d.getVar("PYTHON3_PATH"))
+
+        ud.basecmd = f'export DEPOT_TOOLS_UPDATE=0; \
+            export CURL_CA_BUNDLE={curl_ca_bundle}; \
+            export PATH="{depot_tools_path}:{python3_folder}:$PATH"; \
+            gclient config --spec \'{gclient_config}\' && \
+            gclient sync --force {sync_opt} --revision {srcrev} {parallel_make} -v'
 
         bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
 
-        ud.packcmd = "tar -I \"pbzip2 -p%s\" -cf %s ./" % (bb_number_threads, ud.localpath)
+        ud.packcmd = f'tar -I "pbzip2 -p{bb_number_threads}" -cf {ud.localpath} ./'
 
     def _rungnclient(self, ud, d, quiet):
         bb.utils.mkdirhier(ud.syncpath)
         os.chdir(ud.syncpath)
 
-        logger.debug2("Fetching %s using command '%s'" % (ud.url, ud.basecmd))
+        logger.debug2(f'Fetching {ud.url} using command "{ud.basecmd}"')
         bb.fetch2.check_network_access(d, ud.basecmd, ud.url)
         runfetchcmd(ud.basecmd, d, quiet, workdir=None)
-        logger.debug2("Packing %s using command '%s'" % (ud.url, ud.packcmd))
+        logger.debug2(f'Packing {ud.url} using command "{ud.packcmd}"')
         runfetchcmd(ud.packcmd, d, quiet, workdir=None)
 
     def localpath(self, ud, d):
@@ -119,11 +115,11 @@ class GN(FetchMethod):
         # Sanity check since wget can pretend it succeed when it didn't
         # Also, this used to happen if sourceforge sent us to the mirror page
         if not os.path.exists(ud.localpath):
-            raise FetchError("The fetch command returned success for url %s but %s doesn't exist?!" % (uri, ud.localpath), uri)
+            raise FetchError(f'The fetch command returned success for url {uri} but {ud.localpath} does note exist?!', uri)
 
         if os.path.getsize(ud.localpath) == 0:
             os.remove(ud.localpath)
-            raise FetchError("The fetch of %s resulted in a zero size file?! Deleting and failing since this isn't right." % (uri), uri)
+            raise FetchError(f'The fetch of {uri} resulted in a zero size file?! Deleting and failing since this is not right.', uri)
 
         return True
 
@@ -131,18 +127,18 @@ class GN(FetchMethod):
         file = ud.localpath
 
         bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
-        cmd = 'pbzip2 -dc -p%s %s | tar x --no-same-owner -f -' % (bb_number_threads, file)
+        cmd = f'pbzip2 -dc -p{bb_number_threads} {file} | tar x --no-same-owner -f -'
         unpackdir = os.path.join(workdir, ud.destdir)
         bb.utils.mkdirhier(unpackdir)
         path = d.getVar('PATH')
         if path:
-            cmd = "PATH=\"%s\" %s" % (path, cmd)
-        bb.note("Unpacking %s to %s" % (file, unpackdir))
+            cmd = f'PATH="{path}" {cmd}'
+        bb.note("Unpacking {file} to {unpackdir}")
         try:
             subprocess.check_output(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir, 
                                     stderr=subprocess.STDOUT, universal_newlines=True)
         except subprocess.CalledProcessError as e:
-            raise UnpackError("Unpack command %s failed with return value %s\n%s" % (cmd, e.returncode, e.stdout), ud.url)
+            raise UnpackErrorf(f'Unpack command {cmd} failed with return value {e.returncode}\n{e.stdout}', ud.url)
 
 
     def clean(self, ud, d):
