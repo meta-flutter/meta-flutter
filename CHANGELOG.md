@@ -1,8 +1,21 @@
 # Changelog
 
+Feb 6, 2024
+1. dart-sdk 3.2.6
+2. dart-sdk gcc recipe
+3. Update gn fetcher "name".  Pass `gn_name` parameter instead of `name`.
+   Prevents any conflicts with `name` and it's use.
+4. Split flutter-engine, and dart-sdk between do_configure and do_compile.   
+5. Correct Feb 4 CHANGELOG.md entry
+
+Feb 5, 2024
+1. Unable to find `curl` fix.
+   `occasional` flutter-sdk-native build failures on clean source tree.
+   Initial issue may be related to host machine HW thread count.  Not reproducible
+   on 32+ HW threads.
+
 Feb 4, 2024
 1. Improved recipe names
-2. Add AWS amplify-flutter apps
 
 Feb 3, 2024
 1. 1st manual autoroll using workspace automation `roll_meta_flutter.py`.  Total 108 flutter apps

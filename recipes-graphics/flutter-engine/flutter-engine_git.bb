@@ -30,13 +30,13 @@ FLUTTER_ENGINE_PATCHES ?= "\
     "
 
 SRC_URI = "\
-    gn://github.com/flutter/engine.git;name=flutter \
+    gn://github.com/flutter/engine.git;gn_name=src/flutter \
     ${FLUTTER_ENGINE_PATCHES} \
     "
 
 S = "${WORKDIR}/src"
 
-inherit gn-fetcher python3native features_check pkgconfig
+inherit gn-fetcher features_check pkgconfig
 
 require conf/include/gn-utils.inc
 require conf/include/flutter-version.inc
@@ -130,8 +130,7 @@ GN_ARGS_LESS_RUNTIME_MODES="${@get_gn_args_less_runtime(d)}"
 
 FLUTTER_ENGINE_INSTALL_PREFIX ??= "${datadir}/flutter/${FLUTTER_SDK_VERSION}"
 
-do_compile() {
-
+do_configure() {
     FLUTTER_RUNTIME_MODES="${@bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d)}"
     bbnote "FLUTTER_RUNTIME_MODES=${FLUTTER_RUNTIME_MODES}"
 
@@ -149,11 +148,20 @@ do_compile() {
         echo ${GN_TUNE_ARGS} >> "${ARGS_FILE}"
 
         bbnote `cat ${ARGS_FILE}`
-
-        autoninja -C ${BUILD_DIR}
     done
 }
-do_compile[depends] += "depot-tools-native:do_populate_sysroot"
+do_configure[depends] += "depot-tools-native:do_populate_sysroot"
+
+do_compile() {
+
+    FLUTTER_RUNTIME_MODES="${@bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d)}"
+    bbnote "FLUTTER_RUNTIME_MODES=${FLUTTER_RUNTIME_MODES}"
+
+    for MODE in $FLUTTER_RUNTIME_MODES; do
+        BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${MODE}/g")"    
+        ninja -C "${BUILD_DIR}" $PARALLEL_MAKE
+    done
+}
 do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
 do_install() {
