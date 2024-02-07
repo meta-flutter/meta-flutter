@@ -2,6 +2,7 @@
 
 Feb 7, 2024
 1. PDFium support x86,x64,arm,arm64
+2. Move flutter package file selector example to dynamic-layer due to RDEPENDS
 
 Feb 6, 2024
 1. dart-sdk 3.2.6

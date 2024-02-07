@@ -22,3 +22,5 @@ FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-file-selector-file-select
 FLUTTER_APPLICATION_PATH = "packages/file_selector/file_selector_linux/example"
 
 inherit flutter-app
+
+RDEPENDS:${PN} += "zenity"
