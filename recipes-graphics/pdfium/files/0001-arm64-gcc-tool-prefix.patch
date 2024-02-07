@@ -1,0 +1,26 @@
+From fca147a9f0c5c6f5c87ea6ea880e0ba5c5793c08 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Tue, 6 Feb 2024 16:11:58 -0800
+Subject: [PATCH] arm64 gcc tool prefix
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ build/toolchain/linux/BUILD.gn | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/build/toolchain/linux/BUILD.gn b/build/toolchain/linux/BUILD.gn
+index 2eefac5..3672fb5 100644
+--- a/build/toolchain/linux/BUILD.gn
++++ b/build/toolchain/linux/BUILD.gn
+@@ -31,7 +31,7 @@ clang_toolchain("clang_arm64") {
+ }
+ 
+ gcc_toolchain("arm64") {
+-  toolprefix = "aarch64-linux-gnu-"
++  toolprefix = "aarch64-agl-linux-"
+ 
+   cc = "${toolprefix}gcc"
+   cxx = "${toolprefix}g++"
+-- 
+2.43.0
+

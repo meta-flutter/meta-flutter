@@ -7,6 +7,7 @@ Feb 6, 2024
    Prevents any conflicts with `name` and it's use.
 4. Split flutter-engine, and dart-sdk between do_configure and do_compile.   
 5. Correct Feb 4 CHANGELOG.md entry
+6. pdfium 123.0.6281.0
 
 Feb 5, 2024
 1. Unable to find `curl` fix.
