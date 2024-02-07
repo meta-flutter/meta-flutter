@@ -1,0 +1,34 @@
+From 6131a7eae76ae28453c576fb9d067337f01a518a Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Tue, 6 Feb 2024 16:22:49 -0800
+Subject: [PATCH] linker flags
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ build/config/compiler/BUILD.gn | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
+index ae13db7..cd5ff27 100644
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -512,12 +512,11 @@ config("compiler") {
+ 
+     ldflags += [
+       "-Wl,-z,noexecstack",
+-      "-Wl,-z,relro",
++      "-Wl,-O1",
++      "-Wl,--hash-style=gnu",
++      "-Wl,--as-needed",
++      "-Wl,-z,relro,-z,now"
+     ]
+-
+-    if (!is_component_build) {
+-      ldflags += [ "-Wl,-z,now" ]
+-    }
+   }
+ 
+   # Linux-specific compiler flags setup.
+-- 
+2.43.0
+
