@@ -1,5 +1,8 @@
 # Changelog
 
+Feb 7, 2024
+1. PDFium support x86,x64,arm,arm64
+
 Feb 6, 2024
 1. dart-sdk 3.2.6
 2. dart-sdk gcc recipe
