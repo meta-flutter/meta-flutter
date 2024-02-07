@@ -8,6 +8,8 @@ Feb 6, 2024
 4. Split flutter-engine, and dart-sdk between do_configure and do_compile.   
 5. Correct Feb 4 CHANGELOG.md entry
 6. pdfium 123.0.6281.0
+7. roll flutter-apps
+8. add flutter-app dart_pdf recipes
 
 Feb 5, 2024
 1. Unable to find `curl` fix.

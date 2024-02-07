@@ -217,5 +217,12 @@
         "license_file": "LICENSE",
         "license_type": "BSD-3-Clause",
         "author": "Flutter Community"
+    },
+    {
+        "uri": "https://github.com/DavBfr/dart_pdf.git",
+        "branch": "master",
+        "license_file": "LICENSE",
+        "license_type": "Apache-2.0",
+        "author": "David PHAM-VAN"
     }
 ]
