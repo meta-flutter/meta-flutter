@@ -1,7 +1,7 @@
 # Changelog
 
 Feb 7, 2024
-1. PDFium support x86,x64,arm,arm64
+1. PDFium support all archs, default skia backend on (faster)
 2. Move flutter package file selector example to dynamic-layer due to RDEPENDS
 
 Feb 6, 2024

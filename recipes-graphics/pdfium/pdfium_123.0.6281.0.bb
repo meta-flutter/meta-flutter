@@ -39,36 +39,28 @@ require conf/include/gn-utils.inc
 GN_CUSTOM_VARS ?= '{"checkout_configuration": "small"}'
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 
-COMPATIBLE_MACHINE = "(-)"
-COMPATIBLE_MACHINE:aarch64 = "(.*)"
-COMPATIBLE_MACHINE:armv7 = "(.*)"
-COMPATIBLE_MACHINE:armv7a = "(.*)"
-COMPATIBLE_MACHINE:armv7ve = "(.*)"
-COMPATIBLE_MACHINE:x86 = "(.*)"
-COMPATIBLE_MACHINE:x86-64 = "(.*)"
-
 EXTRA_CXXFLAGS = ""
 #TODO aarch64 musl "extra_cxxflags= \"-flax-vector-conversions\""
 
-PACKAGECONFIG ??= "release v8"
+PACKAGECONFIG ??= "release skia"
 
-PACKAGECONFIG[release] = "is_debug=false, is_debug=true"
-
+PACKAGECONFIG[release] = "is_debug = false, is_debug = true"
+PACKAGECONFIG[skia] = "pdf_use_skia = true, pdf_use_skia = false, fontconfig"
 PACKAGECONFIG[v8] = "pdf_enable_v8=true pdf_enable_xfa=true, pdf_enable_v8=false pdf_enable_xfa=false"
 
 GN_ARGS = '\
     ${PACKAGECONFIG_CONFARGS} \
     pdf_is_standalone = true \
-    pdf_use_partition_alloc = false \
     is_component_build = false \
-    use_allocator_shim = false \
     treat_warnings_as_errors = false \
+    \
     use_system_freetype = true \
     use_system_libopenjpeg2 = true \
     use_system_zlib = true \
     use_system_libpng = true \
     \
     is_clang = false \
+    clang_use_chrome_plugins = false \
     use_custom_libcxx = false \
     libcxx_is_shared = false \
     \
