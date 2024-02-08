@@ -43,5 +43,4 @@ RDEPENDS:${PN} += " \
     flutter-packages-flutter-adaptive-scaffold \
     flutter-packages-espresso \
     flutter-packages-in-app-purchase-in-app-purchase \
-    flutter-packages-file-selector-file-selector-linux \
 "

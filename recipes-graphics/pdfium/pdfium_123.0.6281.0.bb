@@ -15,6 +15,7 @@ DEPENDS += "\
     freetype \
     glib-2.0 \
     libpng \
+    openjpeg \
     zlib \
     "
 
@@ -24,8 +25,7 @@ SRC_URI = "\
     file://public_headers.patch \
     file://shared_library.patch \
     file://v8_init.patch \
-    file://0001-arm64-gcc-tool-prefix.patch \
-    file://0001-linker-flags.patch \
+    file://toolchain.gn.in \
     "
 
 S = "${WORKDIR}/pdfium"
@@ -39,34 +39,28 @@ require conf/include/gn-utils.inc
 GN_CUSTOM_VARS ?= '{"checkout_configuration": "small"}'
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 
-COMPATIBLE_MACHINE = "(-)"
-COMPATIBLE_MACHINE:aarch64 = "(.*)"
-COMPATIBLE_MACHINE:x86-64 = "(.*)"
+EXTRA_CXXFLAGS = ""
+#TODO aarch64 musl "extra_cxxflags= \"-flax-vector-conversions\""
 
+PACKAGECONFIG ??= "release skia"
 
-PACKAGECONFIG ??= "release v8"
-
-PACKAGECONFIG[release] = "is_debug=false, is_debug=true"
-
+PACKAGECONFIG[release] = "is_debug = false, is_debug = true"
+PACKAGECONFIG[skia] = "pdf_use_skia = true, pdf_use_skia = false, fontconfig"
 PACKAGECONFIG[v8] = "pdf_enable_v8=true pdf_enable_xfa=true, pdf_enable_v8=false pdf_enable_xfa=false"
-
-GN_TARGET_ARCH_NAME:aarch64 = "arm64"
-GN_TARGET_ARCH_NAME:arm = "arm"
-GN_TARGET_ARCH_NAME:x86-64 = "x64"
 
 GN_ARGS = '\
     ${PACKAGECONFIG_CONFARGS} \
     pdf_is_standalone = true \
-    pdf_use_partition_alloc = false \
     is_component_build = false \
-    use_allocator_shim = false \
     treat_warnings_as_errors = false \
+    \
     use_system_freetype = true \
-    use_system_libopenjpeg2 = false \
+    use_system_libopenjpeg2 = true \
     use_system_zlib = true \
     use_system_libpng = true \
     \
     is_clang = false \
+    clang_use_chrome_plugins = false \
     use_custom_libcxx = false \
     libcxx_is_shared = false \
     \
@@ -78,6 +72,17 @@ GN_ARGS = '\
 
 do_configure() {
     cd ${S}
+
+    #
+    # configure toolchain file
+    #
+    sed -i "s|@GN_TARGET_ARCH_NAME@|${GN_TARGET_ARCH_NAME}|g" ${WORKDIR}/toolchain.gn.in
+    sed -i "s|@TARGET_SYS@|${TARGET_SYS}|g"                   ${WORKDIR}/toolchain.gn.in
+    sed -i "s|@LDFLAGS@|${LDFLAGS}|g"                         ${WORKDIR}/toolchain.gn.in
+    sed -i "s|@EXTRA_CXXFLAGS@|${EXTRA_CXXFLAGS}|g"           ${WORKDIR}/toolchain.gn.in
+
+    cp ${WORKDIR}/toolchain.gn.in ${S}/build/toolchain/linux/BUILD.gn
+
     gn gen --args='${GN_ARGS}' "${B}"
 }
 
@@ -106,6 +111,3 @@ FILES:${PN}-dev += "\
     ${libdir}/pdfium/args.gn \
     ${includedir}/PRESUBMIT.py \
 "
-
-SOLIBS = ".so"
-FILES_SOLIBSDEV = ""
