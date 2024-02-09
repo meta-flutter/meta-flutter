@@ -30,6 +30,7 @@ PUB_CACHE_ARCHIVE = "flutter-pub-cache-${PN}-${SRCREV}-${FLUTTER_SDK_TAG}.tar.bz
 
 FLUTTER_SDK = "${STAGING_DIR_NATIVE}/usr/share/flutter/sdk"
 
+require conf/include/clang-utils.inc
 
 python () {
     d.setVar('FLUTTER_SDK_VERSION', get_flutter_sdk_version(d))
@@ -344,9 +345,10 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
 
             app_aot_extra = d.getVar("APP_AOT_EXTRA")
             app_aot_entry_file = d.getVar("APP_AOT_ENTRY_FILE")
+
             cmd = f'{flutter_sdk}/bin/cache/dart-sdk/bin/dart \
                 --disable-analytics \
-                --disable-dart-dev {flutter_sdk}/bin/cache/artifacts/engine/linux-x64/frontend_server.dart.snapshot \
+                --disable-dart-dev {flutter_sdk}/bin/cache/artifacts/engine/linux-{clang_build_arch(d)}/frontend_server.dart.snapshot \
                 --sdk-root {flutter_app_sdk_root} \
                 --target=flutter \
                 --no-print-incremental-dependencies \
@@ -397,7 +399,7 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
             # Create libapp.so
             #
             app_gen_snapshot_flags = d.getVar("APP_GEN_SNAPSHOT_FLAGS")
-            cmd = f'{source_dir}/engine_sdk/sdk/clang_x64/gen_snapshot \
+            cmd = f'{source_dir}/engine_sdk/sdk/clang_{clang_build_arch(d)}/gen_snapshot \
                 --deterministic \
                 --snapshot_kind=app-aot-elf \
                 --elf=libapp.so \
