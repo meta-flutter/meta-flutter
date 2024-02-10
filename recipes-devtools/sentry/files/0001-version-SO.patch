@@ -1,0 +1,32 @@
+From fb83605e554b78f199cccdba42cf58c873b5dd1c Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Sat, 10 Feb 2024 08:24:15 -0800
+Subject: [PATCH] version SO
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ CMakeLists.txt | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 8e460cd..c7ea3e6 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -221,6 +221,7 @@ endfunction()
+ # ===== sentry library =====
+ 
+ add_library(sentry ${SENTRY_LIBRARY_TYPE} "${PROJECT_SOURCE_DIR}/vendor/mpack.c")
++set_target_properties(sentry PROPERTIES SOVERSION "${PROJECT_VERSION}")
+ target_sources(sentry PRIVATE "${PROJECT_SOURCE_DIR}/include/sentry.h")
+ add_library(sentry::sentry ALIAS sentry)
+ add_subdirectory(src)
+@@ -604,4 +605,4 @@ endif()
+ if(SENTRY_BUILD_SHARED_LIBS)
+ 	target_link_libraries(sentry PRIVATE
+ 			"$<$<OR:$<PLATFORM_ID:Linux>,$<PLATFORM_ID:Android>>:-Wl,--build-id=sha1,--version-script=${PROJECT_SOURCE_DIR}/src/exports.map>")
+-endif()
+\ No newline at end of file
++endif()
+-- 
+2.43.0
+
