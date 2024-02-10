@@ -1,5 +1,8 @@
 # Changelog
 
+Feb 10, 2024
+1. roll sentry-native to 0.7.0.  Resolves QA step break
+
 Feb 9, 2024
 1. flutter-engine arm64 host build
 2. roll ivi-homescreen
