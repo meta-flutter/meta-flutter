@@ -2,6 +2,12 @@
 
 Feb 9, 2024
 1. flutter-engine arm64 host build
+2. roll ivi-homescreen
+  - DLT log fix
+  - CMP0148 policy
+3. pdf demo RDEPENDS
+4. default EGL backend for ivi-homescreen + flutter-auto.
+  Works around BSP issues incorrectly adding vulkan to DISTRO_FEATURES.
 
 Feb 7, 2024
 1. PDFium support all archs, default skia backend on (faster)
