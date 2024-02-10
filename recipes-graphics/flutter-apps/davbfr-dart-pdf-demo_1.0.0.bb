@@ -28,3 +28,5 @@ FLUTTER_APPLICATION_INSTALL_SUFFIX = "davbfr-dart-pdf-demo"
 FLUTTER_APPLICATION_PATH = "demo"
 
 inherit flutter-app
+
+RDEPENDS:${PN} = "pdfium"
