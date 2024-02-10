@@ -27,7 +27,7 @@ RDEPENDS:${PN} += "\
 
 REQUIRED_DISTRO_FEATURES = "wayland opengl"
 
-SRCREV ??= "a3113ea6b6df4ccdc4e1c057e41128cc586dc0c9"
+SRCREV ??= "ee49745485a88f23c32b8e3a62da40d4102c4623"
 SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=main"
 
 S = "${WORKDIR}/git"
@@ -35,9 +35,10 @@ S = "${WORKDIR}/git"
 inherit cmake features_check pkgconfig 
 
 PACKAGECONFIG ??= "\
+    client-ivi-shell \
     client-xdg \
     \
-    ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'backend-vulkan', 'backend-egl', d)} \
+    backend-egl \
     \
     egl-transparency \
     egl-3d \
@@ -59,15 +60,14 @@ PACKAGECONFIG ??= "\
     pc-logging \
     pc-google-sign-in \
     \
-    texture-test-egl \
     texture-navi-render-egl \
     \
     dart-vm-logging \
     "
 
-PACKAGECONFIG[backend-drm] = "-DBUILD_BACKEND_WAYLAND_DRM=ON -DBUILD_BACKEND_WAYLAND_DRM=OFF"
-PACKAGECONFIG[backend-egl] = "-DBUILD_BACKEND_WAYLAND_EGL=ON -DBUILD_BACKEND_WAYLAND_VULKAN=OFF"
-PACKAGECONFIG[backend-vulkan] = "-DBUILD_BACKEND_WAYLAND_VULKAN=ON -DBUILD_BACKEND_WAYLAND_EGL=OFF"
+PACKAGECONFIG[backend-drm] =    "-DBUILD_BACKEND_WAYLAND_DRM=ON, -DBUILD_BACKEND_WAYLAND_DRM=OFF"
+PACKAGECONFIG[backend-egl] =    "-DBUILD_BACKEND_WAYLAND_EGL=ON, -DBUILD_BACKEND_WAYLAND_EGL=OFF"
+PACKAGECONFIG[backend-vulkan] = "-DBUILD_BACKEND_WAYLAND_VULKAN=ON, -DBUILD_BACKEND_WAYLAND_VULKAN=OFF"
 
 PACKAGECONFIG[client-agl] = "-DENABLE_AGL_CLIENT=ON, -DENABLE_AGL_CLIENT=OFF"
 PACKAGECONFIG[client-ivi-shell] = "-DENABLE_IVI_SHELL_CLIENT=ON, -DENABLE_IVI_SHELL_CLIENT=OFF"

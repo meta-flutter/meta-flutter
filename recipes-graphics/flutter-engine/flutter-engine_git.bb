@@ -26,7 +26,6 @@ FLUTTER_ENGINE_PATCHES ?= "\
     file://0001-disable-pre-canned-sysroot.patch \
     file://0001-remove-x11-dependency.patch \
     file://0001-disable-x11.patch \
-    file://0001-IsCreationThreadCurrent-workaround.patch \
     "
 
 SRC_URI = "\
@@ -39,6 +38,7 @@ S = "${WORKDIR}/src"
 inherit gn-fetcher features_check pkgconfig
 
 require conf/include/gn-utils.inc
+require conf/include/clang-utils.inc
 require conf/include/flutter-version.inc
 
 
@@ -100,8 +100,9 @@ PACKAGECONFIG[impeller-opengles] = "--enable-impeller-opengles"
 PACKAGECONFIG[impeller-vulkan] = "--enable-impeller-vulkan"
 PACKAGECONFIG[impeller-3d] = "--enable-impeller-3d"
 
+CLANG_BUILD_ARCH = "${@clang_build_arch(d)}"
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
-CLANG_PATH = "${WORKDIR}/src/buildtools/linux-x64/clang"
+CLANG_PATH = "${WORKDIR}/src/buildtools/linux-${CLANG_BUILD_ARCH}/clang"
 
 GN_ARGS = '\
     ${PACKAGECONFIG_CONFARGS} \
@@ -133,6 +134,7 @@ FLUTTER_ENGINE_INSTALL_PREFIX ??= "${datadir}/flutter/${FLUTTER_SDK_VERSION}"
 do_configure() {
     FLUTTER_RUNTIME_MODES="${@bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d)}"
     bbnote "FLUTTER_RUNTIME_MODES=${FLUTTER_RUNTIME_MODES}"
+    bbnote "CLANG_BUILD_ARCH=${CLANG_BUILD_ARCH}"
 
     for MODE in $FLUTTER_RUNTIME_MODES; do
 
@@ -187,12 +189,12 @@ do_install() {
             ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/data/icudtl.dat
 
         # create SDK
-        install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/analyze_snapshot \
-            ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_x64/analyze_snapshot || true
-        install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/dart \
-            ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_x64/dart || true
-        install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/flatc \
-            ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_x64/flatc || true
+        install -D -m 0755 ${S}/${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped/analyze_snapshot \
+            ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/analyze_snapshot || true
+        install -D -m 0755 ${S}/${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped/dart \
+            ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/dart || true
+        install -D -m 0755 ${S}/${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped/flatc \
+            ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/flatc || true
 
         # include patched sdk for local-engine scenarios
         install -d ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/flutter_patched_sdk
@@ -201,14 +203,14 @@ do_install() {
 
         # include impeller tools
         if ${@bb.utils.contains('PACKAGECONFIG', 'impeller-vulkan', 'true', 'false', d)}; then
-            install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/blobcat \
-                ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_x64/blobcat
-            install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/impellerc \
-                ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_x64/impellerc
+            install -D -m 0755 ${S}/${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped/blobcat \
+                ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/blobcat
+            install -D -m 0755 ${S}/${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped/impellerc \
+                ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/impellerc
         fi
 
-        install -D -m 0755 ${S}/${BUILD_DIR}/clang_x64/exe.unstripped/gen_snapshot \
-            ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_x64/gen_snapshot
+        install -D -m 0755 ${S}/${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped/gen_snapshot \
+            ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/gen_snapshot
             
         cd ${S}/flutter
         echo "${SRCREV}"                   > ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/engine.version
