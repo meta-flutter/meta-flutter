@@ -18,7 +18,7 @@ DEPENDS += "\
     ninja-native \
     "
 
-SRCREV = "3b128c5454834a1aaef37d9bb12595e7c217ab61"
+SRCREV = "25b3f65bf6264df5bd7cd6aca25cb68d47b9348b"
 SRC_URI = "gn://github.com/dart-lang/sdk.git;gn_name=sdk"
 
 S = "${WORKDIR}/sdk"
