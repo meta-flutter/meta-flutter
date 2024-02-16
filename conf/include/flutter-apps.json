@@ -3,7 +3,7 @@
         "uri": "https://github.com/flutter/packages.git",
         "branch": "main",
         "license_file": "LICENSE",
-        "license_type": "BSD3-Clause",
+        "license_type": "BSD-3-Clause",
         "author": "Google",
         "exclude": [
             "packages/camera/camera_android_camerax",
@@ -79,7 +79,7 @@
         "uri": "https://github.com/flutter/samples.git",
         "branch": "main",
         "license_file": "LICENSE",
-        "license_type": "BSD3-Clause",
+        "license_type": "BSD-3-Clause",
         "author": "Google",
         "exclude": [
             "experimental/linting_tool",
