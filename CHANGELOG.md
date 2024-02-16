@@ -1,5 +1,10 @@
 # Changelog
 
+Feb 15, 2024
+1. flutter 3.19.0
+2. dart-sdk 3.3.0
+3. flutter-engine-sdk - copy everything from exe.unstripped
+
 Feb 10, 2024
 1. roll sentry-native to 0.7.0.  Resolves QA step break
 

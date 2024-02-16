@@ -188,29 +188,15 @@ do_install() {
         install -D -m 0644 ${S}/${BUILD_DIR}/icudtl.dat \
             ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/data/icudtl.dat
 
-        # create SDK
-        install -D -m 0755 ${S}/${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped/analyze_snapshot \
-            ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/analyze_snapshot || true
-        install -D -m 0755 ${S}/${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped/dart \
-            ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/dart || true
-        install -D -m 0755 ${S}/${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped/flatc \
-            ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/flatc || true
+        # create SDK - copy everything in exe.unstripped
+        install -d ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}
+        cp ${S}/${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped/* \
+            ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/
 
         # include patched sdk for local-engine scenarios
         install -d ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/flutter_patched_sdk
         install -m 0644 ${S}/${BUILD_DIR}/flutter_patched_sdk/*.dill* \
             ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/flutter_patched_sdk || true
-
-        # include impeller tools
-        if ${@bb.utils.contains('PACKAGECONFIG', 'impeller-vulkan', 'true', 'false', d)}; then
-            install -D -m 0755 ${S}/${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped/blobcat \
-                ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/blobcat
-            install -D -m 0755 ${S}/${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped/impellerc \
-                ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/impellerc
-        fi
-
-        install -D -m 0755 ${S}/${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped/gen_snapshot \
-            ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/gen_snapshot
             
         cd ${S}/flutter
         echo "${SRCREV}"                   > ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/engine.version
