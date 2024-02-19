@@ -16,13 +16,13 @@ RDEPENDS:${PN} += " \
     flutter-samples-experimental-federated-plugin-federated-plugin-example \
     flutter-samples-place-tracker \
     flutter-samples-background-isolate-channels \
-    flutter-samples-infinite-list \
+    flutter-samples-infinite-list-infinitelist \
     flutter-samples-platform-channels \
     flutter-samples-simplistic-editor \
     flutter-samples-provider-counter \
     flutter-samples-simplistic-calculator \
     flutter-samples-form-app \
-    flutter-samples-android-splash-screen \
+    flutter-samples-android-splash-screen-splash-screen-sample \
     flutter-samples-testing-app \
     flutter-samples-ios-app-clip \
     flutter-samples-add-to-app-books-flutter-module-books \
@@ -34,14 +34,14 @@ RDEPENDS:${PN} += " \
     flutter-samples-deeplink-store-example \
     flutter-samples-animations \
     flutter-samples-simple-shader \
-    flutter-samples-navigation-and-routing \
+    flutter-samples-navigation-and-routing-bookstore \
     flutter-samples-material-3-demo \
     flutter-samples-desktop-photo-search-fluent-ui \
     flutter-samples-desktop-photo-search-material \
     flutter-samples-platform-view-swift \
     flutter-samples-provider-shopper \
     flutter-samples-code-sharing-client \
-    flutter-samples-google-maps \
+    flutter-samples-google-maps-google-maps-in-flutter \
     flutter-samples-platform-design \
     flutter-samples-context-menus \
     flutter-samples-game-template \

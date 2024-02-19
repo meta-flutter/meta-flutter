@@ -10,5 +10,5 @@ inherit packagegroup
 
 RDEPENDS:${PN} += " \
     davbfr-dart-pdf-printing-example \
-    davbfr-dart-pdf-demo \
+    davbfr-dart-pdf-demo-printing-demo \
 "

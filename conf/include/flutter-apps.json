@@ -2,10 +2,12 @@
     {
         "uri": "https://github.com/flutter/packages.git",
         "branch": "main",
+        "ver": "0af905d779d52fc81ffc239c211e8c5956154f34",
         "license_file": "LICENSE",
-        "license_type": "BSD3-Clause",
+        "license_type": "BSD-3-Clause",
         "author": "Google",
-        "exclude": [
+        "folder": "first-party",
+        "ignore": [
             "packages/camera/camera_android_camerax",
             "packages/camera/camera_android_camerax/example",
             "packages/camera/camera_android/example",
@@ -63,6 +65,7 @@
             "packages/url_launcher/url_launcher_macos/example",
             "packages/url_launcher/url_launcher_web/example",
             "packages/url_launcher/url_launcher_windows/example",
+            "packages/video_player/video_player/example",
             "packages/video_player/video_player_web/example",
             "packages/video_player/video_player_android/example",
             "packages/video_player/video_player_avfoundation/example",
@@ -73,15 +76,24 @@
             "packages/google_maps_flutter/google_maps_flutter_android/example",
             "packages/google_maps_flutter/google_maps_flutter_web/example",
             "packages/image_picker/image_picker_for_web/example"
-        ]
+        ],
+        "rdepends": {
+            "packages/file_selector/file_selector_linux/example": [
+                "zenity"
+            ]
+        },
+        "output_folder": {
+            "packages/file_selector/file_selector_linux/example": "dynamic-layers/gnome-layer/recipes-graphics/flutter-apps"
+        }
     },
     {
         "uri": "https://github.com/flutter/samples.git",
         "branch": "main",
         "license_file": "LICENSE",
-        "license_type": "BSD3-Clause",
+        "license_type": "BSD-3-Clause",
         "author": "Google",
-        "exclude": [
+        "folder": "first-party",
+        "ignore": [
             "experimental/linting_tool",
             "experimental/web_dashboard",
             "web/_packages/web_startup_analyzer/example",
@@ -103,6 +115,7 @@
         "branch": "main",
         "license_file": "",
         "license_type": "CLOSED",
+        "folder": "first-party",
         "author": "Google"
     },
     {
@@ -110,20 +123,23 @@
         "branch": "main",
         "license_file": "LICENSE",
         "license_type": "MIT",
-        "author": "gskinner team"
+        "author": "gskinner team",
+        "folder": "third-party"
     },
     {
         "uri": "https://github.com/bdero/flutter-scene-example.git",
         "branch": "master",
         "license_type": "CLOSED",
-        "author": "Brandon DeRosier"
+        "author": "Brandon DeRosier",
+        "folder": "first-party"
     },
     {
         "uri": "https://github.com/flutter/gallery.git",
         "branch": "main",
         "license_file": "LICENSE",
         "license_type": "BSD-3-Clause",
-        "author": "Google"
+        "author": "Google",
+        "folder": "first-party"
     },
     {
         "uri": "https://github.com/mogol/flutter_secure_storage.git",
@@ -131,7 +147,8 @@
         "license_file": "LICENSE",
         "license_type": "BSD-3-Clause",
         "author": "German Saprykin",
-        "exclude": [
+        "folder": "third-party",
+        "ignore": [
             "flutter_secure_storage_windows/example"
         ]
     },
@@ -140,41 +157,54 @@
         "branch": "master",
         "license_file": "LICENSE",
         "license_type": "BSD-3-Clause",
-        "author": "Yakka"
+        "author": "Yakka",
+        "folder": "third-party"
     },
     {
         "uri": "https://github.com/meta-flutter/flutter_animated_background.git",
         "branch": "meta-flutter",
         "license_file": "LICENSE",
         "license_type": "MIT",
-        "author": "Andre Baltazar"
+        "author": "Andre Baltazar",
+        "folder": "third-party"
     },
     {
         "uri": "https://github.com/bernardpumped/ped.git",
         "branch": "next_main",
         "license_file": "COPYING",
         "license_type": "GPL-3.0",
-        "author": "Bernard Craddock"
+        "author": "Bernard Craddock",
+        "folder": "third-party"
     },
     {
         "uri": "https://github.com/bluefireteam/audioplayers.git",
         "branch": "main",
         "license_file": "LICENSE",
         "license_type": "MIT",
-        "author": "Luan Nico"
+        "author": "Luan Nico",
+        "folder": "third-party",
+        "rdepends": {
+            "packages/audioplayers/example": [
+                "gstreamer1.0",
+                "gstreamer1.0-plugins-base",
+                "gstreamer1.0-plugins-good"
+            ]
+        }
     },
     {
         "uri": "https://github.com/knopp/layer_playground.git",
         "branch": "main",
         "license_type": "CLOSED",
-        "author": "Matej Knopp"
+        "author": "Matej Knopp",
+        "folder": "third-party"
     },
     {
         "uri": "https://github.com/mix1009/desktop_window.git",
         "branch": "master",
         "license_file": "LICENSE",
         "license_type": "MIT",
-        "author": "ChunKoo Park"
+        "author": "ChunKoo Park",
+        "folder": "third-party"
     },
     {
         "uri": "https://github.com/Baseflow/flutter-geolocator.git",
@@ -182,13 +212,19 @@
         "license_file": "LICENSE",
         "license_type": "MIT",
         "author": "baseflow",
-        "exclude": [
+        "folder": "third-party",
+        "ignore": [
+            "geolocator/example",
             "geolocator_android/example",
             "geolocator_apple/example",
-            "geolocator/example",
             "geolocator_web/example",
             "geolocator_windows/example"
-        ]
+        ],
+        "rdepends": {
+            "geolocator_linux/example": [
+                "geoclue"
+            ]
+        }
     },
     {
         "uri": "https://github.com/firebase/flutterfire.git",
@@ -196,7 +232,8 @@
         "license_file": "LICENSE",
         "license_type": "BSD-3-Clause",
         "author": "Google",
-        "exclude": [
+        "folder": "first-party",
+        "ignore": [
             "tests"
         ]
     },
@@ -206,7 +243,8 @@
         "license_file": "LICENSE",
         "license_type": "BSD-3-Clause",
         "author": "Misc",
-        "exclude": [
+        "folder": "third-party",
+        "ignore": [
             "localization",
             "plugins"
         ]
@@ -216,13 +254,35 @@
         "branch": "main",
         "license_file": "LICENSE",
         "license_type": "BSD-3-Clause",
-        "author": "Flutter Community"
+        "author": "Flutter Community",
+        "folder": "third-party",
+        "ignore": [
+            "packages/android_alarm_manager_plus/example",
+            "packages/android_intent_plus/example"
+        ]
     },
     {
         "uri": "https://github.com/DavBfr/dart_pdf.git",
         "branch": "master",
         "license_file": "LICENSE",
         "license_type": "Apache-2.0",
-        "author": "David PHAM-VAN"
+        "author": "David PHAM-VAN",
+        "folder": "third-party",
+        "rdepends": {
+            "demo": [
+                "pdfium"
+            ],
+            "printing/example": [
+                "pdfium"
+            ]
+        }
+    },
+    {
+        "uri": "https://github.com/playx-flutter/playx-3d-scene.git",
+        "branch": "main",
+        "license_file": "LICENSE",
+        "license_type": "MIT",
+        "author": "Sourcya.io",
+        "folder": "third-party"
     }
 ]

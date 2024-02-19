@@ -9,5 +9,5 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS:${PN} += " \
-    bernardpumped-ped \
+    bernardpumped-ped-pumped-end-device \
 "

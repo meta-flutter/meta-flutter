@@ -9,5 +9,5 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS:${PN} += " \
-    knopp-layer-playground \
+    knopp-layer-playground-layer-playground \
 "

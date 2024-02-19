@@ -9,5 +9,5 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS:${PN} += " \
-    gskinnerteam-flutter-wonderous-app \
+    gskinnerteam-flutter-wonderous-app-wonders \
 "

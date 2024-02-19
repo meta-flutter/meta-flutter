@@ -1,5 +1,11 @@
 # Changelog
 
+Feb 21, 2024
+1. flutter 3.19.1
+1. roll flutter apps
+   updates flutter apps using latest roll_meta_flutter.py (workspace_automation).
+2. fixes `BSD3-Clause` issue.
+
 Feb 15, 2024
 1. flutter 3.19.0
 2. dart-sdk 3.3.0
