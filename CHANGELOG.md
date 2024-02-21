@@ -2,9 +2,10 @@
 
 Feb 21, 2024
 1. flutter 3.19.1
-1. roll flutter apps
+2. roll flutter apps
    updates flutter apps using latest roll_meta_flutter.py (workspace_automation).
-2. fixes `BSD3-Clause` issue.
+3. fixes `BSD3-Clause` issue.
+4. Add additional RDEPENDS to flutter-sdk.
 
 Feb 15, 2024
 1. flutter 3.19.0

@@ -23,8 +23,17 @@ DEPENDS += "\
     unzip-native \
     "
 
-RDEPENDS:${PN}-native += "ca-certificates-native curl-native perl perl-modules unzip-native"
-RDEPENDS:nativesdk-${PN} += "ca-certificates-native curl-native perl perl-modules unzip-native"
+RDEPENDS:${PN} += "\
+    atk \
+    ca-certificates \
+    curl \
+    fontconfig \
+    gtk+3 \
+    pango \
+    perl \
+    perl-modules \
+    unzip \
+    "
 
 require conf/include/flutter-version.inc
 

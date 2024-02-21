@@ -4,7 +4,7 @@ Yocto Layer for Google Flutter related projects.
 
 ### Recommended development flow
 
-* Create a flutter workspace using ./tools/setup_flutter_workspace.py
+* Create a flutter workspace using [flutter_workspace.py](https://github.com/meta-flutter/workspace-automation/blob/main/flutter_workspace.py)
 * Debug and validate application running on your host machine using ivi-homescreen, flutter-auto, AGL QEMU, or Linux GTK.
 * Create Yocto Recipe for your Flutter application using one of the pre-existing recipes as your template.
 * Add your apps recipe and your selected embedder to IMAGE_INSTALL in your conf/local.conf file.
