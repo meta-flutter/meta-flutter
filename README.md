@@ -2,20 +2,48 @@
 
 Yocto Layer for Google Flutter related projects.
 
-### Recommended development flow:
-* Create flutter workspace using ./tools/setup_flutter_workspace.py
-* Debug and validate application on host using flutter-auto, AGL QEMU, or Linux GTK.
-* Create Yocto Recipe for your Flutter application using `flutter-gallery-*` or one of the many app recipes as the template.
-  Nested projected are supported using FLUTTER_APPLICATION_PATH.
-  Passing Dart defines are done with FLUTTER_EXTRA_BUILD_ARGS.
-* Add your app, and selected embedder to your release image.  The flutter engine will be implicitly added to the image.
+### Recommended development flow
+
+* Create a flutter workspace using ./tools/setup_flutter_workspace.py
+* Debug and validate application running on your host machine using ivi-homescreen, flutter-auto, AGL QEMU, or Linux GTK.
+* Create Yocto Recipe for your Flutter application using one of the pre-existing recipes as your template.
+* Add your apps recipe and your selected embedder to IMAGE_INSTALL in your conf/local.conf file.
 * Image device
 
-## Layers dependencies
+### Supported Flutter Application types
 
-* meta-clang
+* Flutter Application
+* Flutter Web Application
 
-Clang generates smaller runtime images, and is used by Google to build the the flutter engine for Android and iOS.  Changing toolchains should be avoided, as this would provide a path with little to no test milage.
+### Flutter Application recipe variables
+
+| Variable                             | Description                                                                                                                         |
+|--------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| `FLUTTER_APPLICATION_PATH`           | This is the path relative to the root of the repository. Override in your application recipe.                                       |
+| `FLUTTER_PREBUILD_CMD`               | If set will run before Flutter build step.                                                                                          |
+| `PUB_CACHE_EXTRA_ARCHIVE_CMD`        | Command that is run prior to archive step of pub cache fetch. e.g. melos bootstrap.                                                 |
+| `PUB_CACHE_EXTRA_ARCHIVE_PATH`       | Appends a path to `$PATH` which affects `PUB_CACHE_EXTRA_ARCHIVE_CMD`                                                               |
+| `APP_AOT_EXTRA`                      | Allows passing dart defines to AOT step. e.g. `-DFLUTTER_APP_FLAVOR=prod`.                                                          |
+| `APP_AOT_ENTRY_FILE`                 | Allows overriding the entry file. Default is `main.dart`.                                                                           |
+| `APP_GEN_SNAPSHOT_FLAGS`             | Additional flags to pass to gen_snapshot. Default is `--obfuscate`.                                                                 |
+| `FLUTTER_APP_RUNTIME_MODES`          | Allows overriding modes that install app. Default is `release`.                                                                     |
+| `FLUTTER_APPLICATION_INSTALL_PREFIX` | Install prefix for flutter application install. Overriding enables installing into user directory. Default is `${datadir}/flutter`. |
+| `FLUTTER_APPLICATION_INSTALL_SUFFIX` | Install suffix for flutter application install. Default is "${PUBSPEC_APPNAME}".                                                    |
+
+### Supported Engine Variants
+
+* debug
+* profile
+* release
+* jit_release
+
+## Dynamic Layers
+
+* clang-layer
+
+* gnome-layer
+  
+Zenity is used for fileselector plugin on ivi-homescreen.  To enable this add meta-gnome to your layers.
 
 ## Overview
 
@@ -29,24 +57,6 @@ If you selecting a part go with v3.0+, ideally one with Vulkan support.
 * `flutter-auto` is the `agl` branch of https://github.com/toyota-connected/ivi-homescreen
   the `main` branch has moved to quarterly releases, the `agl` branch is directly supporting AGL development work.
 
-### CI Jobs
-
-* kirkstone-agl-renesas-m3.yml - Renesas M3 build.  Time boxed GPU driver (30 minutes?).  AGL canaray build.
-
-* kirkstone-agl-x86_64.yml - meta-flutter QEMU image used with tools/seup_flutter_workspace.py.  Test build for AGL downstream work.
-
-* kirkstone-imx8mmevk.yml - NXP imx8mmevk baseline Wayland image.
-
-* kirkstone-linux-dummy.yml - Tests all recipes in the layer without a dummy Linux kernel (save build time).
-
-* kirkstone-qc-dragonboard.yml - DB410C and DB820C Wayland images.
-
-* kirkstone-rpi-zero2w-64.yml - RPI Zero2W Wayland image (flutter-auto).  Farily full featured with Network Manager, BT, WiFi, etc.
-
-* kirkstone-stm32mp15.yml - eglfs (flutter-pi) st-core-image+SDK and wayland (flutter-auto) st-core-image+SDK.
-
-Notes: CI job sstate is cleared between builds for all meta-flutter recipes; clean builds.
-
 
 ### General
 
@@ -55,7 +65,7 @@ Targets flutter-engine-* is known to work on
 * AGL QEMU images - aarch64/x86_64
 * Intel icore7-64
 * NVIDIA Nano, Xavier Dev Kits - aarch64
-* NXP iMX7 (caveats), iMX8
+* NXP iMX7, iMX8; imx-weston requires patch for ivi-homescreen + flutter-auto
 * Qualcomm DragonBoard DB410c, DB820, SA6155P, SA8xxx - aarch64
 * Raspberry Pi 3 / Compute - aarch64 / armv7hf
 * Raspberry Pi 4 / Compute - aarch64
@@ -87,4 +97,5 @@ When building on systems with GCC version > than uninative in Yocto distro add t
     INHERIT:remove = "uninative"
 
 ## Flutter Workspace Automation
-Please visit [here](tools/README.md) for how to setup Flutter workspace automatically.
+
+Please visit [here](https://github.com/meta-flutter/workspace-automation).
