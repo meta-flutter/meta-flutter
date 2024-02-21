@@ -9,5 +9,5 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS:${PN} += " \
-    bdero-flutter-scene-example \
+    bdero-flutter-scene-example-scene-demo \
 "

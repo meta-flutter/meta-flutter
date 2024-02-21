@@ -1,0 +1,25 @@
+From fdd4186d8b600f63d6ab42513b590b309a7b6348 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Tue, 20 Feb 2024 17:14:06 -0800
+Subject: [PATCH] impeller workaround
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ flutter/shell/platform/embedder/embedder_surface_gl_impeller.cc | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/flutter/shell/platform/embedder/embedder_surface_gl_impeller.cc b/flutter/shell/platform/embedder/embedder_surface_gl_impeller.cc
+index c061c091a9..7d69252ad3 100644
+--- a/flutter/shell/platform/embedder/embedder_surface_gl_impeller.cc
++++ b/flutter/shell/platform/embedder/embedder_surface_gl_impeller.cc
+@@ -170,6 +170,7 @@ EmbedderSurfaceGLImpeller::GLContextFramebufferInfo() const {
+ 
+ // |EmbedderSurface|
+ std::unique_ptr<Surface> EmbedderSurfaceGLImpeller::CreateGPUSurface() {
++  GLContextMakeCurrent();
+   return std::make_unique<GPUSurfaceGLImpeller>(
+       this,              // GPU surface GL delegate
+       impeller_context_  // render to surface
+-- 
+2.43.2
+

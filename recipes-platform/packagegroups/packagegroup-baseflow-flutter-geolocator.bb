@@ -9,5 +9,5 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS:${PN} += " \
-    baseflow-flutter-geolocator-linux \
+    baseflow-flutter-geolocator-linux-geolocator-linux-example \
 "

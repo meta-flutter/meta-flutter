@@ -1,1 +1,1 @@
-export PATH=/usr/share/dart-sdk/3.0.6/bin:/home/dev/.pub-cache/bin:$PATH
+export PATH=/usr/share/dart-sdk/3.3.0/bin:/home/dev/.pub-cache/bin:$PATH

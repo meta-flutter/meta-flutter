@@ -9,5 +9,5 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS:${PN} += " \
-    meta-flutter-animated-background-example \
+    meta-flutter-animated-background-example-animated-background-example \
 "

@@ -9,5 +9,5 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS:${PN} += " \
-    mix1009-desktop-window-example \
+    mix1009-desktop-window-example-desktop-window-example \
 "

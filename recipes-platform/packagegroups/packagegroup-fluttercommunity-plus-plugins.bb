@@ -14,8 +14,6 @@ RDEPENDS:${PN} += " \
     fluttercommunity-plus-plugins-packages-connectivity-plus-connectivity-plus-example \
     fluttercommunity-plus-plugins-packages-network-info-plus-network-info-plus-example \
     fluttercommunity-plus-plugins-packages-sensors-plus-sensors-plus-example \
-    fluttercommunity-plus-plugins-packages-android-intent-plus-example \
     fluttercommunity-plus-plugins-packages-battery-plus-battery-plus-example \
-    fluttercommunity-plus-plugins-packages-android-alarm-manager-plus-example \
     fluttercommunity-plus-plugins-packages-package-info-plus-package-info-plus-example \
 "
