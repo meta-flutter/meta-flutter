@@ -284,5 +284,13 @@
         "license_type": "MIT",
         "author": "Sourcya.io",
         "folder": "third-party"
+    },
+    {
+        "uri": "https://github.com/googleads/googleads-mobile-flutter.git",
+        "branch": "main",
+        "license_file": "LICENSE",
+        "license_type": "Apache-2.0",
+        "author": "Goolge Ads",
+        "folder": "first-party"
     }
 ]
