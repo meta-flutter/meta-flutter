@@ -292,5 +292,56 @@
         "license_type": "Apache-2.0",
         "author": "Goolge Ads",
         "folder": "first-party"
+    },
+    {
+        "uri": "https://github.com/widgetbakery/pixel_snap",
+        "branch": "main",
+        "license_file": "LICENSE",
+        "license_type": "MIT",
+        "author": "Widget Bakery",
+        "folder": "third-party"
+    },
+    {
+        "uri": "https://github.com/google/generative-ai-dart.git",
+        "branch": "main",
+        "license_file": "LICENSE",
+        "license_type": "Apache-2.0",
+        "author": "Google",
+        "folder": "first-party",
+        "variables": {
+            "samples/flutter_app": [
+                "GOOGLE_API_KEY ??= \"\"",
+                "FLUTTER_BUILD_ARGS = \"bundle --dart-define API_KEY=${GOOGLE_API_KEY}\"",
+                "APP_AOT_EXTRA = \"-DAPI_KEY=${GOOGLE_API_KEY}\""
+            ]
+        }
+    },
+    {
+        "uri": "https://github.com/flutter/super_dash",
+        "branch": "main",
+        "license_file": "LICENSE",
+        "license_type": "BSD-3-Clause",
+        "author": "Google",
+        "folder": "first-party",
+        "entry_files": {
+            "": [
+                "main_prod.dart"
+            ]
+        },
+        "src_folder": "super_dash",
+        "src_files": {
+            "": [
+                "0001-ivi-homescreen-support.patch"
+            ]
+        },
+        "variables": {
+            "": [
+                "FLUTTER_BUILD_ARGS = \"bundle --target lib/main_prod.dart --dart-define FLUTTER_APP_FLAVOR=prod\"",
+                "APP_AOT_EXTRA = \"-DFLUTTER_APP_FLAVOR=prod\"",
+                "APP_AOT_ENTRY_FILE = \"main_prod.dart\"",
+                "",
+                "do_compile[network] = \"1\""
+            ]
+        }
     }
 ]
