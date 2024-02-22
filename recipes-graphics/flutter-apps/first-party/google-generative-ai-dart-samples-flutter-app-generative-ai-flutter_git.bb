@@ -21,7 +21,7 @@ PUBSPEC_APPNAME = "generative_ai_flutter"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "google-generative-ai-dart-samples-flutter-app-generative-ai-flutter"
 FLUTTER_APPLICATION_PATH = "samples/flutter_app"
 GOOGLE_API_KEY ??= ""
-FLUTTER_BUILD_ARGS = "bundle --dart-define API_KEY=$GOOGLE_API_KEY"
-APP_AOT_EXTRA = "-DAPI_KEY=$GOOGLE_API_KEY"
+FLUTTER_BUILD_ARGS = "bundle --dart-define API_KEY=${GOOGLE_API_KEY}"
+APP_AOT_EXTRA = "-DAPI_KEY=${GOOGLE_API_KEY}"
 
 inherit flutter-app
