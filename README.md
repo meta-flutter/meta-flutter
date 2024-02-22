@@ -99,3 +99,31 @@ When building on systems with GCC version > than uninative in Yocto distro add t
 ## Flutter Workspace Automation
 
 Please visit [here](https://github.com/meta-flutter/workspace-automation).
+
+## Process to Auto Roll Flutter Applications
+
+Origin of truth for Flutter Applications:
+
+    conf/include/flutter-apps.json
+
+Example roll
+
+    cd /mnt/raid10
+    git clone https://github.com/meta-flutter/meta-flutter
+    git clone https://github.com/meta-flutter/workspace-automation
+    cd workspace-automation
+    ./roll_meta_flutter.py --path /mnt/raid10/meta-flutter --json /mnt/raid10/meta-flutter/conf/include/flutter-apps.json --patch-dir=/mnt/raid10/workspace-automation/patches
+
+## Process to update Flutter SDK version
+
+1. Follow process to Auto Roll Flutter Applications.  This step provides the latest `conf/include/releases_linux.json`
+2. Review `conf/include/releases_linux.json` to determine the Flutter SDK stable version.
+3. Update `conf/include/flutter-version.inc` with updated stable version.
+4. Determine version of Dart SDK for stable channel and update recipe `recipes-devtools/dart/dart-sdk_x.x.x.bb`
+5. Update `recipes-platform/images/app-container-user/dev_profile`
+
+## conf/include/flutter-apps.json
+
+This file is the origin of truth for all of the Flutter Applications present in this layer, and is consumed by [roll_meta_flutter.py](https://github.com/meta-flutter/workspace-automation/blob/main/roll_meta_flutter.py).
+
+roll_meta_flutter.py autogenerates all of the flutter application recipes.
