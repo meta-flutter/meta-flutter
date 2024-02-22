@@ -292,5 +292,13 @@
         "license_type": "Apache-2.0",
         "author": "Goolge Ads",
         "folder": "first-party"
+    },
+    {
+        "uri": "https://github.com/widgetbakery/pixel_snap",
+        "branch": "main",
+        "license_file": "LICENSE",
+        "license_type": "MIT",
+        "author": "Widget Bakery",
+        "folder": "third-party"
     }
 ]
