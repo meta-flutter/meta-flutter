@@ -1,5 +1,10 @@
 # Changelog
 
+Feb 22, 2024
+1. add gemini flutter app example
+2. super_dash + filament app are now auto-generated with roll_meta_flutter.py.
+3. Document auto roll process
+
 Feb 21, 2024
 1. flutter 3.19.1
 2. roll flutter apps
