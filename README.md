@@ -127,3 +127,23 @@ Example roll
 This file is the origin of truth for all of the Flutter Applications present in this layer, and is consumed by [roll_meta_flutter.py](https://github.com/meta-flutter/workspace-automation/blob/main/roll_meta_flutter.py).
 
 roll_meta_flutter.py autogenerates all of the flutter application recipes.
+
+## Process used to update a Rust recipe
+
+* Update recipe SRC_REV to desired version, rename recipe name to match
+* Run bitbake on the recipe, it will likely fail
+* Open terminal to path of src
+* delete Cargo.lock
+* delete toolchain file if present
+* add the toolchain version used in yocto to your path ahead of any others
+* Manually build the crate using this toolchain. This will create a new Cargo.lock against the toolchain version.  This is a critical step.
+* Run [root-pkg-ws](https://github.com/jwinarske/root-pkg-ws) --manifest-path=/Cargo.toml
+* Copy the output from this tool to the recipe file
+* Rebuild and confirm it passes
+* Submit PR with updated recipe
+
+If you need a more recent Rust toolchain for Kirkstone, you can use
+
+    https://git.yoctoproject.org/git/meta-lts-mixins
+
+The takeaway should be that Cargo.lock and toolchain versions are tightly coupled in Yocto.  If you don't follow this in theory you could set network enable for compile, and set the cargo bbclass to auto-vend.  This would break all LTS scenarios.
