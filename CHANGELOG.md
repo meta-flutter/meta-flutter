@@ -1,5 +1,8 @@
 # Changelog
 
+Feb 28, 2024
+1. add Rive native recipes
+
 Feb 22, 2024
 1. add gemini flutter app example
 2. super_dash + filament app are now auto-generated with roll_meta_flutter.py.
