@@ -20,7 +20,6 @@ LIC_FILES_CHKSUM = " \
 DEPENDS += "\
     compiler-rt \
     libcxx \
-    rive-taffy-ffi \
 "
 
 # Toolchain setup
@@ -29,30 +28,11 @@ TOOLCHAIN = "clang"
 PREFERRED_PROVIDER_libgcc = "compiler-rt"
 LIBCPLUSPLUS = "-stdlib=libc++"
 
-SRC_URI = " \
-    https://pub.dartlang.org/packages/rive_common/versions/0.3.0.tar.gz;downloadfilename=pub-dartlang-rive_common-0.3.0.tar.gz;subdir=src;name=common \
-    git://github.com/harfbuzz/harfbuzz.git;protocol=https;branch=main;destsuffix=src/third_party/harfbuzz;name=harfbuzz \
-    git://github.com/Tehreer/SheenBidi.git;protocol=https;branch=master;destsuffix=src/third_party/sheenbidi;name=sheenbidi \
-    git://github.com/rive-app/miniaudio.git;protocol=https;branch=rive;destsuffix=src/third_party/miniaudio;name=miniaudio \
-    file://CMakeLists.txt;subdir=src \
-"
-
-SRC_URI[common.sha256sum] = "a6d05f65985e3ec18b7051ced6316d56374e0ca9c58288c37dd8510cb077832b"
-
-SRCREV_FORMAT .= "harfbuzz"
-SRCREV_harfbuzz = "afcae83a064843d71d47624bc162e121cc56c08b"
-SRCREV_FORMAT .= "sheenbidi"
-SRCREV_sheenbidi = "adfccc46504b1be37b8894f064121c56c31312f7"
-SRCREV_FORMAT .= "miniaudio"
-SRCREV_miniaudio = "4b8300ad2249fe292ad7eef492abf78d9c8462eb"
+SRC_REV = "9de5393c689e9e95e410d88a780772e42eb1e760"
+SRC_URI = "gitsm://github.com/meta-flutter/rive-common.git;protocol=https;lfs=0;nobranch=1"
 
 S = "${WORKDIR}/src"
 
 inherit cmake
 
-EXTRA_OECMAKE += " \
-    -D TAFFY_FFI_LINK_LIBRARY=${STAGING_LIBDIR}/taffy_ffi/libtaffy_ffi.a \
-"
-
 FILES:${PN}-dev = "${libdir}"
-

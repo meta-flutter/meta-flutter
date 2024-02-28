@@ -7,19 +7,14 @@ HOMEPAGE = "https://pub.dev/packages/rive_common"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COREBASE}/meta/COPYING.MIT;md5=3da9cfbcb788c80a0384361b4de20420"
 
-SRC_URI += " \
-    https://pub.dartlang.org/packages/rive_common/versions/0.3.0.tar.gz;downloadfilename=pub-dartlang-rive_common-0.3.0.tar.gz;subdir=src;name=taffy_ffi \
-    file://update_cargo.patch \
-"
-SRC_URI[taffy_ffi.sha256sum] = "a6d05f65985e3ec18b7051ced6316d56374e0ca9c58288c37dd8510cb077832b"
-
-S = "${WORKDIR}/src"
+S = "${WORKDIR}/git"
 
 CARGO_SRC_DIR = "taffy_ffi"
 
 inherit cargo
 
 SRC_URI += " \
+    git://github.com/meta-flutter/rive-common.git;protocol=https;lfs=0;nobranch=1;name=taffy_ffi \
     git://github.com/DioxusLabs/taffy;lfs=0;nobranch=1;protocol=https;destsuffix=taffy;name=taffy \
     crate://crates.io/arrayvec/0.7.4 \
     crate://crates.io/autocfg/1.1.0 \
@@ -29,18 +24,14 @@ SRC_URI += " \
     crate://crates.io/version_check/0.9.4 \
 "
 
+SRCREV_FORMAT .= "_taffy_ffi"
+SRCREV_taffy = "9de5393c689e9e95e410d88a780772e42eb1e760"
 SRCREV_FORMAT .= "_taffy"
 SRCREV_taffy = "daa07e0f4e3e009f5b0c11ada5df9785efd4b2c2"
 EXTRA_OECARGO_PATHS += "${WORKDIR}/taffy"
 
-
 cargo_do_compile:prepend() {
-    export RUSTFLAGS="-Clinker-plugin-lto --emit=llvm-ir"
+    export RUSTFLAGS="-Clinker-plugin-lto"
 }
 
-do_install() {
-    install -d ${D}${libdir}/taffy_ffi
-    install ${B}/target/*/release/libtaffy_ffi.a ${D}${libdir}/taffy_ffi/
-}
-
-FILES:${PN}-staticdev = "${libdir}"
+FILES:${PN}-dev = "${libdir}"
