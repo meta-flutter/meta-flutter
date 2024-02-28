@@ -25,13 +25,18 @@ SRC_URI += " \
 "
 
 SRCREV_FORMAT .= "_taffy_ffi"
-SRCREV_taffy = "9de5393c689e9e95e410d88a780772e42eb1e760"
+SRCREV_taffy_ffi = "9de5393c689e9e95e410d88a780772e42eb1e760"
 SRCREV_FORMAT .= "_taffy"
 SRCREV_taffy = "daa07e0f4e3e009f5b0c11ada5df9785efd4b2c2"
+
 EXTRA_OECARGO_PATHS += "${WORKDIR}/taffy"
 
-cargo_do_compile:prepend() {
-    export RUSTFLAGS="-Clinker-plugin-lto"
+RUSTFLAGS += " -Clink-arg=-Wl,-soname=taffy_ffi.so.${PV}"
+
+cargo_do_install:append() {
+    cd ${D}${libdir}/rustlib/aarch64-agl-linux-gnu/lib
+    mv libtaffy_ffi.so libtaffy_ffi.so.0.3.0
+    ln -sf libtaffy_ffi.so.0.3.0 libtaffy_ffi.so
 }
 
 FILES:${PN}-dev = "${libdir}"

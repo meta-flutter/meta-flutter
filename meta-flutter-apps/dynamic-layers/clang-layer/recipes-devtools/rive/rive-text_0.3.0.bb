@@ -28,10 +28,10 @@ TOOLCHAIN = "clang"
 PREFERRED_PROVIDER_libgcc = "compiler-rt"
 LIBCPLUSPLUS = "-stdlib=libc++"
 
-SRC_REV = "9de5393c689e9e95e410d88a780772e42eb1e760"
+SRCREV = "9de5393c689e9e95e410d88a780772e42eb1e760"
 SRC_URI = "gitsm://github.com/meta-flutter/rive-common.git;protocol=https;lfs=0;nobranch=1"
 
-S = "${WORKDIR}/src"
+S = "${WORKDIR}/git"
 
 inherit cmake
 

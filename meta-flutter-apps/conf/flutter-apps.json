@@ -365,17 +365,26 @@
                 "0001-Changes-for-generic-Linux.patch"
             ]
         },
-        "rdepends": {
-            "example": [
-                "pdfium"
-            ]
-        },        
         "variables": {
             "example": [
-                "do_patch:append() {",
-                "    RIVE_COMMON_PATH=${S}/rive_common",
-                "    sed -i \"s|../rive-common|${RIVE_COMMON_PATH}|g\" pubspec.yaml",
-                "}"
+                "",
+                "# patch pubspec to use local rive_common",
+                "python do_compile:prepend() {",
+                "    rive_common_path = os.path.join(d.getVar(\"WORKDIR\"),'rive_common')",
+                "    pubspec_yaml_path = os.path.join(d.getVar(\"WORKDIR\"),'git','pubspec.yaml')",
+                "    with open(pubspec_yaml_path, 'r') as file:",
+                "        data = file.read()",
+                "        data = data.replace('@RIVE_COMMON_PATH@', rive_common_path)",
+                "    with open(pubspec_yaml_path, 'w') as file:",
+                "        file.write(data)",
+                "}",
+                ""
+            ]
+        },
+        "rdepends": {
+            "example": [
+                "rive-text",
+                "rive-taffy-ffi"
             ]
         }
     }
