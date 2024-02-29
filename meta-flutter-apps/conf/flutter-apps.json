@@ -354,7 +354,7 @@
     {
         "uri": "https://github.com/rive-app/rive-flutter.git",
         "branch": "master",
-        "rev": "870234fddc8e6aae3d29ef1dd63fb8e55aba5802",
+        "rev": "2141e28c8ed7fb2e5edd8cdc41bd6332ff553721",
         "license_file": "LICENSE",
         "license_type": "MIT",
         "author": "Rive",
@@ -377,8 +377,7 @@
                 "        data = data.replace('@RIVE_COMMON_PATH@', rive_common_path)",
                 "    with open(pubspec_yaml_path, 'w') as file:",
                 "        file.write(data)",
-                "}",
-                ""
+                "}"
             ]
         },
         "rdepends": {

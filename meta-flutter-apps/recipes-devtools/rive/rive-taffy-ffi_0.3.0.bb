@@ -25,7 +25,7 @@ SRC_URI += " \
 "
 
 SRCREV_FORMAT .= "_taffy_ffi"
-SRCREV_taffy_ffi = "9de5393c689e9e95e410d88a780772e42eb1e760"
+SRCREV_taffy_ffi = "2141e28c8ed7fb2e5edd8cdc41bd6332ff553721"
 SRCREV_FORMAT .= "_taffy"
 SRCREV_taffy = "daa07e0f4e3e009f5b0c11ada5df9785efd4b2c2"
 
