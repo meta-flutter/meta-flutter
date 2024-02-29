@@ -20,7 +20,7 @@ SRC_URI = " \
 SRCREV_FORMAT .= "_rive_flutter"
 SRCREV_rive_flutter = "870234fddc8e6aae3d29ef1dd63fb8e55aba5802"
 SRCREV_FORMAT .= "_rive_common"
-SRCREV_rive_common = "9de5393c689e9e95e410d88a780772e42eb1e760"
+SRCREV_rive_common = "2141e28c8ed7fb2e5edd8cdc41bd6332ff553721"
 
 S = "${WORKDIR}/git"
 

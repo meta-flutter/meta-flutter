@@ -28,7 +28,7 @@ TOOLCHAIN = "clang"
 PREFERRED_PROVIDER_libgcc = "compiler-rt"
 LIBCPLUSPLUS = "-stdlib=libc++"
 
-SRCREV = "9de5393c689e9e95e410d88a780772e42eb1e760"
+SRCREV = "2141e28c8ed7fb2e5edd8cdc41bd6332ff553721"
 SRC_URI = "gitsm://github.com/meta-flutter/rive-common.git;protocol=https;lfs=0;nobranch=1"
 
 S = "${WORKDIR}/git"
