@@ -3,6 +3,7 @@
 Feb 28, 2024
 1. add Rive native recipes
 2. create meta-flutter-apps layer and moved app related recipes here
+3. flutter 3.19.2
 
 Feb 22, 2024
 1. add gemini flutter app example
