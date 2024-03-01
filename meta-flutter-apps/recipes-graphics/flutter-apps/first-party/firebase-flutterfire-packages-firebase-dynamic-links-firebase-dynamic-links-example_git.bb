@@ -12,7 +12,7 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=93a5f7c47732566fb2849f7dcddabeaf"
 
-SRCREV = "15d8a1c59e84d05fb49ee1f67089004c2a3342c2"
+SRCREV = "9df2cec472ccfbbd24115ba8818b337c36825403"
 SRC_URI = "git://github.com/firebase/flutterfire.git;lfs=0;nobranch=1;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"

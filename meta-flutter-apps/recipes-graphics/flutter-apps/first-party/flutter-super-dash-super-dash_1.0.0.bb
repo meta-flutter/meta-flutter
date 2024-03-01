@@ -12,7 +12,7 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=c86726684354692a7dc458504fecd5fc"
 
-SRCREV = "6160adf5f226547924a1c9468833b322ce826380"
+SRCREV = "38b7a9a819d69fe8d59d4a0cea744d6ca353616f"
 SRC_URI = " \
     git://github.com/flutter/super_dash;lfs=0;nobranch=1;protocol=https;destsuffix=git \
     file://super_dash/0001-ivi-homescreen-support.patch \ 
