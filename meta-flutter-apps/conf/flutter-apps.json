@@ -393,9 +393,12 @@
         "license_type": "MIT",
         "author": "RevenueCat",
         "folder": "third-party",
-        "src_folder": "revenue_cat",
+        "src_folder": "purchases-flutter",
         "src_files": {
-            "example": [
+            "revenuecat_examples/MagicWeather": [
+                "0001-generic-Linux.patch"
+            ],
+            "revenuecat_examples/purchase_tester": [
                 "0001-generic-Linux.patch"
             ]
         },
