@@ -354,7 +354,6 @@
     {
         "uri": "https://github.com/rive-app/rive-flutter.git",
         "branch": "master",
-        "rev": "2141e28c8ed7fb2e5edd8cdc41bd6332ff553721",
         "license_file": "LICENSE",
         "license_type": "MIT",
         "author": "Rive",
@@ -386,5 +385,22 @@
                 "rive-taffy-ffi"
             ]
         }
+    },
+    {
+        "uri": "https://github.com/RevenueCat/purchases-flutter.git",
+        "branch": "main",
+        "license_file": "LICENSE",
+        "license_type": "MIT",
+        "author": "RevenueCat",
+        "folder": "third-party",
+        "src_folder": "revenue_cat",
+        "src_files": {
+            "example": [
+                "0001-generic-Linux.patch"
+            ]
+        },
+        "ignore": [
+            "api_tester"
+        ]
     }
 ]
