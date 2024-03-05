@@ -1,5 +1,8 @@
 # Changelog
 
+Mar 4, 2024
+1. Add lib prefix to rive_text.so
+
 Feb 28, 2024
 1. add Rive native recipes
 2. create meta-flutter-apps layer and moved app related recipes here
