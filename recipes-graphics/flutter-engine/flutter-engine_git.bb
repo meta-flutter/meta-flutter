@@ -194,6 +194,12 @@ do_install() {
         cp ${S}/${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped/* \
             ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/
 
+        # strip executables
+        for file in ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/*
+        do
+            strip "$file"
+        done
+
         # include patched sdk for local-engine scenarios
         install -d ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/flutter_patched_sdk
         install -m 0644 ${S}/${BUILD_DIR}/flutter_patched_sdk/*.dill* \

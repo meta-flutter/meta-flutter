@@ -1,5 +1,8 @@
 # Changelog
 
+Mar 7, 2024
+1. Strip x86_64 executables in flutter-engine-sdk package
+
 Mar 4, 2024
 1. Add lib prefix to rive_text.so
 
