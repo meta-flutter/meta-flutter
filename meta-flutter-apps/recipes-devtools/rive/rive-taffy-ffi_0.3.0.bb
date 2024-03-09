@@ -40,10 +40,4 @@ EXTRA_OECARGO_PATHS += "${WORKDIR}/taffy"
 
 RUSTFLAGS += " -Clink-arg=-Wl,-soname=taffy_ffi.so.${PV}"
 
-cargo_do_install:append() {
-    cd ${D}${libdir}/rustlib/*/lib
-    mv libtaffy_ffi.so libtaffy_ffi.so.0.3.0
-    ln -sf libtaffy_ffi.so.0.3.0 libtaffy_ffi.so
-}
-
-FILES:${PN}-dev = "${libdir}"
+FILES:${PN} = "${libdir}"
