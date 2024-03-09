@@ -2,6 +2,7 @@
 
 Mar 9, 2024
 1. nanbield scarthgap
+2. flutter_rust_bridge example_gallery app
 
 Mar 7, 2024
 1. Strip x86_64 executables in flutter-engine-sdk package

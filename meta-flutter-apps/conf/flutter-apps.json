@@ -405,5 +405,31 @@
         "ignore": [
             "api_tester"
         ]
+    },
+    {
+        "uri": "https://github.com/fzyzcjy/flutter_rust_bridge",
+        "branch": "master",
+        "rev": "v2.0.0-dev.25",
+        "license_file": "LICENSE",
+        "license_type": "MIT",
+        "author": "fzyzcjy",
+        "folder": "third-party",
+        "ignore": [
+            "frb_example/dart_build_rs",
+            "frb_example/dart_minimal",
+            "frb_example/flutter_via_create",
+            "frb_example/flutter_via_integrate"
+        ],
+        "src_folder": "flutter_rust_bridge",
+        "src_files": {
+            "frb_example/gallery": [
+                "0001-gallery-updates.patch"
+            ]
+        },
+        "rdepends": {
+            "frb_example/gallery": [
+                "fzyzcjy-flutter-rust-bridge-frb-example-gallery-rust"
+            ]
+        }
     }
 ]
