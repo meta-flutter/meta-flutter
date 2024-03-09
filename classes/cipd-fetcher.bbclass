@@ -4,6 +4,12 @@
 #
 
 python () {
+    import os
+    # add lib folder to path
+    for layer in d.getVar('BBLAYERS').split():
+        path = os.path.join(layer, 'lib')
+        if 'meta-flutter' in path and os.path.isdir(path):
+            sys.path.append(path)
     import cipd
     bb.fetch2.methods.append(cipd.CIPD())
 }
