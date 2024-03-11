@@ -433,12 +433,6 @@
             "frb_example/flutter_via_create",
             "frb_example/flutter_via_integrate"
         ],
-        "src_folder": "flutter_rust_bridge",
-        "src_files": {
-            "frb_example/gallery": [
-                "0001-gallery-updates.patch"
-            ]
-        },
         "rdepends": {
             "frb_example/gallery": [
                 "fzyzcjy-flutter-rust-bridge-frb-example-gallery-rust"
