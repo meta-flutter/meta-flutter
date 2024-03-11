@@ -4,6 +4,7 @@ Mar 11, 2024
 1. Flutter 3.19.3
 2. Move native recipes out of meta-flutter-apps
 3. Update comp-surf-pbr
+4. make revenue cat recipe name lowercase
 
 Mar 9, 2024
 1. nanbield scarthgap

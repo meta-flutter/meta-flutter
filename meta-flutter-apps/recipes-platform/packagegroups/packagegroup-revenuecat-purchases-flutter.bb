@@ -10,5 +10,5 @@ inherit packagegroup
 
 RDEPENDS:${PN} += " \
     revenuecat-purchases-flutter-revenuecat-examples-purchase-tester-purchases-flutter-example \
-    revenuecat-purchases-flutter-revenuecat-examples-MagicWeather-magic-weather-flutter \
+    revenuecat-purchases-flutter-revenuecat-examples-magicweather-magic-weather-flutter \
 "
