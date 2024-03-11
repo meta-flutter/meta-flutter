@@ -1,5 +1,8 @@
 # Changelog
 
+Mar 11, 2024
+1. Flutter 3.19.3
+
 Mar 7, 2024
 1. Strip x86_64 executables in flutter-engine-sdk package
 
