@@ -22,3 +22,7 @@ FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-gallery"
 FLUTTER_APPLICATION_PATH = ""
 
 inherit flutter-app
+
+RDEPENDS:${PN} += " \
+    xdg-user-dirs \
+"
