@@ -139,7 +139,12 @@
         "license_file": "LICENSE",
         "license_type": "BSD-3-Clause",
         "author": "Google",
-        "folder": "first-party"
+        "folder": "first-party",
+        "rdepends": {
+            "": [
+                "xdg-user-dirs"
+            ]
+        }
     },
     {
         "uri": "https://github.com/mogol/flutter_secure_storage.git",
@@ -291,6 +296,14 @@
                 "textured_pbr.filamat;destsuffix=git/assets/materials"
             ]
         }
+    },
+    {
+        "uri": "https://github.com/meta-flutter/video_player_linux.git",
+        "branch": "main",
+        "license_file": "LICENSE",
+        "license_type": "BSD-3-Clause",
+        "author": "Joel Winarske",
+        "folder": "third-party"
     },
     {
         "uri": "https://github.com/googleads/googleads-mobile-flutter.git",
