@@ -1,5 +1,8 @@
 # Changelog
 
+Mar 11, 2024
+1. Flutter 3.19.3
+
 Mar 9, 2024
 1. nanbield scarthgap
 2. flutter_rust_bridge example_gallery app
