@@ -100,6 +100,36 @@ When building on systems with GCC version > than uninative in Yocto distro add t
 
 Please visit [here](https://github.com/meta-flutter/workspace-automation).
 
+## Using Flutter SDK on target
+
+Append this to your `conf/local.conf`
+
+    IMAGE_INSTALL:append = " packagegroup-flutter-sdk-deps"
+
+You will also need to add `dev` packages to your platform that include libegl.so and libGLESv2.so. If the GPU driver for your platform is Mesa (such as Raspberry Pi 3/4/5), add these recipes to IMAGE_INSTALL in your `conf/local.conf`:
+
+    libegl-mesa-dev
+    libgles3-mesa-dev
+
+From target terminal
+
+    cd ~
+    git clone https://github.com/flutter/flutter
+    cd flutter/bin
+    export PATH=$PATH:`pwd`
+    export GDK_GL=gles
+    flutter config --no-enable-android
+    flutter config --no-enable-web
+    flutter channel stable
+    flutter doctor -v
+
+Test gallery app
+
+    cd ~
+    git clone https://github.com/flutter/gallery
+    cd gallery
+    flutter run -d linux
+
 ## Process to Auto Roll Flutter Applications
 
 Origin of truth for Flutter Applications:
