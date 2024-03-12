@@ -1,5 +1,8 @@
 # Changelog
 
+Mar 12, 2024
+1. Rive 0.8.4
+
 Mar 11, 2024
 1. Flutter 3.19.3
 2. Move native recipes out of meta-flutter-apps
