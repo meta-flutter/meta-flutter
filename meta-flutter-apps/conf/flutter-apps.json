@@ -139,7 +139,12 @@
         "license_file": "LICENSE",
         "license_type": "BSD-3-Clause",
         "author": "Google",
-        "folder": "first-party"
+        "folder": "first-party",
+        "rdepends": {
+            "": [
+                "xdg-user-dirs"
+            ]
+        }
     },
     {
         "uri": "https://github.com/mogol/flutter_secure_storage.git",
@@ -293,6 +298,14 @@
         }
     },
     {
+        "uri": "https://github.com/meta-flutter/video_player_linux.git",
+        "branch": "main",
+        "license_file": "LICENSE",
+        "license_type": "BSD-3-Clause",
+        "author": "Joel Winarske",
+        "folder": "third-party"
+    },
+    {
         "uri": "https://github.com/googleads/googleads-mobile-flutter.git",
         "branch": "main",
         "license_file": "LICENSE",
@@ -354,35 +367,14 @@
     {
         "uri": "https://github.com/rive-app/rive-flutter.git",
         "branch": "master",
+        "ver": "0.8.4",
         "license_file": "LICENSE",
         "license_type": "MIT",
         "author": "Rive",
         "folder": "third-party",
-        "src_folder": "rive-flutter",
-        "src_files": {
-            "example": [
-                "0001-Changes-for-generic-Linux.patch"
-            ]
-        },
-        "variables": {
-            "example": [
-                "",
-                "# patch pubspec to use local rive_common",
-                "python do_compile:prepend() {",
-                "    rive_common_path = os.path.join(d.getVar(\"WORKDIR\"),'rive_common')",
-                "    pubspec_yaml_path = os.path.join(d.getVar(\"WORKDIR\"),'git','pubspec.yaml')",
-                "    with open(pubspec_yaml_path, 'r') as file:",
-                "        data = file.read()",
-                "        data = data.replace('@RIVE_COMMON_PATH@', rive_common_path)",
-                "    with open(pubspec_yaml_path, 'w') as file:",
-                "        file.write(data)",
-                "}"
-            ]
-        },
         "rdepends": {
             "example": [
-                "rive-text",
-                "rive-taffy-ffi"
+                "rive-text"
             ]
         }
     },

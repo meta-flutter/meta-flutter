@@ -25,8 +25,9 @@ REQUIRED_DISTRO_FEATURES = "vulkan wayland"
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
 PREFERRED_PROVIDER_libgcc = "compiler-rt"
+LIBCPLUSPLUS = "-stdlib=libc++"
 
-SRCREV ??= "08e04ea6ee4e30054b2fff6fcfd34ae86aefd03e"
+SRCREV ??= "f24d0ca4b7d9bcc8c271c71b34b76a10e3611ed2"
 SRC_URI = "gitsm://github.com/meta-flutter/comp_surf_pbr.git;protocol=https;lfs=0;nobranch=1"
 
 S = "${WORKDIR}/git"

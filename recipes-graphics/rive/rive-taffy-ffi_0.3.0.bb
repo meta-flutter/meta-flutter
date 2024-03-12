@@ -25,18 +25,19 @@ SRC_URI += " \
 "
 
 SRCREV_FORMAT .= "_taffy_ffi"
-SRCREV_taffy_ffi = "2141e28c8ed7fb2e5edd8cdc41bd6332ff553721"
+SRCREV_taffy_ffi = "08cdd32c85b777b8ec6f8643cfab41446b180426"
 SRCREV_FORMAT .= "_taffy"
 SRCREV_taffy = "daa07e0f4e3e009f5b0c11ada5df9785efd4b2c2"
+
+SRC_URI[arrayvec-0.7.4.sha256sum] = "96d30a06541fbafbc7f82ed10c06164cfbd2c401138f6addd8404629c4b16711"
+SRC_URI[autocfg-1.1.0.sha256sum] = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
+SRC_URI[grid-0.11.0.sha256sum] = "1df00eed8d1f0db937f6be10e46e8072b0671accb504cf0f959c5c52c679f5b9"
+SRC_URI[num-traits-0.2.18.sha256sum] = "da0df0e5185db44f69b44f26786fe401b6c293d1907744beaa7fa62b2e5a517a"
+SRC_URI[slotmap-1.0.7.sha256sum] = "dbff4acf519f630b3a3ddcfaea6c06b42174d9a44bc70c620e9ed1649d58b82a"
+SRC_URI[version_check-0.9.4.sha256sum] = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 
 EXTRA_OECARGO_PATHS += "${WORKDIR}/taffy"
 
 RUSTFLAGS += " -Clink-arg=-Wl,-soname=taffy_ffi.so.${PV}"
 
-cargo_do_install:append() {
-    cd ${D}${libdir}/rustlib/aarch64-agl-linux-gnu/lib
-    mv libtaffy_ffi.so libtaffy_ffi.so.0.3.0
-    ln -sf libtaffy_ffi.so.0.3.0 libtaffy_ffi.so
-}
-
-FILES:${PN}-dev = "${libdir}"
+FILES:${PN} = "${libdir}"
