@@ -2,6 +2,8 @@
 
 Mar 12, 2024
 1. Rive 0.8.4
+2. packagegroup-flutter-sdk-deps
+3. Updated README for steps to use flutter SDK on target
 
 Mar 11, 2024
 1. Flutter 3.19.3
