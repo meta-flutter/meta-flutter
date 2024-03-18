@@ -1,0 +1,26 @@
+From 4e7bd1d0a02ff2f3b17f30d20e40a9cb4f83f409 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Mon, 18 Mar 2024 13:56:37 -0700
+Subject: [PATCH] Skip configuration dependency if unit tests are disabled
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ flutter/testing/BUILD.gn | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/flutter/testing/BUILD.gn b/flutter/testing/BUILD.gn
+index 9eac294525..a7d094695c 100644
+--- a/flutter/testing/BUILD.gn
++++ b/flutter/testing/BUILD.gn
+@@ -51,7 +51,7 @@ source_set("testing") {
+ 
+   sources = [ "run_all_unittests.cc" ]
+ 
+-  if (is_linux) {
++  if (enable_unittests && is_linux) {
+     # So that we can call gtk_init in main().
+     configs += [ "//flutter/shell/platform/linux/config:gtk" ]
+   }
+-- 
+2.44.0
+

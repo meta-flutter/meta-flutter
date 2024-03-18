@@ -27,6 +27,7 @@ FLUTTER_ENGINE_PATCHES ?= "\
     file://0001-remove-x11-dependency.patch \
     file://0001-disable-x11.patch \
     file://0001-impeller-workaround.patch \
+    file://0001-Skip-configuration-dependency-if-unit-tests-are-disa.patch \
     "
 
 SRC_URI = "\
@@ -62,7 +63,6 @@ COMPATIBLE_MACHINE:x86-64 = "(.*)"
 
 PACKAGECONFIG ??= "\
     debug profile release \
-    desktop-embeddings \
     embedder-for-target \
     fontconfig \
     mallinfo2 \
