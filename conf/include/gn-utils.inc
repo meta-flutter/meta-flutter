@@ -29,6 +29,8 @@ def gn_host_arch_name(d):
         r'i[3456]86$': 'x86',
         r'x86_64$': 'x64',
         r'x64$': 'x64',
+        r'riscv32$': 'riscv32',
+        r'riscv64$': 'riscv64',
     }
     build_arch = d.getVar("BUILD_ARCH")
     for arch_regexp, gn_arch_name in arch_translations.items():
@@ -49,6 +51,8 @@ GN_TARGET_ARCH_NAME:aarch64 = "arm64"
 GN_TARGET_ARCH_NAME:arm = "arm"
 GN_TARGET_ARCH_NAME:x86 = "x86"
 GN_TARGET_ARCH_NAME:x86-64 = "x64"
+GN_TARGET_ARCH_NAME:riscv32 = "riscv32"
+GN_TARGET_ARCH_NAME:riscv64 = "riscv64"
 
 def gn_target_arch_name(d):
     """Returns a GN architecture name corresponding to the target machine's
@@ -69,6 +73,8 @@ def gn_clang_triple_prefix(d):
         r'i[3456]86$': 'i386-unknown-linux-gnu',
         r'x86_64$': 'x86_64-unknown-linux-gnu',
         r'x64$': 'x86_64-unknown-linux-gnu',
+        r'riscv32$': 'riscv32-unknown-linux-gnu',
+        r'riscv64$': 'riscv64-unknown-linux-gnu',
     }
     build_arch = d.getVar("GN_TARGET_ARCH_NAME")
     for arch_regexp, gn_arch_name in arch_translations.items():
@@ -152,7 +158,7 @@ def parse_args(d):
     parser.add_argument(
         '--android-cpu',
         type=str,
-        choices=['arm', 'x64', 'x86', 'arm64'],
+        choices=['arm', 'x64', 'x86', 'arm64', 'riscv32', 'riscv64'],
         default='arm'
     )
     parser.add_argument(
@@ -183,7 +189,7 @@ def parse_args(d):
     )
 
     parser.add_argument(
-        '--linux-cpu', type=str, choices=['x64', 'x86', 'arm64', 'arm']
+        '--linux-cpu', type=str, choices=['x64', 'x86', 'arm64', 'arm', 'riscv32', 'riscv64']
     )
     parser.add_argument(
         '--fuchsia-cpu', type=str, choices=['x64', 'arm64'], default='x64'
@@ -192,7 +198,7 @@ def parse_args(d):
         '--windows-cpu', type=str, choices=['x64', 'arm64', 'x86'], default='x64'
     )
     parser.add_argument(
-        '--simulator-cpu', type=str, choices=['x64', 'arm64'], default='x64'
+        '--simulator-cpu', type=str, choices=['x64', 'arm64', 'riscv32', 'riscv64'], default='x64'
     )
     parser.add_argument(
         '--arm-float-abi', type=str, choices=['hard', 'soft', 'softfp']

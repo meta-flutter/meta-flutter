@@ -28,6 +28,8 @@ FLUTTER_ENGINE_PATCHES ?= "\
     file://0001-disable-x11.patch \
     file://0001-impeller-workaround.patch \
     file://0001-Skip-configuration-dependency-if-unit-tests-are-disa.patch \
+    file://0001-gn-riscv32-and-riscv64.patch \
+    file://0001-fml-build-config-add-riscv.patch \
     "
 
 SRC_URI = "\
@@ -60,6 +62,8 @@ COMPATIBLE_MACHINE:armv7a = "(.*)"
 COMPATIBLE_MACHINE:armv7ve = "(.*)"
 COMPATIBLE_MACHINE:x86 = "(.*)"
 COMPATIBLE_MACHINE:x86-64 = "(.*)"
+COMPATBILE_MACHINE:riscv32 = "(.*)"
+COMPATIBLE_MACHINE:riscv64 = "(.*)"
 
 PACKAGECONFIG ??= "\
     debug profile release \
