@@ -3,6 +3,7 @@
 Mar 18, 2024
 1. flutter-engine: default desktop-embedding off
 2. flutter-engine: remove gtk dep if unit-tests disabled
+3. flutter-engine: enable RISC-V building
 
 Mar 12, 2024
 1. Rive 0.8.4

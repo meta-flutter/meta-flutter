@@ -1,0 +1,35 @@
+From 1ebbd727d828fa09b7dd65e4f018549c76cd0e48 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Wed, 13 Mar 2024 21:09:14 +0000
+Subject: [PATCH] gn riscv32 and riscv64
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ flutter/tools/gn | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tools/gn b/tools/gn
+index 6ceda84..8403324 100755
+--- a/flutter/tools/gn
++++ b/flutter/tools/gn
+@@ -118,7 +118,7 @@ def can_use_prebuilt_dart(args):
+       prebuilt = 'macos-x64'
+     else:
+       prebuilt = 'linux-x64'
+-  elif args.target_os == 'linux' and args.linux_cpu in ['x64', 'arm64']:
++  elif args.target_os == 'linux' and args.linux_cpu in ['x64', 'arm64', 'riscv32', 'riscv64']:
+     prebuilt = 'linux-%s' % args.linux_cpu
+   elif args.target_os == 'mac' and args.mac_cpu in ['x64', 'arm64']:
+     prebuilt = 'macos-%s' % args.mac_cpu
+@@ -931,7 +931,7 @@ def parse_args(args):
+   )
+ 
+   parser.add_argument(
+-      '--linux-cpu', type=str, choices=['x64', 'x86', 'arm64', 'arm']
++      '--linux-cpu', type=str, choices=['x64', 'x86', 'arm64', 'arm', 'riscv32', 'riscv64']
+   )
+   parser.add_argument(
+       '--fuchsia-cpu', type=str, choices=['x64', 'arm64'], default='x64'
+-- 
+2.44.0
+
