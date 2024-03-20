@@ -1,5 +1,9 @@
 # Changelog
 
+Mar 20, 2024
+1. Rename logical layer names to xxx-layer
+2. Add LAYERRECOMMENDS to both meta-flutter and meta-flutter-apps
+
 Mar 18, 2024
 1. flutter-engine: default desktop-embedding off
 2. flutter-engine: remove gtk dep if unit-tests disabled
