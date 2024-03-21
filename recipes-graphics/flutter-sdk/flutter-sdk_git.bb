@@ -35,9 +35,9 @@ RDEPENDS:${PN} += "\
     unzip \
     "
 
-PV = "${FLUTTER_SDK_VERSION}"
-
 require conf/include/flutter-version.inc
+
+PV = "${FLUTTER_SDK_VERSION}"
 
 inherit pkgconfig
 
@@ -140,6 +140,10 @@ do_install() {
     install -d ${D}${datadir}/flutter/sdk
 
     cp -rTv ${S}/. ${D}${datadir}/flutter/sdk
+}
+
+python () {
+    d.setVar('FLUTTER_SDK_VERSION', get_flutter_sdk_version(d))
 }
 
 ALLOW_EMPTY:${PN} = "1"
