@@ -35,6 +35,8 @@ RDEPENDS:${PN} += "\
     unzip \
     "
 
+PV = "${FLUTTER_SDK_VERSION}"
+
 require conf/include/flutter-version.inc
 
 inherit pkgconfig
