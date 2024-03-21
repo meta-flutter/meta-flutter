@@ -160,7 +160,7 @@ roll_meta_flutter.py autogenerates all of the flutter application recipes.
 
 ## Process used to update a Rust recipe
 
-* Update recipe SRC_REV to desired version, rename recipe name to match
+* Update recipe SRCREV to desired version, rename recipe name to match
 * Run bitbake on the recipe, it will likely fail
 * Open terminal to path of src
 * delete Cargo.lock
