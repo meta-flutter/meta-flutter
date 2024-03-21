@@ -21,6 +21,8 @@ DEPENDS += "\
 
 VULKAN_BACKENDS="${@bb.utils.filter('DISTRO_FEATURES', 'wayland x11', d)}"
 
+PV = "${FLUTTER_SDK_VERSION}"
+
 FLUTTER_ENGINE_PATCHES ?= "\
     file://0001-clang-toolchain.patch \
     file://0001-disable-pre-canned-sysroot.patch \
