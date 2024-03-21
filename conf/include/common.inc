@@ -101,6 +101,11 @@ python do_archive_pub_cache() {
     app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
 
     #
+    # Remove pubspec.lock file
+    #
+    runfetchcmd('rm -rf pubspec.lock', d, quiet=False, workdir=app_root)
+
+    #
     # App hook to include something in archive 
     #
     pub_cache_extra_archive_cmd = d.getVar("PUB_CACHE_EXTRA_ARCHIVE_CMD")

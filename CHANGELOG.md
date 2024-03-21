@@ -2,6 +2,7 @@
 
 Mar 21, 2024
 1. Add PV value to flutter-engine and flutter-sdk
+2. Delete pubspec.lock file
 
 Mar 20, 2024
 1. Rename logical layer names to xxx-layer
