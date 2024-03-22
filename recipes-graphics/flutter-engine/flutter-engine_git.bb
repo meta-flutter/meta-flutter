@@ -24,7 +24,7 @@ VULKAN_BACKENDS="${@bb.utils.filter('DISTRO_FEATURES', 'wayland x11', d)}"
 PV = "${FLUTTER_SDK_VERSION}"
 
 FLUTTER_ENGINE_PATCHES ?= "\
-    file://0001-clang-toolchain.patch \
+    file://BUILD.gn.in \
     file://0001-disable-pre-canned-sysroot.patch \
     file://0001-remove-x11-dependency.patch \
     file://0001-disable-x11.patch \
@@ -138,7 +138,23 @@ GN_ARGS_LESS_RUNTIME_MODES="${@get_gn_args_less_runtime(d)}"
 
 FLUTTER_ENGINE_INSTALL_PREFIX ??= "${datadir}/flutter/${FLUTTER_SDK_VERSION}"
 
+FLUTTER_ENGINE_DEBUG_PREFIX_MAP ?= " \
+ -fmacro-prefix-map=${S}=${TARGET_DBGSRC_DIR} \
+ -fdebug-prefix-map=${S}=${TARGET_DBGSRC_DIR} \
+ -fmacro-prefix-map=${B}=${TARGET_DBGSRC_DIR} \
+ -fdebug-prefix-map=${B}=${TARGET_DBGSRC_DIR} \
+ -fdebug-prefix-map=${STAGING_DIR_HOST}= \
+ -fmacro-prefix-map=${STAGING_DIR_HOST}= \
+ -fdebug-prefix-map=${STAGING_DIR_NATIVE}= \
+"
+FLUTTER_ENGINE_DEBUG_FLAGS ?= "-g -feliminate-unused-debug-types ${FLUTTER_ENGINE_DEBUG_PREFIX_MAP}"
+
 do_configure() {
+    
+    # prevent tmp path warning
+    cp ${WORKDIR}/BUILD.gn.in ${S}/build/toolchain/custom/BUILD.gn
+    sed -i "s|@DEBUG_FLAGS@|${FLUTTER_ENGINE_DEBUG_FLAGS}|g" ${S}/build/toolchain/custom/BUILD.gn
+
     FLUTTER_RUNTIME_MODES="${@bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d)}"
     bbnote "FLUTTER_RUNTIME_MODES=${FLUTTER_RUNTIME_MODES}"
     bbnote "CLANG_BUILD_ARCH=${CLANG_BUILD_ARCH}"
@@ -152,7 +168,7 @@ do_configure() {
         # remove in case this is a rebuild and you're not using rm_work.bbclass
         rm -rf ${WORKDIR}/src/${BUILD_DIR} | true
 
-        ./flutter/tools/gn ${GN_ARGS_LESS_RUNTIME_MODES} --runtime-mode $MODE
+        ./flutter/tools/gn ${GN_ARGS_LESS_RUNTIME_MODES} --runtime-mode ${MODE}
 
         echo ${GN_TUNE_ARGS} >> "${ARGS_FILE}"
 
