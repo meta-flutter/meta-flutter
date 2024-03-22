@@ -43,12 +43,11 @@ SRCREV_nanopb = "7ee9ef9f627d85cbe1b8c4f49a3ed26eed216c77"
 
 S = "${WORKDIR}/git"
 
-inherit cmake pkgconfig
+inherit cmake pkgconfig python3native
 
 PACKAGECONFIG ??= "\
     analytics \
     app_check \
-    auth \
     database \
     dynamic_links \
     fake_secure_storage \
@@ -61,7 +60,7 @@ PACKAGECONFIG ??= "\
     storage \
     "
 
-PACKAGECONFIG[analytics] = "-DFIREBASE_INCLUDE_ANALYTICS=ON, -DFIREBASE_INCLUDE_ANALYTICS=OFF"
+PACKAGECONFIG[analytics] = "-DFIREBASE_INCLUDE_ANALYTICS=ON, -DFIREBASE_INCLUDE_ANALYTICS=OFF, python3-absl-native"
 PACKAGECONFIG[app_check] = "-DFIREBASE_INCLUDE_APP_CHECK=ON, -DFIREBASE_INCLUDE_APP_CHECK=OFF"
 PACKAGECONFIG[auth] = "-DFIREBASE_INCLUDE_AUTH=ON, -DFIREBASE_INCLUDE_AUTH=OFF"
 PACKAGECONFIG[database] = "-DFIREBASE_INCLUDE_DATABASE=ON, -DFIREBASE_INCLUDE_DATABASE=OFF,leveldb"
@@ -87,6 +86,10 @@ EXTRA_OECMAKE += "\
     -D UWEBSOCKETS_SOURCE_DIR=${S}/third_party/uWebSockets \
     -D FIRESTORE_SOURCE_DIR=${S}/third_party/firestore \
 "
+
+do_configure:prepend () {
+    ln -sf ${STAGING_BINDIR_NATIVE}/flatc ${STAGING_BINDIR}/flatc
+}
 
 do_install:append () {
     install -d ${D}${libdir}/firebase
