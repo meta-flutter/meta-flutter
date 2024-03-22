@@ -226,3 +226,7 @@ CARGO_SRC_DIR = "frb_example/gallery/rust"
 
 
 inherit cargo
+
+do_configure:prepend() {
+    export RUSTFLAGS="-C ${DEBUG_FLAGS}"
+}
