@@ -76,12 +76,12 @@ do_configure() {
     #
     # configure toolchain file
     #
-    sed -i "s|@GN_TARGET_ARCH_NAME@|${GN_TARGET_ARCH_NAME}|g" ${WORKDIR}/toolchain.gn.in
-    sed -i "s|@TARGET_SYS@|${TARGET_SYS}|g"                   ${WORKDIR}/toolchain.gn.in
-    sed -i "s|@LDFLAGS@|${LDFLAGS}|g"                         ${WORKDIR}/toolchain.gn.in
-    sed -i "s|@EXTRA_CXXFLAGS@|${EXTRA_CXXFLAGS}|g"           ${WORKDIR}/toolchain.gn.in
-
     cp ${WORKDIR}/toolchain.gn.in ${S}/build/toolchain/linux/BUILD.gn
+    sed -i "s|@GN_TARGET_ARCH_NAME@|${GN_TARGET_ARCH_NAME}|g" ${S}/build/toolchain/linux/BUILD.gn
+    sed -i "s|@TARGET_SYS@|${TARGET_SYS}|g"                   ${S}/build/toolchain/linux/BUILD.gn
+    sed -i "s|@LDFLAGS@|${LDFLAGS}|g"                         ${S}/build/toolchain/linux/BUILD.gn
+    sed -i "s|@EXTRA_CXXFLAGS@|${EXTRA_CXXFLAGS}|g"           ${S}/build/toolchain/linux/BUILD.gn
+
 
     gn gen --args='${GN_ARGS}' "${B}"
 }
@@ -96,7 +96,6 @@ do_install() {
     install -m 0755 ${B}/libpdfium.so ${D}${libdir}/pdfium
     install -m 0644 ${B}/icudtl.dat ${D}${libdir}/pdfium
     cp ${S}/LICENSE ${D}${libdir}/pdfium
-    cp ${B}/args.gn ${D}${libdir}/pdfium
 
     if ${@bb.utils.contains('PACKAGECONFIG', 'v8', 'true', 'false', d)}; then
         install -m 0644 ${B}/snapshot_blob.bin ${D}${libdir}/pdfium/snapshot_blob.bin
@@ -108,6 +107,5 @@ do_install() {
 
 FILES:${PN}-dev += "\
     ${libdir}/pdfium/LICENSE \
-    ${libdir}/pdfium/args.gn \
     ${includedir}/PRESUBMIT.py \
 "
