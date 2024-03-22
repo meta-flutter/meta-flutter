@@ -19,7 +19,10 @@ DEPENDS += "\
     "
 
 SRCREV = "d62c54ebed698399afc8c28efc8cdaacbc056327"
-SRC_URI = "gn://github.com/dart-lang/sdk.git;gn_name=sdk"
+SRC_URI = " \
+    gn://github.com/dart-lang/sdk.git;gn_name=sdk \
+    file://gcc_toolchain.gni.in \
+"
 
 S = "${WORKDIR}/sdk"
 
@@ -58,6 +61,10 @@ OUT_DIR = "${S}/out"
 
 do_configure() {
     cd ${S}
+
+    # prevent tmp path warning
+    cp ${WORKDIR}/gcc_toolchain.gni.in ${S}/build/toolchain/gcc_toolchain.gni
+    sed -i "s|@DEBUG_FLAGS@|${DEBUG_FLAGS}|g" ${S}/build/toolchain/gcc_toolchain.gni
 
     # we only build one mode type
     rm -rf "${OUT_DIR}" || true
