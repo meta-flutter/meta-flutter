@@ -338,7 +338,7 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
             flutter_source_file = ''
             flutter_source_package = ''
             flutter_source_defines = ''
-            dart_plugin_registrant_file = f'{flutter_application_path}/.dart_tool/flutter_build/dart_plugin_registrant.dart'
+            dart_plugin_registrant_file = f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/dart_plugin_registrant.dart'
             if os.path.isfile(dart_plugin_registrant_file):
                 flutter_source_file = f'--source file://{dart_plugin_registrant_file}'
                 flutter_source_package = '--source package:flutter/src/dart_plugin_registrant.dart'
@@ -346,7 +346,7 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
 
             flutter_native_assets = ''
             if os.path.isfile('.dart_tool/flutter_build/*/native_assets.yaml'):
-                flutter_native_assets = f'--native-assets {flutter_application_path}/.dart_tool/flutter_build/*/native_assets.yaml'
+                flutter_native_assets = f'--native-assets {source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/native_assets.yaml'
 
             app_aot_extra = d.getVar("APP_AOT_EXTRA")
             app_aot_entry_file = d.getVar("APP_AOT_ENTRY_FILE")
