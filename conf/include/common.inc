@@ -17,7 +17,7 @@ PUB_CACHE_EXTRA_ARCHIVE_PATH ??= ""
 
 APP_AOT_EXTRA ??= ""
 APP_AOT_ENTRY_FILE ??= "main.dart"
-APP_GEN_SNAPSHOT_FLAGS ??= "--obfuscate"
+APP_GEN_SNAPSHOT_FLAGS ??= ""
 
 FLUTTER_APP_RUNTIME_MODES ?= "release"
 
@@ -281,6 +281,7 @@ def build_web(d, source_root, env):
 
 
 def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_path, staging_dir_target, source_root, env):
+    import glob
     import shutil
 
     # determine build type based on what flutter-engine installed.
@@ -330,10 +331,10 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
                 flutter_app_vm_profile = 'true'
 
             flutter_app_debug_flags = ''
-            flutter_app_app_dill = '--output-dill .dart_tool/flutter_build/*/app.dill'
+            dill_path = glob.glob(f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/app.dill')
+            flutter_app_output_dill = dill_path[0]
             if runtime_mode == 'debug':
                 flutter_app_debug_flags = '--enable-asserts'
-                flutter_app_app_dill = '.dart_tool/flutter_build/*/app.dill'
 
             flutter_source_file = ''
             flutter_source_package = ''
@@ -345,18 +346,24 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
                 flutter_source_defines = f'-Dflutter.dart_plugin_registrant=file://{dart_plugin_registrant_file}'
 
             flutter_native_assets = ''
-            if os.path.isfile('.dart_tool/flutter_build/*/native_assets.yaml'):
-                flutter_native_assets = f'--native-assets {source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/native_assets.yaml'
+            yaml_path = glob.glob(f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/native_assets.yaml')
+            if os.path.isfile(yaml_path[0]):
+                flutter_native_assets = f'--native-assets {yaml_path[0]}'
 
             app_aot_extra = d.getVar("APP_AOT_EXTRA")
             app_aot_entry_file = d.getVar("APP_AOT_ENTRY_FILE")
 
+            package_config_json = f'{source_dir}/{flutter_application_path}/.dart_tool/package_config.json'
+
+            dep_path = glob.glob(f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/kernel_snapshot.d')
+            dep_file = dep_path[0]
+
             cmd = f'{flutter_sdk}/bin/cache/dart-sdk/bin/dart \
                 --disable-analytics \
-                --disable-dart-dev {flutter_sdk}/bin/cache/artifacts/engine/linux-{clang_build_arch(d)}/frontend_server.dart.snapshot \
+                --disable-dart-dev \
+                {flutter_sdk}/bin/cache/artifacts/engine/linux-{clang_build_arch(d)}/frontend_server.dart.snapshot \
                 --sdk-root {flutter_app_sdk_root} \
                 --target=flutter \
-                --no-print-incremental-dependencies \
                 -Ddart.vm.profile={flutter_app_vm_profile} \
                 -Ddart.vm.product={flutter_app_vm_product} \
                 {app_aot_extra} \
@@ -365,9 +372,9 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
                 --aot \
                 --tfa \
                 --target-os linux \
-                --packages .dart_tool/package_config.json \
-                {flutter_app_app_dill} \
-                --depfile .dart_tool/flutter_build/*/kernel_snapshot.d \
+                --packages {package_config_json} \
+                --output-dill {flutter_app_output_dill} \
+                --depfile {dep_file} \
                 {flutter_source_file} \
                 {flutter_source_package} \
                 {flutter_source_defines} \
@@ -410,5 +417,5 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
                 --elf=libapp.so \
                 --strip \
                 {app_gen_snapshot_flags} \
-                .dart_tool/flutter_build/*/app.dill'
+                {flutter_app_output_dill}'
             run_command(d, cmd, source_root, env)
