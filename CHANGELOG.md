@@ -2,6 +2,7 @@
 
 Mar 27, 2024
 1. sentry-native RISC-V
+2. trim layers compatibility
 
 Mar 26, 2024
 1. flutter-app build use glob to resolve paths with asterisk
