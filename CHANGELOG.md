@@ -1,5 +1,11 @@
 # Changelog
 
+Mar 27, 2024
+1. sentry-native RISC-V
+
+Mar 26, 2024
+1. flutter-app build use glob to resolve paths with asterisk
+
 Mar 22, 2024
 1. flutter-engine: Resolve tmp path warning
 2. pdfium: Resolve tmp path warning
