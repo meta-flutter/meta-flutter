@@ -1,5 +1,8 @@
 # Changelog
 
+March 29, 2024
+1. improve flutter app build error handling
+
 Mar 27, 2024
 1. sentry-native RISC-V
 2. add compatibility for deprecated layer names: meta-flutter and meta-flutter-apps

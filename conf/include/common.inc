@@ -59,8 +59,7 @@ def run_command(d, cmd, cwd, env):
     bb.note('Running [%s] in %s' % (cmd, cwd))
     (retval, output) = getstatusoutput(cmd, cwd, env)
     if retval:
-        bb.error("failed %s (cmd was %s)%s" % (retval, cmd, ":\n%s" % output if output else ""))
-        return
+        sys.exit("failed %s (cmd was %s)%s" % (retval, cmd, ":\n%s" % output if output else ""))
 
 #
 # Archive Pub Cache
@@ -80,7 +79,6 @@ python do_archive_pub_cache() {
     import multiprocessing
     import shutil
     from   bb.fetch2 import FetchError
-    from   bb.fetch2 import runfetchcmd
 
     localfile = d.getVar("PUB_CACHE_ARCHIVE")
     localpath = os.path.join(d.getVar("DL_DIR"), localfile)
@@ -88,22 +86,33 @@ python do_archive_pub_cache() {
     if os.access(localpath, os.R_OK):
         return
 
+    env = os.environ
+
     #
     # clean existing pub-cache, populate from the flutter-sdk-native pub-cache
     #
     pub_cache = d.getVar("PUB_CACHE")
+    env['PUB_CACHE'] = pub_cache
+
     shutil.rmtree(f'{pub_cache}', ignore_errors=True)
     flutter_sdk_pub_cache = os.path.join(d.getVar("STAGING_DATADIR_NATIVE"), 'flutter/sdk/.pub-cache')
     shutil.copytree(flutter_sdk_pub_cache, pub_cache)
 
     workdir = d.getVar("WORKDIR")
+    env['XDG_CONFIG_HOME'] = workdir
+
     flutter_sdk = os.path.join(d.getVar("STAGING_DATADIR_NATIVE"), 'flutter/sdk')
+    env['PATH'] = f'{env["PATH"]}:{flutter_sdk}/bin'
+
     app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
 
+
     #
-    # Remove pubspec.lock file
+    # Remove pubspec.lock file if present
     #
-    runfetchcmd('rm -rf pubspec.lock', d, quiet=False, workdir=app_root)
+    pubspec_lock = os.path.join(app_root, 'pubspec.lock')
+    if os.path.exists(pubspec_lock):
+        run_command(d, 'rm -rf pubspec.lock', app_root, env)
 
     #
     # App hook to include something in archive 
@@ -120,22 +129,16 @@ python do_archive_pub_cache() {
             (pub_cache, workdir, flutter_sdk, path, pub_cache_extra_archive_path, pub_cache_extra_archive_cmd)
 
         bb.note("Running [%s] in %s" % (cmd, app_root))
-        runfetchcmd(f'{cmd}', d, quiet=False, workdir=app_root)
+        run_command(d, cmd, app_root, env)
 
     #
     # go online to fetch, then mark offline
     #
-    pub_cache_cmd = \
-        'export PUB_CACHE=%s; ' \
-        'export XDG_CONFIG_HOME=%s;' \
-        '%s/bin/flutter config --no-analytics;' \
-        '%s/bin/flutter clean;' \
-        '%s/bin/flutter pub get;' \
-        '%s/bin/flutter pub get --offline' % \
-        (pub_cache, workdir, flutter_sdk, flutter_sdk, flutter_sdk, flutter_sdk)
-
-    bb.note("Running [%s] in %s" % (pub_cache_cmd, app_root))
-    runfetchcmd(f'{pub_cache_cmd}', d, quiet=False, workdir=app_root)
+    run_command(d, 'flutter config --no-analytics', app_root, env)
+    run_command(d, 'flutter config --no-cli-animations', app_root, env)
+    run_command(d, 'flutter clean', app_root, env)
+    run_command(d, 'flutter pub get', app_root, env)
+    run_command(d, 'flutter pub get --offline', app_root, env)
 
     cp_cmd = \
         'mkdir -p %s/.project | true; ' \
@@ -143,14 +146,13 @@ python do_archive_pub_cache() {
         % (pub_cache, pub_cache)
 
     bb.note("Running [%s] in %s" % (cp_cmd, app_root))
-
-    runfetchcmd('%s' % (cp_cmd), d, quiet=False, workdir=app_root)
+    run_command(d, cp_cmd, app_root, env)
 
     bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
     pack_cmd = "tar -I \"pbzip2 -p%s\" -cf %s ./" % (bb_number_threads, localpath)
 
     bb.note("Running [%s] in %s" % (pack_cmd, pub_cache))
-    runfetchcmd('%s' % (pack_cmd), d, quiet=False, workdir=pub_cache)
+    run_command(d, pack_cmd, pub_cache, env)
 
     if not os.path.exists(localpath):
         raise FetchError("The fetch command returned success for pub cache, but %s doesn't exist?!" % (localpath), localpath)
@@ -272,7 +274,12 @@ def build_web(d, source_root, env):
     if os.path.exists(build_folder):
         run_command(d, 'flutter clean', source_root, env)
 
-    run_command(d, 'flutter pub get --offline', source_root, env)
+    #
+    # Remove pubspec.lock file if present
+    #
+    pubspec_lock = os.path.join(source_root, 'pubspec.lock')
+    if os.path.exists(pubspec_lock):
+        run_command(d, 'rm -rf pubspec.lock', source_root, env)
 
     flutter_build_args = d.getVar('FLUTTER_BUILD_ARGS')
     run_command(d, f'flutter build web {flutter_build_args}', source_root, env)
@@ -300,15 +307,23 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
 
         build_folder = os.path.join(source_root, 'build')
         if os.path.exists(build_folder):
-            run_command(d, 'flutter clean', source_root, env)
+            run_command(d, 'flutter clean -v', source_root, env)
 
-        run_command(d, 'flutter pub get --offline', source_root, env)
+        #
+        # Remove pubspec.lock file if present
+        #
+        pubspec_lock = os.path.join(source_root, 'pubspec.lock')
+        if os.path.exists(pubspec_lock):
+            run_command(d, 'rm -rf pubspec.lock', source_root, env)
 
+        run_command(d, 'flutter config --no-cli-animations', source_root, env)
+        run_command(d, 'flutter pub get --offline -v', source_root, env)
+        
         if runtime_mode == 'jit_release':
-            cmd = (f'flutter build {flutter_build_args} --local-engine')
+            cmd = (f'flutter build {flutter_build_args} --local-engine -v')
             run_command(cmd, source_root, env)
         else:
-            cmd = f'flutter build {flutter_build_args}'
+            cmd = f'flutter build {flutter_build_args} -v'
             run_command(d, cmd, source_root, env)
 
         bb.note(f'[{runtime_mode}] flutter build {flutter_build_args}: Completed')
