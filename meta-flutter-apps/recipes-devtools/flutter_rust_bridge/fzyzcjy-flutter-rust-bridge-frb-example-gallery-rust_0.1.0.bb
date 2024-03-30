@@ -7,7 +7,7 @@ HOMEPAGE = "https://github.com/fzyzcjy/flutter_rust_bridge"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=480e9b5af92d888295493a5cc7f2238e"
 
-SRCREV = "db1de32321c1b02f05a74d11f3ece5b38c837057"
+SRCREV = "79b0746e792692f03d0b95ade60f29da6cd789a1"
 
 SRC_URI += " \
     git://github.com/fzyzcjy/flutter_rust_bridge.git;lfs=0;branch=master;protocol=https;destsuffix=git \

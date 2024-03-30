@@ -1,5 +1,8 @@
 # Changelog
 
+March 29, 2024
+1. roll flutter-rust-bridge example
+
 Mar 27, 2024
 1. sentry-native RISC-V
 2. trim layers compatibility
