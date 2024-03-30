@@ -2,6 +2,7 @@
 
 March 29, 2024
 1. roll flutter-rust-bridge example
+2. improve flutter app build error handling
 
 Mar 27, 2024
 1. sentry-native RISC-V
