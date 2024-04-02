@@ -44,18 +44,20 @@ PACKAGECONFIG[use-qemu] = "--use-qemu"
 PACKAGECONFIG[exclude-kernel-service] = "--exclude-kernel-service"
 PACKAGECONFIG[verbose] = "--verbose"
 
-GN_ARGS = "${PACKAGECONFIG_CONFARGS} --no-goma --clang"
+GN_ARGS = "${PACKAGECONFIG_CONFARGS} --no-goma"
 
 # debug, release, product
 GN_ARGS:append = " --mode product"
 
-GN_ARGS:append:armv7 = " --arch arm --arm-float-abi ${TARGET_FPU}"
-GN_ARGS:append:armv7a = " --arch arm --arm-float-abi ${TARGET_FPU}"
-GN_ARGS:append:armv7ve = " --arch arm --arm-float-abi ${TARGET_FPU}"
-GN_ARGS:append:aarch64 = " --arch arm64"
-GN_ARGS:append:x86-64 = " --arch x64"
-GN_ARGS:append:riscv32 = " --arch riscv32"
-GN_ARGS:append:riscv64 = " --arch riscv64"
+GN_HOST_ARCH = "${@gn_host_arch_name(d)}"
+
+GN_ARGS:append:armv7 = " --arch arm_${GN_HOST_ARCH} --arm-float-abi ${TARGET_FPU}"
+GN_ARGS:append:armv7a = " --arch arm_${GN_HOST_ARCH} --arm-float-abi ${TARGET_FPU}"
+GN_ARGS:append:armv7ve = " --arch arm_${GN_HOST_ARCH} --arm-float-abi ${TARGET_FPU}"
+GN_ARGS:append:aarch64 = " --arch arm64_${GN_HOST_ARCH}"
+GN_ARGS:append:x86-64 = " --arch x64_${GN_HOST_ARCH}"
+GN_ARGS:append:riscv32 = " --arch riscv32_${GN_HOST_ARCH}"
+GN_ARGS:append:riscv64 = " --arch riscv64_${GN_HOST_ARCH}"
 
 OUT_DIR = "${S}/out"
 
