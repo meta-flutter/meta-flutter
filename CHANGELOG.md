@@ -1,5 +1,8 @@
 # Changelog
 
+Apr 2, 2024
+1. rive-text LTO build option.  Resolves 32-bit build issue.
+
 March 29, 2024
 1. improve flutter app build error handling
 
