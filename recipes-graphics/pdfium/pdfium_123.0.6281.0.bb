@@ -42,7 +42,7 @@ EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 EXTRA_CXXFLAGS = ""
 #TODO aarch64 musl "extra_cxxflags= \"-flax-vector-conversions\""
 
-PACKAGECONFIG ??= "release skia"
+PACKAGECONFIG ??= "release"
 
 PACKAGECONFIG[release] = "is_debug = false, is_debug = true"
 PACKAGECONFIG[skia] = "pdf_use_skia = true, pdf_use_skia = false, fontconfig"

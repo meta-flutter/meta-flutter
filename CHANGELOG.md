@@ -2,6 +2,7 @@
 
 Apr 2, 2024
 1. rive-text LTO build option.  Resolves 32-bit build issue.
+2. pdfium. Remove skia from default PACKAGECONFIG.
 
 March 29, 2024
 1. improve flutter app build error handling
