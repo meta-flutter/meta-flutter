@@ -19,6 +19,7 @@ DEPENDS += " \
 
 CURL_CA_BUNDLE ??= "${STAGING_DIR_NATIVE}/etc/ssl/certs/ca-certificates.crt"
 DEPOT_TOOLS ??= "${STAGING_DIR_NATIVE}/usr/share/depot_tools"
+VPYTHON_VIRTUALENV_ROOT ??= "${WORKDIR}/vpython"
 PYTHON3_PATH ??= "bootstrap-2@3.11.6.chromium.30_bin/python3/bin"
 EXTRA_GN_SYNC ??= ""
 GN_CUSTOM_VARS ??= "{}"
@@ -41,6 +42,7 @@ do_configure:prepend() {
     export NO_PROXY=localhost,127.0.0.1,::1
     export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON3_PATH}:${PATH}
     export DEPOT_TOOLS_UPDATE=0
+    export VPYTHON_VIRTUALENV_ROOT=${VPYTHON_VIRTUALENV_ROOT}
 }
 
 do_compile[network] = "1"
@@ -52,4 +54,5 @@ do_compile:prepend() {
     export NO_PROXY=localhost,127.0.0.1,::1
     export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON3_PATH}:${PATH}
     export DEPOT_TOOLS_UPDATE=0
+    export VPYTHON_VIRTUALENV_ROOT=${VPYTHON_VIRTUALENV_ROOT}
 }
