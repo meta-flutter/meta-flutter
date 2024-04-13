@@ -1,5 +1,8 @@
 # Changelog
 
+Apr 13, 2024
+1. Set `VPYTHON_VIRTUALENV_ROOT` to ${WORKDIR}/vpython
+
 Apr 2, 2024
 1. rive-text LTO build option.  Resolves 32-bit build issue.
 2. pdfium. Remove skia from default PACKAGECONFIG.
