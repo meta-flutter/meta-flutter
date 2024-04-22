@@ -29,6 +29,10 @@ RDEPENDS:${PN} += "\
     xkeyboard-config \
     "
 
+RRECOMMENDS:${PN} += "\
+    liberation-fonts \
+    "
+
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 SRC_REPO ??= "github.com/ardera/flutter-pi.git"
