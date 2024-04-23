@@ -2,6 +2,7 @@
 
 Apr 22, 2024
 1. Add runtime recommendation for liberation-fonts to flutter-pi
+2. common.inc -> change sys.exit occurence to bb.fatal
 
 Apr 13, 2024
 1. Set `VPYTHON_VIRTUALENV_ROOT` to ${WORKDIR}/vpython
