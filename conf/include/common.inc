@@ -59,6 +59,8 @@ def run_command(d, cmd, cwd, env):
     bb.note('Running [%s] in %s' % (cmd, cwd))
     (retval, output) = getstatusoutput(cmd, cwd, env)
     if retval:
+        formatted_output = '\n  ' + output.replace('\n','\n  ')
+        bb.note(f'Output:{formatted_output}')
         bb.fatal(f'{cmd} failed: {retval}')
 
 #
