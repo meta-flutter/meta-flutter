@@ -106,7 +106,10 @@ python do_archive_pub_cache() {
     shutil.copytree(flutter_sdk_pub_cache, pub_cache)
 
     workdir = d.getVar("WORKDIR")
-    env['XDG_CONFIG_HOME'] = workdir
+    # required for dart: https://github.com/dart-lang/sdk/issues/41560
+    env['HOME'] = f'{workdir}'
+    # required for flutter: https://github.com/flutter/flutter/issues/59430
+    env['XDG_CONFIG_HOME'] = f'{workdir}'
 
     flutter_sdk = os.path.join(d.getVar("STAGING_DATADIR_NATIVE"), 'flutter/sdk')
     env['PATH'] = f'{env["PATH"]}:{flutter_sdk}/bin'
@@ -263,6 +266,10 @@ python do_compile() {
 
     staging_dir_target = d.getVar('STAGING_DIR_TARGET')
     env['PKG_CONFIG_PATH'] = f'{staging_dir_target}/usr/lib/pkgconfig:{staging_dir_target}/usr/share/pkgconfig:{d.getVar("PKG_CONFIG_PATH")}'
+
+    workdir = d.getVar("WORKDIR")
+    # required for flutter: https://github.com/flutter/flutter/issues/59430
+    env['XDG_CONFIG_HOME'] = f'{workdir}'
 
     bb.note(f'{env}')
 
