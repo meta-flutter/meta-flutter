@@ -111,6 +111,24 @@ python do_archive_pub_cache() {
     # required for flutter: https://github.com/flutter/flutter/issues/59430
     env['XDG_CONFIG_HOME'] = f'{workdir}'
 
+    http_proxy = d.getVar('http_proxy')
+    if http_proxy != None:
+        env['http_proxy']     = f'{http_proxy}'
+
+    https_proxy = d.getVar('https_proxy')
+    if https_proxy != None:
+        env['https_proxy']    = f'{https_proxy}'
+
+    http_proxy_ = d.getVar('HTTP_PROXY')
+    if http_proxy_ != None:
+        env['HTTP_PROXY']     = f'{http_proxy_}'
+
+    https_proxy_ = d.getVar('HTTPS_PROXY')
+    if https_proxy_ != None:
+        env['HTTPS_PROXY']    = f'{https_proxy_}'
+
+    env['NO_PROXY']       = 'localhost,127.0.0.1,::1'
+
     flutter_sdk = os.path.join(d.getVar("STAGING_DATADIR_NATIVE"), 'flutter/sdk')
     env['PATH'] = f'{env["PATH"]}:{flutter_sdk}/bin'
 
