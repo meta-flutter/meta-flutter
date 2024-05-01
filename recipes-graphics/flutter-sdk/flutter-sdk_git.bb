@@ -102,6 +102,12 @@ python do_unpack:append() {
     env['PATH']           = f'{source_dir}/bin:{path}'
     env['PUB_CACHE']      = f'{source_dir}/.pub-cache'
 
+    workdir = d.getVar('WORKDIR')
+    # required for dart: https://github.com/dart-lang/sdk/issues/41560
+    env['HOME'] = f'{workdir}'
+    # required for flutter: https://github.com/flutter/flutter/issues/59430
+    env['XDG_CONFIG_HOME'] = f'{workdir}'
+
     http_proxy = d.getVar('http_proxy')
     if http_proxy != None:
         env['http_proxy']     = f'{http_proxy}'
