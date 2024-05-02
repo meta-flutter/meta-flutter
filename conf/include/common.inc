@@ -27,7 +27,7 @@ FLUTTER_APPLICATION_INSTALL_SUFFIX ??= "${PUBSPEC_APPNAME}"
 FLUTTER_INSTALL_DIR = "${FLUTTER_APPLICATION_INSTALL_PREFIX}/${FLUTTER_APPLICATION_INSTALL_SUFFIX}"
 
 PUB_CACHE = "${WORKDIR}/pub_cache"
-PUB_CACHE_ARCHIVE = ""
+PUB_CACHE_ARCHIVE = "flutter-pub-cache-${PN}-${SRCPV}-${FLUTTER_SDK_TAG}.tar.bz2"
 
 PUBSPEC_IGNORE_LOCKFILE ??= "0"
 
@@ -321,7 +321,7 @@ python do_cleanall:append() {
     file = os.path.join(workspace, 'PUB_CACHE_ARCHIVE')
     if not os.path.exists(file):
         return
-    
+
     localfile = ''
     with open(file, 'r') as f:
         localfile = f.read()
