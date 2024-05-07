@@ -33,6 +33,9 @@ PUB_CACHE_ARCHIVE = "flutter-pub-cache-${PN}-${_REV}-${FLUTTER_SDK_TAG}.tar.bz2"
 PUBSPEC_IGNORE_LOCKFILE ??= "0"
 PUBSPEC_ENFORCE_LOCKFILE ??= "0"
 
+PUBSPEC_IGNORE_LOCKFILE ??= "0"
+PUBSPEC_ENFORCE_LOCKFILE ??= "0"
+
 FLUTTER_SDK = "${STAGING_DIR_NATIVE}/usr/share/flutter/sdk"
 
 require conf/include/clang-utils.inc
