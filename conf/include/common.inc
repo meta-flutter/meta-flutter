@@ -30,6 +30,7 @@ PUB_CACHE = "${WORKDIR}/pub_cache"
 PUB_CACHE_ARCHIVE = "flutter-pub-cache-${PN}-${SRCPV}-${FLUTTER_SDK_TAG}.tar.bz2"
 
 PUBSPEC_IGNORE_LOCKFILE ??= "0"
+PUBSPEC_ENFORCE_LOCKFILE ??= "0"
 
 FLUTTER_SDK = "${STAGING_DIR_NATIVE}/usr/share/flutter/sdk"
 
@@ -227,6 +228,12 @@ python do_archive_pub_cache() {
     run_command(d, 'flutter config --no-analytics', app_root, env)
     run_command(d, 'flutter config --no-cli-animations', app_root, env)
     run_command(d, 'flutter clean', app_root, env)
+    if d.getVar("PUBSPEC_ENFORCE_LOCKFILE") == "1":
+        run_command(d, 'flutter pub get --enforce-lockfile', app_root, env)
+        run_command(d, 'flutter pub get --offline --enforce-lockfile', app_root, env)
+    else:
+        run_command(d, 'flutter pub get', app_root, env)
+        run_command(d, 'flutter pub get --offline', app_root, env)
 
     # if no pubspec.lock, create it
     pubspec_lock = os.path.join(app_root, 'pubspec.lock')
@@ -348,6 +355,9 @@ python do_compile() {
     if pubspec_appname != pubspec_yaml_appname:
         bb.fatal("Set PUBSPEC_APPNAME to match name value in pubspec.yaml")
 
+    if d.getVar("PUBSPEC_IGNORE_LOCKFILE") == "1" and d.getVar("PUBSPEC_ENFORCE_LOCKFILE") == "1":
+        bb.fatal("Both PUBSPEC_IGNORE_LOCKFILE and PUBSPEC_ENFORCE_LOCKFILE are set which is invalid")
+
     flutter_sdk = d.getVar('FLUTTER_SDK')
 
     env = os.environ
@@ -390,6 +400,14 @@ def build_web(d, source_root, env):
     if os.path.exists(build_folder):
         run_command(d, 'flutter clean', source_root, env)
 
+    if d.getVar("PUBSPEC_IGNORE_LOCKFILE") == "1":
+        #
+        # Remove pubspec.lock file if present
+        #
+        pubspec_lock = os.path.join(app_root, 'pubspec.lock')
+        if os.path.exists(pubspec_lock):
+            run_command(d, 'rm -rf pubspec.lock', app_root, env)
+
     flutter_build_args = d.getVar('FLUTTER_BUILD_ARGS')
     run_command(d, f'flutter build web {flutter_build_args}', source_root, env)
 
@@ -426,6 +444,20 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
         if os.path.exists(build_folder):
             run_command(d, 'flutter clean -v', source_root, env)
 
+        if d.getVar("PUBSPEC_IGNORE_LOCKFILE") == "1":
+            #
+            # Remove pubspec.lock file if present
+            #
+            pubspec_lock = os.path.join(app_root, 'pubspec.lock')
+            if os.path.exists(pubspec_lock):
+                run_command(d, 'rm -rf pubspec.lock', app_root, env)
+
+        run_command(d, 'flutter config --no-cli-animations', source_root, env)
+        if d.getVar("PUBSPEC_ENFORCE_LOCKFILE") == "1":
+            run_command(d, 'flutter pub get --offline --enforce-lockfile -v', source_root, env)
+        else:
+            run_command(d, 'flutter pub get --offline -v', source_root, env)
+        
         if runtime_mode == 'jit_release':
             cmd = (f'flutter build {flutter_build_args} --local-engine -v')
             run_command(cmd, source_root, env)
