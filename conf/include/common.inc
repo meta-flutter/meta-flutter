@@ -28,6 +28,9 @@ FLUTTER_INSTALL_DIR = "${FLUTTER_APPLICATION_INSTALL_PREFIX}/${FLUTTER_APPLICATI
 PUB_CACHE = "${WORKDIR}/pub_cache"
 PUB_CACHE_ARCHIVE = "flutter-pub-cache-${PN}-${SRCPV}-${FLUTTER_SDK_TAG}.tar.bz2"
 
+PUBSPEC_IGNORE_LOCKFILE ??= "0"
+PUBSPEC_ENFORCE_LOCKFILE ??= "0"
+
 FLUTTER_SDK = "${STAGING_DIR_NATIVE}/usr/share/flutter/sdk"
 
 require conf/include/clang-utils.inc
