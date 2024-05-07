@@ -29,6 +29,8 @@ Yocto Layer for Google Flutter related projects.
 | `FLUTTER_APP_RUNTIME_MODES`          | Allows overriding modes that install app. Default is `release`.                                                                     |
 | `FLUTTER_APPLICATION_INSTALL_PREFIX` | Install prefix for flutter application install. Overriding enables installing into user directory. Default is `${datadir}/flutter`. |
 | `FLUTTER_APPLICATION_INSTALL_SUFFIX` | Install suffix for flutter application install. Default is "${PUBSPEC_APPNAME}".                                                    |
+| `PUBSPEC_IGNORE_LOCKFILE`            | Delete the `pubspec.lock` file during the build process                                                                             |
+| `PUBSPEC_ENFORCE_LOCKFILE`           | Run `flutter pub get` with the `--enforce-lockfile` flag, preventing dependencies from being upgraded during build`                 |
 
 ### Supported Engine Variants
 
