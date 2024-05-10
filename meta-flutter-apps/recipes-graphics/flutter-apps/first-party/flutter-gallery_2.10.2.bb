@@ -14,6 +14,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=3ac21e3d8ebe7dd79f273ca11b9e7b4e"
 
 SRCREV = "cfcb9dbda56697fe8bafe4b64c1a9261dde908ae"
 SRC_URI = "git://github.com/flutter/gallery.git;lfs=0;nobranch=1;protocol=https;destsuffix=git"
+SRC_URI += "pub://${THISDIR}/files/${PN}/pubspec.lock"
 
 S = "${WORKDIR}/git"
 

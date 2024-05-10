@@ -11,6 +11,8 @@ require conf/include/flutter-version.inc
 require conf/include/app-utils.inc
 require conf/include/common.inc
 
+inherit pub-fetcher
+
 DEPENDS += " \
     flutter-engine \
     "
