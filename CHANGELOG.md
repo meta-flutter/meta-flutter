@@ -3,6 +3,9 @@
 May 13. 2024
 1. Update Pubspec Lockfile Handling
 2. resolve PUB_CACHE_ARCHIVE fails for local sources
+3. Version ivi-homescreen to v1.0
+4. Version flutter-auto to v1.0
+5. Update flutter-auto repo and commit to match ivi-homescreen v1.0; Add EXE_OUTPUT_NAME=flutter-auto
 
 Apr 22, 2024
 1. Add runtime recommendation for liberation-fonts to flutter-pi
