@@ -2,8 +2,8 @@
 # Copyright (c) 2020-2023 Joel Winarske. All rights reserved.
 #
 
-SUMMARY = "Toyota Flutter Auto"
-DESCRIPTION = "Toyota's ivi-homescreen renamed to flutter-auto"
+SUMMARY = "Toyota IVI Homescreen (flutter-auto)"
+DESCRIPTION = "Toyota's Flutter Embedder that communicates with AGL-compositor/Wayland compositors"
 AUTHOR = "joel.winarske@toyotaconnected.com"
 HOMEPAGE = "https://github.com/toyota-connected/ivi-homescreen"
 BUGTRACKER = "https://github.com/toyota-connected/ivi-homescreen/issues"
@@ -23,8 +23,8 @@ DEPENDS += "\
 
 REQUIRED_DISTRO_FEATURES = "wayland opengl"
 
-SRCREV ??= "3114782f922cf169b023fd2609dcf9eb12b5b147"
-SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=agl"
+SRCREV ??= "a038ce00031ed5a9a89b4d8dd7dbde5e3d7ade6e"
+SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=v1.0"
 
 S = "${WORKDIR}/git"
 
@@ -105,7 +105,10 @@ PACKAGECONFIG[sentry-native] = "-DBUILD_CRASH_HANDLER=ON, -DBUILD_CRASH_HANDLER=
 PACKAGECONFIG[verbose] = "-DCMAKE_BUILD_TYPE=Debug"
 
 
-EXTRA_OECMAKE += " -D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr"
+EXTRA_OECMAKE += " \
+    -D EXE_OUTPUT_NAME=flutter-auto \
+    -D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr \
+"
 
 cmake_do_install:append() {
     rm -rf ${D}${libdir}
