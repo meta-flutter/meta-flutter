@@ -71,7 +71,7 @@ def run_command(d, cmd, cwd, env):
 # Archive Pub Cache
 #
 
-addtask archive_pub_cache before do_patch after do_unpack
+addtask archive_pub_cache before restore_pub_cache after do_patch
 do_archive_pub_cache[network] = "1"
 do_archive_pub_cache[dirs] = "${WORKDIR} ${DL_DIR}"
 do_archive_pub_cache[depends] += " \
@@ -197,7 +197,7 @@ python do_archive_pub_cache() {
 # Restore Pub Cache
 #
 
-addtask restore_pub_cache before do_patch after do_archive_pub_cache
+addtask restore_pub_cache before do_configure after do_archive_pub_cache
 do_restore_pub_cache[dirs] = "${WORKDIR} ${DL_DIR}"
 do_restore_pub_cache[depends] += " \
     pbzip2-native:do_populate_sysroot \
