@@ -2,6 +2,7 @@
 
 May 13. 2024
 1. Update Pubspec Lockfile Handling
+2. resolve PUB_CACHE_ARCHIVE fails for local sources
 
 Apr 22, 2024
 1. Add runtime recommendation for liberation-fonts to flutter-pi
