@@ -1,5 +1,8 @@
 # Changelog
 
+May 13. 2024
+1. Update Pubspec Lockfile Handling
+
 Apr 22, 2024
 1. Add runtime recommendation for liberation-fonts to flutter-pi
 2. common.inc -> change sys.exit occurence to bb.fatal
