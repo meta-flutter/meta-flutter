@@ -1,6 +1,9 @@
 # Changelog
 
-May 13. 2024
+May 15, 2024
+1. ivi-homescreen/flutter-auto v2
+
+May 13, 2024
 1. Update Pubspec Lockfile Handling
 2. resolve PUB_CACHE_ARCHIVE fails for local sources
 3. Version ivi-homescreen to v1.0
