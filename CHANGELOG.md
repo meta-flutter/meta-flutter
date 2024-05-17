@@ -1,5 +1,8 @@
 # Changelog
 
+May 17, 2024
+1. v2 enable disabling optional plugins
+
 May 15, 2024
 1. ivi-homescreen/flutter-auto v2
 
