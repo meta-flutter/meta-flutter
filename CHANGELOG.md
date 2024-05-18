@@ -1,5 +1,8 @@
 # Changelog
 
+May 18, 2024
+1. Roll v2 - Separates plugin_common to plugin_common_curl and plugin_common_glib
+
 May 17, 2024
 1. v2 enable disabling optional plugins
 
