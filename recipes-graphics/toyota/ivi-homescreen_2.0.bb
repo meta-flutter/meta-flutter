@@ -26,7 +26,7 @@ RDEPENDS:${PN} += "\
 
 REQUIRED_DISTRO_FEATURES = "wayland"
 
-SRCREV ??= "5f5a12154cd5d399980896d92e004cae181c9663"
+SRCREV ??= "c72ce63289e386bcec3c90c03ccfde00271d7d0f"
 SRC_URI = "gitsm://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=v2.0"
 
 S = "${WORKDIR}/git"
@@ -50,7 +50,6 @@ PACKAGECONFIG ??= "\
     pdf \
     secure-storage \
     url_launcher \
-    video_player_linux \
     "
 
 PACKAGECONFIG[backend-wayland-drm] = "-DBUILD_BACKEND_WAYLAND_DRM=ON,-DBUILD_BACKEND_WAYLAND_DRM=OFF"
