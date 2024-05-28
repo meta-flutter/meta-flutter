@@ -26,7 +26,7 @@ SRC_REPO ??= "github.com/sony/flutter-embedded-linux.git"
 SRC_REPO_BRANCH ??= "master"
 
 SRC_URI = "git://${SRC_REPO};protocol=https;branch=${SRC_REPO_BRANCH}"
-SRCREV ??= "28de1eb56d6afff0ae7bdc68787a0ae620ccc51d"
+SRCREV ??= "d73e35a3be61fd20ab82e5ecd3e8bb69fd864196"
 
 S = "${WORKDIR}/git"
 
