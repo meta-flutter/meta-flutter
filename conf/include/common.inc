@@ -74,6 +74,7 @@ def run_command(d, cmd, cwd, env):
 addtask archive_pub_cache before restore_pub_cache after do_patch
 do_archive_pub_cache[network] = "1"
 do_archive_pub_cache[dirs] = "${WORKDIR} ${DL_DIR}"
+do_archive_pub_cache[lockfiles] += "${DL_DIR}/${PUB_CACHE_ARCHIVE}.lock"
 do_archive_pub_cache[depends] += " \
     flutter-sdk-native:do_populate_sysroot \
     pbzip2-native:do_populate_sysroot \
@@ -178,6 +179,7 @@ python do_archive_pub_cache() {
 
 addtask restore_pub_cache before do_configure after do_archive_pub_cache
 do_restore_pub_cache[dirs] = "${WORKDIR} ${DL_DIR}"
+do_restore_pub_cache[lockfiles] += "${DL_DIR}/${PUB_CACHE_ARCHIVE}.lock"
 do_restore_pub_cache[depends] += " \
     pbzip2-native:do_populate_sysroot \
     tar-native:do_populate_sysroot \
