@@ -16,16 +16,8 @@ CVE_PRODUCT = ""
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=1d84cf16c48e571923f837136633a265"
 
-DEPENDS += "\
-    ca-certificates-native \
-    curl-native \
-    ninja-native \
-    unzip-native \
-    "
-
 RDEPENDS:${PN} += "\
     atk \
-    ca-certificates \
     curl \
     fontconfig \
     gtk+3 \
@@ -79,24 +71,14 @@ def run_command(d, cmd, cwd, env):
     bb.note(f'{output}')
 
 
-do_unpack[network] = "1"
-do_unpack[depends] += " \
-    ca-certificates-native:do_populate_sysroot \
-    curl-native:do_populate_sysroot \
-    ninja-native:do_populate_sysroot \
-    unzip-native:do_populate_sysroot \
-"
 python do_unpack:append() {
     import shutil
 
-    # clean cache folder if it exists
+    bb.build.exec_func("do_restore_pub_cache", d)
+
     source_dir = d.getVar('S')
-    shutil.rmtree(f'{source_dir}/bin/cache', ignore_errors=True)
 
     env = os.environ
-
-    staging_dir_native = d.getVar('STAGING_DIR_NATIVE')
-    env['CURL_CA_BUNDLE'] = f'{staging_dir_native}/etc/ssl/certs/ca-certificates.crt'
 
     path = env['PATH']
     env['PATH']           = f'{source_dir}/bin:{path}'
@@ -123,15 +105,30 @@ python do_unpack:append() {
     flutter_sdk_tag = d.getVar('FLUTTER_SDK_TAG')
     bb.note(f'Flutter SDK: {flutter_sdk_tag}')
 
+    run_command(d, 'dart pub --verbose get --offline',
+                f'{source_dir}/packages/flutter_tools',
+                env)
+
     run_command(d, 'flutter config --clear-features', source_dir, env)
     run_command(d, 'flutter config --enable-linux-desktop', source_dir, env)
     run_command(d, 'flutter config --enable-custom-devices', source_dir, env)
     run_command(d, 'flutter config --enable-web', source_dir, env)
     run_command(d, 'flutter config --no-analytics', source_dir, env)
     run_command(d, 'dart --disable-analytics', source_dir, env)
-    run_command(d, 'flutter precache', source_dir, env)
     run_command(d, 'flutter config --list', source_dir, env)
     run_command(d, 'flutter doctor -v', source_dir, env)
+}
+
+do_restore_pub_cache() {
+    PUB_CACHE_HOSTED="${S}/.pub-cache/hosted/pub.dev/"
+    mkdir -p $PUB_CACHE_HOSTED
+
+    for package in `find ${S}/.pub-preload-cache -name "*.tar.gz"`
+    do
+        package_name=$(basename $package .tar.gz)
+        mkdir -p $PUB_CACHE_HOSTED/$package_name
+        tar zxf $package -C $PUB_CACHE_HOSTED/$package_name
+    done
 }
 
 do_install() {
@@ -140,6 +137,7 @@ do_install() {
     install -d ${D}${datadir}/flutter/sdk
 
     cp -rTv ${S}/. ${D}${datadir}/flutter/sdk
+    rm -rf ${D}${datadir}/flutter/sdk/.pub-preload-cache
 }
 
 python () {
