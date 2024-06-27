@@ -26,7 +26,7 @@ RDEPENDS:${PN} += "\
 
 REQUIRED_DISTRO_FEATURES = "wayland"
 
-SRCREV ??= "c72ce63289e386bcec3c90c03ccfde00271d7d0f"
+SRCREV ??= "375d8e94d3fd89b5f22d1d959b3d584e7c03b99f"
 SRC_URI = "gitsm://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=v2.0"
 
 S = "${WORKDIR}/git"

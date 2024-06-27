@@ -1,5 +1,8 @@
 # Changelog
 
+June 26, 2024
+1. Roll v2 - waypp/libliftoff + examples, plugin updates
+
 May 20, 2024
 1. Roll v2 - cleanup plugin_common
 
