@@ -1,8 +1,13 @@
 # Changelog
 
+June 27, 2064
+1. v2 - update package config flags
+2. v2 - remove install of libwayland-gen.a from waypp
+
 June 26, 2024
 1. Roll v2 - waypp/libliftoff + examples, plugin updates
 2. v2 - remove file-selector from package cfg default as it depends on meta-gnome
+3. v2 - add package config flag for v2 examples (waypp+libliftoff)
 
 May 20, 2024
 1. Roll v2 - cleanup plugin_common
