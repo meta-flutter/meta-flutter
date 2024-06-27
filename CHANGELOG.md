@@ -2,6 +2,7 @@
 
 June 26, 2024
 1. Roll v2 - waypp/libliftoff + examples, plugin updates
+2. v2 - remove file-selector from package cfg default as it depends on meta-gnome
 
 May 20, 2024
 1. Roll v2 - cleanup plugin_common

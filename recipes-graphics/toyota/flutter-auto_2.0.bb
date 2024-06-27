@@ -48,7 +48,6 @@ PACKAGECONFIG ??= "\
     desktop_window_linux \
     go_router \
     pdf \
-    file_selector \
     secure-storage \
     url_launcher \
     "

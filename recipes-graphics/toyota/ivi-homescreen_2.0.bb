@@ -45,7 +45,6 @@ PACKAGECONFIG ??= "\
     \
     audioplayer_linux \
     desktop_window_linux \
-    file_selector \
     go_router \
     pdf \
     secure-storage \
