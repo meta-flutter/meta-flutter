@@ -1,8 +1,9 @@
 # Changelog
 
-June 27, 2064
+June 27, 2024
 1. v2 - update package config flags
 2. v2 - remove install of libwayland-gen.a from waypp
+3. v2 - remove use of `find_package(OpenGL` in waypp.
 
 June 26, 2024
 1. Roll v2 - waypp/libliftoff + examples, plugin updates

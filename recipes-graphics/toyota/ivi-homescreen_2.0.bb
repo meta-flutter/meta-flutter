@@ -26,7 +26,7 @@ RDEPENDS:${PN} += "\
 
 REQUIRED_DISTRO_FEATURES = "wayland"
 
-SRCREV ??= "5a3e4203817e992a97b931c77aa0e266c8172748"
+SRCREV ??= "6c980f354915c7e58de19b8f1c19b3369d0dbd75"
 SRC_URI = "gitsm://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=v2.0"
 
 S = "${WORKDIR}/git"
@@ -49,15 +49,15 @@ PACKAGECONFIG ??= "\
     \
     audioplayer_linux \
     camera \
-    desktop_window_linux \
     go_router \
     pdf \
     secure-storage \
     url_launcher \
+    video_player_linux \
     "
 
 PACKAGECONFIG[backend-wayland-drm] = "-DBUILD_BACKEND_WAYLAND_DRM=ON,-DBUILD_BACKEND_WAYLAND_DRM=OFF"
-PACKAGECONFIG[backend-wayland-egl] = "-DBUILD_BACKEND_WAYLAND_EGL=ON,-DBUILD_BACKEND_WAYLAND_EGL=OFF,virtual/egl virtual/libgles2 virtual/libgles3"
+PACKAGECONFIG[backend-wayland-egl] = "-DBUILD_BACKEND_WAYLAND_EGL=ON,-DBUILD_BACKEND_WAYLAND_EGL=OFF,virtual/egl"
 PACKAGECONFIG[backend-wayland-vulkan] = "-DBUILD_BACKEND_WAYLAND_VULKAN=ON,-DBUILD_BACKEND_WAYLAND_VULKAN=OFF,vulkan-loader"
 
 PACKAGECONFIG[client-agl-shell] = "-DENABLE_AGL_CLIENT=ON,-DENABLE_AGL_CLIENT=OFF"
@@ -93,7 +93,7 @@ PACKAGECONFIG[audioplayer_linux] = "\
     gstreamer1.0-plugins-good \
     "
 PACKAGECONFIG[url_launcher] = "-DBUILD_PLUGIN_URL_LAUNCHER=ON,-DBUILD_PLUGIN_URL_LAUNCHER=OFF"
-PACKAGECONFIG[secure-storage] = "-DBUILD_PLUGIN_SECURE_STORAGE=ON,-DBUILD_PLUGIN_SECURE_STORAGE=OFF,libsecret"
+PACKAGECONFIG[secure-storage] = "-DBUILD_PLUGIN_SECURE_STORAGE=ON,-DBUILD_PLUGIN_SECURE_STORAGE=OFF, libsecret"
 PACKAGECONFIG[file_selector] = "-DBUILD_PLUGIN_FILE_SELECTOR=ON,-DBUILD_PLUGIN_FILE_SELECTOR=OFF, zenity"
 PACKAGECONFIG[cloud_firestore] = "\
     -DBUILD_PLUGIN_CLOUD_FIRESTORE=ON \
@@ -132,11 +132,10 @@ PACKAGECONFIG[examples] = "-DBUILD_EXAMPLES=ON, -DBUILD_EXAMPLES=OFF"
 PACKAGECONFIG[verbose] = "-DCMAKE_BUILD_TYPE=Debug -DDEBUG_PLATFORM_MESSAGES=ON, -DDEBUG_PLATFORM_MESSAGES=OFF"
 
 EXTRA_OECMAKE += "\
-    -D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr \
+    -D EXE_OUTPUT_NAME=${PN} \
     -D ENABLE_LTO=ON \
     -D BUILD_UNIT_TESTS=OFF \
     -D BUILD_DOCS=OFF \
-    -D OPENGL_opengl_LIBRARY=${STAGING_LIBDIR}/libEGL.so \
 "
 
 BBCLASSEXTEND = "verbose-logs"
