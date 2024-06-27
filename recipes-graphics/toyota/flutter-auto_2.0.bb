@@ -26,7 +26,7 @@ RDEPENDS:${PN} += "\
 
 REQUIRED_DISTRO_FEATURES = "wayland"
 
-SRCREV ??= "c72ce63289e386bcec3c90c03ccfde00271d7d0f"
+SRCREV ??= "5a3e4203817e992a97b931c77aa0e266c8172748"
 SRC_URI = "gitsm://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=v2.0"
 
 S = "${WORKDIR}/git"
@@ -44,17 +44,23 @@ PACKAGECONFIG ??= "\
     client-agl-shell \
     client-xdg \
     \
+    examples \
+    \
+    layer-playground-view \
+    nav_render_view \
+    webview_flutter_view \
+    \
     audioplayer_linux \
+    camera \
     desktop_window_linux \
     go_router \
     pdf \
-    file_selector \
     secure-storage \
     url_launcher \
     "
 
 PACKAGECONFIG[backend-wayland-drm] = "-DBUILD_BACKEND_WAYLAND_DRM=ON,-DBUILD_BACKEND_WAYLAND_DRM=OFF"
-PACKAGECONFIG[backend-wayland-egl] = "-DBUILD_BACKEND_WAYLAND_EGL=ON,-DBUILD_BACKEND_WAYLAND_EGL=OFF,virtual/egl"
+PACKAGECONFIG[backend-wayland-egl] = "-DBUILD_BACKEND_WAYLAND_EGL=ON,-DBUILD_BACKEND_WAYLAND_EGL=OFF,virtual/egl virtual/libgles2 virtual/libgles3"
 PACKAGECONFIG[backend-wayland-vulkan] = "-DBUILD_BACKEND_WAYLAND_VULKAN=ON,-DBUILD_BACKEND_WAYLAND_VULKAN=OFF,vulkan-loader"
 
 PACKAGECONFIG[client-agl-shell] = "-DENABLE_AGL_CLIENT=ON,-DENABLE_AGL_CLIENT=OFF"
@@ -125,6 +131,7 @@ PACKAGECONFIG[sentry] = "\
 PACKAGECONFIG[dlt] = "-DENABLE_DLT=ON, -DENABLE_DLT=OFF"
 PACKAGECONFIG[sanitize] = "-DSANITIZE_ADDRESS=ON, -DSANITIZE_ADDRESS=OFF"
 
+PACKAGECONFIG[examples] = "-DBUILD_EXAMPLES=ON, -DBUILD_EXAMPLES=OFF"
 PACKAGECONFIG[verbose] = "-DCMAKE_BUILD_TYPE=Debug -DDEBUG_PLATFORM_MESSAGES=ON, -D DEBUG_PLATFORM_MESSAGES=OFF"
 
 EXTRA_OECMAKE += "\
@@ -133,6 +140,7 @@ EXTRA_OECMAKE += "\
     -D ENABLE_LTO=ON \
     -D BUILD_UNIT_TESTS=OFF \
     -D BUILD_DOCS=OFF \
+    -D OPENGL_opengl_LIBRARY=${STAGING_LIBDIR}/libEGL.so \
 "
 
 BBCLASSEXTEND = "verbose-logs"
