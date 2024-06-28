@@ -2,6 +2,7 @@
 
 June 28, 024
 1. v2 - restore app_on_output callback assignment for AGL client
+2. v2 - change ENABLE_AGL_CLIENT to ENABLE_AGL_SHELL_CLIENT
 
 June 27, 2024
 1. v2 - update package config flags
