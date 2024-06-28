@@ -1,5 +1,8 @@
 # Changelog
 
+June 28, 024
+1. v2 - restore app_on_output callback assignment for AGL client
+
 June 27, 2024
 1. v2 - update package config flags
 2. v2 - remove install of libwayland-gen.a from waypp
