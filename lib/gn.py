@@ -71,10 +71,12 @@ class GN(FetchMethod):
 
         depot_tools_path = d.getVar("DEPOT_TOOLS")
         python3_folder = os.path.join(depot_tools_path, d.getVar("PYTHON3_PATH"))
+        vpython_virtualenv_root = d.getVar("VPYTHON_VIRTUALENV_ROOT")
 
         ud.basecmd = f'export DEPOT_TOOLS_UPDATE=0; \
             export CURL_CA_BUNDLE={curl_ca_bundle}; \
             export PATH="{depot_tools_path}:{python3_folder}:$PATH"; \
+            export VPYTHON_VIRTUALENV_ROOT="{vpython_virtualenv_root}"; \
             gclient config --spec \'{gclient_config}\' && \
             gclient sync --force {sync_opt} --revision {srcrev} {parallel_make} -v'
 

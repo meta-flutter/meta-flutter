@@ -21,6 +21,8 @@ do_configure() {
     cd ${S}
     export DEPOT_TOOLS_UPDATE=0
     export PATH=${S}:$PATH
+    export VPYTHON_VIRTUALENV_ROOT=${VPYTHON_VIRTUALENV_ROOT}
+    export CIPD_CACHE_DIR="${WORKDIR}/cipd"
 
     gclient --version
 }
