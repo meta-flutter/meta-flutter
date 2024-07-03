@@ -12,7 +12,7 @@ SECTION = "graphics"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=6570d633a333be7d4362fdecbf311bfd"
 
-SRCREV = "0331605e1eebfa8199a8fff10d7ee56e4560845f"
+SRCREV = "3effe93b24ac926141574550712d560ffefe2b2b"
 SRC_URI = "git://github.com/gskinnerTeam/flutter-wonderous-app.git;lfs=0;nobranch=1;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"

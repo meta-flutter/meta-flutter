@@ -1,0 +1,363 @@
+From 97fd693d50312f684c209262de99383c0347f00c Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Wed, 12 Jun 2024 06:47:04 -0700
+Subject: [PATCH 4/5] move include contents to include filament
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ filament/CMakeLists.txt                          | 2 +-
+ filament/backend/CMakeLists.txt                  | 2 +-
+ libs/camutils/CMakeLists.txt                     | 2 +-
+ libs/filabridge/CMakeLists.txt                   | 2 +-
+ libs/filaflat/CMakeLists.txt                     | 2 +-
+ libs/filamat/CMakeLists.txt                      | 2 +-
+ libs/filameshio/CMakeLists.txt                   | 2 +-
+ libs/geometry/CMakeLists.txt                     | 2 +-
+ libs/gltfio/CMakeLists.txt                       | 4 ++--
+ libs/ibl/CMakeLists.txt                          | 2 +-
+ libs/iblprefilter/CMakeLists.txt                 | 2 +-
+ libs/image/CMakeLists.txt                        | 2 +-
+ libs/imageio/CMakeLists.txt                      | 2 +-
+ libs/ktxreader/CMakeLists.txt                    | 2 +-
+ libs/matdbg/CMakeLists.txt                       | 2 +-
+ libs/math/CMakeLists.txt                         | 2 +-
+ libs/mathio/CMakeLists.txt                       | 2 +-
+ libs/uberz/CMakeLists.txt                        | 2 +-
+ libs/utils/CMakeLists.txt                        | 6 +++---
+ libs/viewer/CMakeLists.txt                       | 2 +-
+ third_party/libassimp/contrib/zip/CMakeLists.txt | 2 +-
+ third_party/libpng/CMakeLists.txt                | 4 ++--
+ third_party/libsdl2/CMakeLists.txt               | 2 +-
+ third_party/mikktspace/CMakeLists.txt            | 2 +-
+ third_party/robin-map/tnt/CMakeLists.txt         | 2 +-
+ third_party/stb/tnt/CMakeLists.txt               | 2 +-
+ third_party/tinyexr/tnt/CMakeLists.txt           | 2 +-
+ 27 files changed, 31 insertions(+), 31 deletions(-)
+
+diff --git a/filament/CMakeLists.txt b/filament/CMakeLists.txt
+index 796acedb7..f9453335f 100644
+--- a/filament/CMakeLists.txt
++++ b/filament/CMakeLists.txt
+@@ -614,7 +614,7 @@ target_link_libraries(${TARGET} PRIVATE
+ # ==================================================================================================
+ set(INSTALL_TYPE ARCHIVE)
+ install(TARGETS ${TARGET} ${INSTALL_TYPE} DESTINATION lib/${DIST_DIR})
+-install(DIRECTORY ${PUBLIC_HDR_DIR}/filament DESTINATION include)
++install(DIRECTORY ${PUBLIC_HDR_DIR}/filament DESTINATION include/filament)
+ install(FILES "README.md" DESTINATION .)
+ install(FILES "../LICENSE" DESTINATION .)
+ 
+diff --git a/filament/backend/CMakeLists.txt b/filament/backend/CMakeLists.txt
+index 378f45aed..0cfbc6f82 100644
+--- a/filament/backend/CMakeLists.txt
++++ b/filament/backend/CMakeLists.txt
+@@ -399,4 +399,4 @@ target_link_libraries(${TARGET} PRIVATE
+ set(INSTALL_TYPE ARCHIVE)
+ install(TARGETS ${TARGET} ${INSTALL_TYPE} DESTINATION lib/${DIST_DIR})
+ install(TARGETS vkshaders ${INSTALL_TYPE} DESTINATION lib/${DIST_DIR})
+-install(DIRECTORY ${PUBLIC_HDR_DIR}/backend DESTINATION include)
++install(DIRECTORY ${PUBLIC_HDR_DIR}/backend DESTINATION include/filament)
+diff --git a/libs/camutils/CMakeLists.txt b/libs/camutils/CMakeLists.txt
+index 541261c1a..013cbce09 100644
+--- a/libs/camutils/CMakeLists.txt
++++ b/libs/camutils/CMakeLists.txt
+@@ -45,7 +45,7 @@ endif()
+ # Installation
+ # ==================================================================================================
+ install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
+-install(DIRECTORY ${PUBLIC_HDR_DIR}/camutils DESTINATION include)
++install(DIRECTORY ${PUBLIC_HDR_DIR}/camutils DESTINATION include/filament)
+ 
+ # ==================================================================================================
+ # Tests
+diff --git a/libs/filabridge/CMakeLists.txt b/libs/filabridge/CMakeLists.txt
+index ffcd1ce23..27ed9e33b 100644
+--- a/libs/filabridge/CMakeLists.txt
++++ b/libs/filabridge/CMakeLists.txt
+@@ -31,5 +31,5 @@ target_link_libraries(${TARGET} backend_headers)
+ # ==================================================================================================
+ # Installation
+ # ==================================================================================================
+-install(DIRECTORY ${PUBLIC_HDR_DIR}/filament DESTINATION include)
++install(DIRECTORY ${PUBLIC_HDR_DIR}/filament DESTINATION include/filament)
+ install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
+diff --git a/libs/filaflat/CMakeLists.txt b/libs/filaflat/CMakeLists.txt
+index 0ebf53e06..5fff8201b 100644
+--- a/libs/filaflat/CMakeLists.txt
++++ b/libs/filaflat/CMakeLists.txt
+@@ -34,5 +34,5 @@ endif()
+ # Installation
+ # ==================================================================================================
+ # We do not need filaflat headers in the install directory
+-# install(DIRECTORY ${PUBLIC_HDR_DIR}/filaflat DESTINATION include)
++# install(DIRECTORY ${PUBLIC_HDR_DIR}/filaflat DESTINATION include/filament)
+ install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
+diff --git a/libs/filamat/CMakeLists.txt b/libs/filamat/CMakeLists.txt
+index 2fc20d7e9..41c1f6c20 100644
+--- a/libs/filamat/CMakeLists.txt
++++ b/libs/filamat/CMakeLists.txt
+@@ -140,7 +140,7 @@ combine_static_libs(filamat "${FILAMAT_COMBINED_OUTPUT}" "${FILAMAT_DEPS}")
+ 
+ set(FILAMAT_LIB_NAME ${CMAKE_STATIC_LIBRARY_PREFIX}filamat${CMAKE_STATIC_LIBRARY_SUFFIX})
+ install(FILES "${FILAMAT_COMBINED_OUTPUT}" DESTINATION lib/${DIST_DIR} RENAME ${FILAMAT_LIB_NAME})
+-install(DIRECTORY ${PUBLIC_HDR_DIR}/filamat DESTINATION include)
++install(DIRECTORY ${PUBLIC_HDR_DIR}/filamat DESTINATION include/filament)
+ 
+ # ==================================================================================================
+ # Tests
+diff --git a/libs/filameshio/CMakeLists.txt b/libs/filameshio/CMakeLists.txt
+index eab319211..714300219 100644
+--- a/libs/filameshio/CMakeLists.txt
++++ b/libs/filameshio/CMakeLists.txt
+@@ -32,7 +32,7 @@ target_link_libraries(${TARGET}
+ # ==================================================================================================
+ set(INSTALL_TYPE ARCHIVE)
+ install(TARGETS ${TARGET} ${INSTALL_TYPE} DESTINATION lib/${DIST_DIR})
+-install(FILES ${DIST_HDRS} DESTINATION include/${TARGET})
++install(FILES ${DIST_HDRS} DESTINATION include/filament/${TARGET})
+ 
+ # ==================================================================================================
+ # Tests
+diff --git a/libs/geometry/CMakeLists.txt b/libs/geometry/CMakeLists.txt
+index a7e8f398e..5a5bb88ec 100644
+--- a/libs/geometry/CMakeLists.txt
++++ b/libs/geometry/CMakeLists.txt
+@@ -55,7 +55,7 @@ endif()
+ # No need to install since we're combining this lib and the dependent libs into a combined lib
+ # install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
+ 
+-install(DIRECTORY ${PUBLIC_HDR_DIR}/geometry DESTINATION include)
++install(DIRECTORY ${PUBLIC_HDR_DIR}/geometry DESTINATION include/filament)
+ 
+ set(COMBINED_DEPS
+     ${TARGET}
+diff --git a/libs/gltfio/CMakeLists.txt b/libs/gltfio/CMakeLists.txt
+index c066cc229..a383410c0 100644
+--- a/libs/gltfio/CMakeLists.txt
++++ b/libs/gltfio/CMakeLists.txt
+@@ -257,5 +257,5 @@ endif()
+ # ==================================================================================================
+ 
+ install(TARGETS gltfio_core uberarchive ARCHIVE DESTINATION lib/${DIST_DIR})
+-install(DIRECTORY ${PUBLIC_HDR_DIR}/gltfio DESTINATION include)
+-install(FILES ${RESOURCE_DIR}/materials/uberarchive.h DESTINATION include/gltfio/materials)
++install(DIRECTORY ${PUBLIC_HDR_DIR}/gltfio DESTINATION include/filament)
++install(FILES ${RESOURCE_DIR}/materials/uberarchive.h DESTINATION include/filament/gltfio/materials)
+diff --git a/libs/ibl/CMakeLists.txt b/libs/ibl/CMakeLists.txt
+index aae32fbaa..3d8cbe16d 100644
+--- a/libs/ibl/CMakeLists.txt
++++ b/libs/ibl/CMakeLists.txt
+@@ -61,4 +61,4 @@ endif()
+ # ==================================================================================================
+ install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
+ install(TARGETS ${TARGET}-lite ARCHIVE DESTINATION lib/${DIST_DIR})
+-install(DIRECTORY ${PUBLIC_HDR_DIR}/ibl DESTINATION include)
++install(DIRECTORY ${PUBLIC_HDR_DIR}/ibl DESTINATION include/filament)
+diff --git a/libs/iblprefilter/CMakeLists.txt b/libs/iblprefilter/CMakeLists.txt
+index c001de6bf..62066b302 100644
+--- a/libs/iblprefilter/CMakeLists.txt
++++ b/libs/iblprefilter/CMakeLists.txt
+@@ -135,4 +135,4 @@ target_link_libraries(${TARGET} PRIVATE
+ # ==================================================================================================
+ set(INSTALL_TYPE ARCHIVE)
+ install(TARGETS ${TARGET} ${INSTALL_TYPE} DESTINATION lib/${DIST_DIR})
+-install(DIRECTORY ${PUBLIC_HDR_DIR}/filament-iblprefilter DESTINATION include)
++install(DIRECTORY ${PUBLIC_HDR_DIR}/filament-iblprefilter DESTINATION include/filament)
+diff --git a/libs/image/CMakeLists.txt b/libs/image/CMakeLists.txt
+index 351d39548..3ac6ff402 100644
+--- a/libs/image/CMakeLists.txt
++++ b/libs/image/CMakeLists.txt
+@@ -48,7 +48,7 @@ endif()
+ # Installation
+ # ==================================================================================================
+ install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
+-install(DIRECTORY ${PUBLIC_HDR_DIR}/image DESTINATION include)
++install(DIRECTORY ${PUBLIC_HDR_DIR}/image DESTINATION include/filament)
+ 
+ # ==================================================================================================
+ # Tests
+diff --git a/libs/imageio/CMakeLists.txt b/libs/imageio/CMakeLists.txt
+index 69dc695c4..8711a78fa 100644
+--- a/libs/imageio/CMakeLists.txt
++++ b/libs/imageio/CMakeLists.txt
+@@ -49,4 +49,4 @@ endif ()
+ # Installation
+ # ==================================================================================================
+ install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
+-install(DIRECTORY ${PUBLIC_HDR_DIR}/imageio DESTINATION include)
++install(DIRECTORY ${PUBLIC_HDR_DIR}/imageio DESTINATION include/filament)
+diff --git a/libs/ktxreader/CMakeLists.txt b/libs/ktxreader/CMakeLists.txt
+index a9d5714e0..039ee6a3d 100644
+--- a/libs/ktxreader/CMakeLists.txt
++++ b/libs/ktxreader/CMakeLists.txt
+@@ -41,7 +41,7 @@ endif()
+ # Installation
+ # ==================================================================================================
+ install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
+-install(DIRECTORY ${PUBLIC_HDR_DIR}/${TARGET} DESTINATION include)
++install(DIRECTORY ${PUBLIC_HDR_DIR}/${TARGET} DESTINATION include/filament)
+ 
+ # ==================================================================================================
+ # Tests
+diff --git a/libs/matdbg/CMakeLists.txt b/libs/matdbg/CMakeLists.txt
+index e58058548..47b516c9e 100644
+--- a/libs/matdbg/CMakeLists.txt
++++ b/libs/matdbg/CMakeLists.txt
+@@ -122,4 +122,4 @@ combine_static_libs(matdbg "${MATDBG_COMBINED_OUTPUT}" "${MATDBG_DEPS}")
+ set(MATDBG_LIB_NAME ${CMAKE_STATIC_LIBRARY_PREFIX}matdbg${CMAKE_STATIC_LIBRARY_SUFFIX})
+ install(FILES "${MATDBG_COMBINED_OUTPUT}" DESTINATION lib/${DIST_DIR} RENAME ${MATDBG_LIB_NAME})
+ # We do not need matdbg headers in the install directory
+-# install(DIRECTORY ${PUBLIC_HDR_DIR}/matdbg DESTINATION include)
++# install(DIRECTORY ${PUBLIC_HDR_DIR}/matdbg DESTINATION include/filament)
+diff --git a/libs/math/CMakeLists.txt b/libs/math/CMakeLists.txt
+index 838aa2d53..4256d6607 100644
+--- a/libs/math/CMakeLists.txt
++++ b/libs/math/CMakeLists.txt
+@@ -47,7 +47,7 @@ set_target_properties(${TARGET} PROPERTIES FOLDER Libs)
+ # ==================================================================================================
+ # Installation
+ # ==================================================================================================
+-install(DIRECTORY ${PUBLIC_HDR_DIR}/math DESTINATION include)
++install(DIRECTORY ${PUBLIC_HDR_DIR}/math DESTINATION include/filament)
+ 
+ # ==================================================================================================
+ # Tests
+diff --git a/libs/mathio/CMakeLists.txt b/libs/mathio/CMakeLists.txt
+index 4ad5126fc..96b5287d2 100644
+--- a/libs/mathio/CMakeLists.txt
++++ b/libs/mathio/CMakeLists.txt
+@@ -27,5 +27,5 @@ target_link_libraries(${TARGET} PRIVATE math)
+ # ==================================================================================================
+ # Installation
+ # ==================================================================================================
+-install(DIRECTORY ${PUBLIC_HDR_DIR}/mathio DESTINATION include)
++install(DIRECTORY ${PUBLIC_HDR_DIR}/mathio DESTINATION include/filament)
+ 
+diff --git a/libs/uberz/CMakeLists.txt b/libs/uberz/CMakeLists.txt
+index 47744e225..85569b534 100644
+--- a/libs/uberz/CMakeLists.txt
++++ b/libs/uberz/CMakeLists.txt
+@@ -44,4 +44,4 @@ endif()
+ # Installation
+ # ==================================================================================================
+ install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
+-install(DIRECTORY ${PUBLIC_HDR_DIR}/uberz DESTINATION include)
++install(DIRECTORY ${PUBLIC_HDR_DIR}/uberz DESTINATION include/filament)
+diff --git a/libs/utils/CMakeLists.txt b/libs/utils/CMakeLists.txt
+index 72558167b..fe6289830 100644
+--- a/libs/utils/CMakeLists.txt
++++ b/libs/utils/CMakeLists.txt
+@@ -135,11 +135,11 @@ endif()
+ # ==================================================================================================
+ set(INSTALL_TYPE ARCHIVE)
+ install(TARGETS ${TARGET} ${INSTALL_TYPE} DESTINATION lib/${DIST_DIR})
+-install(FILES ${DIST_HDRS} DESTINATION include/${TARGET})
++install(FILES ${DIST_HDRS} DESTINATION include/filament/${TARGET})
+ if (ANDROID)
+-    install(FILES ${DIST_ANDROID_HDRS} DESTINATION include/${TARGET_LINUX})
++    install(FILES ${DIST_ANDROID_HDRS} DESTINATION include/filament/${TARGET_LINUX})
+ else()
+-    install(FILES ${DIST_GENERIC_HDRS} DESTINATION include/${TARGET_GENERIC})
++    install(FILES ${DIST_GENERIC_HDRS} DESTINATION include/filament/${TARGET_GENERIC})
+ endif()
+ 
+ # ==================================================================================================
+diff --git a/libs/viewer/CMakeLists.txt b/libs/viewer/CMakeLists.txt
+index 58fe66c98..018e4086b 100644
+--- a/libs/viewer/CMakeLists.txt
++++ b/libs/viewer/CMakeLists.txt
+@@ -52,7 +52,7 @@ endif()
+ # Installation
+ # ==================================================================================================
+ install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
+-install(DIRECTORY ${PUBLIC_HDR_DIR}/viewer DESTINATION include)
++install(DIRECTORY ${PUBLIC_HDR_DIR}/viewer DESTINATION include/filament)
+ 
+ # ==================================================================================================
+ # Tests
+diff --git a/third_party/libassimp/contrib/zip/CMakeLists.txt b/third_party/libassimp/contrib/zip/CMakeLists.txt
+index b46dbb1db..368017ace 100644
+--- a/third_party/libassimp/contrib/zip/CMakeLists.txt
++++ b/third_party/libassimp/contrib/zip/CMakeLists.txt
+@@ -33,7 +33,7 @@ install(TARGETS ${PROJECT_NAME}
+         ARCHIVE DESTINATION lib
+         LIBRARY DESTINATION lib
+         COMPONENT library)
+-install(FILES ${PROJECT_SOURCE_DIR}/src/zip.h DESTINATION include)
++install(FILES ${PROJECT_SOURCE_DIR}/src/zip.h DESTINATION include/filament)
+ 
+ # uninstall target (https://gitlab.kitware.com/cmake/community/wikis/FAQ#can-i-do-make-uninstall-with-cmake)
+ if(NOT TARGET uninstall)
+diff --git a/third_party/libpng/CMakeLists.txt b/third_party/libpng/CMakeLists.txt
+index dbca05776..54c4a28de 100644
+--- a/third_party/libpng/CMakeLists.txt
++++ b/third_party/libpng/CMakeLists.txt
+@@ -992,9 +992,9 @@ endif()
+ 
+ if(NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL)
+   install(FILES ${libpng_public_hdrs}
+-          DESTINATION include)
++          DESTINATION include/filament)
+   install(FILES ${libpng_public_hdrs}
+-          DESTINATION include/${PNGLIB_NAME})
++          DESTINATION include/filament/${PNGLIB_NAME})
+ endif()
+ if(NOT SKIP_INSTALL_EXECUTABLES AND NOT SKIP_INSTALL_ALL)
+   if(NOT WIN32 OR CYGWIN OR MINGW)
+diff --git a/third_party/libsdl2/CMakeLists.txt b/third_party/libsdl2/CMakeLists.txt
+index 8f1e828d1..b1d7cbde5 100644
+--- a/third_party/libsdl2/CMakeLists.txt
++++ b/third_party/libsdl2/CMakeLists.txt
+@@ -1806,7 +1806,7 @@ foreach(_FNAME ${BIN_INCLUDE_FILES})
+   list(REMOVE_ITEM INCLUDE_FILES ${SDL2_SOURCE_DIR}/include/${_INCNAME})
+ endforeach()
+ list(APPEND INCLUDE_FILES ${BIN_INCLUDE_FILES})
+-install(FILES ${INCLUDE_FILES} DESTINATION include/SDL2)
++install(FILES ${INCLUDE_FILES} DESTINATION include/filament/SDL2)
+ 
+ if(NOT (WINDOWS OR CYGWIN))
+   if(SDL_SHARED)
+diff --git a/third_party/mikktspace/CMakeLists.txt b/third_party/mikktspace/CMakeLists.txt
+index 36959aebf..6c8fead98 100644
+--- a/third_party/mikktspace/CMakeLists.txt
++++ b/third_party/mikktspace/CMakeLists.txt
+@@ -26,4 +26,4 @@ endif()
+ # Installation
+ # ==================================================================================================
+ install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
+-install(DIRECTORY ${PUBLIC_HDR_DIR}/mikktspace DESTINATION include)
++install(DIRECTORY ${PUBLIC_HDR_DIR}/mikktspace DESTINATION include/filament)
+diff --git a/third_party/robin-map/tnt/CMakeLists.txt b/third_party/robin-map/tnt/CMakeLists.txt
+index 300da5248..ef5ef82d6 100644
+--- a/third_party/robin-map/tnt/CMakeLists.txt
++++ b/third_party/robin-map/tnt/CMakeLists.txt
+@@ -27,4 +27,4 @@ set_target_properties(${TARGET} PROPERTIES FOLDER ThirdParty)
+ # ==================================================================================================
+ # Installation
+ # ==================================================================================================
+-install(FILES ${PUBLIC_HDRS} DESTINATION include/${TARGET})
++install(FILES ${PUBLIC_HDRS} DESTINATION include/filament/${TARGET})
+diff --git a/third_party/stb/tnt/CMakeLists.txt b/third_party/stb/tnt/CMakeLists.txt
+index 563a2604d..946aa9264 100644
+--- a/third_party/stb/tnt/CMakeLists.txt
++++ b/third_party/stb/tnt/CMakeLists.txt
+@@ -15,4 +15,4 @@ target_include_directories(${TARGET} PUBLIC ${PUBLIC_HDR_DIR})
+ set_target_properties(${TARGET} PROPERTIES FOLDER ThirdParty)
+ 
+ install(TARGETS stb ARCHIVE DESTINATION lib/${DIST_DIR})
+-install(FILES ${PUBLIC_HDRS} DESTINATION include)
++install(FILES ${PUBLIC_HDRS} DESTINATION include/filament)
+diff --git a/third_party/tinyexr/tnt/CMakeLists.txt b/third_party/tinyexr/tnt/CMakeLists.txt
+index ffe7cdfe1..6ae9c7787 100644
+--- a/third_party/tinyexr/tnt/CMakeLists.txt
++++ b/third_party/tinyexr/tnt/CMakeLists.txt
+@@ -22,5 +22,5 @@ target_include_directories (${TARGET} PUBLIC ${PUBLIC_HDR_DIR})
+ target_link_libraries(${TARGET} LINK_PUBLIC z)
+ set_target_properties(${TARGET} PROPERTIES FOLDER ThirdParty)
+ 
+-install(FILES ${PUBLIC_HDRS} DESTINATION include)
++install(FILES ${PUBLIC_HDRS} DESTINATION include/filament)
+ install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
+-- 
+2.45.1
+

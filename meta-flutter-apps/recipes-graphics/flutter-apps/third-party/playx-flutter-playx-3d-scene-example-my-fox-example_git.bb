@@ -12,11 +12,11 @@ SECTION = "graphics"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=77f824c37447c525bd4906692858848b"
 
-SRCREV = "7a780cc69f68f2150c8e260a74cf925fecc3764a"
+SRCREV = "46cd40546b4b06aea4fae0889926d24e441ad825"
 SRC_URI = " \
     git://github.com/playx-flutter/playx-3d-scene.git;lfs=0;nobranch=1;protocol=https;destsuffix=git \
-    file://sourcya-playx-3d-scene/0001-ivi-homescreen-support.patch \ 
-    file://sourcya-playx-3d-scene/textured_pbr.filamat;destsuffix=git/assets/materials \ 
+    file://sourcya-playx-3d-scene/0001-ivi-homescreen-support.patch \
+    file://sourcya-playx-3d-scene/textured_pbr.filamat;destsuffix=git/assets/materials \
 "
 
 S = "${WORKDIR}/git"
