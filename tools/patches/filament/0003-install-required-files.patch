@@ -1,0 +1,73 @@
+From cc923cd0b88c587f0559fe2d6a830f3781154a69 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Wed, 12 Jun 2024 06:43:06 -0700
+Subject: [PATCH 3/5] install required files
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ libs/imageio/CMakeLists.txt            | 10 ++++++++--
+ third_party/libpng/tnt/CMakeLists.txt  |  2 ++
+ third_party/stb/tnt/CMakeLists.txt     |  1 +
+ third_party/tinyexr/tnt/CMakeLists.txt |  5 ++++-
+ 4 files changed, 15 insertions(+), 3 deletions(-)
+
+diff --git a/libs/imageio/CMakeLists.txt b/libs/imageio/CMakeLists.txt
+index 47544655b..69dc695c4 100644
+--- a/libs/imageio/CMakeLists.txt
++++ b/libs/imageio/CMakeLists.txt
+@@ -36,11 +36,17 @@ set_target_properties(${TARGET} PROPERTIES FOLDER Libs)
+ target_link_libraries(${TARGET} PUBLIC image math png tinyexr utils z basis_encoder)
+ if (WIN32)
+     target_link_libraries(${TARGET} PRIVATE wsock32)
+-endif()
++endif ()
+ 
+ # ==================================================================================================
+ # Compiler flags
+ # ==================================================================================================
+ if (NOT MSVC)
+     target_compile_options(${TARGET} PRIVATE -Wno-deprecated-register)
+-endif()
++endif ()
++
++# ==================================================================================================
++# Installation
++# ==================================================================================================
++install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
++install(DIRECTORY ${PUBLIC_HDR_DIR}/imageio DESTINATION include)
+diff --git a/third_party/libpng/tnt/CMakeLists.txt b/third_party/libpng/tnt/CMakeLists.txt
+index cd5a033f5..4925a0474 100644
+--- a/third_party/libpng/tnt/CMakeLists.txt
++++ b/third_party/libpng/tnt/CMakeLists.txt
+@@ -57,3 +57,5 @@ target_link_libraries(${TARGET} PUBLIC z)
+ # specify where the public headers of this library are
+ target_include_directories(${TARGET} PUBLIC ${PUBLIC_HDR_DIR})
+ set_target_properties(${TARGET} PROPERTIES FOLDER ThirdParty)
++
++install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
+diff --git a/third_party/stb/tnt/CMakeLists.txt b/third_party/stb/tnt/CMakeLists.txt
+index 0c25061c0..563a2604d 100644
+--- a/third_party/stb/tnt/CMakeLists.txt
++++ b/third_party/stb/tnt/CMakeLists.txt
+@@ -15,3 +15,4 @@ target_include_directories(${TARGET} PUBLIC ${PUBLIC_HDR_DIR})
+ set_target_properties(${TARGET} PROPERTIES FOLDER ThirdParty)
+ 
+ install(TARGETS stb ARCHIVE DESTINATION lib/${DIST_DIR})
++install(FILES ${PUBLIC_HDRS} DESTINATION include)
+diff --git a/third_party/tinyexr/tnt/CMakeLists.txt b/third_party/tinyexr/tnt/CMakeLists.txt
+index 20955b77b..ffe7cdfe1 100644
+--- a/third_party/tinyexr/tnt/CMakeLists.txt
++++ b/third_party/tinyexr/tnt/CMakeLists.txt
+@@ -20,4 +20,7 @@ include_directories(${PUBLIC_HDR_DIR})
+ add_library(${TARGET} STATIC ${PUBLIC_HDRS} ${SRCS})
+ target_include_directories (${TARGET} PUBLIC ${PUBLIC_HDR_DIR})
+ target_link_libraries(${TARGET} LINK_PUBLIC z)
+-set_target_properties(${TARGET} PROPERTIES FOLDER ThirdParty)
+\ No newline at end of file
++set_target_properties(${TARGET} PROPERTIES FOLDER ThirdParty)
++
++install(FILES ${PUBLIC_HDRS} DESTINATION include)
++install(TARGETS ${TARGET} ARCHIVE DESTINATION lib/${DIST_DIR})
+-- 
+2.45.1
+

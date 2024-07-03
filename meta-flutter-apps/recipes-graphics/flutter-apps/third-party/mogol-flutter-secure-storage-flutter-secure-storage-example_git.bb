@@ -12,10 +12,14 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=ad4a5a1c16c771bac65521dacef3900e"
 
-SRCREV = "3bb93366161a787b07c45d8ce98c7405b40fbf1f"
+SRCREV = "cb30953edc029dc4059b72700270b4cd3a3afade"
 SRC_URI = "git://github.com/mogol/flutter_secure_storage.git;lfs=0;nobranch=1;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"
+
+PUB_CACHE_EXTRA_ARCHIVE_PATH = "${WORKDIR}/pub_cache/bin"
+PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \
+    melos bootstrap"
 
 PUBSPEC_APPNAME = "flutter_secure_storage_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "mogol-flutter-secure-storage-flutter-secure-storage-example"

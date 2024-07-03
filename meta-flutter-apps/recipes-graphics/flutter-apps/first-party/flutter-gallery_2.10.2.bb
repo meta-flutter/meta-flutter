@@ -12,7 +12,7 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=3ac21e3d8ebe7dd79f273ca11b9e7b4e"
 
-SRCREV = "cfcb9dbda56697fe8bafe4b64c1a9261dde908ae"
+SRCREV = "66a69803cc63dfc02878fae1959a2555f26ea25f"
 SRC_URI = "git://github.com/flutter/gallery.git;lfs=0;nobranch=1;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"

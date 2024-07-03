@@ -1,0 +1,54 @@
+From b7b66ccc5c8a67c79eace763fdb801b03a215d8c Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Fri, 1 Mar 2024 07:41:17 -0800
+Subject: [PATCH] generic Linux
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ purchases_ui_flutter/pubspec.yaml                 | 2 ++
+ revenuecat_examples/MagicWeather/lib/main.dart    | 2 +-
+ revenuecat_examples/purchase_tester/lib/main.dart | 2 +-
+ 3 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/purchases_ui_flutter/pubspec.yaml b/purchases_ui_flutter/pubspec.yaml
+index 5a854e9..c11d792 100644
+--- a/purchases_ui_flutter/pubspec.yaml
++++ b/purchases_ui_flutter/pubspec.yaml
+@@ -48,6 +48,8 @@ flutter:
+         pluginClass: PurchasesUiFlutterPlugin
+       macos:
+         pluginClass: PurchasesUiFlutterPlugin
++      linux:
++        pluginClass: PurchasesUiFlutterPlugin
+ 
+   # To add assets to your plugin package, add an assets section, like this:
+   # assets:
+diff --git a/revenuecat_examples/MagicWeather/lib/main.dart b/revenuecat_examples/MagicWeather/lib/main.dart
+index 2610169..8b7a929 100644
+--- a/revenuecat_examples/MagicWeather/lib/main.dart
++++ b/revenuecat_examples/MagicWeather/lib/main.dart
+@@ -13,7 +13,7 @@ void main() async {
+       store: Store.appStore,
+       apiKey: appleApiKey,
+     );
+-  } else if (Platform.isAndroid) {
++  } else if (Platform.isAndroid || Platform.isLinux) {
+     // Run the app passing --dart-define=AMAZON=true
+     const useAmazon = bool.fromEnvironment("amazon");
+     StoreConfig(
+diff --git a/revenuecat_examples/purchase_tester/lib/main.dart b/revenuecat_examples/purchase_tester/lib/main.dart
+index 6a14806..5a9ff47 100644
+--- a/revenuecat_examples/purchase_tester/lib/main.dart
++++ b/revenuecat_examples/purchase_tester/lib/main.dart
+@@ -13,7 +13,7 @@ void main() async {
+       store: Store.appStore,
+       apiKey: appleApiKey,
+     );
+-  } else if (Platform.isAndroid) {
++  } else if (Platform.isAndroid || Platform.isLinux) {
+     // Run the app passing --dart-define=AMAZON=true
+     const useAmazon = bool.fromEnvironment("amazon");
+     StoreConfig(
+-- 
+2.44.0
+
