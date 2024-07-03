@@ -2,6 +2,7 @@
 
 Jul 3, 2024
 1. roll_meta_flutter.py tool. See tools/README.md
+2. correct ivi-homescreen executable name to `homescreen`
 
 June 28, 2024
 1. v2 - restore app_on_output callback assignment for AGL client
