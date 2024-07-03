@@ -1,0 +1,953 @@
+From 2b9ae687bcb44aa3f8e34fd90f1766e7b58ee27b Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Fri, 22 Sep 2023 11:42:30 -0700
+Subject: [PATCH] Add support to embedder for Impeller on GL (via Angle on
+ Windows).
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ .../renderer/backend/gles/render_pass_gles.cc |   7 +
+ shell/gpu/gpu_surface_gl_impeller.cc          |  10 +-
+ shell/platform/embedder/BUILD.gn              |  33 ++-
+ shell/platform/embedder/embedder.cc           | 122 ++++++++++--
+ .../embedder/embedder_surface_gl_impeller.cc  | 188 ++++++++++++++++++
+ .../embedder/embedder_surface_gl_impeller.h   |  81 ++++++++
+ .../embedder/platform_view_embedder.cc        |   8 +-
+ .../embedder/platform_view_embedder.h         |   4 +-
+ .../platform/windows/angle_surface_manager.cc |  48 +++--
+ .../platform/windows/angle_surface_manager.h  |   6 +-
+ .../windows/flutter_project_bundle.cc         |  12 +-
+ .../windows/flutter_windows_engine.cc         |  26 ++-
+ .../platform/windows/flutter_windows_engine.h |   2 +
+ .../flutter_windows_engine_unittests.cc       |  36 ++++
+ .../windows/flutter_windows_view_unittests.cc |   2 +-
+ .../testing/flutter_windows_engine_builder.cc |   6 +
+ .../testing/flutter_windows_engine_builder.h  |   3 +
+ 17 files changed, 536 insertions(+), 58 deletions(-)
+ create mode 100644 shell/platform/embedder/embedder_surface_gl_impeller.cc
+ create mode 100644 shell/platform/embedder/embedder_surface_gl_impeller.h
+
+diff --git a/impeller/renderer/backend/gles/render_pass_gles.cc b/impeller/renderer/backend/gles/render_pass_gles.cc
+index 422ab1fc59..1f860676c0 100644
+--- a/impeller/renderer/backend/gles/render_pass_gles.cc
++++ b/impeller/renderer/backend/gles/render_pass_gles.cc
+@@ -460,7 +460,14 @@ struct RenderPassData {
+       attachments.push_back(is_default_fbo ? GL_DEPTH_EXT
+                                            : GL_DEPTH_ATTACHMENT);
+     }
++// TODO(jonahwilliams): discarding the stencil on the default fbo when running
++// on Windows causes Angle to discard the entire render target. Until we know
++// the reason, default to storing.
++#ifdef FML_OS_WIN
++    if (pass_data.discard_stencil_attachment && !is_default_fbo) {
++#else
+     if (pass_data.discard_stencil_attachment) {
++#endif
+       attachments.push_back(is_default_fbo ? GL_STENCIL_EXT
+                                            : GL_STENCIL_ATTACHMENT);
+     }
+diff --git a/shell/gpu/gpu_surface_gl_impeller.cc b/shell/gpu/gpu_surface_gl_impeller.cc
+index 20fd96142d..ab6e534234 100644
+--- a/shell/gpu/gpu_surface_gl_impeller.cc
++++ b/shell/gpu/gpu_surface_gl_impeller.cc
+@@ -61,7 +61,7 @@ std::unique_ptr<SurfaceFrame> GPUSurfaceGLImpeller::AcquireFrame(
+                         delegate = delegate_]() -> bool {
+     if (weak) {
+       GLPresentInfo present_info = {
+-          .fbo_id = 0,
++          .fbo_id = 0u,
+           .frame_damage = std::nullopt,
+           // TODO (https://github.com/flutter/flutter/issues/105597): wire-up
+           // presentation time to impeller backend.
+@@ -80,10 +80,14 @@ std::unique_ptr<SurfaceFrame> GPUSurfaceGLImpeller::AcquireFrame(
+     return nullptr;
+   }
+ 
++  GLFrameInfo frame_info = {static_cast<uint32_t>(size.width()),
++                            static_cast<uint32_t>(size.height())};
++  const GLFBOInfo fbo_info = delegate_->GLContextFBO(frame_info);
++
+   auto surface = impeller::SurfaceGLES::WrapFBO(
+       impeller_context_,                            // context
+       swap_callback,                                // swap_callback
+-      0u,                                           // fbo
++      fbo_info.fbo_id,                              // fbo
+       impeller::PixelFormat::kR8G8B8A8UNormInt,     // color_format
+       impeller::ISize{size.width(), size.height()}  // fbo_size
+   );
+@@ -123,7 +127,7 @@ std::unique_ptr<SurfaceFrame> GPUSurfaceGLImpeller::AcquireFrame(
+ 
+   return std::make_unique<SurfaceFrame>(
+       nullptr,                          // surface
+-      SurfaceFrame::FramebufferInfo{},  // framebuffer info
++      delegate_->GLContextFramebufferInfo(), // framebuffer info
+       submit_callback,                  // submit callback
+       size,                             // frame size
+       std::move(context_switch),        // context result
+diff --git a/shell/platform/embedder/BUILD.gn b/shell/platform/embedder/BUILD.gn
+index aa43f3f48b..63d09a3743 100644
+--- a/shell/platform/embedder/BUILD.gn
++++ b/shell/platform/embedder/BUILD.gn
+@@ -95,16 +95,6 @@ template("embedder_source_set") {
+     ]
+ 
+     public_deps = [ ":embedder_headers" ]
+-
+-    if (embedder_enable_gl) {
+-      sources += [
+-        "embedder_external_texture_gl.cc",
+-        "embedder_external_texture_gl.h",
+-        "embedder_surface_gl.cc",
+-        "embedder_surface_gl.h",
+-      ]
+-    }
+-
+     deps = [
+       ":embedder_gpu_configuration",
+       "//flutter/assets",
+@@ -121,13 +111,33 @@ template("embedder_source_set") {
+       "//third_party/skia",
+     ]
+ 
++    if (embedder_enable_gl) {
++      sources += [
++        "embedder_external_texture_gl.cc",
++        "embedder_external_texture_gl.h",
++        "embedder_surface_gl.cc",
++        "embedder_surface_gl.h",
++      ]
++
++      if (impeller_supports_rendering) {
++        sources += [
++          "embedder_surface_gl_impeller.cc",
++          "embedder_surface_gl_impeller.h",
++        ]
++        deps += [ "//flutter/impeller/renderer/backend/gles" ]
++      }
++    }
++
+     if (impeller_supports_rendering) {
+       sources += [
+         "embedder_render_target_impeller.cc",
+         "embedder_render_target_impeller.h",
+       ]
+ 
+-      deps += [ "//flutter/impeller" ]
++      deps += [
++        "//flutter/impeller",
++        "//flutter/impeller/renderer",
++      ]
+     }
+ 
+     if (embedder_enable_metal) {
+@@ -137,6 +147,7 @@ template("embedder_source_set") {
+         "embedder_surface_metal.h",
+         "embedder_surface_metal.mm",
+       ]
++      deps += [ "//flutter/impeller/renderer/backend/metal" ]
+ 
+       if (impeller_supports_rendering) {
+         sources += [
+diff --git a/shell/platform/embedder/embedder.cc b/shell/platform/embedder/embedder.cc
+index c9d1ce9866..6c9319b236 100644
+--- a/shell/platform/embedder/embedder.cc
++++ b/shell/platform/embedder/embedder.cc
+@@ -64,9 +64,20 @@ extern const intptr_t kPlatformStrongDillSize;
+ #include "rapidjson/rapidjson.h"
+ #include "rapidjson/writer.h"
+ 
++// Note: the IMPELLER_SUPPORTS_RENDERING may be defined even when the
++// embedder/BUILD.gn variable impeller_supports_rendering is disabled.
+ #ifdef SHELL_ENABLE_GL
+ #include "flutter/shell/platform/embedder/embedder_external_texture_gl.h"
+-#endif
++#ifdef IMPELLER_SUPPORTS_RENDERING
++#include "flutter/shell/platform/embedder/embedder_render_target_impeller.h"  // nogncheck
++#include "flutter/shell/platform/embedder/embedder_surface_gl_impeller.h"  // nogncheck
++#include "impeller/core/texture.h"                        // nogncheck
++#include "impeller/renderer/backend/gles/context_gles.h"  // nogncheck
++#include "impeller/renderer/backend/gles/texture_gles.h"  // nogncheck
++#include "impeller/renderer/context.h"                    // nogncheck
++#include "impeller/renderer/render_target.h"              // nogncheck
++#endif // SHELL_ENABLE_GL
++#endif // IMPELLER_SUPPORTS_RENDERING
+ 
+ #ifdef SHELL_ENABLE_METAL
+ #include "flutter/shell/platform/embedder/embedder_surface_metal.h"
+@@ -263,7 +274,8 @@ InferOpenGLPlatformViewCreationCallback(
+     const flutter::PlatformViewEmbedder::PlatformDispatchTable&
+         platform_dispatch_table,
+     std::unique_ptr<flutter::EmbedderExternalViewEmbedder>
+-        external_view_embedder) {
++        external_view_embedder,
++    bool enable_impeller) {
+ #ifdef SHELL_ENABLE_GL
+   if (config->type != kOpenGL) {
+     return nullptr;
+@@ -439,15 +451,30 @@ InferOpenGLPlatformViewCreationCallback(
+ 
+   return fml::MakeCopyable(
+       [gl_dispatch_table, fbo_reset_after_present, platform_dispatch_table,
++       enable_impeller,
+        external_view_embedder =
+            std::move(external_view_embedder)](flutter::Shell& shell) mutable {
++        std::shared_ptr<flutter::EmbedderExternalViewEmbedder> view_embedder =
++            std::move(external_view_embedder);
++        if (enable_impeller) {
++          return std::make_unique<flutter::PlatformViewEmbedder>(
++              shell,                   // delegate
++              shell.GetTaskRunners(),  // task runners
++              std::make_unique<flutter::EmbedderSurfaceGLImpeller>(
++                  gl_dispatch_table, fbo_reset_after_present,
++                  view_embedder),       // embedder_surface
++              platform_dispatch_table,  // embedder platform dispatch table
++              view_embedder             // external view embedder
++          );
++        }
+         return std::make_unique<flutter::PlatformViewEmbedder>(
+-            shell,                    // delegate
+-            shell.GetTaskRunners(),   // task runners
+-            gl_dispatch_table,        // embedder GL dispatch table
+-            fbo_reset_after_present,  // fbo reset after present
++            shell,                   // delegate
++            shell.GetTaskRunners(),  // task runners
++            std::make_unique<flutter::EmbedderSurfaceGL>(
++                gl_dispatch_table, fbo_reset_after_present,
++                view_embedder),       // embedder_surface
+             platform_dispatch_table,  // embedder platform dispatch table
+-            std::move(external_view_embedder)  // external view embedder
++            view_embedder             // external view embedder
+         );
+       });
+ #else
+@@ -684,7 +711,7 @@ InferPlatformViewCreationCallback(
+     case kOpenGL:
+       return InferOpenGLPlatformViewCreationCallback(
+           config, user_data, platform_dispatch_table,
+-          std::move(external_view_embedder));
++          std::move(external_view_embedder), enable_impeller);
+     case kSoftware:
+       return InferSoftwarePlatformViewCreationCallback(
+           config, user_data, platform_dispatch_table,
+@@ -922,6 +949,66 @@ static sk_sp<SkSurface> MakeSkSurfaceFromBackingStore(
+ #endif
+ }
+ 
++static std::unique_ptr<flutter::EmbedderRenderTarget>
++MakeRenderTargetFromBackingStoreImpeller(
++    FlutterBackingStore backing_store,
++    const fml::closure& on_release,
++    const std::shared_ptr<impeller::AiksContext>& aiks_context,
++    const FlutterBackingStoreConfig& config,
++    const FlutterOpenGLFramebuffer* framebuffer) {
++#if defined(SHELL_ENABLE_GL) && defined(IMPELLER_SUPPORTS_RENDERING)
++
++  const auto& gl_context =
++      impeller::ContextGLES::Cast(*aiks_context->GetContext());
++  const auto size = impeller::ISize(config.size.width, config.size.height);
++
++  impeller::TextureDescriptor color0_tex;
++  color0_tex.type = impeller::TextureType::kTexture2D;
++  color0_tex.format = impeller::PixelFormat::kR8G8B8A8UNormInt;
++  color0_tex.size = size;
++  color0_tex.usage = static_cast<impeller::TextureUsageMask>(
++      impeller::TextureUsage::kRenderTarget);
++  color0_tex.sample_count = impeller::SampleCount::kCount1;
++  color0_tex.storage_mode = impeller::StorageMode::kDevicePrivate;
++
++  impeller::ColorAttachment color0;
++  color0.texture = std::make_shared<impeller::TextureGLES>(
++      gl_context.GetReactor(), color0_tex,
++      impeller::TextureGLES::IsWrapped::kWrapped);
++  color0.clear_color = impeller::Color::DarkSlateGray();
++  color0.load_action = impeller::LoadAction::kClear;
++  color0.store_action = impeller::StoreAction::kStore;
++
++  impeller::TextureDescriptor stencil0_tex;
++  stencil0_tex.type = impeller::TextureType::kTexture2D;
++  stencil0_tex.format = impeller::PixelFormat::kR8G8B8A8UNormInt;
++  stencil0_tex.size = size;
++  stencil0_tex.usage = static_cast<impeller::TextureUsageMask>(
++      impeller::TextureUsage::kRenderTarget);
++  stencil0_tex.sample_count = impeller::SampleCount::kCount1;
++
++  impeller::StencilAttachment stencil0;
++  stencil0.clear_stencil = 0;
++  stencil0.texture = std::make_shared<impeller::TextureGLES>(
++      gl_context.GetReactor(), stencil0_tex,
++      impeller::TextureGLES::IsWrapped::kWrapped);
++  stencil0.load_action = impeller::LoadAction::kClear;
++  stencil0.store_action = impeller::StoreAction::kDontCare;
++
++  impeller::RenderTarget render_target_desc;
++
++  render_target_desc.SetColorAttachment(color0, framebuffer->target);
++  render_target_desc.SetStencilAttachment(stencil0);
++
++  return std::make_unique<flutter::EmbedderRenderTargetImpeller>(
++      backing_store, aiks_context,
++      std::make_unique<impeller::RenderTarget>(std::move(render_target_desc)),
++      on_release);
++#else
++  return nullptr;
++#endif
++}
++
+ static std::unique_ptr<flutter::EmbedderRenderTarget>
+ MakeRenderTargetFromBackingStoreImpeller(
+     FlutterBackingStore backing_store,
+@@ -1111,12 +1198,19 @@ CreateEmbedderRenderTarget(
+           break;
+         }
+         case kFlutterOpenGLTargetTypeFramebuffer: {
+-          auto skia_surface = MakeSkSurfaceFromBackingStore(
+-              context, config, &backing_store.open_gl.framebuffer);
+-          render_target = MakeRenderTargetFromSkSurface(
+-              backing_store, std::move(skia_surface),
+-              collect_callback.Release());
+-          break;
++          if (enable_impeller) {
++            render_target = MakeRenderTargetFromBackingStoreImpeller(
++                backing_store, collect_callback.Release(), aiks_context, config,
++                &backing_store.open_gl.framebuffer);
++            break;
++          } else {
++            auto skia_surface = MakeSkSurfaceFromBackingStore(
++                context, config, &backing_store.open_gl.framebuffer);
++            render_target = MakeRenderTargetFromSkSurface(
++                backing_store, std::move(skia_surface),
++                collect_callback.Release());
++            break;
++          }
+         }
+       }
+       break;
+diff --git a/shell/platform/embedder/embedder_surface_gl_impeller.cc b/shell/platform/embedder/embedder_surface_gl_impeller.cc
+new file mode 100644
+index 0000000000..7a4c3ddf15
+--- /dev/null
++++ b/shell/platform/embedder/embedder_surface_gl_impeller.cc
+@@ -0,0 +1,188 @@
++// Copyright 2013 The Flutter Authors. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++#include "flutter/shell/platform/embedder/embedder_surface_gl_impeller.h"
++
++#include <utility>
++
++#include "impeller/entity/gles/entity_shaders_gles.h"
++#include "impeller/renderer/backend/gles/context_gles.h"
++#include "impeller/renderer/backend/gles/proc_table_gles.h"
++#include "impeller/scene/shaders/gles/scene_shaders_gles.h"
++
++namespace flutter {
++
++class ReactorWorker final : public impeller::ReactorGLES::Worker {
++ public:
++  ReactorWorker() = default;
++
++  // |ReactorGLES::Worker|
++  bool CanReactorReactOnCurrentThreadNow(
++      const impeller::ReactorGLES& reactor) const override {
++    impeller::ReaderLock lock(mutex_);
++    auto found = reactions_allowed_.find(std::this_thread::get_id());
++    if (found == reactions_allowed_.end()) {
++      return false;
++    }
++    return found->second;
++  }
++
++  void SetReactionsAllowedOnCurrentThread(bool allowed) {
++    impeller::WriterLock lock(mutex_);
++    reactions_allowed_[std::this_thread::get_id()] = allowed;
++  }
++
++ private:
++  mutable impeller::RWMutex mutex_;
++  std::map<std::thread::id, bool> reactions_allowed_ IPLR_GUARDED_BY(mutex_);
++
++  FML_DISALLOW_COPY_AND_ASSIGN(ReactorWorker);
++};
++
++EmbedderSurfaceGLImpeller::EmbedderSurfaceGLImpeller(
++    EmbedderSurfaceGL::GLDispatchTable gl_dispatch_table,
++    bool fbo_reset_after_present,
++    std::shared_ptr<EmbedderExternalViewEmbedder> external_view_embedder)
++    : gl_dispatch_table_(std::move(gl_dispatch_table)),
++      fbo_reset_after_present_(fbo_reset_after_present),
++      external_view_embedder_(std::move(external_view_embedder)),
++      worker_(std::make_shared<ReactorWorker>()) {
++  // Make sure all required members of the dispatch table are checked.
++  if (!gl_dispatch_table_.gl_make_current_callback ||
++      !gl_dispatch_table_.gl_clear_current_callback ||
++      !gl_dispatch_table_.gl_present_callback ||
++      !gl_dispatch_table_.gl_fbo_callback ||
++      !gl_dispatch_table_.gl_populate_existing_damage ||
++      !gl_dispatch_table_.gl_proc_resolver) {
++    return;
++  }
++  std::vector<std::shared_ptr<fml::Mapping>> shader_mappings = {
++      std::make_shared<fml::NonOwnedMapping>(
++          impeller_entity_shaders_gles_data,
++          impeller_entity_shaders_gles_length),
++      std::make_shared<fml::NonOwnedMapping>(
++          impeller_scene_shaders_gles_data, impeller_scene_shaders_gles_length),
++  };
++  auto gl = std::make_unique<impeller::ProcTableGLES>(
++      gl_dispatch_table_.gl_proc_resolver);
++  if (!gl->IsValid()) {
++    return;
++  }
++
++  impeller_context_ =
++      impeller::ContextGLES::Create(std::move(gl), shader_mappings);
++
++  if (!impeller_context_) {
++    FML_LOG(ERROR) << "Could not create Impeller context.";
++    return;
++  }
++
++  worker_->SetReactionsAllowedOnCurrentThread(true);
++  auto worker_id = impeller_context_->AddReactorWorker(worker_);
++  if (!worker_id.has_value()) {
++    FML_LOG(ERROR) << "Could not add reactor worker.";
++    return;
++  }
++
++  FML_LOG(ERROR) << "Using the Impeller rendering backend (OpenGL).";
++  valid_ = true;
++}
++
++EmbedderSurfaceGLImpeller::~EmbedderSurfaceGLImpeller() = default;
++
++// |EmbedderSurface|
++bool EmbedderSurfaceGLImpeller::IsValid() const {
++  return valid_;
++}
++
++// |GPUSurfaceGLDelegate|
++std::unique_ptr<GLContextResult>
++EmbedderSurfaceGLImpeller::GLContextMakeCurrent() {
++  worker_->SetReactionsAllowedOnCurrentThread(true);
++  return std::make_unique<GLContextDefaultResult>(
++      gl_dispatch_table_.gl_make_current_callback());
++}
++
++// |GPUSurfaceGLDelegate|
++bool EmbedderSurfaceGLImpeller::GLContextClearCurrent() {
++  worker_->SetReactionsAllowedOnCurrentThread(false);
++  return gl_dispatch_table_.gl_clear_current_callback();
++}
++
++// |GPUSurfaceGLDelegate|
++bool EmbedderSurfaceGLImpeller::GLContextPresent(
++    const GLPresentInfo& present_info) {
++  // Pass the present information to the embedder present callback.
++  return gl_dispatch_table_.gl_present_callback(present_info);
++}
++
++// |GPUSurfaceGLDelegate|
++GLFBOInfo EmbedderSurfaceGLImpeller::GLContextFBO(
++    GLFrameInfo frame_info) const {
++  // Get the FBO ID using the gl_fbo_callback and then get exiting damage by
++  // passing that ID to the gl_populate_existing_damage.
++  return gl_dispatch_table_.gl_populate_existing_damage(
++      gl_dispatch_table_.gl_fbo_callback(frame_info));
++}
++
++// |GPUSurfaceGLDelegate|
++bool EmbedderSurfaceGLImpeller::GLContextFBOResetAfterPresent() const {
++  return fbo_reset_after_present_;
++}
++
++// |GPUSurfaceGLDelegate|
++SkMatrix EmbedderSurfaceGLImpeller::GLContextSurfaceTransformation() const {
++  auto callback = gl_dispatch_table_.gl_surface_transformation_callback;
++  if (!callback) {
++    SkMatrix matrix;
++    matrix.setIdentity();
++    return matrix;
++  }
++  return callback();
++}
++
++// |GPUSurfaceGLDelegate|
++EmbedderSurfaceGL::GLProcResolver EmbedderSurfaceGLImpeller::GetGLProcResolver()
++    const {
++  return gl_dispatch_table_.gl_proc_resolver;
++}
++
++// |GPUSurfaceGLDelegate|
++SurfaceFrame::FramebufferInfo
++EmbedderSurfaceGLImpeller::GLContextFramebufferInfo() const {
++  // Enable partial repaint by default on the embedders.
++  auto info = SurfaceFrame::FramebufferInfo{};
++  info.supports_readback = true;
++  info.supports_partial_repaint =
++      gl_dispatch_table_.gl_populate_existing_damage != nullptr;
++  return info;
++}
++
++// |EmbedderSurface|
++std::unique_ptr<Surface> EmbedderSurfaceGLImpeller::CreateGPUSurface() {
++  return std::make_unique<GPUSurfaceGLImpeller>(
++      this,              // GPU surface GL delegate
++      impeller_context_  // render to surface
++  );
++}
++
++// |EmbedderSurface|
++std::shared_ptr<impeller::Context>
++EmbedderSurfaceGLImpeller::CreateImpellerContext() const {
++  return impeller_context_;
++}
++
++// |EmbedderSurface|
++sk_sp<GrDirectContext> EmbedderSurfaceGLImpeller::CreateResourceContext()
++    const {
++  if (gl_dispatch_table_.gl_make_resource_current_callback()) {
++    worker_->SetReactionsAllowedOnCurrentThread(true);
++  } else {
++    FML_DLOG(ERROR) << "Could not make the resource context current.";
++    worker_->SetReactionsAllowedOnCurrentThread(false);
++  }
++  return nullptr;
++}
++
++}  // namespace flutter
+diff --git a/shell/platform/embedder/embedder_surface_gl_impeller.h b/shell/platform/embedder/embedder_surface_gl_impeller.h
+new file mode 100644
+index 0000000000..6d19272102
+--- /dev/null
++++ b/shell/platform/embedder/embedder_surface_gl_impeller.h
+@@ -0,0 +1,81 @@
++// Copyright 2013 The Flutter Authors. All rights reserved.
++// Use of this source code is governed by a BSD-style license that can be
++// found in the LICENSE file.
++
++#ifndef FLUTTER_SHELL_PLATFORM_EMBEDDER_EMBEDDER_SURFACE_GL_IMPELLER_H_
++#define FLUTTER_SHELL_PLATFORM_EMBEDDER_EMBEDDER_SURFACE_GL_IMPELLER_H_
++
++#include "flutter/fml/macros.h"
++#include "flutter/shell/gpu/gpu_surface_gl_impeller.h"
++#include "flutter/shell/platform/embedder/embedder_external_view_embedder.h"
++#include "flutter/shell/platform/embedder/embedder_surface.h"
++#include "flutter/shell/platform/embedder/embedder_surface_gl.h"
++
++namespace impeller {
++class ContextGLES;
++}  // namespace impeller
++
++namespace flutter {
++
++class ReactorWorker;
++
++class EmbedderSurfaceGLImpeller final : public EmbedderSurface,
++                                        public GPUSurfaceGLDelegate {
++ public:
++  EmbedderSurfaceGLImpeller(
++      EmbedderSurfaceGL::GLDispatchTable gl_dispatch_table,
++      bool fbo_reset_after_present,
++      std::shared_ptr<EmbedderExternalViewEmbedder> external_view_embedder);
++
++  ~EmbedderSurfaceGLImpeller() override;
++
++ private:
++  bool valid_ = false;
++  EmbedderSurfaceGL::GLDispatchTable gl_dispatch_table_;
++  bool fbo_reset_after_present_;
++  std::shared_ptr<impeller::ContextGLES> impeller_context_;
++  std::shared_ptr<EmbedderExternalViewEmbedder> external_view_embedder_;
++  std::shared_ptr<ReactorWorker> worker_;
++
++  // |EmbedderSurface|
++  bool IsValid() const override;
++
++  // |EmbedderSurface|
++  std::unique_ptr<Surface> CreateGPUSurface() override;
++
++  // |EmbedderSurface|
++  std::shared_ptr<impeller::Context> CreateImpellerContext() const override;
++
++  // |GPUSurfaceGLDelegate|
++  std::unique_ptr<GLContextResult> GLContextMakeCurrent() override;
++
++  // |GPUSurfaceGLDelegate|
++  bool GLContextClearCurrent() override;
++
++  // |GPUSurfaceGLDelegate|
++  bool GLContextPresent(const GLPresentInfo& present_info) override;
++
++  // |GPUSurfaceGLDelegate|
++  GLFBOInfo GLContextFBO(GLFrameInfo frame_info) const override;
++
++  // |GPUSurfaceGLDelegate|
++  bool GLContextFBOResetAfterPresent() const override;
++
++  // |GPUSurfaceGLDelegate|
++  SkMatrix GLContextSurfaceTransformation() const override;
++
++  // |GPUSurfaceGLDelegate|
++  GLProcResolver GetGLProcResolver() const override;
++
++  // |GPUSurfaceGLDelegate|
++  SurfaceFrame::FramebufferInfo GLContextFramebufferInfo() const override;
++
++  // |EmbedderSurface|
++  sk_sp<GrDirectContext> CreateResourceContext() const override;
++
++  FML_DISALLOW_COPY_AND_ASSIGN(EmbedderSurfaceGLImpeller);
++};
++
++}  // namespace flutter
++
++#endif  // FLUTTER_SHELL_PLATFORM_EMBEDDER_EMBEDDER_SURFACE_GL_IMPELLER_H_
+diff --git a/shell/platform/embedder/platform_view_embedder.cc b/shell/platform/embedder/platform_view_embedder.cc
+index ccbe0fc01a..7e7ed02607 100644
+--- a/shell/platform/embedder/platform_view_embedder.cc
++++ b/shell/platform/embedder/platform_view_embedder.cc
+@@ -66,16 +66,12 @@ PlatformViewEmbedder::PlatformViewEmbedder(
+ PlatformViewEmbedder::PlatformViewEmbedder(
+     PlatformView::Delegate& delegate,
+     const flutter::TaskRunners& task_runners,
+-    const EmbedderSurfaceGL::GLDispatchTable& gl_dispatch_table,
+-    bool fbo_reset_after_present,
++    std::unique_ptr<EmbedderSurface> embedder_surface,
+     PlatformDispatchTable platform_dispatch_table,
+     std::shared_ptr<EmbedderExternalViewEmbedder> external_view_embedder)
+     : PlatformView(delegate, task_runners),
+       external_view_embedder_(std::move(external_view_embedder)),
+-      embedder_surface_(
+-          std::make_unique<EmbedderSurfaceGL>(gl_dispatch_table,
+-                                              fbo_reset_after_present,
+-                                              external_view_embedder_)),
++      embedder_surface_(std::move(embedder_surface)),
+       platform_message_handler_(new EmbedderPlatformMessageHandler(
+           GetWeakPtr(),
+           task_runners.GetPlatformTaskRunner())),
+diff --git a/shell/platform/embedder/platform_view_embedder.h b/shell/platform/embedder/platform_view_embedder.h
+index 87378b5074..896e11a710 100644
+--- a/shell/platform/embedder/platform_view_embedder.h
++++ b/shell/platform/embedder/platform_view_embedder.h
+@@ -17,6 +17,7 @@
+ 
+ #ifdef SHELL_ENABLE_GL
+ #include "flutter/shell/platform/embedder/embedder_surface_gl.h"
++#include "flutter/shell/platform/embedder/embedder_surface_gl_impeller.h"
+ #endif
+ 
+ #ifdef SHELL_ENABLE_METAL
+@@ -65,8 +66,7 @@ class PlatformViewEmbedder final : public PlatformView {
+   PlatformViewEmbedder(
+       PlatformView::Delegate& delegate,
+       const flutter::TaskRunners& task_runners,
+-      const EmbedderSurfaceGL::GLDispatchTable& gl_dispatch_table,
+-      bool fbo_reset_after_present,
++      std::unique_ptr<EmbedderSurface> embedder_surface,
+       PlatformDispatchTable platform_dispatch_table,
+       std::shared_ptr<EmbedderExternalViewEmbedder> external_view_embedder);
+ #endif
+diff --git a/shell/platform/windows/angle_surface_manager.cc b/shell/platform/windows/angle_surface_manager.cc
+index 18d21f6b42..7deafc2d0b 100644
+--- a/shell/platform/windows/angle_surface_manager.cc
++++ b/shell/platform/windows/angle_surface_manager.cc
+@@ -20,20 +20,21 @@ namespace flutter {
+ 
+ int AngleSurfaceManager::instance_count_ = 0;
+ 
+-std::unique_ptr<AngleSurfaceManager> AngleSurfaceManager::Create() {
++std::unique_ptr<AngleSurfaceManager> AngleSurfaceManager::Create(
++    bool enable_impeller) {
+   std::unique_ptr<AngleSurfaceManager> manager;
+-  manager.reset(new AngleSurfaceManager());
++  manager.reset(new AngleSurfaceManager(enable_impeller));
+   if (!manager->initialize_succeeded_) {
+     return nullptr;
+   }
+   return std::move(manager);
+ }
+ 
+-AngleSurfaceManager::AngleSurfaceManager()
++AngleSurfaceManager::AngleSurfaceManager(bool enable_impeller)
+     : egl_config_(nullptr),
+       egl_display_(EGL_NO_DISPLAY),
+       egl_context_(EGL_NO_CONTEXT) {
+-  initialize_succeeded_ = Initialize();
++  initialize_succeeded_ = Initialize(enable_impeller);
+   ++instance_count_;
+ }
+ 
+@@ -66,15 +67,21 @@ bool AngleSurfaceManager::InitializeEGL(
+   return true;
+ }
+ 
+-bool AngleSurfaceManager::Initialize() {
+-  // TODO(dnfield): Enable MSAA here, see similar code in android_context_gl.cc
+-  // Will need to plumb in argument from project bundle for sampling rate.
+-  // https://github.com/flutter/flutter/issues/100392
++bool AngleSurfaceManager::Initialize(bool enable_impeller) {
+   const EGLint config_attributes[] = {EGL_RED_SIZE,   8, EGL_GREEN_SIZE,   8,
+                                       EGL_BLUE_SIZE,  8, EGL_ALPHA_SIZE,   8,
+                                       EGL_DEPTH_SIZE, 8, EGL_STENCIL_SIZE, 8,
+                                       EGL_NONE};
+ 
++  const EGLint impeller_config_attributes[] = {
++      EGL_RED_SIZE,       8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE,    8,
++      EGL_ALPHA_SIZE,     8, EGL_DEPTH_SIZE, 0, EGL_STENCIL_SIZE, 8,
++      EGL_SAMPLE_BUFFERS, 1, EGL_SAMPLES,    4, EGL_NONE};
++  const EGLint impeller_config_attributes_no_msaa[] = {
++      EGL_RED_SIZE,   8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE,    8,
++      EGL_ALPHA_SIZE, 8, EGL_DEPTH_SIZE, 0, EGL_STENCIL_SIZE, 8,
++      EGL_NONE};
++
+   const EGLint display_context_attributes[] = {EGL_CONTEXT_CLIENT_VERSION, 2,
+                                                EGL_NONE};
+ 
+@@ -147,11 +154,26 @@ bool AngleSurfaceManager::Initialize() {
+   }
+ 
+   EGLint numConfigs = 0;
+-  if ((eglChooseConfig(egl_display_, config_attributes, &egl_config_, 1,
+-                       &numConfigs) == EGL_FALSE) ||
+-      (numConfigs == 0)) {
+-    LogEglError("Failed to choose first context");
+-    return false;
++  if (enable_impeller) {
++    // First try the MSAA configuration.
++    if ((eglChooseConfig(egl_display_, impeller_config_attributes, &egl_config_,
++                         1, &numConfigs) == EGL_FALSE) ||
++        (numConfigs == 0)) {
++      // Next fall back to disabled MSAA.
++      if ((eglChooseConfig(egl_display_, impeller_config_attributes_no_msaa,
++                           &egl_config_, 1, &numConfigs) == EGL_FALSE) ||
++          (numConfigs == 0)) {
++        LogEglError("Failed to choose first context");
++        return false;
++      }
++    }
++  } else {
++    if ((eglChooseConfig(egl_display_, config_attributes, &egl_config_, 1,
++                         &numConfigs) == EGL_FALSE) ||
++        (numConfigs == 0)) {
++      LogEglError("Failed to choose first context");
++      return false;
++    }
+   }
+ 
+   egl_context_ = eglCreateContext(egl_display_, egl_config_, EGL_NO_CONTEXT,
+diff --git a/shell/platform/windows/angle_surface_manager.h b/shell/platform/windows/angle_surface_manager.h
+index edfe7a8cbc..a738e4486d 100644
+--- a/shell/platform/windows/angle_surface_manager.h
++++ b/shell/platform/windows/angle_surface_manager.h
+@@ -27,7 +27,7 @@ namespace flutter {
+ // destroy surfaces
+ class AngleSurfaceManager {
+  public:
+-  static std::unique_ptr<AngleSurfaceManager> Create();
++  static std::unique_ptr<AngleSurfaceManager> Create(bool enable_impeller);
+   virtual ~AngleSurfaceManager();
+ 
+   // Creates an EGLSurface wrapper and backing DirectX 11 SwapChain
+@@ -88,10 +88,10 @@ class AngleSurfaceManager {
+  protected:
+   // Creates a new surface manager retaining reference to the passed-in target
+   // for the lifetime of the manager.
+-  AngleSurfaceManager();
++  explicit AngleSurfaceManager(bool enable_impeller);
+ 
+  private:
+-  bool Initialize();
++  bool Initialize(bool enable_impeller);
+   void CleanUp();
+ 
+   // Attempts to initialize EGL using ANGLE.
+diff --git a/shell/platform/windows/flutter_project_bundle.cc b/shell/platform/windows/flutter_project_bundle.cc
+index df289b526a..aab3239ce8 100644
+--- a/shell/platform/windows/flutter_project_bundle.cc
++++ b/shell/platform/windows/flutter_project_bundle.cc
+@@ -88,7 +88,17 @@ void FlutterProjectBundle::SetSwitches(
+ }
+ 
+ const std::vector<std::string> FlutterProjectBundle::GetSwitches() {
+-  return GetSwitchesFromEnvironment();
++  if (engine_switches_.size() == 0) {
++    return GetSwitchesFromEnvironment();
++  }
++  std::vector<std::string> switches;
++  switches.insert(switches.end(), engine_switches_.begin(),
++                  engine_switches_.end());
++
++  auto env_switches = GetSwitchesFromEnvironment();
++  switches.insert(switches.end(), env_switches.begin(), env_switches.end());
++
++  return switches;
+ }
+ 
+ }  // namespace flutter
+diff --git a/shell/platform/windows/flutter_windows_engine.cc b/shell/platform/windows/flutter_windows_engine.cc
+index c6c46d7301..07717716fa 100644
+--- a/shell/platform/windows/flutter_windows_engine.cc
++++ b/shell/platform/windows/flutter_windows_engine.cc
+@@ -202,7 +202,13 @@ FlutterWindowsEngine::FlutterWindowsEngine(
+   FlutterWindowsTextureRegistrar::ResolveGlFunctions(gl_procs_);
+   texture_registrar_ =
+       std::make_unique<FlutterWindowsTextureRegistrar>(this, gl_procs_);
+-  surface_manager_ = AngleSurfaceManager::Create();
++  
++  // Check for impeller support.
++  auto& switches = project_->GetSwitches();
++  enable_impeller_ = std::find(switches.begin(), switches.end(),
++                               "--enable-impeller=true") != switches.end();
++
++  surface_manager_ = AngleSurfaceManager::Create(enable_impeller_);
+   window_proc_delegate_manager_ = std::make_unique<WindowProcDelegateManager>();
+   window_proc_delegate_manager_->RegisterTopLevelWindowProcDelegate(
+       [](HWND hwnd, UINT msg, WPARAM wpar, LPARAM lpar, void* user_data,
+@@ -372,10 +378,22 @@ bool FlutterWindowsEngine::Run(std::string_view entrypoint) {
+     args.aot_data = aot_data_.get();
+   }
+ 
+-  FlutterRendererConfig renderer_config = surface_manager_
+-                                              ? GetOpenGLRendererConfig()
+-                                              : GetSoftwareRendererConfig();
++FlutterRendererConfig renderer_config;
+ 
++  if (enable_impeller_) {
++    // Impeller does not support a Software backend. Avoid falling back and
++    // confusing the engine on which renderer is selected.
++    if (!surface_manager_) {
++      FML_LOG(ERROR) << "Could not create surface manager. Impeller backend "
++                        "does not support software rendering.";
++      return false;
++    }
++    renderer_config = GetOpenGLRendererConfig();
++      } else {
++    renderer_config = surface_manager_ ? GetOpenGLRendererConfig()
++                                       : GetSoftwareRendererConfig();
++  }
++  
+   auto result = embedder_api_.Run(FLUTTER_ENGINE_VERSION, &renderer_config,
+                                   &args, this, &engine_);
+   if (result != kSuccess || engine_ == nullptr) {
+diff --git a/shell/platform/windows/flutter_windows_engine.h b/shell/platform/windows/flutter_windows_engine.h
+index 9fd7df9f49..54bda01ba2 100644
+--- a/shell/platform/windows/flutter_windows_engine.h
++++ b/shell/platform/windows/flutter_windows_engine.h
+@@ -396,6 +396,8 @@ class FlutterWindowsEngine {
+ 
+   bool high_contrast_enabled_ = false;
+ 
++  bool enable_impeller_ = false;
++
+   // The manager for WindowProc delegate registration and callbacks.
+   std::unique_ptr<WindowProcDelegateManager> window_proc_delegate_manager_;
+ 
+diff --git a/shell/platform/windows/flutter_windows_engine_unittests.cc b/shell/platform/windows/flutter_windows_engine_unittests.cc
+index d518e7f9c1..0530c423c4 100644
+--- a/shell/platform/windows/flutter_windows_engine_unittests.cc
++++ b/shell/platform/windows/flutter_windows_engine_unittests.cc
+@@ -223,6 +223,42 @@ TEST_F(FlutterWindowsEngineTest, RunWithoutANGLEUsesSoftware) {
+   modifier.embedder_api().Shutdown = [](auto engine) { return kSuccess; };
+ }
+ 
++
++TEST_F(FlutterWindowsEngineTest, RunWithoutANGLEOnImpellerFailsToStart) {
++  FlutterWindowsEngineBuilder builder{GetContext()};
++  builder.SetSwitches({"--enable-impeller=true"});
++  std::unique_ptr<FlutterWindowsEngine> engine = builder.Build();
++  EngineModifier modifier(engine.get());
++
++  modifier.embedder_api().NotifyDisplayUpdate =
++      MOCK_ENGINE_PROC(NotifyDisplayUpdate,
++                       ([engine_instance = engine.get()](
++                            FLUTTER_API_SYMBOL(FlutterEngine) raw_engine,
++                            const FlutterEngineDisplaysUpdateType update_type,
++                            const FlutterEngineDisplay* embedder_displays,
++                            size_t display_count) { return kSuccess; }));
++
++  // Accessibility updates must do nothing when the embedder engine is mocked
++  modifier.embedder_api().UpdateAccessibilityFeatures = MOCK_ENGINE_PROC(
++      UpdateAccessibilityFeatures,
++      [](FLUTTER_API_SYMBOL(FlutterEngine) engine,
++         FlutterAccessibilityFeature flags) { return kSuccess; });
++
++  // Stub out UpdateLocales and SendPlatformMessage as we don't have a fully
++  // initialized engine instance.
++  modifier.embedder_api().UpdateLocales = MOCK_ENGINE_PROC(
++      UpdateLocales, ([](auto engine, const FlutterLocale** locales,
++                         size_t locales_count) { return kSuccess; }));
++  modifier.embedder_api().SendPlatformMessage =
++      MOCK_ENGINE_PROC(SendPlatformMessage,
++                       ([](auto engine, auto message) { return kSuccess; }));
++
++  // Set the AngleSurfaceManager to nullptr to test software fallback path.
++  modifier.SetSurfaceManager(nullptr);
++
++  EXPECT_FALSE(engine->Run());
++}
++
+ TEST_F(FlutterWindowsEngineTest, SendPlatformMessageWithoutResponse) {
+   FlutterWindowsEngineBuilder builder{GetContext()};
+   std::unique_ptr<FlutterWindowsEngine> engine = builder.Build();
+diff --git a/shell/platform/windows/flutter_windows_view_unittests.cc b/shell/platform/windows/flutter_windows_view_unittests.cc
+index 89082dd46c..2d5dfd7140 100644
+--- a/shell/platform/windows/flutter_windows_view_unittests.cc
++++ b/shell/platform/windows/flutter_windows_view_unittests.cc
+@@ -118,7 +118,7 @@ class MockFlutterWindowsEngine : public FlutterWindowsEngine {
+ 
+ class MockAngleSurfaceManager : public AngleSurfaceManager {
+  public:
+-  MockAngleSurfaceManager() {}
++  MockAngleSurfaceManager() : AngleSurfaceManager(false) {}
+ 
+   MOCK_METHOD4(CreateSurface, bool(WindowsRenderTarget*, EGLint, EGLint, bool));
+   MOCK_METHOD4(ResizeSurface, void(WindowsRenderTarget*, EGLint, EGLint, bool));
+diff --git a/shell/platform/windows/testing/flutter_windows_engine_builder.cc b/shell/platform/windows/testing/flutter_windows_engine_builder.cc
+index d4f8086c89..9b8f6e4053 100644
+--- a/shell/platform/windows/testing/flutter_windows_engine_builder.cc
++++ b/shell/platform/windows/testing/flutter_windows_engine_builder.cc
+@@ -62,6 +62,11 @@ void FlutterWindowsEngineBuilder::AddDartEntrypointArgument(std::string arg) {
+   dart_entrypoint_arguments_.emplace_back(std::move(arg));
+ }
+ 
++void FlutterWindowsEngineBuilder::SetSwitches(
++    std::vector<std::string> switches) {
++  switches_ = std::move(switches);
++}
++
+ void FlutterWindowsEngineBuilder::SetCreateKeyboardHandlerCallbacks(
+     KeyboardKeyEmbedderHandler::GetKeyStateHandler get_key_state,
+     KeyboardKeyEmbedderHandler::MapVirtualKeyToScanCode map_vk_to_scan) {
+@@ -86,6 +91,7 @@ std::unique_ptr<FlutterWindowsEngine> FlutterWindowsEngineBuilder::Build() {
+   }
+ 
+   FlutterProjectBundle project(properties_);
++  project.SetSwitches(switches_);
+ 
+   return std::make_unique<TestFlutterWindowsEngine>(project, get_key_state_,
+                                                     map_vk_to_scan_);
+diff --git a/shell/platform/windows/testing/flutter_windows_engine_builder.h b/shell/platform/windows/testing/flutter_windows_engine_builder.h
+index ce3648a82a..e17d3c7942 100644
+--- a/shell/platform/windows/testing/flutter_windows_engine_builder.h
++++ b/shell/platform/windows/testing/flutter_windows_engine_builder.h
+@@ -29,6 +29,8 @@ class FlutterWindowsEngineBuilder {
+       KeyboardKeyEmbedderHandler::GetKeyStateHandler get_key_state,
+       KeyboardKeyEmbedderHandler::MapVirtualKeyToScanCode map_vk_to_scan);
+ 
++  void SetSwitches(std::vector<std::string> switches);
++
+   std::unique_ptr<FlutterWindowsEngine> Build();
+ 
+  private:
+@@ -36,6 +38,7 @@ class FlutterWindowsEngineBuilder {
+   FlutterDesktopEngineProperties properties_ = {};
+   std::string dart_entrypoint_;
+   std::vector<std::string> dart_entrypoint_arguments_;
++  std::vector<std::string> switches_;
+   KeyboardKeyEmbedderHandler::GetKeyStateHandler get_key_state_;
+   KeyboardKeyEmbedderHandler::MapVirtualKeyToScanCode map_vk_to_scan_;
+ 
+-- 
+2.41.0
+

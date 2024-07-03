@@ -1,0 +1,26 @@
+From 9823c889f42e6b8b8b7caf8647479856574b1b4c Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Mon, 10 Jun 2024 13:25:27 -0700
+Subject: [PATCH 7/7] return shader type mobile for linux vulkan
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ filament/backend/src/vulkan/VulkanDriver.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/filament/backend/src/vulkan/VulkanDriver.cpp b/filament/backend/src/vulkan/VulkanDriver.cpp
+index 1cea2ca31..f69ef59d3 100644
+--- a/filament/backend/src/vulkan/VulkanDriver.cpp
++++ b/filament/backend/src/vulkan/VulkanDriver.cpp
+@@ -222,7 +222,7 @@ Driver* VulkanDriver::create(VulkanPlatform* platform, VulkanContext const& cont
+ }
+ 
+ ShaderModel VulkanDriver::getShaderModel() const noexcept {
+-#if defined(__ANDROID__) || defined(IOS)
++#if defined(__ANDROID__) || defined(IOS) || defined(__linux__)
+     return ShaderModel::MOBILE;
+ #else
+     return ShaderModel::DESKTOP;
+-- 
+2.45.1
+

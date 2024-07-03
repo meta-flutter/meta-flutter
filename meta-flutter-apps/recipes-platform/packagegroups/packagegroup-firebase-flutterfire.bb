@@ -19,6 +19,7 @@ RDEPENDS:${PN} += " \
     firebase-flutterfire-packages-firebase-remote-config-firebase-remote-config-example \
     firebase-flutterfire-packages-firebase-crashlytics-firebase-crashlytics-example \
     firebase-flutterfire-packages-firebase-messaging-firebase-messaging-example \
+    firebase-flutterfire-packages-firebase-vertexai-firebase-vertexai-example-vertex-ai-example \
     firebase-flutterfire-packages-firebase-database-firebase-database-example \
     firebase-flutterfire-packages-firebase-app-installations-firebase-app-installations-example \
     firebase-flutterfire-packages-firebase-auth-firebase-auth-example \

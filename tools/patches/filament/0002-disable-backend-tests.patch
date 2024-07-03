@@ -1,0 +1,134 @@
+From 6a920a7612cfea25bbea78600b16e3075a30a8f7 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Wed, 12 Jun 2024 06:41:19 -0700
+Subject: [PATCH 2/5] disable backend tests
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ filament/backend/CMakeLists.txt | 113 --------------------------------
+ 1 file changed, 113 deletions(-)
+
+diff --git a/filament/backend/CMakeLists.txt b/filament/backend/CMakeLists.txt
+index 6a7f66cc2..378f45aed 100644
+--- a/filament/backend/CMakeLists.txt
++++ b/filament/backend/CMakeLists.txt
+@@ -400,116 +400,3 @@ set(INSTALL_TYPE ARCHIVE)
+ install(TARGETS ${TARGET} ${INSTALL_TYPE} DESTINATION lib/${DIST_DIR})
+ install(TARGETS vkshaders ${INSTALL_TYPE} DESTINATION lib/${DIST_DIR})
+ install(DIRECTORY ${PUBLIC_HDR_DIR}/backend DESTINATION include)
+-
+-# ==================================================================================================
+-# Test
+-# ==================================================================================================
+-option(INSTALL_BACKEND_TEST "Install the backend test library so it can be consumed on iOS" OFF)
+-
+-if (APPLE OR LINUX)
+-    set(BACKEND_TEST_SRC
+-        test/BackendTest.cpp
+-        test/ShaderGenerator.cpp
+-        test/TrianglePrimitive.cpp
+-        test/Arguments.cpp
+-        test/test_FeedbackLoops.cpp
+-        test/test_Blit.cpp
+-        test/test_MissingRequiredAttributes.cpp
+-        test/test_ReadPixels.cpp
+-        test/test_BufferUpdates.cpp
+-        test/test_Callbacks.cpp
+-        test/test_MRT.cpp
+-        test/test_PushConstants.cpp
+-        test/test_LoadImage.cpp
+-        test/test_StencilBuffer.cpp
+-        test/test_Scissor.cpp
+-        test/test_MipLevels.cpp
+-    )
+-    set(BACKEND_TEST_LIBS
+-        backend
+-        getopt
+-        gtest
+-        imageio
+-        filamat
+-        SPIRV
+-        spirv-cross-glsl)
+-endif()
+-
+-if (APPLE)
+-    # TODO: we should expand this test to Linux and other platforms.
+-    list(APPEND BACKEND_TEST_SRC
+-         test/test_RenderExternalImage.cpp)
+-    add_library(backend_test STATIC ${BACKEND_TEST_SRC})
+-    target_link_libraries(backend_test PRIVATE ${BACKEND_TEST_LIBS})
+-
+-    set(BACKEND_TEST_DEPS
+-            OGLCompiler
+-            OSDependent
+-            SPIRV
+-            SPIRV-Tools
+-            SPIRV-Tools-opt
+-            backend_test
+-            getopt
+-            gtest
+-            glslang
+-            spirv-cross-core
+-            spirv-cross-glsl
+-            spirv-cross-msl)
+-
+-    if (NOT IOS)
+-        target_link_libraries(backend_test PRIVATE image imageio)
+-        list(APPEND BACKEND_TEST_DEPS image)
+-    endif()
+-
+-    set(BACKEND_TEST_COMBINED_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/libbackendtest_combined.a")
+-    combine_static_libs(backend_test "${BACKEND_TEST_COMBINED_OUTPUT}" "${BACKEND_TEST_DEPS}")
+-
+-    set(BACKEND_TEST_LIB_NAME ${CMAKE_STATIC_LIBRARY_PREFIX}backend_test${CMAKE_STATIC_LIBRARY_SUFFIX})
+-
+-    if (INSTALL_BACKEND_TEST)
+-        install(FILES "${BACKEND_TEST_COMBINED_OUTPUT}" DESTINATION lib/${DIST_DIR} RENAME ${BACKEND_TEST_LIB_NAME})
+-        install(FILES test/PlatformRunner.h DESTINATION include/backend_test)
+-    endif()
+-
+-    set_target_properties(backend_test PROPERTIES FOLDER Tests)
+-
+-    if (APPLE AND NOT IOS)
+-       add_executable(backend_test_mac test/mac_runner.mm)
+-       target_link_libraries(backend_test_mac PRIVATE "-framework Metal -framework AppKit -framework QuartzCore")
+-       # Because each test case is a separate file, the -force_load flag is necessary to prevent the
+-       # linker from removing "unused" symbols.
+-       target_link_libraries(backend_test_mac PRIVATE -force_load backend_test)
+-       set_target_properties(backend_test_mac PROPERTIES FOLDER Tests)
+-
+-       # This is needed after XCode 15.3
+-       set_target_properties(backend_test_mac PROPERTIES BUILD_WITH_INSTALL_RPATH TRUE)
+-       set_target_properties(backend_test_mac PROPERTIES INSTALL_RPATH /usr/local/lib)
+-    endif()
+-endif()
+-
+-if (LINUX)
+-    add_executable(backend_test_linux test/linux_runner.cpp ${BACKEND_TEST_SRC})
+-    target_link_libraries(backend_test_linux PRIVATE ${BACKEND_TEST_LIBS})
+-    set_target_properties(backend_test_linux PROPERTIES FOLDER Tests)
+-endif()
+-
+-# ==================================================================================================
+-# Compute tests
+-
+-if (NOT IOS AND NOT WEBGL)
+-
+-add_executable(compute_test
+-        test/ComputeTest.cpp
+-        test/Arguments.cpp
+-        test/test_ComputeBasic.cpp
+-        )
+-
+-target_link_libraries(compute_test PRIVATE
+-        backend
+-        getopt
+-        gtest
+-        )
+-
+-set_target_properties(compute_test PROPERTIES FOLDER Tests)
+-
+-endif()
+-- 
+2.45.1
+
