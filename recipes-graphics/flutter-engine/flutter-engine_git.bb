@@ -28,8 +28,6 @@ FLUTTER_ENGINE_PATCHES ?= "\
     file://0001-disable-pre-canned-sysroot.patch \
     file://0001-remove-x11-dependency.patch \
     file://0001-disable-x11.patch \
-    file://0001-impeller-workaround.patch \
-    file://0001-Skip-configuration-dependency-if-unit-tests-are-disa.patch \
     file://0001-gn-riscv32-and-riscv64.patch \
     file://0001-fml-build-config-add-riscv.patch \
     "
@@ -73,8 +71,6 @@ PACKAGECONFIG ??= "\
     fontconfig \
     mallinfo2 \
     impeller-3d \
-    ${@bb.utils.contains('DISTRO_FEATURES', 'opengl', 'impeller-opengles', '', d)} \
-    ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'vulkan impeller-vulkan', '', d)} \
     "
 
 PACKAGECONFIG[asan] = "--asan"
@@ -103,13 +99,11 @@ PACKAGECONFIG[ubsan] = "--ubsan"
 PACKAGECONFIG[unoptimized] = "--unoptimized"
 PACKAGECONFIG[verbose] = "--verbose"
 PACKAGECONFIG[vulkan] = "--enable-vulkan,, wayland"
-PACKAGECONFIG[impeller-opengles] = "--enable-impeller-opengles"
-PACKAGECONFIG[impeller-vulkan] = "--enable-impeller-vulkan"
 PACKAGECONFIG[impeller-3d] = "--enable-impeller-3d"
 
 CLANG_BUILD_ARCH = "${@clang_build_arch(d)}"
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
-CLANG_PATH = "${WORKDIR}/src/buildtools/linux-${CLANG_BUILD_ARCH}/clang"
+CLANG_PATH = "${WORKDIR}/src/flutter/buildtools/linux-${CLANG_BUILD_ARCH}/clang"
 
 GN_ARGS = '\
     ${PACKAGECONFIG_CONFARGS} \
