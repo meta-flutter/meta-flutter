@@ -3,6 +3,7 @@
 Jul 4, 2024
 1. flutter-engine patch/patch rework for 3.22.2
 2. remove unused patches from tools
+3. set BBFILE_PRIORITY_meta-flutter correctly
 
 Jul 3, 2024
 1. roll_meta_flutter.py tool. See tools/README.md
