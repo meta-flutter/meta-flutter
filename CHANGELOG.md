@@ -1,5 +1,8 @@
 # Changelog
 
+Jul 4, 2024
+1. flutter-engine patch/patch rework for 3.22.2
+
 Jul 3, 2024
 1. roll_meta_flutter.py tool. See tools/README.md
 2. correct ivi-homescreen executable name to `homescreen`

@@ -1,17 +1,17 @@
-From ef2ca84f52f59fe6c5dfe72c2b4b0ab8d3e61b98 Mon Sep 17 00:00:00 2001
-From: Joel Winarske <joel.winarsk@gmail.com>
-Date: Thu, 16 Mar 2023 18:05:37 -0700
-Subject: [PATCH] Disable x11
+From bfe7fc3564130ecda2e62564ec65a47d76ac0de2 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Thu, 4 Jul 2024 06:08:09 -0700
+Subject: [PATCH] disable x11
 
-Signed-off-by: Joel Winarske <joel.winarsk@gmail.com>
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
  build_overrides/vulkan_headers.gni | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/build_overrides/vulkan_headers.gni b/build_overrides/vulkan_headers.gni
-index 5efa852..8a4144d 100644
---- a/build_overrides/vulkan_headers.gni
-+++ b/build_overrides/vulkan_headers.gni
+diff --git a/flutter/build_overrides/vulkan_headers.gni b/flutter/build_overrides/vulkan_headers.gni
+index 5efa852344..8a4144db20 100644
+--- a/flutter/build_overrides/vulkan_headers.gni
++++ b/flutter/build_overrides/vulkan_headers.gni
 @@ -6,6 +6,6 @@
  # set anything.
  
@@ -21,5 +21,5 @@ index 5efa852..8a4144d 100644
    vulkan_use_wayland = true
  }
 -- 
-2.39.2
+2.43.5
 
