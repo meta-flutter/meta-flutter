@@ -1,5 +1,8 @@
 # Changelog
 
+Jul 9, 2024
+1. Discord Server
+
 Jul 4, 2024
 1. flutter-engine patch/patch rework for 3.22.2
 2. remove unused patches from tools

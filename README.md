@@ -2,6 +2,8 @@
 
 Yocto Layer for Google Flutter related projects.
 
+### Discord Server https://discord.gg/cBkecwT65Q
+
 ### Recommended development flow
 
 * Create a flutter workspace using [flutter_workspace.py](https://github.com/meta-flutter/workspace-automation/blob/main/flutter_workspace.py)
