@@ -1,5 +1,8 @@
 # Changelog
 
+Jul 29, 2024
+1. Roll ivi-homescreen v2 and flutter-auto v2
+
 Jul 9, 2024
 1. Discord Server
 
