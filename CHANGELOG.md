@@ -1,5 +1,8 @@
 # Changelog
 
+Jul 30, 2024
+1. ivi-homescreen/flutter-auto v2 fix bad_optional_access
+
 Jul 29, 2024
 1. Roll ivi-homescreen v2 and flutter-auto v2
 
