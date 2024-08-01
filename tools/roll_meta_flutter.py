@@ -19,7 +19,7 @@ from fw_common import handle_ctrl_c
 from fw_common import make_sure_path_exists
 from fw_common import print_banner
 from fw_common import test_internet_connection
-from tools.update_version_files import get_version_files
+from update_version_files import get_version_files
 
 
 def get_flutter_apps(filename) -> dict:
