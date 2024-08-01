@@ -1,5 +1,9 @@
 # Changelog
 
+Aug 1, 2024
+1. Roll to Flutter SDK 3.22.3
+2. ivi-homescreen/flutter-auto v2 Notify Display Update support
+
 Jul 30, 2024
 1. ivi-homescreen/flutter-auto v2 fix bad_optional_access
 

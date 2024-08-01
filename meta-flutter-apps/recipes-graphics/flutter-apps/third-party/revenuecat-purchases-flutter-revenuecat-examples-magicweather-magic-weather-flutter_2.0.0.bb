@@ -12,7 +12,7 @@ SECTION = "graphics"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=c582549082bd8c4f8e574bd29c5212ed"
 
-SRCREV = "f616a18965c7c88997ea89aaf92821a5abb513de"
+SRCREV = "d06e3ad36d0346f5ae909ca1bf171e79dd538fe2"
 SRC_URI = " \
     git://github.com/RevenueCat/purchases-flutter.git;lfs=0;nobranch=1;protocol=https;destsuffix=git \
     file://purchases-flutter/0001-generic-Linux.patch \
