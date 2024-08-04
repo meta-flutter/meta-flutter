@@ -16,9 +16,10 @@ DEPENDS += "\
     curl-native \
     depot-tools-native \
     ninja-native \
+    xz-native \
     "
 
-SRCREV = "d62c54ebed698399afc8c28efc8cdaacbc056327"
+SRCREV = "60465149414572c8ca189d8f65fdb39795c4b97d"
 SRC_URI = " \
     gn://github.com/dart-lang/sdk.git;gn_name=sdk \
     file://gcc_toolchain.gni.in \
@@ -44,7 +45,7 @@ PACKAGECONFIG[use-qemu] = "--use-qemu"
 PACKAGECONFIG[exclude-kernel-service] = "--exclude-kernel-service"
 PACKAGECONFIG[verbose] = "--verbose"
 
-GN_ARGS = "${PACKAGECONFIG_CONFARGS} --no-goma"
+GN_ARGS = "${PACKAGECONFIG_CONFARGS} --no-goma --no-rbe"
 
 # debug, release, product
 GN_ARGS:append = " --mode product"
