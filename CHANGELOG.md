@@ -1,5 +1,8 @@
 # Changelog
 
+Aug 4, 2024
+1. Dart SDK 3.4.4
+
 Aug 1, 2024
 1. Roll to Flutter SDK 3.22.3
 2. ivi-homescreen/flutter-auto v2 Notify Display Update support
