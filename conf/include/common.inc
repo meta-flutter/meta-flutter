@@ -366,11 +366,14 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
             run_command(d, 'flutter pub get --offline -v', source_root, env)
         
         if runtime_mode == 'jit_release':
-            cmd = (f'flutter build {flutter_build_args} --local-engine -v')
-            run_command(cmd, source_root, env)
+            cmd = (f'flutter build {flutter_build_args} --release --local-engine -v')
+        elif runtime_mode == 'release':
+            cmd = (f'flutter build {flutter_build_args} --release -v')
+        elif runtime_mode == 'profile':
+            cmd = (f'flutter build {flutter_build_args} --profile -v')
         else:
-            cmd = f'flutter build {flutter_build_args} -v'
-            run_command(d, cmd, source_root, env)
+            cmd = (f'flutter build {flutter_build_args} --debug -v')
+        run_command(cmd, source_root, env)
 
         bb.note(f'[{runtime_mode}] flutter build {flutter_build_args}: Completed')
 

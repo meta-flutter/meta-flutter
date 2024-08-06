@@ -1,5 +1,8 @@
 # Changelog
 
+Aug 6, 2024
+1. Build bundle optimization
+
 Aug 4, 2024
 1. Dart SDK 3.4.4
 
