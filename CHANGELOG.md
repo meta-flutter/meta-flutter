@@ -1,5 +1,15 @@
 # Changelog
 
+Aug 6, 2024
+1. flutter-engine
+   - riscv64 support - requires clang-layer or will be ignored
+   - uses external clang toolchain if clang-layer present
+   - link everything with ldd.  Required for RISC-V
+   - Vulkan DRM support via dynamic "vulkan_header" config
+   - only check for x11 package if x11 is in DISTRO_FEATURES
+   - do_install refactor
+   - shared module .debug files install to -dbg package
+
 Aug 4, 2024
 1. Dart SDK 3.4.4
 
