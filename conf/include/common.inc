@@ -392,6 +392,7 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
 
             flutter_app_debug_flags = ''
             dill_path = glob.glob(f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/app.dill')
+            bb.note(f'{dill_path}')
             flutter_app_output_dill = dill_path[0]
             if runtime_mode == 'debug':
                 flutter_app_debug_flags = '--enable-asserts'
