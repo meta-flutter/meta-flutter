@@ -19,7 +19,7 @@ DEPENDS += "\
     xz-native \
     "
 
-SRCREV = "60465149414572c8ca189d8f65fdb39795c4b97d"
+SRCREV = "a97f632612f2889d42721afb5e0a7e89ade47237"
 SRC_URI = " \
     gn://github.com/dart-lang/sdk.git;gn_name=sdk \
     file://gcc_toolchain.gni.in \
@@ -45,7 +45,7 @@ PACKAGECONFIG[use-qemu] = "--use-qemu"
 PACKAGECONFIG[exclude-kernel-service] = "--exclude-kernel-service"
 PACKAGECONFIG[verbose] = "--verbose"
 
-GN_ARGS = "${PACKAGECONFIG_CONFARGS} --no-goma --no-rbe"
+GN_ARGS = "${PACKAGECONFIG_CONFARGS} --no-rbe"
 
 # debug, release, product
 GN_ARGS:append = " --mode product"

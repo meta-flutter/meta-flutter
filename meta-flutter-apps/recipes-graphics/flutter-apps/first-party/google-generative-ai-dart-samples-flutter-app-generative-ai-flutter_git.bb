@@ -12,7 +12,7 @@ SECTION = "graphics"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=175792518e4ac015ab6696d16c4f607e"
 
-SRCREV = "5494cd50f0091e977136c90efeaef9f8e773bf19"
+SRCREV = "9ea128fa6ca8b4e387973e0bf28eb2fe9feeea6a"
 SRC_URI = "git://github.com/google/generative-ai-dart.git;lfs=1;nobranch=1;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"
