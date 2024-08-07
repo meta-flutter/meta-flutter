@@ -26,7 +26,7 @@ RDEPENDS:${PN} += "\
 
 REQUIRED_DISTRO_FEATURES = "wayland"
 
-HOMESCREEN_COMMIT ??= "7281c6ff3809af8a87d2e810e7a28ff7ce11e9ed"
+HOMESCREEN_COMMIT ??= "4e70d3dd7b1772173619b48ebb4b9b5df31b5367"
 PLUGINS_COMMIT ??= "df0c7e71d634b060895cd7b4308c895b865f9ecd"
 
 SRC_URI = "\
@@ -42,7 +42,7 @@ S = "${WORKDIR}/git"
 
 CRASH_HANDLER_DSN ??= ""
 
-inherit cmake features_check pkgconfig 
+inherit cmake features_check pkgconfig
 
 PACKAGECONFIG ??= "\
     backend-wayland-egl \
@@ -61,6 +61,7 @@ PACKAGECONFIG ??= "\
     go_router \
     secure-storage \
     url_launcher \
+    desktop_window_linux \
     "
 
 PACKAGECONFIG[backend-wayland-drm] = "-DBUILD_BACKEND_WAYLAND_DRM=ON,-DBUILD_BACKEND_WAYLAND_DRM=OFF"
