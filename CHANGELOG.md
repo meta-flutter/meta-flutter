@@ -1,5 +1,10 @@
 # Changelog
 
+Aug 7, 2024
+1. Flutter SDK 3.24.0
+2. Dart SDK 3.5.0
+3. Roll flutter-pi
+
 Aug 6, 2024
 1. flutter-engine
    - riscv64 support - requires clang-layer or will be ignored
