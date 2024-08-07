@@ -9,6 +9,8 @@ Aug 6, 2024
    - only check for x11 package if x11 is in DISTRO_FEATURES
    - do_install refactor
    - shared module .debug files install to -dbg package
+2. flutter-auto/homescreen
+   - vulkan-headers submodule
 
 Aug 4, 2024
 1. Dart SDK 3.4.4
