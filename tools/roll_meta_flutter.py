@@ -7,13 +7,16 @@
 #
 # Script to roll meta-flutter layer
 
+import json
 import os
+import shutil
 import signal
 import subprocess
 import sys
 
 from create_recipes import create_yocto_recipes
 from create_recipes import get_file_md5
+from create_recipes import get_git_commit_hash_for_tag
 from fw_common import check_python_version
 from fw_common import handle_ctrl_c
 from fw_common import make_sure_path_exists
@@ -23,7 +26,6 @@ from update_version_files import get_version_files
 
 
 def get_flutter_apps(filename) -> dict:
-    import json
     filepath = os.path.join(filename)
     with open(filepath, 'r') as f:
         try:
@@ -35,7 +37,6 @@ def get_flutter_apps(filename) -> dict:
 
 def clear_folder(dir_):
     """ Clears folder specified """
-    import shutil
     if os.path.exists(dir_):
         shutil.rmtree(dir_)
 
@@ -188,12 +189,75 @@ def update_flutter_version_inc(include_path, flutter_sdk_version):
                 line = f'FLUTTER_SDK_TAG ??= "{flutter_sdk_version}"\n'
             f.write(line)
 
+def get_dart_sdk_version(root_path: str, flutter_sdk_version: str) -> str:
+    import re
+    dart_revision = os.path.join(root_path, 'conf', 'include', 'dart-revision.json')
+    with open(dart_revision, 'r') as f:
+        dart_sdk_version = json.load(f).get(flutter_sdk_version, None)
+        if ' (build ' in dart_sdk_version:
+            dart_sdk_version = re.sub(r'^.*?build ', '', dart_sdk_version);
+        if ')' in dart_sdk_version:
+            return dart_sdk_version[:-1]
+        return dart_sdk_version
+
+def get_current_release(root_path: str) -> dict:
+    release_linux = os.path.join(root_path, 'conf', 'include', 'releases_linux.json')
+    with open(release_linux, 'r') as f:
+        return json.load(f).get('current_release', dict())
+
+def get_release(root_path: str, hash: str) -> dict:
+    release_linux = os.path.join(root_path, 'conf', 'include', 'releases_linux.json')
+    with open(release_linux, 'r') as f:
+        for release in json.load(f).get('releases', []):
+            if 'hash' in release and hash == release['hash']:
+                return release
+
+def update_dart_recipe(root_path: str, flutter_sdk_version: str):
+    import glob
+
+    dart_sdk_version = get_dart_sdk_version(root_path, flutter_sdk_version)
+    if not dart_sdk_version:
+        print_banner("Dart SDK version is not available")
+        return
+
+    dart_recipe_path_root = os.path.join(root_path, 'recipes-devtools', 'dart')
+    dart_recipe_path = glob.glob(f'{dart_recipe_path_root}/dart-sdk*.bb')
+
+    if dart_sdk_version == dart_recipe_path[0]:
+        print_banner("Skipping Dart SDK update: version already exists")
+        return
+
+    print(f'Updating dart-sdk recipe to {dart_sdk_version}')
+
+    # get tag commit hash
+
+    tmp_path = os.path.join(root_path, '.dart')
+    if os.path.exists(tmp_path):
+        clear_folder(tmp_path)
+    cmd = ['git', 'clone', 'https://github.com/dart-lang/sdk', '.dart']
+    subprocess.check_call(cmd, cwd=root_path)
+    commit_hash = get_git_commit_hash_for_tag(tmp_path, dart_sdk_version)
+    clear_folder(tmp_path)
+
+    new_dart_recipe_path = os.path.join(root_path, 'recipes-devtools', 'dart', f'dart-sdk_{dart_sdk_version}.bb')
+
+    # create new recipe updating SRCREV
+
+    with open(dart_recipe_path[0], 'r') as fi, open(new_dart_recipe_path, 'w') as fo:
+        for line in fi:
+            if 'SRCREV =' in line:
+                line = f'SRCREV = "{commit_hash}"\n'
+            fo.write(line)
+
+    os.remove(dart_recipe_path[0])
+
 
 def main():
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--version', default='', type=str, help='Flutter SDK version')
+    parser.add_argument('--channel', default='stable', type=str, help='Flutter Channel - beta, dev, stable')
+    parser.add_argument('--version', default=None, type=str, help='Flutter SDK version')
     parser.add_argument('--path', default='.', type=str, help='meta-flutter root path')
     parser.add_argument('--json', default='./meta-flutter-apps/conf/flutter-apps.json', type=str, help='JSON file of flutter apps')
     parser.add_argument('--patch-dir', default='./tools/patches', type=str, help='Path to patch folder')
@@ -209,14 +273,36 @@ def main():
 
     include_path = os.path.join(args.path, 'conf', 'include')
 
-    if args.version != '':
-        update_flutter_version_inc(include_path, args.version)
+    #
+    # if version is not specified use channel version
+    #
+    flutter_sdk_version = None
+
+    if args.version is not None:
+        flutter_sdk_version = args.version
+    else:
+        current_release = get_current_release(args.path)
+        if args.channel not in current_release:
+            sys.exit(f'Channel [{args.channel}] not found in current release')
+
+        release = get_release(args.path, current_release[args.channel])
+        if 'version' not in release:
+            sys.exit(f'Unable to determine channel version for {args.channel}')
+
+        flutter_sdk_version = release['version']
+        if not flutter_sdk_version:
+            sys.exit(f'Flutter SDK version not found in release for channel {args.channel}')
+
+    update_flutter_version_inc(include_path, flutter_sdk_version)
 
     print_banner(f'Rolling meta-flutter')
     print_banner('Updating version files')
     get_version_files(include_path)
 
     print_banner('Done updating version files')
+
+    print_banner(f'Updating dart-sdk recipe')
+    update_dart_recipe(args.path, flutter_sdk_version)
 
     print_banner(f'Updating meta-flutter-apps from {args.json}')
     repos = get_flutter_apps(args.json)
