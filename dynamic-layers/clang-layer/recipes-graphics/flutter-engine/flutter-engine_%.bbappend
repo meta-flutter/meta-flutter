@@ -12,7 +12,8 @@ LIBCPLUSPLUS = "-stdlib=libc++"
 CLANG_PATH = "${STAGING_DIR_NATIVE}/usr"
 
 do_configure:append() {
-    pushd ${STAGING_DIR_TARGET}/usr/lib
+    cwd=$(pwd)
+    cd ${STAGING_DIR_TARGET}/usr/lib
 
     test -e crtbeginS.o && rm crtbeginS.o
     test -e crtendS.o && rm crtendS.o
@@ -22,7 +23,7 @@ do_configure:append() {
     ln -s "$(find -iname crtendS.o)" crtendS.o
     ln -s "$(find -iname libgcc.a)" libgcc.a
 
-    popd
+    cd $cwd
 }
 
 #

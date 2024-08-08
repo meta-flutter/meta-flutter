@@ -233,12 +233,13 @@ do_install() {
         #
         # Shared modules
         #
-        pushd ${S}/${BUILD_DIR}/so.unstripped
+        cwd=$(pwd)
+        cd ${S}/${BUILD_DIR}/so.unstripped
         for file in *; do
             cp "$file" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/lib/
             cp "../$file.TOC" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/lib/
         done
-        popd
+        cd $cwd
 
         #
         # Data
@@ -251,12 +252,13 @@ do_install() {
         #
         # Executables
         #
-        pushd ${S}/${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped
+        cwd=$(pwd)
+        cd ${S}/${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped
         for file in *; do
             # copy the unstripped variant one up
             cp "../$file" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/
         done
-        popd
+        cd $cwd
 
         # include patched sdk for local-engine scenarios
         test -e ${S}/${BUILD_DIR}/flutter_patched_sdk && \
