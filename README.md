@@ -134,25 +134,30 @@ Test gallery app
     cd gallery
     flutter run -d linux
 
-## Process to Auto Roll Flutter Applications and Flutter SDK version
-
-Origin of truth for Flutter Applications:
-
-    conf/include/flutter-apps.json
-
-Example roll
+## Process to Auto Roll Flutter Applications, Flutter SDK version, and Dart-SDK recipe
 
     git clone https://github.com/meta-flutter/meta-flutter
-    cd meta-flutter/tools
-    ./roll_meta_flutter.py \
-        --path $HOME/workspace-automation/app/meta-flutter/ \
-        --json $HOME/workspace-automation/app/meta-flutter/meta-flutter-apps/conf/flutter-apps.json \
-        --patch-dir $HOME/workspace-automation/app/meta-flutter/tools/patches/ \
-        --version 3.22.3
+    cd meta-flutter
+
+channel `stable`
+
+    tools/roll_meta_flutter.py
+
+channel `beta`
+
+    tools/roll_meta_flutter.py --channel=beta
+
+channel `dev`
+
+    tools/roll_meta_flutter.py --channel=dev
+
+specific version
+
+    tools/roll_meta_flutter.py --version=2.40.0
 
 ## conf/include/flutter-apps.json
 
-This file is the origin of truth for all of the Flutter Applications present in this layer, and is consumed by [roll_meta_flutter.py](https://github.com/meta-flutter/workspace-automation/blob/main/roll_meta_flutter.py).
+This file is the origin of truth for all of the Flutter Applications present, and is used by tools/roll_meta_flutter.py.
 
 roll_meta_flutter.py autogenerates all of the flutter application recipes.
 

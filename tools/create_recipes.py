@@ -99,8 +99,17 @@ def get_process_stdout(cmd, directory):
 
 def get_git_branch(directory: str, commit: str) -> str:
     """Get branch name"""
-    response = get_process_stdout(f'git branch --contains {str}', directory)
+    response = get_process_stdout(f'git branch --contains {commit}', directory)
     if '(HEAD detached' in response:
+        return None
+    else:
+        return response.split(' ')[-1]
+
+
+def get_git_commit_hash_for_tag(directory: str, tag: str) -> str:
+    """Get commit hash for tag name"""
+    response = get_process_stdout(f'git rev-list -n 1 tags/{tag}', directory)
+    if 'fatal: ambiguous argument' in response:
         return None
     else:
         return response.split(' ')[-1]

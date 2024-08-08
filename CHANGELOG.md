@@ -1,5 +1,9 @@
 # Changelog
 
+Aug 8, 2024
+1. add channel option to roll_meta_flutter.py
+2. roll_meta_flutter.py now updates dart-sdk recipe
+
 Aug 7, 2024
 1. Flutter SDK 3.24.0
 2. Dart SDK 3.5.0
