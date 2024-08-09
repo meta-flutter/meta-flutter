@@ -12,12 +12,13 @@ SECTION = "graphics"
 LICENSE = "CLOSED"
 
 SRCREV = "f41e3dd31011aab41dcb3b050d1fceddc3b750c4"
-SRC_URI = "git://github.com/flutter/games.git;lfs=1;nobranch=1;protocol=https;destsuffix=git"
+SRC_URI = "git://github.com/flutter/games.git;lfs=1;branch=main;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "endless_runner"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-games-templates-endless-runner"
 FLUTTER_APPLICATION_PATH = "templates/endless_runner"
+PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

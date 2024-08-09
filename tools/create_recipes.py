@@ -383,6 +383,8 @@ def create_recipe(directory,
         f.write(f'FLUTTER_APPLICATION_INSTALL_SUFFIX = "{recipe_name}"\n')
 
         f.write(f'FLUTTER_APPLICATION_PATH = "{flutter_application_path}"\n')
+        # 3.24.0 workaround - remove later
+        f.write(f'PUBSPEC_IGNORE_LOCKFILE = "1"\n')
 
         # variables
         if variables:

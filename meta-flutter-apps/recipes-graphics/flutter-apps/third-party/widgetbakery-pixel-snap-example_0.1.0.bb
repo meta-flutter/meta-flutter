@@ -13,7 +13,7 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=42965befa56026d7850ae73c307e6477"
 
 SRCREV = "e8b9b2c428ff1c347712c6940f80f9051bcea2a0"
-SRC_URI = "git://github.com/widgetbakery/pixel_snap;lfs=0;nobranch=1;protocol=https;destsuffix=git"
+SRC_URI = "git://github.com/widgetbakery/pixel_snap;lfs=0;branch=main;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"
 
@@ -24,5 +24,6 @@ PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \
 PUBSPEC_APPNAME = "example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "widgetbakery-pixel-snap-example"
 FLUTTER_APPLICATION_PATH = "example"
+PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app
