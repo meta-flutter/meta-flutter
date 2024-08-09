@@ -314,6 +314,8 @@ def build_web(d, source_root, env):
     if os.path.exists(build_folder):
         run_command(d, 'flutter clean', source_root, env)
 
+    app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
+
     if d.getVar("PUBSPEC_IGNORE_LOCKFILE") == "1":
         #
         # Remove pubspec.lock file if present
@@ -350,6 +352,8 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
         build_folder = os.path.join(source_root, 'build')
         if os.path.exists(build_folder):
             run_command(d, 'flutter clean -v', source_root, env)
+
+        app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
 
         if d.getVar("PUBSPEC_IGNORE_LOCKFILE") == "1":
             #
@@ -416,13 +420,13 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
 
             package_config_json = f'{source_dir}/{flutter_application_path}/.dart_tool/package_config.json'
 
-            dep_path = glob.glob(f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/kernel_snapshot.d')
+            dep_path = glob.glob(f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/kernel_snapshot_program.d')
             dep_file = dep_path[0]
 
-            cmd = f'{flutter_sdk}/bin/cache/dart-sdk/bin/dart \
+            cmd = f'{flutter_sdk}/bin/cache/dart-sdk/bin/dartaotruntime \
                 --disable-analytics \
                 --disable-dart-dev \
-                {flutter_sdk}/bin/cache/artifacts/engine/linux-{clang_build_arch(d)}/frontend_server.dart.snapshot \
+                {flutter_sdk}/bin/cache/artifacts/engine/linux-{clang_build_arch(d)}/frontend_server_aot.dart.snapshot \
                 --sdk-root {flutter_app_sdk_root} \
                 --target=flutter \
                 -Ddart.vm.profile={flutter_app_vm_profile} \
