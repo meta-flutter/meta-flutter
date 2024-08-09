@@ -13,13 +13,14 @@ LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=3ac21e3d8ebe7dd79f273ca11b9e7b4e"
 
 SRCREV = "66a69803cc63dfc02878fae1959a2555f26ea25f"
-SRC_URI = "git://github.com/flutter/gallery.git;lfs=0;nobranch=1;protocol=https;destsuffix=git"
+SRC_URI = "git://github.com/flutter/gallery.git;lfs=0;branch=main;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "gallery"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-gallery"
 FLUTTER_APPLICATION_PATH = ""
+PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app
 

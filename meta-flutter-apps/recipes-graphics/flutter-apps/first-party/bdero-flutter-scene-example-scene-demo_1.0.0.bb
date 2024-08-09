@@ -12,12 +12,13 @@ SECTION = "graphics"
 LICENSE = "CLOSED"
 
 SRCREV = "bc7362b4052c98646d43924b06a1974aa9a2b369"
-SRC_URI = "git://github.com/bdero/flutter-scene-example.git;lfs=0;nobranch=1;protocol=https;destsuffix=git"
+SRC_URI = "git://github.com/bdero/flutter-scene-example.git;lfs=0;branch=master;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "scene_demo"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "bdero-flutter-scene-example-scene-demo"
 FLUTTER_APPLICATION_PATH = ""
+PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app
