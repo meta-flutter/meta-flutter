@@ -8,6 +8,7 @@ Aug 9, 2024
 5. ivi-homescreen/flutter-auto WDT phase I
 6. remove pdf from ivi-homescreen default package config; due to riscv64
 7. ivi-homescreen - add missing comma in build flags for pdf packageconfig
+8. flutter aot generation version agnostic
 
 Aug 8, 2024
 1. add channel option to roll_meta_flutter.py
