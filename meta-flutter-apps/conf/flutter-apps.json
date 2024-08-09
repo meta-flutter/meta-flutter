@@ -108,6 +108,19 @@
             "web/provider_shopper",
             "web/simplistic_editor",
             "web/web_dashboard"
+        ],
+        "compiler_requires_network": [
+            "animations",
+            "desktop_photo_search/fluent_ui",
+            "desktop_photo_search/material",
+            "form_app",
+            "infinite_list",
+            "isolate_example",
+            "navigation_and_routing",
+            "provider_counter",
+            "provider_shopper",
+            "simplistic_calculator",
+            "veggieseasons"
         ]
     },
     {
@@ -124,14 +137,10 @@
         "license_file": "LICENSE",
         "license_type": "MIT",
         "author": "gskinner team",
-        "folder": "third-party"
-    },
-    {
-        "uri": "https://github.com/bdero/flutter-scene-example.git",
-        "branch": "master",
-        "license_type": "CLOSED",
-        "author": "Brandon DeRosier",
-        "folder": "first-party"
+        "folder": "third-party",
+        "compiler_requires_network": [
+            ""
+        ]
     },
     {
         "uri": "https://github.com/flutter/gallery.git",
@@ -163,14 +172,6 @@
         "license_file": "LICENSE",
         "license_type": "BSD-3-Clause",
         "author": "Yakka",
-        "folder": "third-party"
-    },
-    {
-        "uri": "https://github.com/meta-flutter/flutter_animated_background.git",
-        "branch": "meta-flutter",
-        "license_file": "LICENSE",
-        "license_type": "MIT",
-        "author": "Andre Baltazar",
         "folder": "third-party"
     },
     {
@@ -375,52 +376,6 @@
         "rdepends": {
             "example": [
                 "rive-text"
-            ]
-        }
-    },
-    {
-        "uri": "https://github.com/RevenueCat/purchases-flutter.git",
-        "branch": "main",
-        "license_file": "LICENSE",
-        "license_type": "MIT",
-        "author": "RevenueCat",
-        "folder": "third-party",
-        "src_folder": "purchases-flutter",
-        "src_files": {
-            "revenuecat_examples/MagicWeather": [
-                "0001-generic-Linux.patch"
-            ],
-            "revenuecat_examples/purchase_tester": [
-                "0001-generic-Linux.patch"
-            ]
-        },
-        "ignore": [
-            "api_tester"
-        ]
-    },
-    {
-        "uri": "https://github.com/fzyzcjy/flutter_rust_bridge",
-        "branch": "master",
-        "rev": "v2.0.0-dev.25",
-        "license_file": "LICENSE",
-        "license_type": "MIT",
-        "author": "fzyzcjy",
-        "folder": "third-party",
-        "ignore": [
-            "frb_example/dart_build_rs",
-            "frb_example/dart_minimal",
-            "frb_example/flutter_via_create",
-            "frb_example/flutter_via_integrate"
-        ],
-        "src_folder": "flutter_rust_bridge",
-        "src_files": {
-            "frb_example/gallery": [
-                "0001-gallery-updates.patch"
-            ]
-        },        
-        "rdepends": {
-            "frb_example/gallery": [
-                "fzyzcjy-flutter-rust-bridge-frb-example-gallery-rust"
             ]
         }
     }

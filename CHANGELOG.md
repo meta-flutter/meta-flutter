@@ -1,5 +1,11 @@
 # Changelog
 
+Aug 9, 2024
+1. flutter app build update - unique to 3.24.0
+2. added missing app_root definitions in common.inc
+3. tools/roll_meta_flutter.py - add support for `compiler_requires_network` key
+4. remove non-building apps
+
 Aug 8, 2024
 1. add channel option to roll_meta_flutter.py
 2. roll_meta_flutter.py now updates dart-sdk recipe

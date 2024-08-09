@@ -23,3 +23,6 @@ FLUTTER_APPLICATION_PATH = "navigation_and_routing"
 PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app
+
+do_compile[network] = "1"
+
