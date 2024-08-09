@@ -49,6 +49,7 @@ def get_repo(repo_path: str, output_path: str,
              ignore_list: dict,
              rdepends_list: dict,
              output_path_override_list: dict,
+             compiler_requires_network_list: dict,
              src_folder: str,
              src_files: dict,
              entry_files: dict,
@@ -141,6 +142,7 @@ def get_repo(repo_path: str, output_path: str,
                          ignore_list=ignore_list,
                          rdepends_list=rdepends_list,
                          output_path_override_list=output_path_override_list,
+                         compiler_requires_network_list=compiler_requires_network_list,
                          src_folder=src_folder,
                          src_files=src_files,
                          entry_files=entry_files,
@@ -167,6 +169,7 @@ def get_workspace_repos(repo_path, repos, output_path, package_output_path, patc
                      ignore_list=r.get('ignore'),
                      rdepends_list=r.get('rdepends'),
                      output_path_override_list=r.get('output_folder'),
+                     compiler_requires_network_list=r.get('compiler_requires_network'),
                      src_folder=r.get('src_folder'),
                      src_files=r.get('src_files'),
                      entry_files=r.get('entry_files'),
@@ -220,10 +223,12 @@ def update_dart_recipe(root_path: str, flutter_sdk_version: str):
         print_banner("Dart SDK version is not available")
         return
 
+    new_dart_recipe_path = os.path.join(root_path, 'recipes-devtools', 'dart', f'dart-sdk_{dart_sdk_version}.bb')
+ 
     dart_recipe_path_root = os.path.join(root_path, 'recipes-devtools', 'dart')
     dart_recipe_path = glob.glob(f'{dart_recipe_path_root}/dart-sdk*.bb')
 
-    if dart_sdk_version == dart_recipe_path[0]:
+    if new_dart_recipe_path == dart_recipe_path[0]:
         print_banner("Skipping Dart SDK update: version already exists")
         return
 
@@ -238,8 +243,6 @@ def update_dart_recipe(root_path: str, flutter_sdk_version: str):
     subprocess.check_call(cmd, cwd=root_path)
     commit_hash = get_git_commit_hash_for_tag(tmp_path, dart_sdk_version)
     clear_folder(tmp_path)
-
-    new_dart_recipe_path = os.path.join(root_path, 'recipes-devtools', 'dart', f'dart-sdk_{dart_sdk_version}.bb')
 
     # create new recipe updating SRCREV
 

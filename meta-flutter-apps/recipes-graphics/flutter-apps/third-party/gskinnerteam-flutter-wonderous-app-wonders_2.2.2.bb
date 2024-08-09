@@ -23,3 +23,6 @@ FLUTTER_APPLICATION_PATH = ""
 PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app
+
+do_compile[network] = "1"
+

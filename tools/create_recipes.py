@@ -267,6 +267,7 @@ def create_recipe(directory,
                   output_path,
                   rdepends_list,
                   output_path_override_list,
+                  compiler_requires_network_list,
                   src_folder,
                   src_files,
                   variables,
@@ -406,6 +407,11 @@ def create_recipe(directory,
                 f.write(f'    {rdepend} \\\n')
             f.write(f'"\n')
 
+        if compiler_requires_network_list and flutter_application_path in compiler_requires_network_list:
+            f.write('\n')
+            f.write('do_compile[network] = "1"\n')
+            f.write('\n')
+
         return recipe_name
 
 
@@ -452,6 +458,7 @@ def create_yocto_recipes(directory,
                          ignore_list,
                          rdepends_list,
                          output_path_override_list,
+                         compiler_requires_network_list,
                          src_folder,
                          src_files,
                          entry_files,
@@ -468,6 +475,7 @@ def create_yocto_recipes(directory,
     print(f'ignore_list: {ignore_list}')
     print(f'rdepends_list: {rdepends_list}')
     print(f'output_path_override_list: {output_path_override_list}')
+    print(f'compiler_requires_network_list: {compiler_requires_network_list}')
     print(f'src_folder: {src_folder}')
     print(f'src_files: {src_files}')
     print(f'entry_files: {entry_files}')
@@ -533,6 +541,7 @@ def create_yocto_recipes(directory,
                                output_path=output_path,
                                rdepends_list=rdepends_list,
                                output_path_override_list=output_path_override_list,
+                               compiler_requires_network_list=compiler_requires_network_list,
                                src_folder=src_folder,
                                src_files=src_files,
                                variables=variables,
