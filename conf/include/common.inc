@@ -329,6 +329,8 @@ def build_web(d, source_root, env):
 
     bb.note(f'Flutter build web {flutter_build_args}: Completed')
 
+def versiontuple(v):
+    return tuple(map(int, (v.split("."))))
 
 def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_path, staging_dir_target, source_root, env):
     import glob
@@ -341,6 +343,11 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
 
     flutter_app_runtime_modes = d.getVar('FLUTTER_APP_RUNTIME_MODES')
     flutter_build_args = d.getVar('FLUTTER_BUILD_ARGS')
+
+    new_build_scheme = False
+    if versiontuple(flutter_sdk_version) >= versiontuple('3.24.0'):
+        bb.note(f'Using new build scheme')
+        new_build_scheme = True
 
     for runtime_mode in flutter_runtime_modes:
         if runtime_mode not in flutter_app_runtime_modes:
@@ -420,13 +427,19 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
 
             package_config_json = f'{source_dir}/{flutter_application_path}/.dart_tool/package_config.json'
 
-            dep_path = glob.glob(f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/kernel_snapshot_program.d')
-            dep_file = dep_path[0]
+            if not new_build_scheme:
+                dart_runtime = f'{flutter_sdk}/bin/cache/dart-sdk/bin/dart'
+                frontend_snapshot = f'{flutter_sdk}/bin/cache/artifacts/engine/linux-{clang_build_arch(d)}/frontend_server.dart.snapshot'
+                dep_path = glob.glob(f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/kernel_snapshot.d')
+            else:
+                dart_runtime = f'{flutter_sdk}/bin/cache/dart-sdk/bin/dartaotruntime'
+                frontend_snapshot = f'{flutter_sdk}/bin/cache/artifacts/engine/linux-{clang_build_arch(d)}/frontend_server_aot.dart.snapshot'
+                dep_path = glob.glob(f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/kernel_snapshot_program.d')
 
-            cmd = f'{flutter_sdk}/bin/cache/dart-sdk/bin/dartaotruntime \
+            cmd = f'{dart_runtime} \
                 --disable-analytics \
                 --disable-dart-dev \
-                {flutter_sdk}/bin/cache/artifacts/engine/linux-{clang_build_arch(d)}/frontend_server_aot.dart.snapshot \
+                {frontend_snapshot} \
                 --sdk-root {flutter_app_sdk_root} \
                 --target=flutter \
                 -Ddart.vm.profile={flutter_app_vm_profile} \
@@ -439,7 +452,7 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
                 --target-os linux \
                 --packages {package_config_json} \
                 --output-dill {flutter_app_output_dill} \
-                --depfile {dep_file} \
+                --depfile {dep_path[0]} \
                 {flutter_source_file} \
                 {flutter_source_package} \
                 {flutter_source_defines} \
