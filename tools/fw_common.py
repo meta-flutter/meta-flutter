@@ -259,6 +259,46 @@ def fetch_https_binary_file(url, filename, redirect, headers, cookie_file, netrc
     return success
 
 
+def version_tuple(v):
+    return tuple(map(int, (v.split("."))))
+
+
+def get_flutter_sdk_path() -> str:
+    import subprocess
+    (retval, output) = subprocess.getstatusoutput('which flutter')
+    if retval:
+        return None
+
+    return os.path.dirname(os.path.dirname(output.rstrip()))
+
+
+def get_flutter_sdk_version() -> str:
+    import json
+    import subprocess
+
+    (retval, output) = subprocess.getstatusoutput('which flutter')
+    if retval:
+        print_banner("failed %s (cmd was which flutter)" % (retval))
+        return None
+
+    bin_path = os.path.dirname(output.rstrip())
+    flutter_version_json = os.path.join(bin_path, 'cache', 'flutter.version.json')
+
+    if not os.path.exists(flutter_version_json):
+        print_banner(f'Missing {flutter_version_json}')
+        return None
+
+    with open(os.path.join(os.path.dirname(flutter_version_json), flutter_version_json), encoding='utf-8') as f:
+        flutter_version_json = json.load(f)
+
+        if 'flutterVersion' not in flutter_version_json:
+            print_banner(f'Missing key: flutterVersion in {flutter_version_json}')
+            return None
+
+        flutter_version = flutter_version_json['flutterVersion']
+        return flutter_version
+
+
 def test_internet_connection() -> bool:
     """Test internet by connecting to nameserver"""
     import pycurl
