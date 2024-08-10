@@ -126,24 +126,22 @@ def archive_package(package: dict, output_path: str):
     if archive_file_exists(name, url, version, output_path):
         return
 
-    versions_json = get_package_all_versions(description)
-    if not bool(versions_json):
+    package_json = get_package_version(name, url, version)
+    if not bool(package_json):
         return
     
-    versions = versions_json['versions']
-    for it in versions:
-        if it['version'] == version:
-            url = it['archive_url']
-            sha256 = it['archive_sha256']
-            url_parse_res = urlparse(url)
-            file = os.path.basename(url_parse_res.path)
+    if package_json['version'] == version:
+        url = package_json['archive_url']
+        sha256 = package_json['archive_sha256']
+        url_parse_res = urlparse(url)
+        file = os.path.basename(url_parse_res.path)
 
-            hostname_path = os.path.join(output_path, url_parse_res.hostname)
-            make_sure_path_exists(hostname_path)
+        hostname_path = os.path.join(output_path, url_parse_res.hostname)
+        make_sure_path_exists(hostname_path)
 
-            archive_file = os.path.join(hostname_path, file)
-            if not os.path.exists(archive_file):
-                download_https_file(hostname_path, url, file, None, None, None, None, sha256)
+        archive_file = os.path.join(hostname_path, file)
+        if not os.path.exists(archive_file):
+            download_https_file(hostname_path, url, file, None, None, None, None, sha256)
 
 
 def archive_pubspec_lock(project_path: str, output_path: str):
@@ -192,20 +190,14 @@ def archive_flutter_sdk_pub_packages(output_path: str):
                 print(f'Done: {os.path.join(root, file)}')
 
 
-def get_package_all_versions(description: dict) -> dict:
-    """Function to return all versions of a described package"""
+def get_package_version(desc_name: str, desc_url: str, version: str) -> dict:
+    """Function to return version dict for a specific description"""
 
-    desc_name = description.get('name', None)
-    if desc_name is None:
-        print(f'Malformed: {description}')
-        return dict()
-
-    desc_url = description.get('url', None)
-    if desc_url is None:
+    if desc_url == '':
         print(f'Missing url in description, using default')
         desc_url = "https://pub.dev"
 
-    url = desc_url + '/api/packages/' + desc_name
+    url = desc_url + '/api/packages/' + desc_name + '/versions/' + version
     print(f'url: {url}')
 
     c = pycurl.Curl()
