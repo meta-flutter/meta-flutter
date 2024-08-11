@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-#
 # SPDX-FileCopyrightText: (C) 2020-2023 Joel Winarske
-#
 # SPDX-License-Identifier: Apache-2.0
 #
-#
 # Script to roll meta-flutter layer
+#
 
 import json
 import os
@@ -17,12 +15,13 @@ import sys
 from create_recipes import create_yocto_recipes
 from create_recipes import get_file_md5
 from create_recipes import get_git_commit_hash_for_tag
-from fw_common import check_python_version
-from fw_common import handle_ctrl_c
-from fw_common import make_sure_path_exists
-from fw_common import print_banner
-from fw_common import test_internet_connection
+from common import check_python_version
+from common import handle_ctrl_c
+from common import make_sure_path_exists
+from common import print_banner
+from common import test_internet_connection
 from update_version_files import get_version_files
+from urllib.parse import urlparse
 
 
 def get_flutter_apps(filename) -> dict:
@@ -77,9 +76,9 @@ def get_repo(repo_path: str, output_path: str,
         return
 
     # get repo folder name
-    repo_name: list[str] = uri.rsplit('/', 1)[-1]
-    repo_name = repo_name.split(".")
-    repo_name: str = repo_name[0]
+    url_parse_res = urlparse(uri)
+    path = url_parse_res.path.split('.', 1)[0]
+    repo_name = path.rsplit('/', 1)[-1]
 
     git_folder: str = os.path.join(repo_path, repo_name)
 
@@ -130,7 +129,6 @@ def get_repo(repo_path: str, output_path: str,
 
     repo_path = os.path.join(repo_path, repo_name)
 
-
     create_yocto_recipes(directory=repo_path,
                          license_file=license_file,
                          license_type=license_type,
@@ -152,31 +150,33 @@ def get_repo(repo_path: str, output_path: str,
 
 def get_workspace_repos(repo_path, repos, output_path, package_output_path, patch_dir):
     """ Clone GIT repos referenced in config repos dict to base_folder """
-    import concurrent.futures
 
+    futures = []
+    import concurrent.futures
     with concurrent.futures.ThreadPoolExecutor() as executor:
         for r in repos:
-            get_repo(repo_path=repo_path,
-                     output_path=output_path,
-                     package_output_path=package_output_path,
-                     uri=r.get('uri'),
-                     branch=r.get('branch'),
-                     rev=r.get('rev'),
-                     license_file=r.get('license_file'),
-                     license_type=r.get('license_type'),
-                     author=r.get('author'),
-                     recipe_folder=r.get('folder'),
-                     ignore_list=r.get('ignore'),
-                     rdepends_list=r.get('rdepends'),
-                     output_path_override_list=r.get('output_folder'),
-                     compiler_requires_network_list=r.get('compiler_requires_network'),
-                     src_folder=r.get('src_folder'),
-                     src_files=r.get('src_files'),
-                     entry_files=r.get('entry_files'),
-                     variables=r.get('variables'),
-                     patch_dir=patch_dir)
+            futures.append(executor.submit(get_repo, repo_path=repo_path,
+                                           output_path=output_path,
+                                           package_output_path=package_output_path,
+                                           uri=r.get('uri'),
+                                           branch=r.get('branch'),
+                                           rev=r.get('rev'),
+                                           license_file=r.get('license_file'),
+                                           license_type=r.get('license_type'),
+                                           author=r.get('author'),
+                                           recipe_folder=r.get('folder'),
+                                           ignore_list=r.get('ignore'),
+                                           rdepends_list=r.get('rdepends'),
+                                           output_path_override_list=r.get('output_folder'),
+                                           compiler_requires_network_list=r.get('compiler_requires_network'),
+                                           src_folder=r.get('src_folder'),
+                                           src_files=r.get('src_files'),
+                                           entry_files=r.get('entry_files'),
+                                           variables=r.get('variables'),
+                                           patch_dir=patch_dir))
 
     print_banner("Repos Cloned")
+
 
 def update_flutter_version_inc(include_path, flutter_sdk_version):
     flutter_version_inc = os.path.join(include_path, 'flutter-version.inc')
@@ -192,28 +192,32 @@ def update_flutter_version_inc(include_path, flutter_sdk_version):
                 line = f'FLUTTER_SDK_TAG ??= "{flutter_sdk_version}"\n'
             f.write(line)
 
+
 def get_dart_sdk_version(root_path: str, flutter_sdk_version: str) -> str:
     import re
     dart_revision = os.path.join(root_path, 'conf', 'include', 'dart-revision.json')
     with open(dart_revision, 'r') as f:
         dart_sdk_version = json.load(f).get(flutter_sdk_version, None)
         if ' (build ' in dart_sdk_version:
-            dart_sdk_version = re.sub(r'^.*?build ', '', dart_sdk_version);
+            dart_sdk_version = re.sub(r'^.*?build ', '', dart_sdk_version)
         if ')' in dart_sdk_version:
             return dart_sdk_version[:-1]
         return dart_sdk_version
+
 
 def get_current_release(root_path: str) -> dict:
     release_linux = os.path.join(root_path, 'conf', 'include', 'releases_linux.json')
     with open(release_linux, 'r') as f:
         return json.load(f).get('current_release', dict())
 
-def get_release(root_path: str, hash: str) -> dict:
+
+def get_release(root_path: str, commit_hash: str) -> dict:
     release_linux = os.path.join(root_path, 'conf', 'include', 'releases_linux.json')
     with open(release_linux, 'r') as f:
         for release in json.load(f).get('releases', []):
-            if 'hash' in release and hash == release['hash']:
+            if 'hash' in release and commit_hash == release['hash']:
                 return release
+
 
 def update_dart_recipe(root_path: str, flutter_sdk_version: str):
     import glob
@@ -224,7 +228,7 @@ def update_dart_recipe(root_path: str, flutter_sdk_version: str):
         return
 
     new_dart_recipe_path = os.path.join(root_path, 'recipes-devtools', 'dart', f'dart-sdk_{dart_sdk_version}.bb')
- 
+
     dart_recipe_path_root = os.path.join(root_path, 'recipes-devtools', 'dart')
     dart_recipe_path = glob.glob(f'{dart_recipe_path_root}/dart-sdk*.bb')
 
@@ -262,7 +266,8 @@ def main():
     parser.add_argument('--channel', default='stable', type=str, help='Flutter Channel - beta, dev, stable')
     parser.add_argument('--version', default=None, type=str, help='Flutter SDK version')
     parser.add_argument('--path', default='.', type=str, help='meta-flutter root path')
-    parser.add_argument('--json', default='./meta-flutter-apps/conf/flutter-apps.json', type=str, help='JSON file of flutter apps')
+    parser.add_argument('--json', default='./meta-flutter-apps/conf/flutter-apps.json', type=str,
+                        help='JSON file of flutter apps')
     parser.add_argument('--patch-dir', default='./tools/patches', type=str, help='Path to patch folder')
     args = parser.parse_args()
 
@@ -279,7 +284,6 @@ def main():
     #
     # if version is not specified use channel version
     #
-    flutter_sdk_version = None
 
     if args.version is not None:
         flutter_sdk_version = args.version

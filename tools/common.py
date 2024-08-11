@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
-#
 # SPDX-FileCopyrightText: (C) 2020-2023 Joel Winarske
-#
 # SPDX-License-Identifier: Apache-2.0
-#
-#
 
 import errno
 import os
+import subprocess
+import re
 import sys
+import hashlib
 
 from sys import stderr as stream
 
 # use kiB's
-kb = 1024
+KB = 1024
 
 
 def check_python_version():
@@ -33,18 +32,11 @@ def handle_ctrl_c(_signal, _frame):
 
 
 def run_command(cmd: str, cwd: str) -> str:
-    """ Run Command in specified working directory """
-    import re
-    import subprocess
-
-    # replace all consecutive whitespace characters (tabs, newlines etc.) with a single space
-    cmd = re.sub('\s{2,}', ' ', cmd)
-
+    cmd = re.sub('\\s{2,}', ' ', cmd)
     print('Running [%s] in %s' % (cmd, cwd))
-    (retval, output) = subprocess.getstatusoutput(f'cd {cwd} && {cmd}')
-    if retval:
-        sys.exit("failed %s (cmd was %s)%s" % (retval, cmd, ":\n%s" % output if output else ""))
-
+    (result, output) = subprocess.getstatusoutput(f'cd {cwd} && {cmd}')
+    if result:
+        sys.exit("failed %s (cmd was %s)%s" % (result, cmd, ":\n%s" % output if output else ""))
     print(output.rstrip())
     return output.rstrip()
 
@@ -57,84 +49,57 @@ def make_sure_path_exists(path: str):
             raise
 
 
-def get_md5sum(file: str) -> str:
-    """Return md5sum of specified file"""
-    import hashlib
-
+def hash_file(file: str, hash_obj):
     if not os.path.exists(file):
         return ''
-
-    md5_hash = hashlib.md5()
     with open(file, "rb") as f:
-        # Read and update hash in chunks of 4K
         for byte_block in iter(lambda: f.read(4096), b""):
-            md5_hash.update(byte_block)
+            hash_obj.update(byte_block)
+    return hash_obj.hexdigest()
 
-    return md5_hash.hexdigest()
+
+def get_md5sum(file: str) -> str:
+    return hash_file(file, hashlib.md5())
 
 
 def get_sha1sum(file: str) -> str:
-    """Return sha1sum of specified file"""
-    import hashlib
-
-    if not os.path.exists(file):
-        return ''
-
-    sha1_hash = hashlib.sha1()
-    with open(file, "rb") as f:
-        # Read and update hash in chunks of 4K
-        for byte_block in iter(lambda: f.read(4096), b""):
-            sha1_hash.update(byte_block)
-
-    return sha1_hash.hexdigest()
+    return hash_file(file, hashlib.sha1())
 
 
 def get_sha256sum(file: str):
-    """Return sha256sum of specified file"""
-    import hashlib
-
-    if not os.path.exists(file):
-        return ''
-
-    sha256_hash = hashlib.sha256()
-    with open(file, "rb") as f:
-        # Read and update hash in chunks of 4K
-        for byte_block in iter(lambda: f.read(4096), b""):
-            sha256_hash.update(byte_block)
-
-    return sha256_hash.hexdigest()
+    return hash_file(file, hashlib.sha256())
 
 
 def download_https_file(cwd, url, file, cookie_file, netrc, md5, sha1, sha256):
     download_filepath = os.path.join(cwd, file)
 
     sha256_file = os.path.join(cwd, file + '.sha256')
-    if compare_sha256(download_filepath, sha256_file):
+    if compare_sha256(str(download_filepath), str(sha256_file)):
         print("%s exists, skipping download" % download_filepath)
         return True
 
     if os.path.exists(download_filepath):
         if md5:
             # don't download if md5 is good
-            if md5 == get_md5sum(download_filepath):
+            if md5 == get_md5sum(str(download_filepath)):
                 print("** Using %s" % download_filepath)
                 return True
             else:
                 os.remove(download_filepath)
         elif sha1:
             # don't download if sha1 is good
-            if sha1 == get_sha1sum(download_filepath):
+            if sha1 == get_sha1sum(str(download_filepath)):
                 print("** Using %s" % download_filepath)
                 return True
             else:
-                os.remove(download_filepath)
+                os.remove(str(download_filepath))
         elif sha256:
             # don't download if sha256 is good
-            if sha256 == get_sha256sum(download_filepath):
+            if sha256 == get_sha256sum(str(download_filepath)):
                 print("** Using %s" % download_filepath)
                 return True
             else:
-                os.remove(download_filepath)
+                os.remove(str(download_filepath))
 
     print("** Downloading %s via %s" % (file, url))
     res = fetch_https_binary_file(
@@ -146,17 +111,17 @@ def download_https_file(cwd, url, file, cookie_file, netrc, md5, sha1, sha256):
 
     if os.path.exists(download_filepath):
         if md5:
-            expected_md5 = get_md5sum(download_filepath)
+            expected_md5 = get_md5sum(str(download_filepath))
             if md5 != expected_md5:
                 sys.exit('Download artifact %s md5: %s does not match expected: %s' %
                          (download_filepath, md5, expected_md5))
         elif sha1:
-            expected_sha1 = get_sha1sum(download_filepath)
+            expected_sha1 = get_sha1sum(str(download_filepath))
             if sha1 != expected_sha1:
                 sys.exit('Download artifact %s sha1: %s does not match expected: %s' %
                          (download_filepath, md5, expected_sha1))
         elif sha256:
-            expected_sha256 = get_sha256sum(download_filepath)
+            expected_sha256 = get_sha256sum(str(download_filepath))
             if sha256 != expected_sha256:
                 sys.exit('Download artifact %s sha256: %s does not match expected: %s' %
                          (download_filepath, sha256, expected_sha256))
@@ -194,7 +159,7 @@ def write_sha256_file(cwd: str, filename: str):
 
 def fetch_https_progress(download_t, download_d, _upload_t, _upload_d):
     """callback function for pycurl.XFERINFOFUNCTION"""
-    stream.write('Progress: {}/{} kiB ({}%)\r'.format(str(int(download_d / kb)), str(int(download_t / kb)),
+    stream.write('Progress: {}/{} kiB ({}%)\r'.format(str(int(download_d / KB)), str(int(download_t / KB)),
                                                       str(int(download_d / download_t * 100) if download_t > 0 else 0)))
     stream.flush()
 
@@ -265,9 +230,9 @@ def version_tuple(v):
 
 def get_flutter_sdk_path() -> str:
     import subprocess
-    (retval, output) = subprocess.getstatusoutput('which flutter')
-    if retval:
-        return None
+    (result, output) = subprocess.getstatusoutput('which flutter')
+    if result:
+        return ''
 
     return os.path.dirname(os.path.dirname(output.rstrip()))
 
@@ -276,24 +241,24 @@ def get_flutter_sdk_version() -> str:
     import json
     import subprocess
 
-    (retval, output) = subprocess.getstatusoutput('which flutter')
-    if retval:
-        print_banner("failed %s (cmd was which flutter)" % (retval))
-        return None
+    (result, output) = subprocess.getstatusoutput('which flutter')
+    if result:
+        print_banner(f'failed {result} (cmd was which flutter)')
+        return ''
 
     bin_path = os.path.dirname(output.rstrip())
     flutter_version_json = os.path.join(bin_path, 'cache', 'flutter.version.json')
 
     if not os.path.exists(flutter_version_json):
         print_banner(f'Missing {flutter_version_json}')
-        return None
+        return ''
 
     with open(os.path.join(os.path.dirname(flutter_version_json), flutter_version_json), encoding='utf-8') as f:
         flutter_version_json = json.load(f)
 
         if 'flutterVersion' not in flutter_version_json:
             print_banner(f'Missing key: flutterVersion in {flutter_version_json}')
-            return None
+            return ''
 
         flutter_version = flutter_version_json['flutterVersion']
         return flutter_version
@@ -312,7 +277,9 @@ def test_internet_connection() -> bool:
     c.setopt(pycurl.NOBODY, 1)
     try:
         c.perform()
-    except:
+    except pycurl.error as e:
+        error_code, message = e
+        print(f'pycurl exception: {error_code}: {message}')
         pass
 
     res = False
