@@ -1,5 +1,17 @@
 # Changelog
 
+Aug 11, 2024
+1. pubspec.py tool
+   Enable pre-populating DL_DIR via generic options
+   Walk folder specified by --input
+   Restore step if --restore used
+2. tools folder linter updates
+3. roll recipes
+
+Aug 10, 2024
+1. pubspec.py tool
+   pub cache package archiver functional unit test
+
 Aug 9, 2024
 1. flutter app build update - unique to 3.24.0
 2. added missing app_root definitions in common.inc
