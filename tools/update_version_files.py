@@ -1,23 +1,21 @@
 #!/usr/bin/env python3
-#
 # SPDX-FileCopyrightText: (C) 2020-2023 Joel Winarske
-#
 # SPDX-License-Identifier: Apache-2.0
 #
-#
 # Script to build custom Flutter AOT artifacts for Release and Profile runtime
+#
 
 import json
 import os
 import signal
 import sys
 
-from fw_common import check_python_version
-from fw_common import download_https_file
-from fw_common import handle_ctrl_c
-from fw_common import make_sure_path_exists
-from fw_common import print_banner
-from fw_common import test_internet_connection
+from common import check_python_version
+from common import download_https_file
+from common import handle_ctrl_c
+from common import make_sure_path_exists
+from common import print_banner
+from common import test_internet_connection
 
 
 def main():

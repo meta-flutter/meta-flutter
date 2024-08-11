@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
-#
 # SPDX-FileCopyrightText: (C) 2020-2024 Joel Winarske
-#
 # SPDX-License-Identifier: Apache-2.0
 #
-#
 # Script to create Yocto recipes from a given path.
+#
 
 import os
 import signal
 import sys
 
-from fw_common import handle_ctrl_c
-from fw_common import make_sure_path_exists
-from fw_common import print_banner
-from fw_common import check_python_version
+from common import handle_ctrl_c
+from common import make_sure_path_exists
+from common import print_banner
+from common import check_python_version
 
 
 def get_file_md5(file_name):
@@ -65,7 +63,6 @@ def main():
             if args.license_type != 'CLOSED':
                 license_md5 = get_file_md5(license_path)
 
-
         create_yocto_recipes(directory=args.path,
                              license_file=args.license,
                              license_type=args.license_type,
@@ -74,14 +71,15 @@ def main():
                              recipe_folder=None,
                              output_path=args.out,
                              package_output_path=args.out,
-                             ignore_list=[], 
+                             ignore_list=[],
                              rdepends_list=[],
                              output_path_override_list=[],
                              src_folder="",
                              src_files=[],
                              entry_files=[],
                              variables=[],
-                             patch_dir=args.patch_dir)
+                             patch_dir=args.patch_dir,
+                             compiler_requires_network_list=[])
         return
 
 
@@ -101,7 +99,7 @@ def get_git_branch(directory: str, commit: str) -> str:
     """Get branch name"""
     response = get_process_stdout(f'git branch --contains {commit}', directory)
     if '(HEAD detached' in response:
-        return None
+        return ''
     else:
         return response.split(' ')[-1]
 
@@ -110,7 +108,7 @@ def get_git_commit_hash_for_tag(directory: str, tag: str) -> str:
     """Get commit hash for tag name"""
     response = get_process_stdout(f'git rev-list -n 1 tags/{tag}', directory)
     if 'fatal: ambiguous argument' in response:
-        return None
+        return ''
     else:
         return response.split(' ')[-1]
 
@@ -178,7 +176,7 @@ def get_yaml_obj(filepath: str):
         try:
             data_loaded = yaml.full_load(stream_)
 
-        except yaml.YAMLError as exc:
+        except yaml.YAMLError:
             # print(f'Failed loading {exc} - {filepath}')
             return []
 
@@ -206,7 +204,7 @@ def get_recipe_name(org, unit, flutter_application_path, project_name) -> str:
         header = f'{org}-{unit}'
 
     if project_name:
-        project_name = project_name.replace('_','-')
+        project_name = project_name.replace('_', '-')
 
     app_path = flutter_application_path.replace('/', '-')
     app_path = app_path.replace('_', '-')
@@ -240,7 +238,7 @@ def get_recipe_name(org, unit, flutter_application_path, project_name) -> str:
     return recipe_name.lower()
 
 
-def copy_src_file(file: str, src_folder:str, patch_dir: str, output_path: str):
+def copy_src_file(file: str, src_folder: str, patch_dir: str, output_path: str):
     print(f'copy_src_file: {file}, {src_folder}, {patch_dir}, {output_path}')
     import shutil
 
@@ -389,8 +387,8 @@ def create_recipe(directory,
 
         # variables
         if variables:
-            vars = variables.get(f'{flutter_application_path}')
-            for var in vars:
+            values = variables.get(f'{flutter_application_path}')
+            for var in values:
                 f.write(f'{var}\n')
         f.write('\n')
 
@@ -482,7 +480,6 @@ def create_yocto_recipes(directory,
     print(f'variables: {variables}')
     print(f'patch_dir: {patch_dir}')
 
-
     #
     # Get repo variables
     #
@@ -534,7 +531,8 @@ def create_yocto_recipes(directory,
         recipe = create_recipe(directory=directory,
                                pubspec_yaml=filename,
                                flutter_application_path=flutter_application_path,
-                               org=org, unit=unit, submodules=submodules, url=url, lfs=lfs, branch=branch, commit=commit,
+                               org=org, unit=unit, submodules=submodules, url=url, lfs=lfs, branch=branch,
+                               commit=commit,
                                license_file=license_file, license_type=license_type, license_md5=license_md5,
                                author=author,
                                recipe_folder=recipe_folder,
