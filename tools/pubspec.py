@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-#
 # SPDX-FileCopyrightText: (C) 2024 Joel Winarske
-#
 # SPDX-License-Identifier: Apache-2.0
 #
 # pubspec.py
@@ -19,23 +17,10 @@
 # All packages should resolve without using the internet
 #
 
-import concurrent.futures
 import os
-import io
-import json
-import pycurl
-import shutil
-import signal
-import subprocess
-import sys
-import tarfile
 
-from fw_common import handle_ctrl_c
-from fw_common import make_sure_path_exists
-from fw_common import print_banner
-from fw_common import check_python_version
-from fw_common import download_https_file
-from fw_common import run_command
+from common import make_sure_path_exists
+from common import print_banner
 from urllib.parse import urlparse
 
 
@@ -45,12 +30,14 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', default='', type=str, help='Directory to look for pubspec.yaml files')
     parser.add_argument('--output', default='./archive/pub_cache', type=str, help='Folder to store archives in')
-    parser.add_argument('--restore', default=False, type=bool, help='Restores archive after fetch')
+    parser.add_argument('--restore', default=False, action='store_true', help='Restores archive after fetch')
     args = parser.parse_args()
 
     #
     # Control+C handler
     #
+    import signal
+    from common import handle_ctrl_c
     signal.signal(signal.SIGINT, handle_ctrl_c)
 
     if args.input != '':
@@ -85,6 +72,8 @@ def restore_pub_cache(archive_path: str):
     for root, dirs, files in os.walk(archive_path):
         for name in files:
             if name.endswith('.tar.gz'):
+                import tarfile
+
                 file = os.path.join(root, name)
                 folder_name = name[:-7]
                 hostname = os.path.basename(os.path.dirname(file))
@@ -92,10 +81,11 @@ def restore_pub_cache(archive_path: str):
                 print(f'folder: {restore_folder}')
 
                 # extract package
-                f = tarfile.open(file) 
-                f.extractall(restore_folder) 
-            
+                f = tarfile.open(file)
+                f.extractall(restore_folder)
+
             elif name.endswith('.sha256'):
+                import shutil
                 file = os.path.join(root, name)
                 bare_filename = name[:-14]
                 hostname = os.path.basename(os.path.dirname(file))
@@ -140,7 +130,7 @@ def archive_package(package: dict, output_path: str):
     package_json = get_package_version(name, url, version)
     if not bool(package_json):
         return
-    
+
     if package_json['version'] == version:
         url = package_json['archive_url']
         sha256 = package_json['archive_sha256']
@@ -152,28 +142,33 @@ def archive_package(package: dict, output_path: str):
 
         archive_file = os.path.join(hostname_path, file)
         if not os.path.exists(archive_file):
+            from common import download_https_file
             download_https_file(hostname_path, url, file, None, None, None, None, sha256)
 
 
 def archive_pubspec_lock(project_path: str, output_path: str):
     """
-    Archive all pubspec packages in a given pubspec.lock
+    Archive all pubspec packages in a given 'pubspec.lock' file
     """
 
     # check for pubspec.yaml
     pubspec_yaml_path = os.path.join(project_path, 'pubspec.yaml')
     if not os.path.exists(pubspec_yaml_path):
-        sys.exit('pubspec.yaml not found')
+        raise FileNotFoundError
 
     # check or pubspec.lock
     pubspec_lock_path = os.path.join(project_path, 'pubspec.lock')
     if not os.path.exists(pubspec_lock_path):
-        (retval, output) = subprocess.getstatusoutput(f'cd {project_path} && flutter pub get')
-        if retval == 65:
+        import subprocess
+
+        (result, output) = subprocess.getstatusoutput(f'cd {project_path} && flutter pub get')
+        if result == 65:
             print(f'Failed to get pub cache for: {project_path}')
             print(get_yaml_obj(pubspec_yaml_path))
             return
         print(output)
+
+        from common import run_command
         run_command('flutter pub cache clean -f', output_path)
 
     if not os.path.exists(pubspec_lock_path):
@@ -183,8 +178,10 @@ def archive_pubspec_lock(project_path: str, output_path: str):
     # iterate pubspec.lock file
     pubspec_lock = get_yaml_obj(pubspec_lock_path)
 
-    futures = []
     packages = pubspec_lock['packages']
+
+    futures = []
+    import concurrent.futures
     with concurrent.futures.ThreadPoolExecutor() as executor:
         for it in packages:
             futures.append(executor.submit(archive_package, package=packages[it], output_path=output_path))
@@ -200,7 +197,7 @@ def archive_pubspec_yaml_packages(input_path: str, output_path: str):
         return
 
     if not output_path:
-        output_path = os. getcwd()
+        output_path = os.getcwd()
 
     make_sure_path_exists(output_path)
 
@@ -213,10 +210,14 @@ def archive_pubspec_yaml_packages(input_path: str, output_path: str):
                 archive_pubspec_lock(root, output_path)
                 print(f'Done: {os.path.join(root, file)}')
 
+
 def get_package_version(desc_name: str, desc_url: str, version: str) -> dict:
     """
     Return version dict for a specified description
     """
+    import io
+    import json
+    import pycurl
 
     if desc_url == '':
         print(f'Missing url in description, using default')
@@ -227,34 +228,36 @@ def get_package_version(desc_name: str, desc_url: str, version: str) -> dict:
 
     c = pycurl.Curl()
     c.setopt(pycurl.URL, url)
-    c.setopt(pycurl.HTTPHEADER, [ "Accept: application/vnd.pub.v2+json"])
+    c.setopt(pycurl.HTTPHEADER, ["Accept: application/vnd.pub.v2+json"])
     buffer = io.BytesIO()
     c.setopt(pycurl.WRITEDATA, buffer)
     c.perform()
     return json.loads(buffer.getvalue().decode('utf-8'))
 
 
-def get_yaml_obj(filepath: str):
+def get_yaml_obj(filepath: str) -> dict:
     """
     Returns python object of yaml file
     """
     import yaml
 
     if not os.path.exists(filepath):
-        sys.exit(f'Failed loading {filepath}')
+        raise FileNotFoundError
 
     with open(filepath, "r") as stream_:
         try:
             data_loaded = yaml.full_load(stream_)
 
-        except yaml.YAMLError as exc:
+        except yaml.YAMLError:
             # print(f'Failed loading {exc} - {filepath}')
-            return []
+            return dict()
 
         return data_loaded
 
 
 if __name__ == "__main__":
+    from common import check_python_version
+
     check_python_version()
 
     main()
