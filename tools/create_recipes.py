@@ -288,14 +288,14 @@ def create_recipe(directory,
     if output_path_override_list and flutter_application_path in output_path_override_list:
         output_path = os.path.join(output_path, output_path_override_list[flutter_application_path])
         if recipe_folder:
-            output_path = os.path.join(output_path, recipe_folder)
+            output_path = os.path.join(str(output_path), recipe_folder)
         print(f'Output Path: {output_path}')
     elif recipe_folder:
         output_path = os.path.join(output_path, 'recipes-graphics', 'flutter-apps', recipe_folder)
     else:
         output_path = os.path.join(output_path, 'recipes-graphics', 'flutter-apps')
 
-    make_sure_path_exists(output_path)
+    make_sure_path_exists(str(output_path))
 
     recipe_name = get_recipe_name(org, unit, flutter_application_path, project_name)
 
@@ -360,7 +360,7 @@ def create_recipe(directory,
             if files:
                 for file in files:
                     if src_folder:
-                        copy_src_file(file, src_folder, patch_dir, output_path)
+                        copy_src_file(file, src_folder, patch_dir, str(output_path))
                         f.write(f'    file://{src_folder}/{file} \\\n')
                     else:
                         f.write(f'    file://{file} \\\n')

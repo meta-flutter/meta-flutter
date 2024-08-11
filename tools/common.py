@@ -69,36 +69,37 @@ def get_sha1sum(file: str) -> str:
 def get_sha256sum(file: str):
     return hash_file(file, hashlib.sha256())
 
+
 def download_https_file(cwd, url, file, cookie_file, netrc, md5, sha1, sha256):
     download_filepath = os.path.join(cwd, file)
 
     sha256_file = os.path.join(cwd, file + '.sha256')
-    if compare_sha256(download_filepath, sha256_file):
+    if compare_sha256(str(download_filepath), str(sha256_file)):
         print("%s exists, skipping download" % download_filepath)
         return True
 
     if os.path.exists(download_filepath):
         if md5:
             # don't download if md5 is good
-            if md5 == get_md5sum(download_filepath):
+            if md5 == get_md5sum(str(download_filepath)):
                 print("** Using %s" % download_filepath)
                 return True
             else:
                 os.remove(download_filepath)
         elif sha1:
             # don't download if sha1 is good
-            if sha1 == get_sha1sum(download_filepath):
+            if sha1 == get_sha1sum(str(download_filepath)):
                 print("** Using %s" % download_filepath)
                 return True
             else:
-                os.remove(download_filepath)
+                os.remove(str(download_filepath))
         elif sha256:
             # don't download if sha256 is good
-            if sha256 == get_sha256sum(download_filepath):
+            if sha256 == get_sha256sum(str(download_filepath)):
                 print("** Using %s" % download_filepath)
                 return True
             else:
-                os.remove(download_filepath)
+                os.remove(str(download_filepath))
 
     print("** Downloading %s via %s" % (file, url))
     res = fetch_https_binary_file(
@@ -110,17 +111,17 @@ def download_https_file(cwd, url, file, cookie_file, netrc, md5, sha1, sha256):
 
     if os.path.exists(download_filepath):
         if md5:
-            expected_md5 = get_md5sum(download_filepath)
+            expected_md5 = get_md5sum(str(download_filepath))
             if md5 != expected_md5:
                 sys.exit('Download artifact %s md5: %s does not match expected: %s' %
                          (download_filepath, md5, expected_md5))
         elif sha1:
-            expected_sha1 = get_sha1sum(download_filepath)
+            expected_sha1 = get_sha1sum(str(download_filepath))
             if sha1 != expected_sha1:
                 sys.exit('Download artifact %s sha1: %s does not match expected: %s' %
                          (download_filepath, md5, expected_sha1))
         elif sha256:
-            expected_sha256 = get_sha256sum(download_filepath)
+            expected_sha256 = get_sha256sum(str(download_filepath))
             if sha256 != expected_sha256:
                 sys.exit('Download artifact %s sha256: %s does not match expected: %s' %
                          (download_filepath, sha256, expected_sha256))
@@ -276,7 +277,9 @@ def test_internet_connection() -> bool:
     c.setopt(pycurl.NOBODY, 1)
     try:
         c.perform()
-    except:
+    except pycurl.error as e:
+        error_code, message = e
+        print(f'pycurl exception: {error_code}: {message}')
         pass
 
     res = False
