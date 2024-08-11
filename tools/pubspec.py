@@ -3,9 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # pubspec.py
-#   walks an input path for pubspec.yaml files and will archived all referenced
-#   packages present.
-#   If a project is missing a pubspec.lock file, it will get created.
+#   walks an input path for pubspec.yaml files and will archive all packages referenced.
+#   If a project is missing a pubspec.lock file, it gets created.
 #   Speed up your flutter builds and pre-populate the DL_DIR.
 #
 # Example usage:
@@ -93,7 +92,7 @@ def restore_pub_cache(archive_path: str):
                 make_sure_path_exists(hostname_path)
                 file_dest = os.path.join(hostname_path, bare_filename + '.256')
                 print(f'sha256: {file_dest}')
-                shutil.copy(file, file_dest)
+                shutil.copy(str(file), file_dest)
 
 
 def archive_file_exists(name: str, url: str, version: str, output_path: str) -> bool:

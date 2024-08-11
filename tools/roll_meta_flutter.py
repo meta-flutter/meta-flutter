@@ -21,6 +21,7 @@ from common import make_sure_path_exists
 from common import print_banner
 from common import test_internet_connection
 from update_version_files import get_version_files
+from urllib.parse import urlparse
 
 
 def get_flutter_apps(filename) -> dict:
@@ -75,9 +76,9 @@ def get_repo(repo_path: str, output_path: str,
         return
 
     # get repo folder name
-    repo_name: list[str] = uri.rsplit('/', 1)[-1]
-    repo_name = repo_name.split(".")
-    repo_name: str = repo_name[0]
+    url_parse_res = urlparse(uri)
+    path = url_parse_res.path.split('.', 1)[0]
+    repo_name = path.rsplit('/', 1)[-1]
 
     git_folder: str = os.path.join(repo_path, repo_name)
 
@@ -149,29 +150,30 @@ def get_repo(repo_path: str, output_path: str,
 
 def get_workspace_repos(repo_path, repos, output_path, package_output_path, patch_dir):
     """ Clone GIT repos referenced in config repos dict to base_folder """
-    import concurrent.futures
 
+    futures = []
+    import concurrent.futures
     with concurrent.futures.ThreadPoolExecutor() as executor:
         for r in repos:
-            get_repo(repo_path=repo_path,
-                     output_path=output_path,
-                     package_output_path=package_output_path,
-                     uri=r.get('uri'),
-                     branch=r.get('branch'),
-                     rev=r.get('rev'),
-                     license_file=r.get('license_file'),
-                     license_type=r.get('license_type'),
-                     author=r.get('author'),
-                     recipe_folder=r.get('folder'),
-                     ignore_list=r.get('ignore'),
-                     rdepends_list=r.get('rdepends'),
-                     output_path_override_list=r.get('output_folder'),
-                     compiler_requires_network_list=r.get('compiler_requires_network'),
-                     src_folder=r.get('src_folder'),
-                     src_files=r.get('src_files'),
-                     entry_files=r.get('entry_files'),
-                     variables=r.get('variables'),
-                     patch_dir=patch_dir)
+            futures.append(executor.submit(get_repo, repo_path=repo_path,
+                                           output_path=output_path,
+                                           package_output_path=package_output_path,
+                                           uri=r.get('uri'),
+                                           branch=r.get('branch'),
+                                           rev=r.get('rev'),
+                                           license_file=r.get('license_file'),
+                                           license_type=r.get('license_type'),
+                                           author=r.get('author'),
+                                           recipe_folder=r.get('folder'),
+                                           ignore_list=r.get('ignore'),
+                                           rdepends_list=r.get('rdepends'),
+                                           output_path_override_list=r.get('output_folder'),
+                                           compiler_requires_network_list=r.get('compiler_requires_network'),
+                                           src_folder=r.get('src_folder'),
+                                           src_files=r.get('src_files'),
+                                           entry_files=r.get('entry_files'),
+                                           variables=r.get('variables'),
+                                           patch_dir=patch_dir))
 
     print_banner("Repos Cloned")
 
