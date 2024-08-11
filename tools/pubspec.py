@@ -4,17 +4,19 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-# Functional test case
-#   Archive all pubspec packages referenced in the flutter sdk source tree
-#   If a project is does not have a pubspec.lock file, it will get created
+# pubspec.py
+#   walks an input path for pubspec.yaml files and will archived all referenced
+#   packages present.
+#   If a project is missing a pubspec.lock file, it will get created.
+#   Speed up your flutter builds and pre-populate the DL_DIR.
 #
-# Test sequence:
+# Example usage:
 #   flutter pub cache clean -f
-#   tools/pubspec.py --output `pwd`/archive
+#   tools/pubspec.py --input <directory to walk>
 #   cd <flutter sdk root>/examples/hello_world
-#   flutter pub get --offline
+#   flutter pub get --enforce-lockfile --offline
 #
-# the packages should all resolve quickly without using the internet
+# All packages should resolve without using the internet
 #
 
 import concurrent.futures
@@ -33,7 +35,6 @@ from fw_common import make_sure_path_exists
 from fw_common import print_banner
 from fw_common import check_python_version
 from fw_common import download_https_file
-from fw_common import get_flutter_sdk_path
 from fw_common import run_command
 from urllib.parse import urlparse
 
@@ -42,7 +43,9 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--output', default='./archive', type=str, help='Archive Output')
+    parser.add_argument('--input', default='', type=str, help='Directory to look for pubspec.yaml files')
+    parser.add_argument('--output', default='./archive/pub_cache', type=str, help='Folder to store archives in')
+    parser.add_argument('--restore', default=False, type=bool, help='Restores archive after fetch')
     args = parser.parse_args()
 
     #
@@ -50,15 +53,22 @@ def main():
     #
     signal.signal(signal.SIGINT, handle_ctrl_c)
 
-    archive_flutter_sdk_pub_packages(args.output)
+    if args.input != '':
+        archive_pubspec_yaml_packages(args.input, args.output)
 
-    restore_pub_cache(args.output)
+    if args.restore:
+        restore_pub_cache(args.output)
 
     print_banner("Done")
 
 
 def restore_pub_cache(archive_path: str):
-    """Function to restore an archive folder into a pub_cache"""
+    """
+    Restores an archive folder into a pub_cache
+    """
+
+    if not os.path.exists(archive_path):
+        return
 
     pub_cache = os.environ.get('PUB_CACHE', None)
     if not pub_cache:
@@ -67,13 +77,10 @@ def restore_pub_cache(archive_path: str):
 
     hosted_path = os.path.join(pub_cache, 'hosted')
     hosted_hashes_path = os.path.join(pub_cache, 'hosted-hashes')
-    pub_cache_tmp_path = os.path.join(pub_cache, '_temp')
 
-    # create folder structure
-    make_sure_path_exists(pub_cache)
+    # create required folders
     make_sure_path_exists(hosted_path)
     make_sure_path_exists(hosted_hashes_path)
-    make_sure_path_exists(pub_cache_tmp_path)
 
     for root, dirs, files in os.walk(archive_path):
         for name in files:
@@ -100,7 +107,9 @@ def restore_pub_cache(archive_path: str):
 
 
 def archive_file_exists(name: str, url: str, version: str, output_path: str) -> bool:
-    """Function to check if archive file exists"""
+    """
+    Check if archive file exists
+    """
 
     url_parse_res = urlparse(url)
     hostname_path = os.path.join(output_path, url_parse_res.hostname)
@@ -114,7 +123,9 @@ def archive_file_exists(name: str, url: str, version: str, output_path: str) -> 
 
 
 def archive_package(package: dict, output_path: str):
-    """Function that fetches an archive file if not present"""
+    """
+    Fetches an archive file if not present
+    """
     description = package['description']
     name = description['name']
     url = description['url']
@@ -145,7 +156,9 @@ def archive_package(package: dict, output_path: str):
 
 
 def archive_pubspec_lock(project_path: str, output_path: str):
-    """Function that will archive all pubspec packages in a given pubspec.lock"""
+    """
+    Archive all pubspec packages in a given pubspec.lock
+    """
 
     # check for pubspec.yaml
     pubspec_yaml_path = os.path.join(project_path, 'pubspec.yaml')
@@ -158,47 +171,59 @@ def archive_pubspec_lock(project_path: str, output_path: str):
         (retval, output) = subprocess.getstatusoutput(f'cd {project_path} && flutter pub get')
         if retval == 65:
             print(f'Failed to get pub cache for: {project_path}')
+            print(get_yaml_obj(pubspec_yaml_path))
             return
+        print(output)
         run_command('flutter pub cache clean -f', output_path)
 
     if not os.path.exists(pubspec_lock_path):
-        sys.exit(f'flutter pub get failed for {project_path}')
+        print_banner(f'flutter pub get failed for {project_path}')
+        return
 
     # iterate pubspec.lock file
     pubspec_lock = get_yaml_obj(pubspec_lock_path)
 
+    futures = []
     packages = pubspec_lock['packages']
-    for it in packages:
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = []
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        for it in packages:
             futures.append(executor.submit(archive_package, package=packages[it], output_path=output_path))
 
 
-def archive_flutter_sdk_pub_packages(output_path: str):
-    """Function that will archive all pubspec packages in the flutter SDK source tree"""
-    flutter_sdk_path = get_flutter_sdk_path()
-    if flutter_sdk_path is None:
-        sys.exit('add flutter to your path')
+def archive_pubspec_yaml_packages(input_path: str, output_path: str):
+    """
+    Archives all pubspec packages under the input_path directory
+    """
+
+    if not os.path.exists(input_path):
+        print_banner(f'Invalid input path: {input_path}')
+        return
 
     if not output_path:
         output_path = os. getcwd()
 
-    for root, dirs, files in os.walk(flutter_sdk_path):
+    make_sure_path_exists(output_path)
+
+    for root, dirs, files in os.walk(input_path):
         for file in files:
+            # skip any files with pub_cache in path
+            if 'pub_cache' in file:
+                continue
             if file.endswith('pubspec.yaml'):
                 archive_pubspec_lock(root, output_path)
                 print(f'Done: {os.path.join(root, file)}')
 
-
 def get_package_version(desc_name: str, desc_url: str, version: str) -> dict:
-    """Function to return version dict for a specific description"""
+    """
+    Return version dict for a specified description
+    """
 
     if desc_url == '':
         print(f'Missing url in description, using default')
         desc_url = "https://pub.dev"
 
     url = desc_url + '/api/packages/' + desc_name + '/versions/' + version
-    print(f'url: {url}')
+    print(f'GET: {url}')
 
     c = pycurl.Curl()
     c.setopt(pycurl.URL, url)
@@ -210,7 +235,9 @@ def get_package_version(desc_name: str, desc_url: str, version: str) -> dict:
 
 
 def get_yaml_obj(filepath: str):
-    """ Returns python object of yaml file """
+    """
+    Returns python object of yaml file
+    """
     import yaml
 
     if not os.path.exists(filepath):
