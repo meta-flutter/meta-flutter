@@ -157,6 +157,24 @@ def write_sha256_file(cwd: str, filename: str):
         f.write(sha256_val)
 
 
+def get_yaml_obj(filepath: str):
+    """ Returns python object of yaml file """
+    import yaml
+
+    if not os.path.exists(filepath):
+        sys.exit(f'Failed loading {filepath}')
+
+    with open(filepath, "r") as stream_:
+        try:
+            data_loaded = yaml.full_load(stream_)
+
+        except yaml.YAMLError:
+            # print(f'Failed loading {exc} - {filepath}')
+            return []
+
+        return data_loaded
+
+
 def fetch_https_progress(download_t, download_d, _upload_t, _upload_d):
     """callback function for pycurl.XFERINFOFUNCTION"""
     stream.write('Progress: {}/{} kiB ({}%)\r'.format(str(int(download_d / KB)), str(int(download_t / KB)),

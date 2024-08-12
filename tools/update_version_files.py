@@ -10,12 +10,7 @@ import os
 import signal
 import sys
 
-from common import check_python_version
-from common import download_https_file
-from common import handle_ctrl_c
-from common import make_sure_path_exists
 from common import print_banner
-from common import test_internet_connection
 
 
 def main():
@@ -32,6 +27,7 @@ def main():
     #
     # Control+C handler
     #
+    from common import handle_ctrl_c
     signal.signal(signal.SIGINT, handle_ctrl_c)
 
     #
@@ -50,6 +46,7 @@ def get_version_files(cwd):
     if cwd is None:
         return
     else:
+        from common import make_sure_path_exists
         make_sure_path_exists(cwd)
 
     release_linux = get_linux_release_file(cwd)
@@ -99,6 +96,7 @@ def get_linux_release_file(cwd):
     if os.path.exists(sha256_file):
         os.remove(sha256_file)
 
+    from common import download_https_file
     download_https_file(cwd, url, filename, None, None, None, None, None)
 
     return os.path.join(cwd, filename)
@@ -125,6 +123,9 @@ def get_engine_commit(version, hash_):
 
 
 if __name__ == "__main__":
+    from common import check_python_version
+    from common import test_internet_connection
+    
     check_python_version()
 
     if not test_internet_connection():

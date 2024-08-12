@@ -12,16 +12,8 @@ import signal
 import subprocess
 import sys
 
-from create_recipes import create_yocto_recipes
-from create_recipes import get_file_md5
-from create_recipes import get_git_commit_hash_for_tag
-from common import check_python_version
-from common import handle_ctrl_c
 from common import make_sure_path_exists
 from common import print_banner
-from common import test_internet_connection
-from update_version_files import get_version_files
-from urllib.parse import urlparse
 
 
 def get_flutter_apps(filename) -> dict:
@@ -76,6 +68,7 @@ def get_repo(repo_path: str, output_path: str,
         return
 
     # get repo folder name
+    from urllib.parse import urlparse
     url_parse_res = urlparse(uri)
     path = url_parse_res.path.split('.', 1)[0]
     repo_name = path.rsplit('/', 1)[-1]
@@ -125,10 +118,12 @@ def get_repo(repo_path: str, output_path: str,
             exit(1)
 
         if license_type != 'CLOSED':
+            from create_recipes import get_file_md5
             license_md5 = get_file_md5(license_path)
 
     repo_path = os.path.join(repo_path, repo_name)
 
+    from create_recipes import create_yocto_recipes
     create_yocto_recipes(directory=repo_path,
                          license_file=license_file,
                          license_type=license_type,
@@ -222,6 +217,8 @@ def get_release(root_path: str, commit_hash: str) -> dict:
 def update_dart_recipe(root_path: str, flutter_sdk_version: str):
     import glob
 
+    from create_recipes import get_git_commit_hash_for_tag
+
     dart_sdk_version = get_dart_sdk_version(root_path, flutter_sdk_version)
     if not dart_sdk_version:
         print_banner("Dart SDK version is not available")
@@ -274,6 +271,7 @@ def main():
     #
     # Control+C handler
     #
+    from common import handle_ctrl_c
     signal.signal(signal.SIGINT, handle_ctrl_c)
 
     if not os.path.exists(args.path):
@@ -304,6 +302,7 @@ def main():
 
     print_banner(f'Rolling meta-flutter')
     print_banner('Updating version files')
+    from update_version_files import get_version_files
     get_version_files(include_path)
 
     print_banner('Done updating version files')
@@ -332,6 +331,9 @@ def main():
 
 
 if __name__ == "__main__":
+    from common import check_python_version
+    from common import test_internet_connection
+
     check_python_version()
 
     if not test_internet_connection():
