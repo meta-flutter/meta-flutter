@@ -3,24 +3,36 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # pubspec.py
-#   walks an input path for pubspec.yaml files and will archive all packages referenced.
+#   archives project using --input path
+#   restores pub_cache using --restore <path to project>.  Writes to $PUB_CACHE
 #   If a project is missing a pubspec.lock file, it gets created.
-#   Speed up your flutter builds and pre-populate the DL_DIR.
+#
+#   source types hosted and git are supported.
+#   source types sdk and path are skipped.
 #
 # Example usage:
-#   flutter pub cache clean -f
-#   tools/pubspec.py --input <directory to walk>
-#   cd <flutter sdk root>/examples/hello_world
-#   flutter pub get --enforce-lockfile --offline
+#   tools/pubspec.py --input $HOME/workspace-automation/app/flutter-wonderous-app/ --output $(pwd)/archive/pub_cache
+#   <turn off your WiFi/Ethernet>
+#   dart pub cache clean -f
+#   tools/pubspec.py --restore $HOME/workspace-automation/app/flutter-wonderous-app/ --output $(pwd)/archive/pub_cache
+#   cd $HOME/workspace-automation/app/flutter-wonderous-app/
+#   $ time flutter pub get --offline
 #
-# All packages should resolve without using the internet
+#   real	0m21.751s
+#   user	0m0.498s
+#   sys	0m0.073s
 #
 
 import os
 
 from common import make_sure_path_exists
 from common import print_banner
+from common import run_command
+from urllib.parse import quote
+from urllib.parse import unquote
 from urllib.parse import urlparse
+
+import shutil
 
 
 def main():
@@ -29,7 +41,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', default='', type=str, help='Directory to look for pubspec.yaml files')
     parser.add_argument('--output', default='./archive/pub_cache', type=str, help='Folder to store archives in')
-    parser.add_argument('--restore', default=False, action='store_true', help='Restores archive after fetch')
+    parser.add_argument('--restore', default='', type=str, help='Project folder to restore lockfile from')
     args = parser.parse_args()
 
     #
@@ -40,15 +52,15 @@ def main():
     signal.signal(signal.SIGINT, handle_ctrl_c)
 
     if args.input != '':
-        archive_pubspec_yaml_packages(args.input, args.output)
+        pubspec_archive_lock_file(args.input, args.output)
 
     if args.restore:
-        restore_pub_cache(args.output)
+        pubspec_restore_project_pub_cache(args.restore, args.output)
 
     print_banner("Done")
 
 
-def restore_pub_cache(archive_path: str):
+def pubspec_restore_archive(archive_path: str):
     """
     Restores an archive folder into a pub_cache
     """
@@ -84,7 +96,6 @@ def restore_pub_cache(archive_path: str):
                 f.extractall(restore_folder)
 
             elif name.endswith('.sha256'):
-                import shutil
                 file = os.path.join(root, name)
                 bare_filename = name[:-14]
                 hostname = os.path.basename(os.path.dirname(file))
@@ -95,7 +106,120 @@ def restore_pub_cache(archive_path: str):
                 shutil.copy(str(file), file_dest)
 
 
-def archive_file_exists(name: str, url: str, version: str, output_path: str) -> bool:
+def pubspec_restore_git_archive(name: str, package: dict, project_path: str, pub_cache: str, archive_path: str):
+    description = package['description']
+    if not isinstance(description, dict):
+        print_banner('Fail!')
+        return
+
+    print_banner(f'Restoring git: {name}')
+
+    pub_cache_git_archive_path = os.path.join(archive_path, 'git')
+    pub_cache_git_path = os.path.join(pub_cache, 'git')
+    pub_cache_git_cache_path = os.path.join(pub_cache, 'git', 'cache')
+    make_sure_path_exists(pub_cache_git_path)
+
+    resolved_ref = description['resolved-ref']
+    url = description['url']
+
+    url_parsed = urlparse(url)
+    repo_name = url_parsed.path.split('.git')[0].split('/')[-1]
+    src_git_folder_name = repo_name + '-' + sha1_hash(url)
+    dest_git_folder_name = repo_name + '-' + resolved_ref
+
+    src_path = os.path.join(pub_cache_git_archive_path, src_git_folder_name)
+    dest_path = os.path.join(pub_cache_git_cache_path, dest_git_folder_name)
+
+    shutil.copytree(src_path, dest_path)
+
+    src_path = dest_path
+    dest_path = os.path.join(pub_cache_git_path, dest_git_folder_name)
+    run_command(f'git clone {src_path} {dest_path}', project_path)
+    run_command(f'git checkout {resolved_ref}', dest_path)
+
+
+def pubspec_restore_hosted_archive(name: str, package: dict, pub_cache: str, archive_path: str):
+    import tarfile
+
+    print_banner(f'Restoring hosted: {name}')
+
+    hosted_path = os.path.join(pub_cache, 'hosted')
+    hosted_hashes_path = os.path.join(pub_cache, 'hosted-hashes')
+
+    version = package['version']
+
+    description = package['description']
+    name = description['name']
+    url = description['url']
+    url_parsed = urlparse(url)
+
+    filename = name + '-' + version + '.tar.gz'
+    file = os.path.join(archive_path, url_parsed.hostname, filename)
+    if not os.path.exists(file):
+        print(f'Missing: {file}')
+        raise FileNotFoundError
+
+    restore_folder = os.path.join(hosted_path, url_parsed.hostname, name + '-' + version)
+
+    print(f'folder: {restore_folder}')
+    f = tarfile.open(file)
+    f.extractall(restore_folder)
+
+    filename += '.sha256'
+    file = os.path.join(archive_path, url_parsed.hostname, filename)
+    if not os.path.exists(file):
+        print(f'Missing: {file}')
+        raise FileNotFoundError
+
+    bare_filename = filename[:-14]
+    hostname_path = os.path.join(hosted_hashes_path, url_parsed.hostname)
+    make_sure_path_exists(hostname_path)
+    file_dest = os.path.join(hostname_path, bare_filename + '.sha256')
+
+    print(f'sha256: {file_dest}')
+    shutil.copy(str(file), file_dest)
+
+
+def pubspec_restore_project_pub_cache(project_path: str, archive_path: str):
+
+    lock_file = os.path.join(project_path, 'pubspec.lock')
+    if not os.path.exists(lock_file):
+        print_banner(f'file not found: {lock_file}')
+        raise FileNotFoundError
+
+    if not os.path.exists(archive_path):
+        print_banner(f'Path does not exist: {archive_path}')
+        raise FileNotFoundError
+
+    pub_cache = os.environ.get('PUB_CACHE', None)
+    if not pub_cache:
+        print_banner('PUB_CACHE is not set.  Cannot restore')
+        return
+
+    packages = get_yaml_obj(lock_file)['packages']
+    for name in packages:
+        package = packages[name]
+
+        source = package['source']
+        print_banner(f'package {name}: source: {source}')
+        if source == 'sdk':
+            print('Skipping')
+            continue
+        elif source == 'path':
+            print('Skipping')
+            continue
+        elif source == 'git':
+            pubspec_restore_git_archive(name, package, project_path, pub_cache, archive_path)
+            continue
+        elif source == 'hosted':
+            pubspec_restore_hosted_archive(name, package, pub_cache, archive_path)
+            continue
+        else:
+            print_banner(f'{name}: Unknown source type: {source}')
+            continue
+
+
+def hosted_archive_file_exists(name: str, url: str, version: str, output_path: str) -> bool:
     """
     Check if archive file exists
     """
@@ -111,30 +235,35 @@ def archive_file_exists(name: str, url: str, version: str, output_path: str) -> 
     return False
 
 
-def archive_package(package: dict, output_path: str):
-    """
-    Fetches an archive file if not present
-    """
-    description = package['description']
-    name = description['name']
-    url = description['url']
+def archive_hosted(name: str, package: dict, output_path: str):
+
+    print_banner(name)
+    print(f'{package}')
+
     version = package['version']
 
+    description = package['description']
     if not isinstance(description, dict):
+        print_banner('Fail!')
         return
 
-    if archive_file_exists(name, url, version, output_path):
+    name = description['name']
+    url = description['url']
+
+    if hosted_archive_file_exists(name, url, version, output_path):
         return
 
-    package_json = get_package_version(name, url, version)
+    package_json = pubspec_get_package_version(name, url, version)
     if not bool(package_json):
         return
 
     if package_json['version'] == version:
         url = package_json['archive_url']
+        print(f'url: {url}')
         sha256 = package_json['archive_sha256']
         url_parse_res = urlparse(url)
-        file = os.path.basename(url_parse_res.path)
+
+        file = unquote(os.path.basename(url_parse_res.path))
 
         hostname_path = os.path.join(output_path, url_parse_res.hostname)
         make_sure_path_exists(hostname_path)
@@ -145,7 +274,88 @@ def archive_package(package: dict, output_path: str):
             download_https_file(hostname_path, url, file, None, None, None, None, sha256)
 
 
-def archive_pubspec_lock(project_path: str, output_path: str):
+def git_archive_exists(archive_path: str, folder_name: str) -> bool:
+    """
+    Check if git archive exists
+    """
+
+    archive_file = os.path.join(archive_path, folder_name)
+
+    if os.path.exists(archive_file):
+        return True
+
+    return False
+
+
+def sha1_hash(to_hash: str) -> str:
+    import hashlib
+    try:
+        messageDigest = hashlib.sha1()
+        messageDigest.update(bytes(to_hash, 'utf'))
+        return messageDigest.hexdigest()
+    except TypeError:
+        raise "String to hash was not compatible"
+
+
+def pubspec_archive_git(name: str, package: dict, project_dir: str, output_path: str):
+
+    print_banner(name)
+    print(f'{package}')
+
+    description = package['description']
+    if not isinstance(description, dict):
+        print_banner('Fail!')
+        return
+
+    resolved_ref = description['resolved-ref']
+    url = description['url']
+
+    url_parsed = urlparse(url)
+    repo_name = url_parsed.path.split('.git')[0].split('/')[-1]
+
+    git_folder_name = repo_name + '-' + sha1_hash(url)
+
+    git_archive_path = os.path.join(output_path, 'git')
+
+    if git_archive_exists(git_archive_path, git_folder_name):
+        return
+
+    make_sure_path_exists(git_archive_path)
+
+    git_folder = os.path.join(git_archive_path, git_folder_name)
+
+    run_command(f'git clone --mirror {url} {git_folder}', project_dir)
+    run_command(f'git --git-dir={git_folder} rev-list --max-count=1 {resolved_ref}', git_folder)
+    run_command(f'git --git-dir={git_folder} show {resolved_ref}:pubspec.yaml', git_folder)
+
+
+def pubspec_archive_package(name: str, package: dict, project_path: str, output_path: str):
+    """
+    Fetches an archive file if source is hosted, and not already present in archive
+    """
+
+    source = package.get('source', '')
+    if source == '':
+        print(f'Skipping: {package}')
+        return
+    elif source == 'sdk':
+        print(f'Skipping: {package}')
+        return
+    elif source == 'path':
+        print(f'Skipping: {package}')
+        return
+    elif source == 'git':
+        pubspec_archive_git(name, package, project_path, output_path)
+        return
+    elif source == 'hosted':
+        archive_hosted(name, package, output_path)
+        return
+    else:
+        print(f'{name}: Unknown source type: {source}')
+        return
+
+
+def pubspec_archive_lock_file(project_path: str, output_path: str):
     """
     Archive all pubspec packages in a given 'pubspec.lock' file
     """
@@ -153,6 +363,7 @@ def archive_pubspec_lock(project_path: str, output_path: str):
     # check for pubspec.yaml
     pubspec_yaml_path = os.path.join(project_path, 'pubspec.yaml')
     if not os.path.exists(pubspec_yaml_path):
+        print_banner(f'file not found: {pubspec_yaml_path}')
         raise FileNotFoundError
 
     # check or pubspec.lock
@@ -160,7 +371,7 @@ def archive_pubspec_lock(project_path: str, output_path: str):
     if not os.path.exists(pubspec_lock_path):
         import subprocess
 
-        (result, output) = subprocess.getstatusoutput(f'cd {project_path} && flutter pub get')
+        (result, output) = subprocess.getstatusoutput(f'cd {project_path} && dart pub get')
         if result == 65:
             print(f'Failed to get pub cache for: {project_path}')
             print(get_yaml_obj(pubspec_yaml_path))
@@ -168,10 +379,10 @@ def archive_pubspec_lock(project_path: str, output_path: str):
         print(output)
 
         from common import run_command
-        run_command('flutter pub cache clean -f', output_path)
+        run_command('dart pub cache clean -f', output_path)
 
     if not os.path.exists(pubspec_lock_path):
-        print_banner(f'flutter pub get failed for {project_path}')
+        print_banner(f'dart pub get failed for {project_path}')
         return
 
     # iterate pubspec.lock file
@@ -179,14 +390,11 @@ def archive_pubspec_lock(project_path: str, output_path: str):
 
     packages = pubspec_lock['packages']
 
-    futures = []
-    import concurrent.futures
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        for it in packages:
-            futures.append(executor.submit(archive_package, package=packages[it], output_path=output_path))
+    for name in packages:
+        pubspec_archive_package(name, package=packages[name], project_path=project_path, output_path=output_path)
 
 
-def archive_pubspec_yaml_packages(input_path: str, output_path: str):
+def pubspec_archive_pubspec_yaml_packages(input_path: str, output_path: str):
     """
     Archives all pubspec packages under the input_path directory
     """
@@ -206,11 +414,11 @@ def archive_pubspec_yaml_packages(input_path: str, output_path: str):
             if 'pub_cache' in file:
                 continue
             if file.endswith('pubspec.yaml'):
-                archive_pubspec_lock(root, output_path)
+                pubspec_archive_lock_file(root, output_path)
                 print(f'Done: {os.path.join(root, file)}')
 
 
-def get_package_version(desc_name: str, desc_url: str, version: str) -> dict:
+def pubspec_get_package_version(desc_name: str, desc_url: str, version: str) -> dict:
     """
     Return version dict for a specified description
     """
@@ -222,7 +430,8 @@ def get_package_version(desc_name: str, desc_url: str, version: str) -> dict:
         print(f'Missing url in description, using default')
         desc_url = "https://pub.dev"
 
-    url = desc_url + '/api/packages/' + desc_name + '/versions/' + version
+    endpoint = '/api/packages/' + desc_name + '/versions/' + version
+    url = desc_url + quote(endpoint)
     print(f'GET: {url}')
 
     c = pycurl.Curl()
