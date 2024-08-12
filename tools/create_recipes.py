@@ -9,10 +9,9 @@ import os
 import signal
 import sys
 
-from common import handle_ctrl_c
+from common import get_yaml_obj
 from common import make_sure_path_exists
 from common import print_banner
-from common import check_python_version
 
 
 def get_file_md5(file_name):
@@ -44,6 +43,7 @@ def main():
     #
     # Control+C handler
     #
+    from common import handle_ctrl_c
     signal.signal(signal.SIGINT, handle_ctrl_c)
 
     #
@@ -163,24 +163,6 @@ def get_repo_vars(directory):
             print('delimiter not handled')
 
     return org, unit[0], submodules, value, lfs, branch, commit
-
-
-def get_yaml_obj(filepath: str):
-    """ Returns python object of yaml file """
-    import yaml
-
-    if not os.path.exists(filepath):
-        sys.exit(f'Failed loading {filepath}')
-
-    with open(filepath, "r") as stream_:
-        try:
-            data_loaded = yaml.full_load(stream_)
-
-        except yaml.YAMLError:
-            # print(f'Failed loading {exc} - {filepath}')
-            return []
-
-        return data_loaded
 
 
 def dedupe_adjacent(iterable):
@@ -556,6 +538,8 @@ def create_yocto_recipes(directory,
 
 
 if __name__ == "__main__":
+    from common import check_python_version
+
     check_python_version()
 
     main()
