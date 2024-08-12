@@ -11,16 +11,16 @@
 #   source types sdk and path are skipped.
 #
 # Example usage:
+#   cd $HOME/workspace-automation/app/flutter-wonderous-app/
+#   flutter pub upgrade
+#   tools/pubspec.py --input $HOME/workspace-automation/flutter/packages/flutter_tools --output $(pwd)/archive/pub_cache
 #   tools/pubspec.py --input $HOME/workspace-automation/app/flutter-wonderous-app/ --output $(pwd)/archive/pub_cache
 #   <turn off your WiFi/Ethernet>
 #   dart pub cache clean -f
 #   tools/pubspec.py --restore $HOME/workspace-automation/app/flutter-wonderous-app/ --output $(pwd)/archive/pub_cache
+#   tools/pubspec.py --restore $HOME/workspace-automation/flutter/packages/flutter_tools --output $(pwd)/archive/pub_cache
 #   cd $HOME/workspace-automation/app/flutter-wonderous-app/
-#   $ time flutter pub get --offline
-#
-#   real	0m21.751s
-#   user	0m0.498s
-#   sys	0m0.073s
+#   flutter build bundle -v
 #
 
 import os

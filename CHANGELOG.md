@@ -1,5 +1,8 @@
 # Changelog
 
+Aug 12, 2024
+1. pubspec tool supports hosted and git sources
+
 Aug 11, 2024
 1. pubspec.py tool
    Enable pre-populating DL_DIR via generic options
