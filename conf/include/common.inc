@@ -6,6 +6,8 @@
 DEPENDS += " \
     ca-certificates-native \
     flutter-sdk-native \
+    python3-pyyaml-native \
+    python3-pycurl-native \
     unzip-native \
     "
 
@@ -27,7 +29,6 @@ FLUTTER_INSTALL_DIR = "${FLUTTER_APPLICATION_INSTALL_PREFIX}/${FLUTTER_APPLICATI
 
 PUB_CACHE = "${WORKDIR}/pub_cache"
 _REV = "${@d.getVar('SRCPV') or d.getVar('PV')}"
-PUB_CACHE_ARCHIVE = "flutter-pub-cache-${PN}-${_REV}-${FLUTTER_SDK_TAG}.tar.bz2"
 
 PUBSPEC_IGNORE_LOCKFILE ??= "0"
 PUBSPEC_ENFORCE_LOCKFILE ??= "0"
@@ -40,7 +41,13 @@ python () {
     d.setVar('FLUTTER_SDK_VERSION', get_flutter_sdk_version(d))
 }
 
-def getstatusoutput(cmd, cwd, env):
+def print_banner(text):
+    bb.note('*' * (len(text) + 6))
+    bb.note("** %s **" % text)
+    bb.note('*' * (len(text) + 6))
+
+
+def get_status_output(d, cmd, cwd, env):
     from subprocess import check_output, CalledProcessError, STDOUT
 
     try:
@@ -53,146 +60,630 @@ def getstatusoutput(cmd, cwd, env):
         data = data[:-1]
     return status, data
 
+
 def run_command(d, cmd, cwd, env):
-    import subprocess
     import re
 
     # replace all consecutive whitespace characters (tabs, newlines etc.) with a single space
-    cmd = re.sub('\s{2,}', ' ', cmd)
+    cmd = re.sub('\\s{2,}', ' ', cmd)
 
     bb.note('Running [%s] in %s' % (cmd, cwd))
-    (retval, output) = getstatusoutput(cmd, cwd, env)
+    (retval, output) = get_status_output(d, cmd, cwd, env)
     if retval:
         formatted_output = '\n  ' + output.replace('\n','\n  ')
         bb.note(f'Output:{formatted_output}')
         bb.fatal(f'{cmd} failed: {retval}')
 
-#
-# Archive Pub Cache
-#
+
+def get_yaml_obj(filepath):
+    """ Returns python object of yaml file """
+    import yaml
+
+    if not os.path.exists(filepath):
+        bb.fatal(f'Failed loading {filepath}')
+
+    with open(filepath, "r") as stream_:
+        try:
+            data_loaded = yaml.full_load(stream_)
+
+        except yaml.YAMLError:
+            bb.fatal(f'Failed loading - {filepath}')
+            return []
+
+        return data_loaded
+
+
+def make_sure_path_exists(path):
+    import errno
+
+    try:
+        os.makedirs(path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
+
+
+def hash_file(file, hash_obj):
+    if not os.path.exists(file):
+        return ''
+    with open(file, "rb") as f:
+        for byte_block in iter(lambda: f.read(4096), b""):
+            hash_obj.update(byte_block)
+    return hash_obj.hexdigest()
+
+
+def get_md5sum(file):
+    import hashlib
+    return hash_file(file, hashlib.md5())
+
+
+def get_sha1sum(file):
+    import hashlib
+    return hash_file(file, hashlib.sha1())
+
+
+def get_sha256sum(file):
+    import hashlib
+    return hash_file(file, hashlib.sha256())
+
+
+def download_https_file(d, cwd, url, file, cookie_file, netrc, md5, sha1, sha256):
+    download_filepath = os.path.join(cwd, file)
+
+    sha256_file = os.path.join(cwd, file + '.sha256')
+    if compare_sha256(str(download_filepath), str(sha256_file)):
+        bb.note("%s exists, skipping download" % download_filepath)
+        return True
+
+    if os.path.exists(download_filepath):
+        if md5:
+            # don't download if md5 is good
+            if md5 == get_md5sum(str(download_filepath)):
+                bb.note("** Using %s" % download_filepath)
+                return True
+            else:
+                os.remove(download_filepath)
+        elif sha1:
+            # don't download if sha1 is good
+            if sha1 == get_sha1sum(str(download_filepath)):
+                bb.note("** Using %s" % download_filepath)
+                return True
+            else:
+                os.remove(str(download_filepath))
+        elif sha256:
+            # don't download if sha256 is good
+            if sha256 == get_sha256sum(str(download_filepath)):
+                bb.note("** Using %s" % download_filepath)
+                return True
+            else:
+                os.remove(str(download_filepath))
+
+    bb.note("** Downloading %s via %s" % (file, url))
+    res = fetch_https_binary_file(
+        url, download_filepath, False, None, cookie_file, netrc)
+    if not res:
+        os.remove(download_filepath)
+        print_banner("Failed to download %s" % file)
+        return False
+
+    if os.path.exists(download_filepath):
+        if md5:
+            expected_md5 = get_md5sum(str(download_filepath))
+            if md5 != expected_md5:
+                bb.fatal(f'Download artifact {download_filepath} md5: {md5} does not match expected: {expected_md5}')
+        elif sha1:
+            expected_sha1 = get_sha1sum(str(download_filepath))
+            if sha1 != expected_sha1:
+                bb.fatal('Download artifact {download_filepath} sha1: {md5} does not match expected: {expected_sha1}')
+        elif sha256:
+            expected_sha256 = get_sha256sum(str(download_filepath))
+            if sha256 != expected_sha256:
+                bb.fata('Download artifact {download_filepath} sha256: {sha256} does not match expected: {expected_sha256}')
+
+    write_sha256_file(cwd, file)
+    return True
+
+
+def compare_sha256(archive_path, sha256_file):
+    if not os.path.exists(archive_path):
+        return False
+
+    if not os.path.exists(sha256_file):
+        return False
+
+    archive_sha256_val = get_sha256sum(archive_path)
+
+    with open(sha256_file, 'r') as f:
+        sha256_file_val = f.read().replace('\n', '')
+
+        if archive_sha256_val == sha256_file_val:
+            return True
+
+    return False
+
+
+def write_sha256_file(cwd, filename):
+    file = os.path.join(cwd, filename)
+    sha256_val = get_sha256sum(file)
+    sha256_file = os.path.join(cwd, filename + '.sha256')
+
+    with open(sha256_file, 'w+') as f:
+        f.write(sha256_val)
+
+
+def fetch_https_progress(download_t, download_d, _upload_t, _upload_d):
+    """callback function for pycurl.XFERINFOFUNCTION"""
+    from sys import stderr as stream
+
+    stream.write('Progress: {}/{} kiB ({}%)\r'.format(str(int(download_d / 1024)), str(int(download_t / 1024)),
+                                                      str(int(download_d / download_t * 100) if download_t > 0 else 0)))
+    stream.flush()
+
+
+def fetch_https_binary_file(url, filename, redirect, headers, cookie_file, netrc):
+    """Fetches binary file via HTTPS"""
+    import pycurl
+    import time
+
+    retries_left = 3
+    delay_between_retries = 5  # seconds
+    success = False
+
+    c = pycurl.Curl()
+    c.setopt(pycurl.URL, url)
+    c.setopt(pycurl.CONNECTTIMEOUT, 30)
+    c.setopt(pycurl.NOSIGNAL, 1)
+    c.setopt(pycurl.NOPROGRESS, False)
+    c.setopt(pycurl.XFERINFOFUNCTION, fetch_https_progress)
+
+    if headers:
+        c.setopt(pycurl.HTTPHEADER, headers)
+
+    if redirect:
+        c.setopt(pycurl.FOLLOWLOCATION, 1)
+        c.setopt(pycurl.AUTOREFERER, 1)
+        c.setopt(pycurl.MAXREDIRS, 255)
+
+    if cookie_file:
+        cookie_file = os.path.expandvars(cookie_file)
+        print("Using cookie file: %s" % cookie_file)
+        c.setopt(pycurl.COOKIEFILE, cookie_file)
+
+    if netrc:
+        c.setopt(pycurl.NETRC, 1)
+
+    while retries_left > 0:
+        try:
+            with open(filename, 'wb') as f:
+                c.setopt(pycurl.WRITEFUNCTION, f.write)
+                c.perform()
+
+            success = True
+            break
+
+        except pycurl.error:
+            retries_left -= 1
+            time.sleep(delay_between_retries)
+
+    status = c.getinfo(pycurl.HTTP_CODE)
+
+    c.close()
+    os.sync()
+
+    if not redirect and status == 302:
+        print_banner("Download Status: %d" % status)
+        return False
+    if not status == 200:
+        print_banner("Download Status: %d" % status)
+        return False
+
+    return success
+
+
+def pubspec_hosted_archive_exists(d, name, url, version, output_path):
+    """
+    Check if archive file exists
+    """
+    from urllib.parse import urlparse
+
+    url_parse_res = urlparse(url)
+    hostname_path = os.path.join(output_path, url_parse_res.hostname)
+
+    archive_file = os.path.join(hostname_path, name + '-' + version + '.tar.gz')
+
+    if os.path.exists(archive_file):
+        return True
+
+    return False
+
+
+def pubspec_archive_hosted(d, name, package, output_path):
+    from urllib.parse import unquote
+    from urllib.parse import urlparse
+
+    print_banner(name)
+    bb.note(f'{package}')
+
+    version = package['version']
+
+    description = package['description']
+    if not isinstance(description, dict):
+        print_banner('Fail!')
+        return
+
+    name = description['name']
+    url = description['url']
+
+    if pubspec_hosted_archive_exists(d, name, url, version, output_path):
+        return
+
+    package_json = pubspec_get_package_version(d, name, url, version)
+    if not bool(package_json):
+        return
+
+    if package_json['version'] == version:
+        url = package_json['archive_url']
+        bb.note(f'url: {url}')
+        sha256 = package_json['archive_sha256']
+        url_parse_res = urlparse(url)
+
+        file = unquote(os.path.basename(url_parse_res.path))
+
+        hostname_path = os.path.join(output_path, url_parse_res.hostname)
+        make_sure_path_exists(hostname_path)
+
+        archive_file = os.path.join(hostname_path, file)
+        if not os.path.exists(archive_file):
+            download_https_file(d, hostname_path, url, file, None, None, None, None, sha256)
+
+
+def pubspec_git_archive_exists(d, archive_path, folder_name):
+    """
+    Check if git archive exists
+    """
+
+    archive_file = os.path.join(archive_path, folder_name)
+
+    if os.path.exists(archive_file):
+        return True
+
+    return False
+
+
+def sha1_hash(d, to_hash):
+    import hashlib
+    try:
+        message_digest = hashlib.sha1()
+        message_digest.update(bytes(to_hash, 'utf'))
+        return message_digest.hexdigest()
+    except TypeError:
+        raise "String to hash was not compatible"
+
+
+def pubspec_archive_git(d, name, package, project_dir, output_path):
+    from urllib.parse import urlparse
+
+    print_banner(name)
+    bb.note(f'{package}')
+
+    description = package['description']
+    if not isinstance(description, dict):
+        print_banner('Fail!')
+        return
+
+    url = description['url']
+
+    url_parsed = urlparse(url)
+    repo_name = url_parsed.path.split('.git')[0].split('/')[-1]
+
+    git_folder_name = repo_name + '-' + sha1_hash(d, url)
+
+    git_archive_path = os.path.join(output_path, 'git')
+
+    if pubspec_git_archive_exists(d, git_archive_path, git_folder_name):
+        return
+
+    make_sure_path_exists(git_archive_path)
+
+    git_folder = os.path.join(git_archive_path, git_folder_name)
+
+    run_command(d, f'git clone --mirror {url} {git_folder}', project_dir)
+
+    resolved_ref = description['resolved-ref']
+
+    run_command(d, f'git --git-dir={git_folder} rev-list --max-count=1 {resolved_ref}', git_folder)
+    run_command(d, f'git --git-dir={git_folder} show {resolved_ref}:pubspec.yaml', git_folder)
+
+
+def pubspec_archive_package(d, name, package, project_path, output_path):
+    """
+    Fetches an archive file if source is hosted, and not already present in archive
+    """
+
+    source = package.get('source', '')
+    if source == '':
+        bb.note(f'Skipping: {package}')
+        return
+    elif source == 'sdk':
+        bb.note(f'Skipping: {package}')
+        return
+    elif source == 'path':
+        bb.note(f'Skipping: {package}')
+        return
+    elif source == 'git':
+        pubspec_archive_git(d, name, package, project_path, output_path)
+        return
+    elif source == 'hosted':
+        pubspec_archive_hosted(d, name, package, output_path)
+        return
+    else:
+        bb.note(f'{name}: Unknown source type: {source}')
+        return
+
+
+def pubspec_archive_packages_in_lock_file(d, project_path, output_path):
+    """
+    Archive all pubspec packages in a given 'pubspec.lock' file
+    """
+
+    # check for pubspec.yaml
+    pubspec_yaml_path = os.path.join(project_path, 'pubspec.yaml')
+    if not os.path.exists(pubspec_yaml_path):
+        print_banner(f'file not found: {pubspec_yaml_path}')
+        raise FileNotFoundError
+
+    # check or pubspec.lock
+    pubspec_lock_path = os.path.join(project_path, 'pubspec.lock')
+    if not os.path.exists(pubspec_lock_path):
+        import subprocess
+
+        (result, output) = subprocess.getstatusoutput(f'cd {project_path} && dart pub get -v')
+        if result == 65:
+            bb.note(f'Failed to get pub cache for: {project_path}')
+            bb.note(d, get_yaml_obj(pubspec_yaml_path))
+            return
+        bb.note(output)
+
+        run_command(d, 'dart pub cache clean -f', output_path)
+
+    if not os.path.exists(pubspec_lock_path):
+        print_banner(f'dart pub get failed for {project_path}')
+        return
+
+    # iterate pubspec.lock file
+    pubspec_lock = get_yaml_obj(pubspec_lock_path)
+
+    packages = pubspec_lock['packages']
+
+    for name in packages:
+        pubspec_archive_package(d, name, package=packages[name], project_path=project_path, output_path=output_path)
+
+
+def pubspec_get_package_version(d, desc_name, desc_url, version):
+    """
+    Return version dict for a specified description
+    """
+    import io
+    import json
+    import pycurl
+
+    from urllib.parse import quote
+
+    if desc_url == '':
+        bb.note(f'Missing url in description, using default')
+        desc_url = "https://pub.dev"
+
+    endpoint = '/api/packages/' + desc_name + '/versions/' + version
+    url = desc_url + quote(endpoint)
+    bb.note(f'GET: {url}')
+
+    c = pycurl.Curl()
+    c.setopt(pycurl.URL, url)
+    c.setopt(pycurl.HTTPHEADER, ["Accept: application/vnd.pub.v2+json"])
+    buffer = io.BytesIO()
+    c.setopt(pycurl.WRITEDATA, buffer)
+    c.perform()
+    return json.loads(buffer.getvalue().decode('utf-8'))
+
 
 addtask archive_pub_cache before restore_pub_cache after do_patch
 do_archive_pub_cache[network] = "1"
 do_archive_pub_cache[dirs] = "${WORKDIR} ${DL_DIR}"
-do_archive_pub_cache[lockfiles] += "${DL_DIR}/${PUB_CACHE_ARCHIVE}.lock"
 do_archive_pub_cache[depends] += " \
     flutter-sdk-native:do_populate_sysroot \
-    pbzip2-native:do_populate_sysroot \
-    tar-native:do_populate_sysroot \
+    git-native:do_populate_sysroot \
+    python3-pyyaml-native:do_populate_sysroot \
+    python3-pycurl-native:do_populate_sysroot \
     "
 python do_archive_pub_cache() {
 
-    import errno
-    import multiprocessing
-    import shutil
-    from   bb.fetch2 import FetchError
-
-    localfile = d.getVar("PUB_CACHE_ARCHIVE")
-    localpath = os.path.join(d.getVar("DL_DIR"), localfile)
-
-    if os.access(localpath, os.R_OK):
-        return
+    #
+    # Setup Environment
+    #
 
     env = os.environ
 
-    #
-    # clean existing pub-cache, populate from the flutter-sdk-native pub-cache
-    #
     pub_cache = d.getVar("PUB_CACHE")
     env['PUB_CACHE'] = pub_cache
 
-    shutil.rmtree(f'{pub_cache}', ignore_errors=True)
-    flutter_sdk_pub_cache = os.path.join(d.getVar("STAGING_DATADIR_NATIVE"), 'flutter/sdk/.pub-cache')
-    shutil.copytree(flutter_sdk_pub_cache, pub_cache)
-
     workdir = d.getVar("WORKDIR")
+
     # required for dart: https://github.com/dart-lang/sdk/issues/41560
     env['HOME'] = f'{workdir}'
+
     # required for flutter: https://github.com/flutter/flutter/issues/59430
     env['XDG_CONFIG_HOME'] = f'{workdir}'
 
     http_proxy = d.getVar('http_proxy')
     if http_proxy != None:
-        env['http_proxy']     = f'{http_proxy}'
+        env['http_proxy']  = f'{http_proxy}'
 
     https_proxy = d.getVar('https_proxy')
     if https_proxy != None:
-        env['https_proxy']    = f'{https_proxy}'
+        env['https_proxy'] = f'{https_proxy}'
 
     http_proxy_ = d.getVar('HTTP_PROXY')
     if http_proxy_ != None:
-        env['HTTP_PROXY']     = f'{http_proxy_}'
+        env['HTTP_PROXY']  = f'{http_proxy_}'
 
     https_proxy_ = d.getVar('HTTPS_PROXY')
     if https_proxy_ != None:
-        env['HTTPS_PROXY']    = f'{https_proxy_}'
+        env['HTTPS_PROXY'] = f'{https_proxy_}'
 
-    env['NO_PROXY']       = 'localhost,127.0.0.1,::1'
+    env['NO_PROXY']        = 'localhost,127.0.0.1,::1'
 
     flutter_sdk = os.path.join(d.getVar("STAGING_DATADIR_NATIVE"), 'flutter/sdk')
     env['PATH'] = f'{env["PATH"]}:{flutter_sdk}/bin'
 
+    #
+    # Application
+    #
+
     app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
+    app_pubspec_lock_file = os.path.join(str(app_root), 'pubspec.lock')
 
     if d.getVar("PUBSPEC_IGNORE_LOCKFILE") == "1":
-        #
-        # Remove pubspec.lock file if present
-        #
-        pubspec_lock = os.path.join(app_root, 'pubspec.lock')
-        if os.path.exists(pubspec_lock):
+        if os.path.exists(app_pubspec_lock_file):
+            bb.note('Removing pubspec.lock')
             run_command(d, 'rm -rf pubspec.lock', app_root, env)
 
     #
-    # App hook to include something in archive 
+    # Archive Project packages
     #
-    pub_cache_extra_archive_cmd = d.getVar("PUB_CACHE_EXTRA_ARCHIVE_CMD")
-    pub_cache_extra_archive_path = d.getVar("PUB_CACHE_EXTRA_ARCHIVE_PATH")
-    if pub_cache_extra_archive_cmd != None:
-        path = d.getVar("PATH")
-        cmd = \
-            'export PUB_CACHE=%s; ' \
-            'export XDG_CONFIG_HOME=%s;' \
-            'export PATH=%s/bin:%s:%s;' \
-            '%s' % \
-            (pub_cache, workdir, flutter_sdk, path, pub_cache_extra_archive_path, pub_cache_extra_archive_cmd)
+    pub_cache_archive_path = os.path.join(d.getVar("DL_DIR"), 'pub_cache')
 
-        bb.note("Running [%s] in %s" % (cmd, app_root))
-        run_command(d, cmd, app_root, env)
+    # TODO - move to Flutter SDK archive task
+    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_tools'), str(pub_cache_archive_path))
+    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter'), str(pub_cache_archive_path))
+    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_driver'), str(pub_cache_archive_path))
+    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_goldens'), str(pub_cache_archive_path))
+    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_localizations'), str(pub_cache_archive_path))
+    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_test'), str(pub_cache_archive_path))
+    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_tools'), str(pub_cache_archive_path))
+    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_web_plugins'), str(pub_cache_archive_path))
 
-    #
-    # go online to fetch, then mark offline
-    #
-    run_command(d, 'flutter config --no-analytics', app_root, env)
-    run_command(d, 'flutter config --no-cli-animations', app_root, env)
-    run_command(d, 'flutter clean', app_root, env)
-    if d.getVar("PUBSPEC_ENFORCE_LOCKFILE") == "1":
-        run_command(d, 'flutter pub get --enforce-lockfile', app_root, env)
-        run_command(d, 'flutter pub get --offline --enforce-lockfile', app_root, env)
-    else:
-        run_command(d, 'flutter pub get', app_root, env)
-        run_command(d, 'flutter pub get --offline', app_root, env)
-
-    cp_cmd = \
-        'mkdir -p %s/.project | true; ' \
-        'cp -r .* %s/.project/ | true; ' \
-        % (pub_cache, pub_cache)
-
-    bb.note("Running [%s] in %s" % (cp_cmd, app_root))
-    run_command(d, cp_cmd, app_root, env)
-
-    bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
-    pack_cmd = "tar -I \"pbzip2 -p%s\" -cf %s ./" % (bb_number_threads, localpath)
-
-    bb.note("Running [%s] in %s" % (pack_cmd, pub_cache))
-    run_command(d, pack_cmd, pub_cache, env)
-
-    if not os.path.exists(localpath):
-        raise FetchError("The fetch command returned success for pub cache, but %s doesn't exist?!" % (localpath), localpath)
-
-    if os.path.getsize(localpath) == 0:
-        os.remove(localpath)
-        raise FetchError("The fetch of %s resulted in a zero size file?! Deleting and failing since this isn't right." % (localpath), localpath)
+    pubspec_archive_packages_in_lock_file(d, app_root, str(pub_cache_archive_path))
 }
+
+
+def pubspec_restore_git_archive(d, name, package, project_path, pub_cache, archive_path):
+    import shutil
+
+    from urllib.parse import urlparse
+
+    description = package['description']
+    if not isinstance(description, dict):
+        print_banner('Fail!')
+        return
+
+    print_banner(f'Restoring git: {name}')
+
+    pub_cache_git_archive_path = os.path.join(archive_path, 'git')
+    pub_cache_git_path = os.path.join(pub_cache, 'git')
+    pub_cache_git_cache_path = os.path.join(pub_cache, 'git', 'cache')
+    make_sure_path_exists(pub_cache_git_path)
+
+    resolved_ref = description['resolved-ref']
+    url = description['url']
+
+    url_parsed = urlparse(url)
+    repo_name = url_parsed.path.split('.git')[0].split('/')[-1]
+    src_git_folder_name = repo_name + '-' + sha1_hash(d, url)
+    dest_git_folder_name = repo_name + '-' + resolved_ref
+
+    src_path = os.path.join(pub_cache_git_archive_path, src_git_folder_name)
+    dest_path = os.path.join(pub_cache_git_cache_path, dest_git_folder_name)
+
+    shutil.copytree(src_path, dest_path)
+
+    src_path = dest_path
+    dest_path = os.path.join(pub_cache_git_path, dest_git_folder_name)
+    run_command(d, f'git clone {src_path} {dest_path}', project_path)
+    run_command(d, f'git checkout {resolved_ref}', dest_path)
+
+
+def pubspec_restore_hosted_archive(d, name, package, pub_cache, archive_path, env):
+    import shutil
+
+    from urllib.parse import urlparse
+
+    print_banner(f'Restoring hosted: {name}')
+
+    hosted_path = os.path.join(pub_cache, 'hosted')
+    hosted_hashes_path = os.path.join(pub_cache, 'hosted-hashes')
+
+    version = package['version']
+
+    description = package['description']
+    name = description['name']
+    url = description['url']
+    url_parsed = urlparse(url)
+
+    filename = name + '-' + version + '.tar.gz'
+    file = os.path.join(archive_path, url_parsed.hostname, filename)
+    if not os.path.exists(file):
+        bb.error(f'Missing: {file}')
+        raise FileNotFoundError
+
+    restore_folder = os.path.join(hosted_path, url_parsed.hostname, name + '-' + version)
+
+    bb.note(f'folder: {restore_folder}')
+    bb.utils.mkdirhier(restore_folder)
+    run_command(d, f'tar -xvzf {file} -C {restore_folder}', restore_folder, env)
+
+    filename += '.sha256'
+    file = os.path.join(archive_path, url_parsed.hostname, filename)
+    if not os.path.exists(file):
+        bb.note(f'Missing: {file}')
+        raise FileNotFoundError
+
+    bare_filename = filename[:-14]
+    hostname_path = os.path.join(hosted_hashes_path, url_parsed.hostname)
+    make_sure_path_exists(hostname_path)
+    file_dest = os.path.join(hostname_path, bare_filename + '.sha256')
+
+    bb.note(f'sha256: {file_dest}')
+    shutil.copy(str(file), file_dest)
+
+
+def pubspec_restore_project_pub_cache(d, project_path, archive_path, env):
+
+    lock_file = os.path.join(project_path, 'pubspec.lock')
+    if not os.path.exists(lock_file):
+        print_banner(f'file not found: {lock_file}')
+        raise FileNotFoundError
+
+    if not os.path.exists(archive_path):
+        print_banner(f'Path does not exist: {archive_path}')
+        raise FileNotFoundError
+
+    pub_cache = os.environ.get('PUB_CACHE', None)
+    if not pub_cache:
+        print_banner('PUB_CACHE is not set.  Cannot restore')
+        return
+
+    packages = get_yaml_obj(lock_file)['packages']
+    for name in packages:
+        package = packages[name]
+
+        source = package['source']
+        print_banner(f'package {name}: source: {source}')
+        if source == 'sdk':
+            bb.note('Skipping')
+            continue
+        elif source == 'path':
+            bb.note('Skipping')
+            continue
+        elif source == 'git':
+            pubspec_restore_git_archive(d, name, package, project_path, pub_cache, archive_path)
+            continue
+        elif source == 'hosted':
+            pubspec_restore_hosted_archive(d, name, package, pub_cache, archive_path, env)
+            continue
+        else:
+            print_banner(f'{name}: Unknown source type: {source}')
+            continue
+
 
 #
 # Restore Pub Cache
@@ -200,67 +691,78 @@ python do_archive_pub_cache() {
 
 addtask restore_pub_cache before do_configure after do_archive_pub_cache
 do_restore_pub_cache[dirs] = "${WORKDIR} ${DL_DIR}"
-do_restore_pub_cache[lockfiles] += "${DL_DIR}/${PUB_CACHE_ARCHIVE}.lock"
 do_restore_pub_cache[depends] += " \
-    pbzip2-native:do_populate_sysroot \
+    git-native:do_populate_sysroot \
     tar-native:do_populate_sysroot \
     "
 python do_restore_pub_cache() {
 
-    import multiprocessing
     import shutil
-    import subprocess
-    from   bb.fetch2 import subprocess_setup
-    from   bb.fetch2 import UnpackError
 
-    localfile = d.getVar("PUB_CACHE_ARCHIVE")
-    localpath = os.path.join(d.getVar("DL_DIR"), localfile)
+    #
+    # Setup Environment
+    #
 
-    bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
-    cmd = 'pbzip2 -dc -p%s %s | tar x --no-same-owner -f -' % (bb_number_threads, localpath)
-    unpackdir = d.getVar("PUB_CACHE")
-    shutil.rmtree(unpackdir, ignore_errors=True)
-    bb.utils.mkdirhier(unpackdir)
-    path = d.getVar('PATH')
-    if path: cmd = 'PATH=\"%s\" %s' % (path, cmd)
-    bb.note("Running [%s] in %s" % (cmd, unpackdir))
-    ret = subprocess.call(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir)
+    env = os.environ
 
-    if ret != 0:
-        raise UnpackError("Unpack command %s failed with return value %s" % (cmd, ret), localpath)
+    pub_cache = d.getVar("PUB_CACHE")
+    env['PUB_CACHE'] = pub_cache
 
-    # restore flutter pub get artifacts
+    workdir = d.getVar("WORKDIR")
+
+    # required for dart: https://github.com/dart-lang/sdk/issues/41560
+    env['HOME'] = f'{workdir}'
+
+    # required for flutter: https://github.com/flutter/flutter/issues/59430
+    env['XDG_CONFIG_HOME'] = f'{workdir}'
+
+    http_proxy = d.getVar('http_proxy')
+    if http_proxy != None:
+        env['http_proxy']  = f'{http_proxy}'
+
+    https_proxy = d.getVar('https_proxy')
+    if https_proxy != None:
+        env['https_proxy'] = f'{https_proxy}'
+
+    http_proxy_ = d.getVar('HTTP_PROXY')
+    if http_proxy_ != None:
+        env['HTTP_PROXY']  = f'{http_proxy_}'
+
+    https_proxy_ = d.getVar('HTTPS_PROXY')
+    if https_proxy_ != None:
+        env['HTTPS_PROXY'] = f'{https_proxy_}'
+
+    env['NO_PROXY']        = 'localhost,127.0.0.1,::1'
+
+    flutter_sdk = os.path.join(d.getVar("STAGING_DATADIR_NATIVE"), 'flutter/sdk')
+    env['PATH'] = f'{env["PATH"]}:{flutter_sdk}/bin'
+
+    #
+    # Application
+    #
+
     app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
-    cmd = \
-        'mv .project/.dart_tool %s/ | true; ' \
-        'mv .project/.packages %s/ | true; ' \
-        'mv .project/.dart_tool %s/ | true; ' \
-        'mv .project/.flutter-plugins %s/ | true; ' \
-        'mv .project/.flutter-plugins-dependencies %s/ | true; ' \
-        'mv .project/.metadata %s/ | true; ' \
-        'mv .project/.packages %s/ | true; ' \
-        'rm -rf .project' % (app_root, app_root, app_root, app_root, app_root, app_root, app_root)
-    bb.note("Running [%s] in %s" % (cmd, unpackdir))
-    ret = subprocess.call(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir)
+    archive_path = os.path.join(d.getVar("DL_DIR"), 'pub_cache')
 
-    if ret != 0:
-        raise UnpackError("Restore .dart_tool command %s failed with return value %s" % (cmd, ret), localpath)
-}
+    if d.getVar("PUBSPEC_IGNORE_LOCKFILE") == "1":
+        app_pubspec_lock_file = os.path.join(str(app_root), 'pubspec.lock')
+        # TODO - fetch from cache
 
+    # Restore pub cache
+    shutil.rmtree(pub_cache, ignore_errors=True)
 
-#
-# clean pub cache archive
-#
-python do_cleanall:append() {
-    localfile = d.getVar("PUB_CACHE_ARCHIVE")
-    localpath = os.path.join(d.getVar("DL_DIR"), localfile)
+    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter'), archive_path, env)
+    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_driver'), archive_path, env)
+    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_goldens'), archive_path, env)
+    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_localizations'), archive_path, env)
+    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_test'), archive_path, env)
+    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_tools'), archive_path, env)
+    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_web_plugins'), archive_path, env)
 
-    bb.note("Removing [%s]" % (localpath))
+    pubspec_restore_project_pub_cache(d, app_root, archive_path, env)
 
-    try:
-        os.remove(localpath)
-    except OSError:
-        pass
+    # finalize
+    run_command(d, 'dart pub get --offline -v', app_root, env)
 }
 
 #
