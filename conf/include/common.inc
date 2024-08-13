@@ -39,13 +39,7 @@ python () {
 }
 
 
-def print_banner(text):
-    bb.note('*' * (len(text) + 6))
-    bb.note("** %s **" % text)
-    bb.note('*' * (len(text) + 6))
-
-
-def get_status_output(d, cmd, cwd, env):
+def get_status_output(cmd, cwd, env):
     from subprocess import check_output, CalledProcessError, STDOUT
 
     try:
@@ -59,18 +53,40 @@ def get_status_output(d, cmd, cwd, env):
     return status, data
 
 
-def run_command(d, cmd, cwd, env):
+def run_command(cmd, cwd, env):
     import re
 
     # replace all consecutive whitespace characters (tabs, newlines etc.) with a single space
     cmd = re.sub('\\s{2,}', ' ', cmd)
 
-    bb.note('Running [%s] in %s' % (cmd, cwd))
-    (retval, output) = get_status_output(d, cmd, cwd, env)
+    bb.debug(1, 'Running [%s] in %s' % (cmd, cwd))
+
+    (retval, output) = get_status_output(cmd, cwd, env)
+
     if retval:
-        formatted_output = '\n  ' + output.replace('\n','\n  ')
-        bb.note(f'Output:{formatted_output}')
-        bb.fatal(f'{cmd} failed: {retval}')
+        formatted_output = '\n\t' + output.replace('\n','\n  ')
+        bb.fatal(f'{cmd} failed: {retval}{formatted_output}')
+
+
+def get_versions_obj(file_path):
+    """
+    Returns dictionary of versions JSON
+    """
+    import json
+
+    try:
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+        return data
+    except FileNotFoundError:
+        bb.error(f"The file {file_path} does not exist.")
+        return dict()
+    except json.JSONDecodeError:
+        bb.error(f"There was an error decoding the JSON from the file {file_path}")
+        return dict()
+    except Exception as e:
+        bb.error(f"An unexpected error occurred: {e}")
+        return dict()
 
 
 def get_yaml_obj(filepath):
@@ -163,7 +179,7 @@ def download_https_file(d, cwd, url, file, cookie_file, netrc, md5, sha1, sha256
         url, download_filepath, False, None, cookie_file, netrc)
     if not res:
         os.remove(download_filepath)
-        print_banner("Failed to download %s" % file)
+        bb.error("Failed to download %s" % file)
         return False
 
     if os.path.exists(download_filepath):
@@ -273,23 +289,23 @@ def fetch_https_binary_file(url, filename, redirect, headers, cookie_file, netrc
     os.sync()
 
     if not redirect and status == 302:
-        print_banner("Download Status: %d" % status)
+        bb.warn("Download Status: %d" % status)
         return False
     if not status == 200:
-        print_banner("Download Status: %d" % status)
+        bb.warn("Download Status: %d" % status)
         return False
 
     return success
 
 
-def pubspec_hosted_archive_exists(d, name, url, version, output_path):
+def pubspec_hosted_archive_exists(name, url, version, archive_path):
     """
-    Check if archive file exists
+    Check if hosted files exists
     """
     from urllib.parse import urlparse
 
     url_parse_res = urlparse(url)
-    hostname_path = os.path.join(output_path, url_parse_res.hostname)
+    hostname_path = os.path.join(archive_path, url_parse_res.hostname)
 
     archive_file = os.path.join(hostname_path, name + '-' + version + '.tar.gz')
 
@@ -299,63 +315,87 @@ def pubspec_hosted_archive_exists(d, name, url, version, output_path):
     return False
 
 
-def pubspec_archive_hosted(d, name, package, output_path):
+def pubspec_archive_hosted(d, package_name, package, archive_path):
     """
     Archive hosted package
     """
     from urllib.parse import unquote
     from urllib.parse import urlparse
 
-    print_banner(name)
-    bb.note(f'{package}')
+    from datetime import datetime
+
+    bb.note(f'archiving hosted package: {package_name}')
+    bb.debug(1, f'{package}')
 
     version = package['version']
 
     description = package['description']
     if not isinstance(description, dict):
-        print_banner('Fail!')
+        bb.error('Invalid description')
         return
 
-    name = description['name']
+    desc_name = description['name']
     url = description['url']
 
-    if pubspec_hosted_archive_exists(d, name, url, version, output_path):
-        return
+    url_parse_res = urlparse(url)
+    hostname_path = os.path.join(archive_path, url_parse_res.hostname)
+    hostname_cache_path = os.path.join(hostname_path, '.cache')
 
-    package_json = pubspec_get_package_version(d, name, url, version)
-    if not bool(package_json):
-        return
+    #
+    # Check advisories
+    #
+    advisories = pubspec_get_package_advisories(package_name, url)
+    # '{"advisories":[],"advisoriesUpdated":null}'
+    if len(advisories) > 42:
+        bb.debug(1, f'{package_name} has advisories')
+        advisories_file_path = os.path.join(hostname_cache_path, package_name + '-advisories.json')
+        with open(advisories_file_path, 'w') as file:
+            file.write(advisories)
 
-    if package_json['version'] == version:
-        url = package_json['archive_url']
-        bb.note(f'url: {url}')
-        sha256 = package_json['archive_sha256']
-        url_parse_res = urlparse(url)
+    #
+    # Fetch {package}-versions.json file
+    #
+    version_file_path = os.path.join(hostname_cache_path, package_name + '-versions.json')
+    if not os.path.exists(version_file_path):
+        make_sure_path_exists(hostname_cache_path)
 
-        file = unquote(os.path.basename(url_parse_res.path))
+        versions = pubspec_get_package_versions(package_name, url)
+        timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f")
 
-        hostname_path = os.path.join(output_path, url_parse_res.hostname)
-        make_sure_path_exists(hostname_path)
+        versions = versions[:-1] + ',"_fetchedAt":"' + timestamp + '"}'
 
-        archive_file = os.path.join(hostname_path, file)
-        if not os.path.exists(archive_file):
-            download_https_file(d, hostname_path, url, file, None, None, None, None, sha256)
+        with open(version_file_path, 'w') as file:
+            file.write(versions)
+
+    #
+    # Fetch archive file
+    #
+    if not pubspec_hosted_archive_exists(desc_name, url, version, archive_path):
+
+        versions = get_versions_obj(version_file_path)
+
+        package = None
+        for v in versions['versions']:
+            if v['version'] == version:
+                package = v
+
+        if not package:
+            bb.warn(f'{package_name}: {version} not found in {version_file_path}')
+
+        else:
+            url = package['archive_url']
+            bb.debug(1, f'url: {url}')
+            sha256 = package['archive_sha256']
+            url_parse_res = urlparse(url)
+
+            file = unquote(os.path.basename(url_parse_res.path))
+
+            archive_file = os.path.join(hostname_path, file)
+            if not os.path.exists(archive_file):
+                download_https_file(d, hostname_path, url, file, None, None, None, None, sha256)
 
 
-def pubspec_git_archive_exists(d, archive_path, folder_name):
-    """
-    Check if git archive exists
-    """
-
-    archive_file = os.path.join(archive_path, folder_name)
-
-    if os.path.exists(archive_file):
-        return True
-
-    return False
-
-
-def sha1_hash(d, to_hash):
+def sha1_hash(to_hash):
     import hashlib
     try:
         message_digest = hashlib.sha1()
@@ -365,106 +405,169 @@ def sha1_hash(d, to_hash):
         raise "String to hash was not compatible"
 
 
-def pubspec_archive_git(d, name, package, project_dir, output_path):
+def pubspec_archive_git(package_name, package, project_dir, archive_path, env):
     """
     Archive git package
     """
     from urllib.parse import urlparse
+    bb.debug(1, f'package_name: {package_name}')
+    bb.debug(1, f'package: {package}')
+    bb.debug(1, f'project_dir: {project_dir}')
+    bb.debug(1, f'archive_path: {archive_path}')
 
-    print_banner(name)
-    bb.note(f'{package}')
+    bb.debug(1, f'archiving git: {package_name}')
+    bb.debug(1, f'{package}')
 
     description = package['description']
-    if not isinstance(description, dict):
-        print_banner('Fail!')
-        return
+    bb.debug(1, f'description: {description}')
 
     url = description['url']
+    bb.debug(1, f'url: {url}')
+
+    resolved_ref = description['resolved-ref']
+    bb.debug(1, f'resolved_ref: {resolved_ref}')
 
     url_parsed = urlparse(url)
     repo_name = url_parsed.path.split('.git')[0].split('/')[-1]
+    bb.debug(1, f'repo_name: {repo_name}')
 
-    git_folder_name = repo_name + '-' + sha1_hash(d, url)
-
-    git_archive_path = os.path.join(output_path, 'git')
-
-    if pubspec_git_archive_exists(d, git_archive_path, git_folder_name):
-        return
-
+    git_archive_path = os.path.join(archive_path, 'git', 'cache')
+    bb.debug(1, f'git_archive_path: {git_archive_path}')
     make_sure_path_exists(git_archive_path)
 
+    git_folder_name = repo_name + '-' + sha1_hash(url)
+    bb.debug(1, f'git_folder_name: {git_folder_name}')
+
     git_folder = os.path.join(git_archive_path, git_folder_name)
+    bb.debug(1, f'git_folder: {git_folder}')
+    if os.path.exists(git_folder):
+        bb.debug(1, f'git_folder exists: {git_folder}')
+        return
 
-    run_command(d, f'git clone --mirror {url} {git_folder}', project_dir)
+    run_command(f'git clone --mirror {url} {git_folder}', project_dir, env)
+    run_command(f'git --git-dir={git_folder} rev-list --max-count=1 {resolved_ref}', git_folder, env)
 
-    resolved_ref = description['resolved-ref']
-
-    run_command(d, f'git --git-dir={git_folder} rev-list --max-count=1 {resolved_ref}', git_folder)
-    run_command(d, f'git --git-dir={git_folder} show {resolved_ref}:pubspec.yaml', git_folder)
+    # this fails if the pubspec.yaml is not in the root...
+    # run_command(f'git --git-dir={git_folder} show {resolved_ref}:pubspec.yaml', git_folder, env)
 
 
-def pubspec_archive_package(d, name, package, project_path, output_path):
+def pubspec_archive_package(d, name, package, project_path, archive_path, env):
     """
     Fetches an archive file if source is hosted, and not already present in archive
     """
+    bb.debug(1, f'pubspec_archive_package: name: {name}')
+    bb.debug(1, f'pubspec_archive_package: package: {package}')
+    bb.debug(1, f'pubspec_archive_package: project_path: {project_path}')
+    bb.debug(1, f'pubspec_archive_package: archive_path: {archive_path}')
 
     source = package.get('source', '')
     if source == '':
-        bb.note(f'Skipping: {package}')
+        bb.debug(1, f'Skipping: {package}')
         return
     elif source == 'sdk':
-        bb.note(f'Skipping: {package}')
+        bb.debug(1, f'Skipping: {package}')
         return
     elif source == 'path':
-        bb.note(f'Skipping: {package}')
+        bb.debug(1, f'Skipping: {package}')
         return
     elif source == 'git':
-        pubspec_archive_git(d, name, package, project_path, output_path)
+        pubspec_archive_git(name, package, project_path, archive_path, env)
         return
     elif source == 'hosted':
-        pubspec_archive_hosted(d, name, package, output_path)
+        pubspec_archive_hosted(d, name, package, archive_path)
         return
     else:
-        bb.note(f'{name}: Unknown source type: {source}')
+        bb.error(f'{name}: Unknown source type: {source}')
         return
 
 
-def pubspec_archive_packages_in_lock_file(d, project_path, output_path):
+def pubspec_archive_packages_in_lock_file(d, base_path, archive_path, walk, env):
     """
     Archive all pubspec packages in a given 'pubspec.lock' file
     """
+    bb.debug(1, 'pubspec_archive_packages_in_lock_file++')
 
-    # check for pubspec.yaml
-    pubspec_yaml_path = os.path.join(project_path, 'pubspec.yaml')
-    if not os.path.exists(pubspec_yaml_path):
-        print_banner(f'file not found: {pubspec_yaml_path}')
-        raise FileNotFoundError
+    bb.debug(1, f'pubspec_archive_packages_in_lock_file: base_path: {base_path}')
+    bb.debug(1, f'pubspec_archive_packages_in_lock_file: archive_path: {archive_path}')
+    bb.debug(1, f'pubspec_archive_packages_in_lock_file: walk: {walk}')
 
-    # check or pubspec.lock
-    pubspec_lock_path = os.path.join(project_path, 'pubspec.lock')
-    if not os.path.exists(pubspec_lock_path):
-        import subprocess
+    for dir_path, _, filenames in os.walk(base_path):
+        if 'pubspec.yaml' in filenames and 'pubspec.lock' not in filenames:
+            # create lock file if missing
+            run_command('dart pub get', dir_path, env)
+        if not walk:
+            break
 
-        (result, output) = subprocess.getstatusoutput(f'cd {project_path} && dart pub get -v')
-        if result == 65:
-            bb.note(f'Failed to get pub cache for: {project_path}')
-            bb.note(d, get_yaml_obj(pubspec_yaml_path))
-            return
-        bb.note(output)
+    for dir_path, _, filenames in os.walk(base_path):
+        if 'pubspec.lock' in filenames:
 
-        run_command(d, 'dart pub cache clean -f', output_path)
+            bb.debug(1, f'Archiving {dir_path}/pubspec.lock')
+            bb.note(f'Archiving {dir_path}/pubspec.lock')
 
-    if not os.path.exists(pubspec_lock_path):
-        print_banner(f'dart pub get failed for {project_path}')
-        return
+            # iterate pubspec.lock file
+            pubspec_lock = get_yaml_obj(f'{dir_path}/pubspec.lock')
+            packages = pubspec_lock['packages']
 
-    # iterate pubspec.lock file
-    pubspec_lock = get_yaml_obj(pubspec_lock_path)
+            for name in packages:
+                bb.debug(1, f'name: {name}')
+                pubspec_archive_package(d, name, packages[name], dir_path, archive_path, env)
+            break
 
-    packages = pubspec_lock['packages']
+        else:
+            if not walk:
+                break
 
-    for name in packages:
-        pubspec_archive_package(d, name, package=packages[name], project_path=project_path, output_path=output_path)
+    bb.debug(1, 'pubspec_archive_packages_in_lock_file--')
+
+
+def pubspec_get_package_advisories(name, url):
+    """
+    Return version dict for a specified description
+    """
+    import io
+    import pycurl
+    from urllib.parse import quote
+
+    if url == '':
+        bb.warn(f'Missing url in description, using default')
+        url = "https://pub.dev"
+
+    endpoint = '/api/packages/' + name + '/advisories'
+    url = url + quote(endpoint)
+    bb.debug(1, f'GET: {url}')
+
+    c = pycurl.Curl()
+    c.setopt(pycurl.URL, url)
+    c.setopt(pycurl.HTTPHEADER, ["Accept: application/vnd.pub.v2+json"])
+    buffer = io.BytesIO()
+    c.setopt(pycurl.WRITEDATA, buffer)
+    c.perform()
+    return buffer.getvalue().decode('utf-8')
+
+
+def pubspec_get_package_versions(name, url):
+    """
+    Return version dict for a specified description
+    """
+    import io
+    import pycurl
+    from urllib.parse import quote
+
+    if url == '':
+        bb.warn(f'Missing url in description, using default')
+        url = "https://pub.dev"
+
+    endpoint = '/api/packages/' + name
+    url = url + quote(endpoint)
+    bb.debug(1, f'GET: {url}')
+
+    c = pycurl.Curl()
+    c.setopt(pycurl.URL, url)
+    c.setopt(pycurl.HTTPHEADER, ["Accept: application/vnd.pub.v2+json"])
+    buffer = io.BytesIO()
+    c.setopt(pycurl.WRITEDATA, buffer)
+    c.perform()
+    return buffer.getvalue().decode('utf-8')
 
 
 def pubspec_get_package_version(d, desc_name, desc_url, version):
@@ -548,25 +651,25 @@ python do_archive_pub_cache() {
     #
 
     app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
-    app_pubspec_lock_file = os.path.join(str(app_root), 'pubspec.lock')
 
     #
     # Archive Project packages
     #
     pub_cache_archive_path = os.path.join(d.getVar("DL_DIR"), 'pub_cache')
+    make_sure_path_exists(pub_cache_archive_path)
 
-    # TODO - move to Flutter SDK archive task
-    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter'), str(pub_cache_archive_path))
-    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_driver'), str(pub_cache_archive_path))
-    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_localizations'), str(pub_cache_archive_path))
-    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_tools'), str(pub_cache_archive_path))
-    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_web_plugins'), str(pub_cache_archive_path))
+    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter'), str(pub_cache_archive_path), False, env)
+    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_driver'), str(pub_cache_archive_path), False, env)
+    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_localizations'), str(pub_cache_archive_path), False, env)
+    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_test'), str(pub_cache_archive_path), False, env)
+    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_tools'), str(pub_cache_archive_path), False, env)
+    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'integration_test'), str(pub_cache_archive_path), False, env)
 
-    pubspec_archive_packages_in_lock_file(d, app_root, str(pub_cache_archive_path))
+    pubspec_archive_packages_in_lock_file(d, app_root, str(pub_cache_archive_path), False, env)
 }
 
 
-def pubspec_restore_git_archive(d, name, package, project_path, pub_cache, archive_path):
+def pubspec_restore_git_archive(name, package, project_path, pub_cache, archive_path, env):
     """
     Restore git archive
     """
@@ -576,36 +679,39 @@ def pubspec_restore_git_archive(d, name, package, project_path, pub_cache, archi
 
     description = package['description']
     if not isinstance(description, dict):
-        print_banner('Fail!')
+        bb.error('description in not a dict')
         return
 
-    print_banner(f'Restoring git: {name}')
+    bb.note(f'Restoring git: {name}')
 
-    pub_cache_git_archive_path = os.path.join(archive_path, 'git')
     pub_cache_git_path = os.path.join(pub_cache, 'git')
-    pub_cache_git_cache_path = os.path.join(pub_cache, 'git', 'cache')
-    make_sure_path_exists(pub_cache_git_path)
+    pub_cache_git_cache_path = os.path.join(pub_cache_git_path, 'cache')
+    make_sure_path_exists(pub_cache_git_cache_path)
 
     resolved_ref = description['resolved-ref']
     url = description['url']
 
     url_parsed = urlparse(url)
     repo_name = url_parsed.path.split('.git')[0].split('/')[-1]
-    src_git_folder_name = repo_name + '-' + sha1_hash(d, url)
-    dest_git_folder_name = repo_name + '-' + resolved_ref
 
-    src_path = os.path.join(pub_cache_git_archive_path, src_git_folder_name)
-    dest_path = os.path.join(pub_cache_git_cache_path, dest_git_folder_name)
+    src_git_folder_name = repo_name + '-' + sha1_hash(url)
+    pub_cache_git_archive_path = os.path.join(archive_path, 'git')
+    pub_cache_git_cache_archive_path = os.path.join(pub_cache_git_archive_path, 'cache')
+    src_path = os.path.join(pub_cache_git_cache_archive_path, src_git_folder_name)
+    dest_path = os.path.join(pub_cache_git_cache_path, src_git_folder_name)
 
-    shutil.copytree(src_path, dest_path)
+    if not os.path.exists(dest_path):
+        shutil.copytree(src_path, dest_path)
 
-    src_path = dest_path
-    dest_path = os.path.join(pub_cache_git_path, dest_git_folder_name)
-    run_command(d, f'git clone {src_path} {dest_path}', project_path)
-    run_command(d, f'git checkout {resolved_ref}', dest_path)
+    src_path = os.path.join(pub_cache_git_cache_path, src_git_folder_name)
+    dest_path = os.path.join(pub_cache_git_path, repo_name + '-' + resolved_ref)
+    if not os.path.exists(dest_path):
+        run_command(f'git clone {src_path} {dest_path}', project_path, env)
+
+    run_command(f'git checkout {resolved_ref}', dest_path, env)
 
 
-def pubspec_restore_hosted_archive(d, name, package, pub_cache, archive_path, env):
+def pubspec_restore_hosted_archive(package_name, package, pub_cache, archive_path, env):
     """
     Restore Hosted Archive
     """
@@ -613,10 +719,7 @@ def pubspec_restore_hosted_archive(d, name, package, pub_cache, archive_path, en
 
     from urllib.parse import urlparse
 
-    print_banner(f'Restoring hosted: {name}')
-
-    hosted_path = os.path.join(pub_cache, 'hosted')
-    hosted_hashes_path = os.path.join(pub_cache, 'hosted-hashes')
+    bb.note(f'Restoring hosted: {package_name}')
 
     version = package['version']
 
@@ -625,6 +728,33 @@ def pubspec_restore_hosted_archive(d, name, package, pub_cache, archive_path, en
     url = description['url']
     url_parsed = urlparse(url)
 
+    hosted_path = os.path.join(pub_cache, 'hosted')
+    hosted_cache_path = os.path.join(hosted_path, url_parsed.hostname, '.cache')
+    make_sure_path_exists(hosted_cache_path)
+
+    #
+    # {package}-advisories.json
+    #
+
+    file = os.path.join(archive_path, url_parsed.hostname, '.cache', name + '-advisories.json')
+    if os.path.exists(file):
+        shutil.copy(str(file), hosted_cache_path)
+
+    #
+    # {package}-versions.json
+    #
+
+    file = os.path.join(archive_path, url_parsed.hostname, '.cache', name + '-versions.json')
+    if not os.path.exists(file):
+        bb.error(f'Missing: {file}')
+        raise FileNotFoundError
+
+    shutil.copy(str(file), hosted_cache_path)
+
+    #
+    # archive name
+    #
+
     filename = name + '-' + version + '.tar.gz'
     file = os.path.join(archive_path, url_parsed.hostname, filename)
     if not os.path.exists(file):
@@ -632,15 +762,18 @@ def pubspec_restore_hosted_archive(d, name, package, pub_cache, archive_path, en
         raise FileNotFoundError
 
     restore_folder = os.path.join(hosted_path, url_parsed.hostname, name + '-' + version)
+    make_sure_path_exists(restore_folder)
+    run_command(f'tar -xzf {file} -C {restore_folder}', restore_folder, env)
 
-    bb.note(f'folder: {restore_folder}')
-    bb.utils.mkdirhier(restore_folder)
-    run_command(d, f'tar -xvzf {file} -C {restore_folder}', restore_folder, env)
+    #
+    # .sha256 file
+    #
+    hosted_hashes_path = os.path.join(pub_cache, 'hosted-hashes')
 
     filename += '.sha256'
     file = os.path.join(archive_path, url_parsed.hostname, filename)
     if not os.path.exists(file):
-        bb.note(f'Missing: {file}')
+        bb.error(f'Missing: {file}')
         raise FileNotFoundError
 
     bare_filename = filename[:-14]
@@ -648,49 +781,57 @@ def pubspec_restore_hosted_archive(d, name, package, pub_cache, archive_path, en
     make_sure_path_exists(hostname_path)
     file_dest = os.path.join(hostname_path, bare_filename + '.sha256')
 
-    bb.note(f'sha256: {file_dest}')
+    bb.debug(1, f'sha256: {file_dest}')
     shutil.copy(str(file), file_dest)
 
 
-def pubspec_restore_project_pub_cache(d, project_path, archive_path, env):
+def pubspec_restore_project_pub_cache(d, base_path, archive_path, env, walk):
     """
-    Create pub cache for specificed project path
+    Create pub cache for specified project path
     """
-    lock_file = os.path.join(project_path, 'pubspec.lock')
-    if not os.path.exists(lock_file):
-        print_banner(f'file not found: {lock_file}')
-        raise FileNotFoundError
-
-    if not os.path.exists(archive_path):
-        print_banner(f'Path does not exist: {archive_path}')
-        raise FileNotFoundError
-
-    pub_cache = os.environ.get('PUB_CACHE', None)
-    if not pub_cache:
-        print_banner('PUB_CACHE is not set.  Cannot restore')
+    pub_cache_path = env['PUB_CACHE']
+    if not pub_cache_path:
+        bb.error("PUB_CACHE is not set")
         return
 
-    packages = get_yaml_obj(lock_file)['packages']
-    for name in packages:
-        package = packages[name]
+    for dir_path, _, filenames in os.walk(base_path):
+        for filename in filenames:
+            if filename == 'pubspec.lock':
+                if not os.path.exists(archive_path):
+                    bb.error(f'Path does not exist: {archive_path}')
+                    raise FileNotFoundError
 
-        source = package['source']
-        print_banner(f'package {name}: source: {source}')
-        if source == 'sdk':
-            bb.note('Skipping')
-            continue
-        elif source == 'path':
-            bb.note('Skipping')
-            continue
-        elif source == 'git':
-            pubspec_restore_git_archive(d, name, package, project_path, pub_cache, archive_path)
-            continue
-        elif source == 'hosted':
-            pubspec_restore_hosted_archive(d, name, package, pub_cache, archive_path, env)
-            continue
-        else:
-            print_banner(f'{name}: Unknown source type: {source}')
-            continue
+                bb.note(f'Restoring {dir_path}/{filename} to {pub_cache_path}')
+
+                pub_cache = os.environ.get('PUB_CACHE', None)
+                if not pub_cache:
+                    bb.error('PUB_CACHE is not set.  Cannot restore')
+                    continue
+
+                packages = get_yaml_obj(f'{dir_path}/{filename}')['packages']
+                for name in packages:
+                    package = packages[name]
+
+                    source = package['source']
+                    bb.debug(1, f'package {name}: source: {source}')
+                    if source == 'sdk':
+                        bb.debug(1, 'Skipping')
+                        continue
+                    elif source == 'path':
+                        bb.debug(1, 'Skipping')
+                        continue
+                    elif source == 'git':
+                        pubspec_restore_git_archive(name, package, dir_path, pub_cache, archive_path, env)
+                        continue
+                    elif source == 'hosted':
+                        pubspec_restore_hosted_archive(name, package, pub_cache, archive_path, env)
+                        continue
+                    else:
+                        bb.error(f'{name}: Unknown source type: {source}')
+                        continue
+                break
+        if not walk:
+            break
 
 
 #
@@ -755,16 +896,16 @@ python do_restore_pub_cache() {
     # Restore pub cache
     shutil.rmtree(pub_cache, ignore_errors=True)
 
-    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter'), archive_path, env)
-    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_driver'), archive_path, env)
-    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_localizations'), archive_path, env)
-    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_tools'), archive_path, env)
-    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_web_plugins'), archive_path, env)
-
-    pubspec_restore_project_pub_cache(d, app_root, archive_path, env)
+    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter'), archive_path, env, False)
+    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_driver'), archive_path, env, False)
+    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_localizations'), archive_path, env, False)
+    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_test'), archive_path, env, False)
+    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_tools'), archive_path, env, False)
+    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'integration_test'), archive_path, env, False)
+    pubspec_restore_project_pub_cache(d, app_root, archive_path, env, False)
 
     # finalize
-    run_command(d, 'dart pub get --offline -v', app_root, env)
+    run_command('dart pub get --offline -v', app_root, env)
 }
 
 #
@@ -800,7 +941,7 @@ python do_compile() {
     source_root = os.path.join(source_dir, flutter_application_path)
     cmd = d.getVar('FLUTTER_PREBUILD_CMD')
     if cmd != '':
-        run_command(d, cmd, source_root, env)
+        run_command(cmd, source_root, env)
 
     build_type = d.getVar('BUILD_TYPE')
 
@@ -819,13 +960,13 @@ def build_web(d, source_root, env):
 
     build_folder = os.path.join(source_root, 'build')
     if os.path.exists(build_folder):
-        run_command(d, 'flutter clean', source_root, env)
+        run_command('flutter clean', source_root, env)
 
-    run_command(d, 'flutter config --no-cli-animations', source_root, env)
-    run_command(d, 'flutter pub get --offline --enforce-lockfile -v', source_root, env)
+    run_command('flutter config --no-cli-animations', source_root, env)
+    run_command('flutter pub get --offline --enforce-lockfile -v', source_root, env)
 
     flutter_build_args = d.getVar('FLUTTER_BUILD_ARGS')
-    run_command(d, f'flutter build web {flutter_build_args}', source_root, env)
+    run_command(f'flutter build web {flutter_build_args}', source_root, env)
 
     bb.note(f'Flutter build web {flutter_build_args}: Completed')
 
@@ -866,17 +1007,17 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
 
         build_folder = os.path.join(source_root, 'build')
         if os.path.exists(build_folder):
-            run_command(d, 'flutter clean -v', source_root, env)
+            run_command('flutter clean -v', source_root, env)
 
-        run_command(d, 'flutter config --no-cli-animations', source_root, env)
-        run_command(d, 'flutter pub get --offline --enforce-lockfile -v', source_root, env)
+        run_command('flutter config --no-cli-animations', source_root, env)
+        run_command('flutter pub get --offline --enforce-lockfile -v', source_root, env)
 
         if runtime_mode == 'jit_release':
             cmd = f'flutter build {flutter_build_args} --local-engine -v'
             run_command(cmd, source_root, env)
         else:
             cmd = f'flutter build {flutter_build_args} -v'
-            run_command(d, cmd, source_root, env)
+            run_command(cmd, source_root, env)
 
         bb.note(f'[{runtime_mode}] flutter build {flutter_build_args}: Completed')
 
@@ -955,7 +1096,7 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
                 --verbosity=error \
                 package:{pubspec_appname}/{app_aot_entry_file}'
 
-            run_command(d, cmd, source_root, env)
+            run_command(cmd, source_root, env)
 
             bb.note(f'kernel_snapshot_{runtime_mode}: Complete')
 
@@ -966,7 +1107,7 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
                 pass
 
             # create empty file for apps that check for kernel_blob.bin
-            run_command(d, 'touch build/flutter_assets/kernel_blob.bin', source_root, env)
+            run_command('touch build/flutter_assets/kernel_blob.bin', source_root, env)
 
             bb.note(f'aot_elf_{runtime_mode}: Started')
 
@@ -978,7 +1119,7 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
             staging_datadir = d.getVar('STAGING_DATADIR')
             cmd = f'unzip {staging_datadir}/flutter/{flutter_sdk_version}/{runtime_mode}/engine_sdk.zip \
                 -d {source_dir}/engine_sdk'
-            run_command(d, cmd, source_root, env)
+            run_command(cmd, source_root, env)
 
             #
             # Create libapp.so
@@ -991,4 +1132,4 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
                 --strip \
                 {app_gen_snapshot_flags} \
                 {flutter_app_output_dill}'
-            run_command(d, cmd, source_root, env)
+            run_command(cmd, source_root, env)
