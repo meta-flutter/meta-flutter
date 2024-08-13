@@ -21,6 +21,7 @@
 #   tools/pubspec.py --restore $HOME/workspace-automation/flutter/packages/flutter_tools \
 #       --output $(pwd)/archive/pub_cache
 #   cd $HOME/workspace-automation/app/flutter-wonderous-app/
+#   flutter pub get --offline --enforce-lockfile -v
 #   flutter build bundle -v
 #
 

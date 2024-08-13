@@ -30,9 +30,6 @@ FLUTTER_INSTALL_DIR = "${FLUTTER_APPLICATION_INSTALL_PREFIX}/${FLUTTER_APPLICATI
 PUB_CACHE = "${WORKDIR}/pub_cache"
 _REV = "${@d.getVar('SRCPV') or d.getVar('PV')}"
 
-PUBSPEC_IGNORE_LOCKFILE ??= "0"
-PUBSPEC_ENFORCE_LOCKFILE ??= "0"
-
 FLUTTER_SDK = "${STAGING_DIR_NATIVE}/usr/share/flutter/sdk"
 
 require conf/include/clang-utils.inc
@@ -40,6 +37,7 @@ require conf/include/clang-utils.inc
 python () {
     d.setVar('FLUTTER_SDK_VERSION', get_flutter_sdk_version(d))
 }
+
 
 def print_banner(text):
     bb.note('*' * (len(text) + 6))
@@ -76,7 +74,9 @@ def run_command(d, cmd, cwd, env):
 
 
 def get_yaml_obj(filepath):
-    """ Returns python object of yaml file """
+    """
+    Returns python object of yaml file
+    """
     import yaml
 
     if not os.path.exists(filepath):
@@ -212,16 +212,18 @@ def write_sha256_file(cwd, filename):
 
 
 def fetch_https_progress(download_t, download_d, _upload_t, _upload_d):
-    """callback function for pycurl.XFERINFOFUNCTION"""
+    """
+    callback function for pycurl.XFERINFOFUNCTION
+    """
     from sys import stderr as stream
-
-    stream.write('Progress: {}/{} kiB ({}%)\r'.format(str(int(download_d / 1024)), str(int(download_t / 1024)),
-                                                      str(int(download_d / download_t * 100) if download_t > 0 else 0)))
+    stream.write('.')
     stream.flush()
 
 
 def fetch_https_binary_file(url, filename, redirect, headers, cookie_file, netrc):
-    """Fetches binary file via HTTPS"""
+    """
+    Fetches binary file via HTTPS
+    """
     import pycurl
     import time
 
@@ -298,6 +300,9 @@ def pubspec_hosted_archive_exists(d, name, url, version, output_path):
 
 
 def pubspec_archive_hosted(d, name, package, output_path):
+    """
+    Archive hosted package
+    """
     from urllib.parse import unquote
     from urllib.parse import urlparse
 
@@ -361,6 +366,9 @@ def sha1_hash(d, to_hash):
 
 
 def pubspec_archive_git(d, name, package, project_dir, output_path):
+    """
+    Archive git package
+    """
     from urllib.parse import urlparse
 
     print_banner(name)
@@ -461,7 +469,7 @@ def pubspec_archive_packages_in_lock_file(d, project_path, output_path):
 
 def pubspec_get_package_version(d, desc_name, desc_url, version):
     """
-    Return version dict for a specified description
+    Return version info for package
     """
     import io
     import json
@@ -542,23 +550,15 @@ python do_archive_pub_cache() {
     app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
     app_pubspec_lock_file = os.path.join(str(app_root), 'pubspec.lock')
 
-    if d.getVar("PUBSPEC_IGNORE_LOCKFILE") == "1":
-        if os.path.exists(app_pubspec_lock_file):
-            bb.note('Removing pubspec.lock')
-            run_command(d, 'rm -rf pubspec.lock', app_root, env)
-
     #
     # Archive Project packages
     #
     pub_cache_archive_path = os.path.join(d.getVar("DL_DIR"), 'pub_cache')
 
     # TODO - move to Flutter SDK archive task
-    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_tools'), str(pub_cache_archive_path))
     pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter'), str(pub_cache_archive_path))
     pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_driver'), str(pub_cache_archive_path))
-    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_goldens'), str(pub_cache_archive_path))
     pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_localizations'), str(pub_cache_archive_path))
-    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_test'), str(pub_cache_archive_path))
     pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_tools'), str(pub_cache_archive_path))
     pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_web_plugins'), str(pub_cache_archive_path))
 
@@ -567,6 +567,9 @@ python do_archive_pub_cache() {
 
 
 def pubspec_restore_git_archive(d, name, package, project_path, pub_cache, archive_path):
+    """
+    Restore git archive
+    """
     import shutil
 
     from urllib.parse import urlparse
@@ -603,6 +606,9 @@ def pubspec_restore_git_archive(d, name, package, project_path, pub_cache, archi
 
 
 def pubspec_restore_hosted_archive(d, name, package, pub_cache, archive_path, env):
+    """
+    Restore Hosted Archive
+    """
     import shutil
 
     from urllib.parse import urlparse
@@ -647,7 +653,9 @@ def pubspec_restore_hosted_archive(d, name, package, pub_cache, archive_path, en
 
 
 def pubspec_restore_project_pub_cache(d, project_path, archive_path, env):
-
+    """
+    Create pub cache for specificed project path
+    """
     lock_file = os.path.join(project_path, 'pubspec.lock')
     if not os.path.exists(lock_file):
         print_banner(f'file not found: {lock_file}')
@@ -744,18 +752,12 @@ python do_restore_pub_cache() {
     app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
     archive_path = os.path.join(d.getVar("DL_DIR"), 'pub_cache')
 
-    if d.getVar("PUBSPEC_IGNORE_LOCKFILE") == "1":
-        app_pubspec_lock_file = os.path.join(str(app_root), 'pubspec.lock')
-        # TODO - fetch from cache
-
     # Restore pub cache
     shutil.rmtree(pub_cache, ignore_errors=True)
 
     pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter'), archive_path, env)
     pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_driver'), archive_path, env)
-    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_goldens'), archive_path, env)
     pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_localizations'), archive_path, env)
-    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_test'), archive_path, env)
     pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_tools'), archive_path, env)
     pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_web_plugins'), archive_path, env)
 
@@ -769,14 +771,14 @@ python do_restore_pub_cache() {
 # Compile
 #
 python do_compile() {
+    """
+    Compiles project
+    """
 
     pubspec_yaml_appname = get_pubspec_yaml_appname(d)
     pubspec_appname = d.getVar("PUBSPEC_APPNAME")
     if pubspec_appname != pubspec_yaml_appname:
         bb.fatal("Set PUBSPEC_APPNAME to match name value in pubspec.yaml")
-
-    if d.getVar("PUBSPEC_IGNORE_LOCKFILE") == "1" and d.getVar("PUBSPEC_ENFORCE_LOCKFILE") == "1":
-        bb.fatal("Both PUBSPEC_IGNORE_LOCKFILE and PUBSPEC_ENFORCE_LOCKFILE are set which is invalid")
 
     flutter_sdk = d.getVar('FLUTTER_SDK')
 
@@ -811,30 +813,34 @@ python do_compile() {
 
 
 def build_web(d, source_root, env):
+    """
+    Build web app
+    """
 
     build_folder = os.path.join(source_root, 'build')
     if os.path.exists(build_folder):
         run_command(d, 'flutter clean', source_root, env)
 
-    app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
-
-    if d.getVar("PUBSPEC_IGNORE_LOCKFILE") == "1":
-        #
-        # Remove pubspec.lock file if present
-        #
-        pubspec_lock = os.path.join(app_root, 'pubspec.lock')
-        if os.path.exists(pubspec_lock):
-            run_command(d, 'rm -rf pubspec.lock', app_root, env)
+    run_command(d, 'flutter config --no-cli-animations', source_root, env)
+    run_command(d, 'flutter pub get --offline --enforce-lockfile -v', source_root, env)
 
     flutter_build_args = d.getVar('FLUTTER_BUILD_ARGS')
     run_command(d, f'flutter build web {flutter_build_args}', source_root, env)
 
     bb.note(f'Flutter build web {flutter_build_args}: Completed')
 
-def versiontuple(v):
+
+def version_tuple(v):
+    """
+    Return a version tuple
+    """
     return tuple(map(int, (v.split("."))))
 
+
 def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_path, staging_dir_target, source_root, env):
+    """
+    Builds flutter application
+    """
     import glob
     import shutil
 
@@ -847,7 +853,7 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
     flutter_build_args = d.getVar('FLUTTER_BUILD_ARGS')
 
     new_build_scheme = False
-    if versiontuple(flutter_sdk_version) >= versiontuple('3.24.0'):
+    if version_tuple(flutter_sdk_version) >= version_tuple('3.24.0'):
         bb.note(f'Using new build scheme')
         new_build_scheme = True
 
@@ -862,24 +868,11 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
         if os.path.exists(build_folder):
             run_command(d, 'flutter clean -v', source_root, env)
 
-        app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
-
-        if d.getVar("PUBSPEC_IGNORE_LOCKFILE") == "1":
-            #
-            # Remove pubspec.lock file if present
-            #
-            pubspec_lock = os.path.join(app_root, 'pubspec.lock')
-            if os.path.exists(pubspec_lock):
-                run_command(d, 'rm -rf pubspec.lock', app_root, env)
-
         run_command(d, 'flutter config --no-cli-animations', source_root, env)
-        if d.getVar("PUBSPEC_ENFORCE_LOCKFILE") == "1":
-            run_command(d, 'flutter pub get --offline --enforce-lockfile -v', source_root, env)
-        else:
-            run_command(d, 'flutter pub get --offline -v', source_root, env)
-        
+        run_command(d, 'flutter pub get --offline --enforce-lockfile -v', source_root, env)
+
         if runtime_mode == 'jit_release':
-            cmd = (f'flutter build {flutter_build_args} --local-engine -v')
+            cmd = f'flutter build {flutter_build_args} --local-engine -v'
             run_command(cmd, source_root, env)
         else:
             cmd = f'flutter build {flutter_build_args} -v'
