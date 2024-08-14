@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "place_tracker"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-place-tracker"
 FLUTTER_APPLICATION_PATH = "place_tracker"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

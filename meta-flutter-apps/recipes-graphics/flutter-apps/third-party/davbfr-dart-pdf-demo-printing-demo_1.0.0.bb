@@ -20,7 +20,6 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "printing_demo"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "davbfr-dart-pdf-demo-printing-demo"
 FLUTTER_APPLICATION_PATH = "demo"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app
 

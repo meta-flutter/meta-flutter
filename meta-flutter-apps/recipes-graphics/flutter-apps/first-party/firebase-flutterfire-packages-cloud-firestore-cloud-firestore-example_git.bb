@@ -24,6 +24,5 @@ PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \
 PUBSPEC_APPNAME = "cloud_firestore_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "firebase-flutterfire-packages-cloud-firestore-cloud-firestore-example"
 FLUTTER_APPLICATION_PATH = "packages/cloud_firestore/cloud_firestore/example"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

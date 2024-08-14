@@ -20,7 +20,6 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "provider_counter"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-provider-counter"
 FLUTTER_APPLICATION_PATH = "provider_counter"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app
 

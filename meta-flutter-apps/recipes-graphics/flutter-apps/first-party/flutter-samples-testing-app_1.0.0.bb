@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "testing_app"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-testing-app"
 FLUTTER_APPLICATION_PATH = "testing_app"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "simple_shader"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-simple-shader"
 FLUTTER_APPLICATION_PATH = "simple_shader"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

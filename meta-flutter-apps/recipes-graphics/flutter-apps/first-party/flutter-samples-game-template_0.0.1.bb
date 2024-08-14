@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "game_template"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-game-template"
 FLUTTER_APPLICATION_PATH = "game_template"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

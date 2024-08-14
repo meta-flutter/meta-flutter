@@ -20,7 +20,6 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "gallery"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-gallery"
 FLUTTER_APPLICATION_PATH = ""
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app
 

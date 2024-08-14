@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "deeplink_store_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-deeplink-store-example"
 FLUTTER_APPLICATION_PATH = "deeplink_store_example"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

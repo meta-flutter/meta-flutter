@@ -1,5 +1,9 @@
 # Changelog
 
+Aug 13. 2024
+1. caching pub fetcher v1
+2. auto-roll apps; known build breaks on gallery and super-dash
+
 Aug 12, 2024
 1. pubspec tool supports hosted and git sources
 

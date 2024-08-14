@@ -24,6 +24,5 @@ PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \
 PUBSPEC_APPNAME = "firebase_auth_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "firebase-flutterfire-packages-firebase-auth-firebase-auth-example"
 FLUTTER_APPLICATION_PATH = "packages/firebase_auth/firebase_auth/example"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

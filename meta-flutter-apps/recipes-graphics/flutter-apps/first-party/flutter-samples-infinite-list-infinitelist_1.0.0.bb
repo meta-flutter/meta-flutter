@@ -20,7 +20,6 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "infinitelist"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-infinite-list-infinitelist"
 FLUTTER_APPLICATION_PATH = "infinite_list"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app
 

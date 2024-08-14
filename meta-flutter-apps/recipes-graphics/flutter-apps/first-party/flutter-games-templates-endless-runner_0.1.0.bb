@@ -19,6 +19,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "endless_runner"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-games-templates-endless-runner"
 FLUTTER_APPLICATION_PATH = "templates/endless_runner"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

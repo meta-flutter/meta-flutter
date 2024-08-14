@@ -31,13 +31,14 @@ def handle_ctrl_c(_signal, _frame):
     sys.exit("Ctl+C - Closing")
 
 
-def run_command(cmd: str, cwd: str) -> str:
+def run_command(cmd: str, cwd: str, quiet: bool = False) -> str:
     cmd = re.sub('\\s{2,}', ' ', cmd)
-    print('Running [%s] in %s' % (cmd, cwd))
+    if not quiet:
+        print('Running [%s] in %s' % (cmd, cwd))
     (result, output) = subprocess.getstatusoutput(f'cd {cwd} && {cmd}')
     if result:
-        sys.exit("failed %s (cmd was %s)%s" % (result, cmd, ":\n%s" % output if output else ""))
-    print(output.rstrip())
+        out = output.rstrip()
+        sys.exit(f'failed {result} (cmd was {cmd}):\n{out}')
     return output.rstrip()
 
 
