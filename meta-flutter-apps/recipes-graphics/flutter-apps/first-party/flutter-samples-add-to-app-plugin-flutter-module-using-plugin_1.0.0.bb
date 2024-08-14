@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "flutter_module_using_plugin"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-add-to-app-plugin-flutter-module-using-plugin"
 FLUTTER_APPLICATION_PATH = "add_to_app/plugin/flutter_module_using_plugin"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

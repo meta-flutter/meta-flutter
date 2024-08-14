@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "ios_app_clip"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-ios-app-clip"
 FLUTTER_APPLICATION_PATH = "ios_app_clip"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

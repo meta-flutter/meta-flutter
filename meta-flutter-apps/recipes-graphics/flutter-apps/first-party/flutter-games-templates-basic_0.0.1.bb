@@ -19,6 +19,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "basic"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-games-templates-basic"
 FLUTTER_APPLICATION_PATH = "templates/basic"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

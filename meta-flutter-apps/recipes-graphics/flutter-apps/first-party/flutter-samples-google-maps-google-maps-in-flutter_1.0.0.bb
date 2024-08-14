@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "google_maps_in_flutter"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-google-maps-google-maps-in-flutter"
 FLUTTER_APPLICATION_PATH = "google_maps"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

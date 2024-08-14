@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "flutter_maps_firestore"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-flutter-maps-firestore"
 FLUTTER_APPLICATION_PATH = "flutter_maps_firestore"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "client"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-code-sharing-client"
 FLUTTER_APPLICATION_PATH = "code_sharing/client"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

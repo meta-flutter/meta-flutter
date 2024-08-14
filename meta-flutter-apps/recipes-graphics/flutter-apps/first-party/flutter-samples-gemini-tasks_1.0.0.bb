@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "gemini_tasks"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-gemini-tasks"
 FLUTTER_APPLICATION_PATH = "gemini_tasks"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

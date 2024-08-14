@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "pedometer_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-experimental-pedometer-example"
 FLUTTER_APPLICATION_PATH = "experimental/pedometer/example"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

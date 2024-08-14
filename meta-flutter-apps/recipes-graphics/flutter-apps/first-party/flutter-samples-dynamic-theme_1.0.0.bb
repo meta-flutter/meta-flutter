@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "dynamic_theme"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-dynamic-theme"
 FLUTTER_APPLICATION_PATH = "dynamic_theme"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app
