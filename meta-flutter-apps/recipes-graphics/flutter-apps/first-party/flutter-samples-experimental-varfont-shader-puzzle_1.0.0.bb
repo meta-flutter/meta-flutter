@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "varfont_shader_puzzle"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-experimental-varfont-shader-puzzle"
 FLUTTER_APPLICATION_PATH = "experimental/varfont_shader_puzzle"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

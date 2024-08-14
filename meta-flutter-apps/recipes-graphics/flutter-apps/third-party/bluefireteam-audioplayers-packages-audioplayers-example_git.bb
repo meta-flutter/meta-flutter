@@ -24,7 +24,6 @@ PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \
 PUBSPEC_APPNAME = "audioplayers_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "bluefireteam-audioplayers-packages-audioplayers-example"
 FLUTTER_APPLICATION_PATH = "packages/audioplayers/example"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app
 

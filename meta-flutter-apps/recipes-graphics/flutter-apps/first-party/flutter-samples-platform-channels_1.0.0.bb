@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "platform_channels"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-platform-channels"
 FLUTTER_APPLICATION_PATH = "platform_channels"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "asset_transformation"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-asset-transformation"
 FLUTTER_APPLICATION_PATH = "asset_transformation"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

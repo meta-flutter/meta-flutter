@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "platform_view_swift"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-platform-view-swift"
 FLUTTER_APPLICATION_PATH = "platform_view_swift"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

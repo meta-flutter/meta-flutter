@@ -19,6 +19,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "crossword"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-games-samples-crossword"
 FLUTTER_APPLICATION_PATH = "samples/crossword"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

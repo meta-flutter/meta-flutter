@@ -20,7 +20,6 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "geolocator_linux_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "baseflow-flutter-geolocator-linux-geolocator-linux-example"
 FLUTTER_APPLICATION_PATH = "geolocator_linux/example"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app
 

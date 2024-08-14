@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "material_3_demo"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-material-3-demo"
 FLUTTER_APPLICATION_PATH = "material_3_demo"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

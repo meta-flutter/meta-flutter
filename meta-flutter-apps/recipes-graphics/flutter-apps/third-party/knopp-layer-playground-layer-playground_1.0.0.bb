@@ -19,6 +19,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "layer_playground"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "knopp-layer-playground-layer-playground"
 FLUTTER_APPLICATION_PATH = ""
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

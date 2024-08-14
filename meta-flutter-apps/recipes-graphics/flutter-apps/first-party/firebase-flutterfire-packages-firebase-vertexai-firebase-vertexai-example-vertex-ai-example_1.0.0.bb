@@ -24,6 +24,5 @@ PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \
 PUBSPEC_APPNAME = "vertex_ai_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "firebase-flutterfire-packages-firebase-vertexai-firebase-vertexai-example-vertex-ai-example"
 FLUTTER_APPLICATION_PATH = "packages/firebase_vertexai/firebase_vertexai/example"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

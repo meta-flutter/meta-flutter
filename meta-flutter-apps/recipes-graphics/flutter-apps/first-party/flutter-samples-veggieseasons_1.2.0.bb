@@ -20,7 +20,6 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "veggieseasons"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-veggieseasons"
 FLUTTER_APPLICATION_PATH = "veggieseasons"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app
 

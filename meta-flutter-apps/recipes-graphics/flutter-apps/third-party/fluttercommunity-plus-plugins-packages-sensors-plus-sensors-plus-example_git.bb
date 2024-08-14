@@ -12,7 +12,7 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=aaa4daf7a83c6896af2c007b59db56e4"
 
-SRCREV = "e61b4725332adfca756cd77c97354f2f29be0907"
+SRCREV = "bba781187b4af5682331ed90929c61c13137809a"
 SRC_URI = "git://github.com/fluttercommunity/plus_plugins.git;lfs=1;branch=main;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"
@@ -24,6 +24,5 @@ PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \
 PUBSPEC_APPNAME = "sensors_plus_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "fluttercommunity-plus-plugins-packages-sensors-plus-sensors-plus-example"
 FLUTTER_APPLICATION_PATH = "packages/sensors_plus/sensors_plus/example"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

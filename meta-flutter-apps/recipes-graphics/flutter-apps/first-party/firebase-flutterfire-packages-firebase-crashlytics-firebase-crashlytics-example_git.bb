@@ -24,6 +24,5 @@ PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \
 PUBSPEC_APPNAME = "firebase_crashlytics_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "firebase-flutterfire-packages-firebase-crashlytics-firebase-crashlytics-example"
 FLUTTER_APPLICATION_PATH = "packages/firebase_crashlytics/firebase_crashlytics/example"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app

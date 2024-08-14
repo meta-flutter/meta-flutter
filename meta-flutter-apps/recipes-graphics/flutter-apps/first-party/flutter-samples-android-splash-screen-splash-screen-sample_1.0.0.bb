@@ -20,6 +20,5 @@ S = "${WORKDIR}/git"
 PUBSPEC_APPNAME = "splash_screen_sample"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-android-splash-screen-splash-screen-sample"
 FLUTTER_APPLICATION_PATH = "android_splash_screen"
-PUBSPEC_IGNORE_LOCKFILE = "1"
 
 inherit flutter-app
