@@ -34,6 +34,8 @@ FLUTTER_SDK = "${STAGING_DIR_NATIVE}/usr/share/flutter/sdk"
 
 require conf/include/clang-utils.inc
 
+inherit python3-dir
+
 python () {
     d.setVar('FLUTTER_SDK_VERSION', get_flutter_sdk_version(d))
 }
