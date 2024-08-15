@@ -799,6 +799,8 @@ def pubspec_restore_project_pub_cache(d, base_path, archive_path, env, walk):
     """
     Create pub cache for specified project path
     """
+    import concurrent.futures
+
     pub_cache_path = env['PUB_CACHE']
     if not pub_cache_path:
         bb.error("PUB_CACHE is not set")
