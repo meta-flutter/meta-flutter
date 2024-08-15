@@ -155,7 +155,10 @@ def write_sha256_file(cwd: str, filename: str):
     sha256_file = os.path.join(cwd, filename + '.sha256')
 
     with open(sha256_file, 'w+') as f:
+        import fcntl
+        fcntl.lockf(f, fcntl.LOCK_EX)
         f.write(sha256_val)
+        fcntl.lockf(f, fcntl.LOCK_UN)
 
 
 def get_yaml_obj(filepath: str):
@@ -218,8 +221,11 @@ def fetch_https_binary_file(url, filename, redirect, headers, cookie_file, netrc
     while retries_left > 0:
         try:
             with open(filename, 'wb') as f:
+                import fcntl
+                fcntl.lockf(f, fcntl.LOCK_EX)
                 c.setopt(pycurl.WRITEFUNCTION, f.write)
                 c.perform()
+                fcntl.lockf(f, fcntl.LOCK_UN)
 
             success = True
             break

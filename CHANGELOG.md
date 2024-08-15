@@ -1,5 +1,12 @@
 # Changelog
 
+Aug 15, 2024
+1. add layer dependencies
+2. file locking for DL_DIR write files
+
+Aug 14, 2024
+1. missing include python3-dir to common.inc
+
 Aug 13. 2024
 1. caching pub fetcher v1
 2. auto-roll apps; known build breaks on gallery and super-dash
