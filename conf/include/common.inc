@@ -533,6 +533,8 @@ def pubspec_archive_packages_in_lock_file(d, base_path, archive_path, walk, env)
                 if not walk:
                     break
 
+    concurrent.futures.wait(futures, timeout=None, return_when=concurrent.futures.ALL_COMPLETED)
+
 
 def pubspec_get_package_advisories(name, url):
     """
@@ -802,45 +804,50 @@ def pubspec_restore_project_pub_cache(d, base_path, archive_path, env, walk):
         bb.error("PUB_CACHE is not set")
         return
 
-    for dir_path, _, filenames in os.walk(base_path):
-        for filename in filenames:
-            if filename == 'pubspec.lock':
-                if not os.path.exists(archive_path):
-                    bb.error(f'Path does not exist: {archive_path}')
-                    raise FileNotFoundError
+    futures = []
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        for dir_path, _, filenames in os.walk(base_path):
+            for filename in filenames:
+                if filename == 'pubspec.lock':
+                    if not os.path.exists(archive_path):
+                        bb.error(f'Path does not exist: {archive_path}')
+                        raise FileNotFoundError
 
-                bb.note(f'Restoring {dir_path}/{filename} to {pub_cache_path}')
+                    bb.note(f'Restoring {dir_path}/{filename} to {pub_cache_path}')
 
-                pub_cache = os.environ.get('PUB_CACHE', None)
-                if not pub_cache:
-                    bb.error('PUB_CACHE is not set.  Cannot restore')
-                    continue
+                    pub_cache = os.environ.get('PUB_CACHE', None)
+                    if not pub_cache:
+                        bb.error('PUB_CACHE is not set.  Cannot restore')
+                        continue
 
-                packages = get_yaml_obj(f'{dir_path}/{filename}')['packages']
-                for name in packages:
-                    package = packages[name]
+                    packages = get_yaml_obj(f'{dir_path}/{filename}')['packages']
+                    for name in packages:
+                        package = packages[name]
 
-                    source = package['source']
-                    bb.debug(1, f'package {name}: source: {source}')
-                    if source == 'sdk':
-                        bb.debug(1, 'Skipping')
-                        continue
-                    elif source == 'path':
-                        bb.debug(1, 'Skipping')
-                        continue
-                    elif source == 'git':
-                        pubspec_restore_git_archive(name, package, dir_path, pub_cache, archive_path, env)
-                        continue
-                    elif source == 'hosted':
-                        pubspec_restore_hosted_archive(name, package, pub_cache, archive_path, env)
-                        continue
-                    else:
-                        bb.error(f'{name}: Unknown source type: {source}')
-                        continue
+                        source = package['source']
+                        bb.debug(1, f'package {name}: source: {source}')
+                        if source == 'sdk':
+                            bb.debug(1, 'Skipping')
+                            continue
+                        elif source == 'path':
+                            bb.debug(1, 'Skipping')
+                            continue
+                        elif source == 'git':
+                            futures.append(executor.submit(
+                                pubspec_restore_git_archive, name, package, dir_path, pub_cache, archive_path, env))
+                            continue
+                        elif source == 'hosted':
+                            futures.append(executor.submit(
+                                pubspec_restore_hosted_archive, name, package, pub_cache, archive_path, env))
+                            continue
+                        else:
+                            bb.error(f'{name}: Unknown source type: {source}')
+                            continue
+                    break
+            if not walk:
                 break
-        if not walk:
-            break
 
+    concurrent.futures.wait(futures, timeout=None, return_when=concurrent.futures.ALL_COMPLETED)
 
 #
 # Restore Pub Cache
