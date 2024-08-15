@@ -34,6 +34,8 @@ FLUTTER_SDK = "${STAGING_DIR_NATIVE}/usr/share/flutter/sdk"
 
 require conf/include/clang-utils.inc
 
+inherit python3-dir
+
 python () {
     d.setVar('FLUTTER_SDK_VERSION', get_flutter_sdk_version(d))
 }
@@ -853,7 +855,9 @@ def pubspec_restore_project_pub_cache(d, base_path, archive_path, env, walk):
 addtask restore_pub_cache before do_configure after do_archive_pub_cache
 do_restore_pub_cache[dirs] = "${WORKDIR} ${DL_DIR}"
 do_restore_pub_cache[depends] += " \
+    flutter-sdk-native:do_populate_sysroot \
     git-native:do_populate_sysroot \
+    python3-pyyaml-native:do_populate_sysroot \
     tar-native:do_populate_sysroot \
     "
 python do_restore_pub_cache() {
