@@ -182,10 +182,13 @@ def update_flutter_version_inc(include_path, flutter_sdk_version):
         lines = f.readlines()
 
     with open(flutter_version_inc, 'w') as f:
+        import fcntl
+        fcntl.lockf(f, fcntl.LOCK_EX)
         for line in lines:
             if 'FLUTTER_SDK_TAG ??=' in line:
                 line = f'FLUTTER_SDK_TAG ??= "{flutter_sdk_version}"\n'
             f.write(line)
+        fcntl.lockf(f, fcntl.LOCK_UN)
 
 
 def get_dart_sdk_version(root_path: str, flutter_sdk_version: str) -> str:

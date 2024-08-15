@@ -290,6 +290,8 @@ def create_recipe(directory,
     print(f'pubspec_yaml: {pubspec_yaml}')
     print(f'filename: {filename}')
     with open(filename, "w") as f:
+        import fcntl
+        fcntl.lockf(f, fcntl.LOCK_EX)
         f.write('#\n')
         f.write('# Copyright (c) 2020-2024 Joel Winarske. All rights reserved.\n')
         f.write('#\n')
@@ -390,6 +392,7 @@ def create_recipe(directory,
             f.write('do_compile[network] = "1"\n')
             f.write('\n')
 
+        fcntl.lockf(f, fcntl.LOCK_UN)
         return recipe_name
 
 
@@ -404,6 +407,8 @@ def create_package_group(org, unit, recipes,
     filename = filename.replace('_', '-')
 
     with open(filename, "w") as f:
+        import fcntl
+        fcntl.lockf(f, fcntl.LOCK_EX)
         f.write('#\n')
         f.write('# Copyright (c) 2020-2024 Joel Winarske. All rights reserved.\n')
         f.write('#\n')
@@ -425,6 +430,7 @@ def create_package_group(org, unit, recipes,
                     continue
             f.write(f'    {recipe} \\\n')
         f.write('"\n')
+        fcntl.lockf(f, fcntl.LOCK_UN)
 
 
 def create_yocto_recipes(directory,

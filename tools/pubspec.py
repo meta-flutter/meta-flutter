@@ -114,6 +114,11 @@ def pubspec_restore_git_archive(name: str, package: dict, project_path: str, pub
     if not os.path.exists(dest_path):
         run_command(f'git clone {src_path} {dest_path}', project_path)
 
+    # get lfs
+    git_lfs_file = os.path.join(dest_path, '.gitattributes')
+    if os.path.exists(git_lfs_file):
+        run_command('git lfs fetch--all', dest_path, True)
+
     run_command(f'git checkout {resolved_ref}', dest_path)
 
 
@@ -188,49 +193,57 @@ def pubspec_restore_project_pub_cache(base_path: str, archive_path: str, walk: b
     """
     Create pub cache for specified project path
     """
+    import concurrent.futures
+
     pub_cache_path = os.getenv('PUB_CACHE')
     if not pub_cache_path:
         logging.error("PUB_CACHE is not set")
         return
 
-    for dir_path, _, filenames in os.walk(base_path):
-        for filename in filenames:
-            if filename == 'pubspec.lock':
-                if not os.path.exists(archive_path):
-                    logging.error(f'Path does not exist: {archive_path}')
-                    raise FileNotFoundError
+    futures = []
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        for dir_path, _, filenames in os.walk(base_path):
+            for filename in filenames:
+                if filename == 'pubspec.lock':
+                    if not os.path.exists(archive_path):
+                        logging.error(f'Path does not exist: {archive_path}')
+                        raise FileNotFoundError
 
-                logging.info(f'Restoring {dir_path}/{filename} to {pub_cache_path}')
+                    logging.info(f'Restoring {dir_path}/{filename} to {pub_cache_path}')
 
-                pub_cache = os.environ.get('PUB_CACHE', None)
-                if not pub_cache:
-                    logging.error('PUB_CACHE is not set.  Cannot restore')
-                    continue
+                    pub_cache = os.environ.get('PUB_CACHE', None)
+                    if not pub_cache:
+                        logging.error('PUB_CACHE is not set.  Cannot restore')
+                        continue
 
-                packages = get_yaml_obj(f'{dir_path}/{filename}')['packages']
-                for name in packages:
-                    package = packages[name]
+                    packages = get_yaml_obj(f'{dir_path}/{filename}')['packages']
+                    for name in packages:
+                        package = packages[name]
 
-                    source = package['source']
-                    logging.debug(f'package {name}: source: {source}')
-                    if source == 'sdk':
-                        logging.debug('Skipping')
-                        continue
-                    elif source == 'path':
-                        logging.debug('Skipping')
-                        continue
-                    elif source == 'git':
-                        pubspec_restore_git_archive(name, package, dir_path, pub_cache, archive_path)
-                        continue
-                    elif source == 'hosted':
-                        pubspec_restore_hosted_archive(name, package, pub_cache, archive_path)
-                        continue
-                    else:
-                        logging.error(f'{name}: Unknown source type: {source}')
-                        continue
+                        source = package['source']
+                        logging.debug(f'package {name}: source: {source}')
+                        if source == 'sdk':
+                            logging.debug('Skipping')
+                            continue
+                        elif source == 'path':
+                            logging.debug('Skipping')
+                            continue
+                        elif source == 'git':
+                            futures.append(executor.submit(
+                                pubspec_restore_git_archive, name, package, dir_path, pub_cache, archive_path))
+                            continue
+                        elif source == 'hosted':
+                            futures.append(executor.submit(
+                                pubspec_restore_hosted_archive, name, package, pub_cache, archive_path))
+                            continue
+                        else:
+                            logging.error(f'{name}: Unknown source type: {source}')
+                            continue
+                    break
+            if not walk:
                 break
-        if not walk:
-            break
+
+    concurrent.futures.wait(futures, timeout=None, return_when=concurrent.futures.ALL_COMPLETED)
 
 
 def pubspec_hosted_archive_exists(name: str, url: str, version: str, output_path: str) -> bool:
@@ -277,8 +290,11 @@ def pubspec_archive_hosted(package_name: str, package: dict, output_path: str):
     if len(advisories) > 42:
         logging.debug(f'{package_name} has advisories')
         advisories_file_path = os.path.join(hostname_cache_path, package_name + '-advisories.json')
-        with open(advisories_file_path, 'w') as file:
-            file.write(advisories)
+        with open(advisories_file_path, 'w') as f:
+            import fcntl
+            fcntl.lockf(f, fcntl.LOCK_EX)
+            f.write(advisories)
+            fcntl.lockf(f, fcntl.LOCK_UN)
 
     #
     # Fetch {package}-versions.json file
@@ -292,8 +308,11 @@ def pubspec_archive_hosted(package_name: str, package: dict, output_path: str):
 
         versions = versions[:-1] + ',"_fetchedAt":"' + timestamp + '"}'
 
-        with open(version_file_path, 'w') as file:
-            file.write(versions)
+        with open(version_file_path, 'w') as f:
+            import fcntl
+            fcntl.lockf(f, fcntl.LOCK_EX)
+            f.write(versions)
+            fcntl.lockf(f, fcntl.LOCK_UN)
 
     #
     # Fetch archive file
@@ -372,6 +391,12 @@ def pubspec_archive_git(name: str, package: dict, project_dir: str, archive_path
         return
 
     run_command(f'git clone --mirror {url} {git_folder}', project_dir, True)
+
+    # get lfs
+    git_lfs_file = os.path.join(project_dir, repo_name, '.gitattributes')
+    if os.path.exists(git_lfs_file):
+        run_command('git lfs fetch--all', git_folder, True)
+
     run_command(f'git --git-dir={git_folder} rev-list --max-count=1 {resolved_ref}', git_folder, True)
     run_command(f'git --git-dir={git_folder} show {resolved_ref}:pubspec.yaml', git_folder, True)
 
@@ -406,35 +431,39 @@ def pubspec_archive_packages_in_lock_file(base_path: str, output_path: str, walk
     """
     Archive pubspec packages for a given 'pubspec.lock' file
     """
+    import concurrent.futures
 
-    for dir_path, _, filenames in os.walk(base_path):
-        if 'pubspec.yaml' in filenames and 'pubspec.lock' not in filenames:
-            # create the lock file
-            run_command('dart pub get', dir_path, False)
-        if not walk:
-            break
+    futures = []
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        for dir_path, _, filenames in os.walk(base_path):
+            if 'pubspec.yaml' in filenames and 'pubspec.lock' not in filenames:
+                # create the lock file
+                futures.append(executor.submit(run_command, 'dart pub get', dir_path, False))
+            if not walk:
+                break
 
-    for dir_path, _, filenames in os.walk(base_path):
-        for filename in filenames:
-            if filename == 'pubspec.lock':
+    concurrent.futures.wait(futures, timeout=None, return_when=concurrent.futures.ALL_COMPLETED)
 
-                logging.info(f'Archiving {dir_path}/{filename}')
+    futures = []
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        for dir_path, _, filenames in os.walk(base_path):
+            for filename in filenames:
+                if filename == 'pubspec.lock':
 
-                # iterate pubspec.lock file
-                pubspec_lock = get_yaml_obj(f'{dir_path}/{filename}')
-                packages = pubspec_lock['packages']
+                    logging.info(f'Archiving {dir_path}/{filename}')
 
-                futures = []
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    # iterate pubspec.lock file
+                    pubspec_lock = get_yaml_obj(f'{dir_path}/{filename}')
+                    packages = pubspec_lock['packages']
+
                     for name in packages:
                         futures.append(
                             executor.submit(pubspec_archive_package, name, package=packages[name],
                                             project_path=dir_path,
                                             output_path=output_path))
+                    break
+            if not walk:
                 break
-        if not walk:
-            break
 
 
 def pubspec_get_package_advisories(name: str, url: str) -> str:

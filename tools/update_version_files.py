@@ -60,7 +60,10 @@ def get_version_files(cwd):
     dest_file = os.path.join(cwd, 'dart-revision.json')
     print_banner("Writing %s" % dest_file)
     with open(dest_file, 'w+') as o:
+        import fcntl
+        fcntl.lockf(o, fcntl.LOCK_EX)
         json.dump(res, o, sort_keys=True, indent=2)
+        fcntl.lockf(o, fcntl.LOCK_UN)
 
     print_banner('Fetching Engine revisions')
     engine_revs = {}
@@ -79,7 +82,10 @@ def get_version_files(cwd):
     dest_file = os.path.join(cwd, 'engine-revision.json')
     print_banner("Writing %s" % dest_file)
     with open(dest_file, 'w+') as o:
+        import fcntl
+        fcntl.lockf(o, fcntl.LOCK_EX)
         json.dump(engine_revs, o, sort_keys=True, indent=2)
+        fcntl.lockf(o, fcntl.LOCK_UN)
 
     os.remove(os.path.join(cwd, 'releases_linux.json.sha256'))
 

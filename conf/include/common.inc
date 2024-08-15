@@ -75,8 +75,8 @@ def get_versions_obj(file_path):
     import json
 
     try:
-        with open(file_path, 'r') as file:
-            data = json.load(file)
+        with open(file_path, 'r') as f:
+            data = json.load(f)
         return data
     except FileNotFoundError:
         bb.error(f"The file {file_path} does not exist.")
@@ -224,7 +224,11 @@ def write_sha256_file(cwd, filename):
     sha256_file = os.path.join(cwd, filename + '.sha256')
 
     with open(sha256_file, 'w+') as f:
+        import fcntl
+        fcntl.lockf(f, fcntl.LOCK_EX)
         f.write(sha256_val)
+        fcntl.lockf(f, fcntl.LOCK_UN)
+
 
 
 def fetch_https_progress(download_t, download_d, _upload_t, _upload_d):
@@ -273,8 +277,11 @@ def fetch_https_binary_file(url, filename, redirect, headers, cookie_file, netrc
     while retries_left > 0:
         try:
             with open(filename, 'wb') as f:
+                import fcntl
+                fcntl.lockf(f, fcntl.LOCK_EX)
                 c.setopt(pycurl.WRITEFUNCTION, f.write)
                 c.perform()
+                fcntl.lockf(f, fcntl.LOCK_UN)
 
             success = True
             break
@@ -349,8 +356,11 @@ def pubspec_archive_hosted(d, package_name, package, archive_path):
     if len(advisories) > 42:
         bb.debug(1, f'{package_name} has advisories')
         advisories_file_path = os.path.join(hostname_cache_path, package_name + '-advisories.json')
-        with open(advisories_file_path, 'w') as file:
-            file.write(advisories)
+        with open(advisories_file_path, 'w') as f:
+            import fcntl
+            fcntl.lockf(f, fcntl.LOCK_EX)
+            f.write(advisories)
+            fcntl.lockf(f, fcntl.LOCK_UN)
 
     #
     # Fetch {package}-versions.json file
@@ -364,8 +374,11 @@ def pubspec_archive_hosted(d, package_name, package, archive_path):
 
         versions = versions[:-1] + ',"_fetchedAt":"' + timestamp + '"}'
 
-        with open(version_file_path, 'w') as file:
-            file.write(versions)
+        with open(version_file_path, 'w') as f:
+            import fcntl
+            fcntl.lockf(f, fcntl.LOCK_EX)
+            f.write(versions)
+            fcntl.lockf(f, fcntl.LOCK_UN)
 
     #
     # Fetch archive file
@@ -485,39 +498,42 @@ def pubspec_archive_packages_in_lock_file(d, base_path, archive_path, walk, env)
     """
     Archive all pubspec packages in a given 'pubspec.lock' file
     """
-    bb.debug(1, 'pubspec_archive_packages_in_lock_file++')
+    import concurrent.futures
 
-    bb.debug(1, f'pubspec_archive_packages_in_lock_file: base_path: {base_path}')
-    bb.debug(1, f'pubspec_archive_packages_in_lock_file: archive_path: {archive_path}')
-    bb.debug(1, f'pubspec_archive_packages_in_lock_file: walk: {walk}')
-
-    for dir_path, _, filenames in os.walk(base_path):
-        if 'pubspec.yaml' in filenames and 'pubspec.lock' not in filenames:
-            # create lock file if missing
-            run_command('dart pub get', dir_path, env)
-        if not walk:
-            break
-
-    for dir_path, _, filenames in os.walk(base_path):
-        if 'pubspec.lock' in filenames:
-
-            bb.debug(1, f'Archiving {dir_path}/pubspec.lock')
-            bb.note(f'Archiving {dir_path}/pubspec.lock')
-
-            # iterate pubspec.lock file
-            pubspec_lock = get_yaml_obj(f'{dir_path}/pubspec.lock')
-            packages = pubspec_lock['packages']
-
-            for name in packages:
-                bb.debug(1, f'name: {name}')
-                pubspec_archive_package(d, name, packages[name], dir_path, archive_path, env)
-            break
-
-        else:
+    futures = []
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        for dir_path, _, filenames in os.walk(base_path):
+            if 'pubspec.yaml' in filenames and 'pubspec.lock' not in filenames:
+                # create the lock file
+                futures.append(executor.submit(run_command, 'dart pub get', dir_path, False))
             if not walk:
                 break
 
-    bb.debug(1, 'pubspec_archive_packages_in_lock_file--')
+    concurrent.futures.wait(futures, timeout=None, return_when=concurrent.futures.ALL_COMPLETED)
+
+    futures = []
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        for dir_path, _, filenames in os.walk(base_path):
+            if 'pubspec.lock' in filenames:
+
+                bb.debug(1, f'Archiving {dir_path}/pubspec.lock')
+                bb.note(f'Archiving {dir_path}/pubspec.lock')
+
+                # iterate pubspec.lock file
+                pubspec_lock = get_yaml_obj(f'{dir_path}/pubspec.lock')
+                packages = pubspec_lock['packages']
+
+                for name in packages:
+                    futures.append(
+                        executor.submit(pubspec_archive_package, name,
+                                        package=packages[name],
+                                        project_path=dir_path,
+                                        output_path=output_path, env=env))
+                break
+
+            else:
+                if not walk:
+                    break
 
 
 def pubspec_get_package_advisories(name, url):
