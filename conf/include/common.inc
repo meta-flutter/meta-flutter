@@ -672,13 +672,7 @@ python do_archive_pub_cache() {
     pub_cache_archive_path = os.path.join(d.getVar("DL_DIR"), 'pub_cache')
     make_sure_path_exists(pub_cache_archive_path)
 
-    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter'), str(pub_cache_archive_path), False, env)
-    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_driver'), str(pub_cache_archive_path), False, env)
-    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_localizations'), str(pub_cache_archive_path), False, env)
-    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_test'), str(pub_cache_archive_path), False, env)
-    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'flutter_tools'), str(pub_cache_archive_path), False, env)
-    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages', 'integration_test'), str(pub_cache_archive_path), False, env)
-
+    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk, 'packages'), str(pub_cache_archive_path), True, env)
     pubspec_archive_packages_in_lock_file(d, app_root, str(pub_cache_archive_path), False, env)
 }
 
@@ -912,12 +906,7 @@ python do_restore_pub_cache() {
     # Restore pub cache
     shutil.rmtree(pub_cache, ignore_errors=True)
 
-    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter'), archive_path, env, False)
-    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_driver'), archive_path, env, False)
-    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_localizations'), archive_path, env, False)
-    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_test'), archive_path, env, False)
-    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'flutter_tools'), archive_path, env, False)
-    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages', 'integration_test'), archive_path, env, False)
+    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk, 'packages'), archive_path, env, True)
     pubspec_restore_project_pub_cache(d, app_root, archive_path, env, False)
 
     # finalize
