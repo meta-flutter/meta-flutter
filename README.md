@@ -39,6 +39,14 @@ Yocto Layer for Google Flutter related projects.
 * release
 * jit_release
 
+## Required Layers
+* core
+* meta-python
+* openembedded-layer
+
+## Recommended Layers
+* clang-layer
+
 ## Dynamic Layers
 
 * clang-layer
@@ -50,7 +58,7 @@ Zenity is used for fileselector plugin on ivi-homescreen.  To enable this add me
 ## Overview
 
 Target BSP is expected to have a GPU with OpenGLES v2.0+ support.  
-If you selecting a part go with v3.0+, ideally one with Vulkan support.
+If you are selecting a part go with v3.0+, ideally one with Vulkan support.
 
 ## Notes
 
