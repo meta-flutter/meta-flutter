@@ -468,10 +468,6 @@ def pubspec_archive_package(d, name, package, project_path, archive_path, env):
     """
     Fetches an archive file if source is hosted, and not already present in archive
     """
-    bb.debug(1, f'pubspec_archive_package: name: {name}')
-    bb.debug(1, f'pubspec_archive_package: package: {package}')
-    bb.debug(1, f'pubspec_archive_package: project_path: {project_path}')
-    bb.debug(1, f'pubspec_archive_package: archive_path: {archive_path}')
 
     source = package.get('source', '')
     if source == '':
@@ -528,7 +524,7 @@ def pubspec_archive_packages_in_lock_file(d, base_path, archive_path, walk, env)
                         executor.submit(pubspec_archive_package, name,
                                         package=packages[name],
                                         project_path=dir_path,
-                                        output_path=output_path, env=env))
+                                        archive_path=archive_path, env=env))
                 break
 
             else:
