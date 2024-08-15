@@ -277,8 +277,11 @@ def pubspec_archive_hosted(package_name: str, package: dict, output_path: str):
     if len(advisories) > 42:
         logging.debug(f'{package_name} has advisories')
         advisories_file_path = os.path.join(hostname_cache_path, package_name + '-advisories.json')
-        with open(advisories_file_path, 'w') as file:
-            file.write(advisories)
+        with open(advisories_file_path, 'w') as f:
+            import fcntl
+            fcntl.lockf(f, fcntl.LOCK_EX)
+            f.write(advisories)
+            fcntl.lockf(f, fcntl.LOCK_UN)
 
     #
     # Fetch {package}-versions.json file
@@ -292,8 +295,11 @@ def pubspec_archive_hosted(package_name: str, package: dict, output_path: str):
 
         versions = versions[:-1] + ',"_fetchedAt":"' + timestamp + '"}'
 
-        with open(version_file_path, 'w') as file:
-            file.write(versions)
+        with open(version_file_path, 'w') as f:
+            import fcntl
+            fcntl.lockf(f, fcntl.LOCK_EX)
+            f.write(versions)
+            fcntl.lockf(f, fcntl.LOCK_UN)
 
     #
     # Fetch archive file

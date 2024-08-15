@@ -226,7 +226,10 @@ def write_sha256_file(cwd, filename):
     sha256_file = os.path.join(cwd, filename + '.sha256')
 
     with open(sha256_file, 'w+') as f:
+        import fcntl
+        fcntl.lockf(f, fcntl.LOCK_EX)
         f.write(sha256_val)
+        fcntl.lockf(f, fcntl.LOCK_UN)
 
 
 def fetch_https_progress(download_t, download_d, _upload_t, _upload_d):
@@ -275,8 +278,11 @@ def fetch_https_binary_file(url, filename, redirect, headers, cookie_file, netrc
     while retries_left > 0:
         try:
             with open(filename, 'wb') as f:
+                import fcntl
+                fcntl.lockf(f, fcntl.LOCK_EX)
                 c.setopt(pycurl.WRITEFUNCTION, f.write)
                 c.perform()
+                fcntl.lockf(f, fcntl.LOCK_UN)
 
             success = True
             break
@@ -351,8 +357,11 @@ def pubspec_archive_hosted(d, package_name, package, archive_path):
     if len(advisories) > 42:
         bb.debug(1, f'{package_name} has advisories')
         advisories_file_path = os.path.join(hostname_cache_path, package_name + '-advisories.json')
-        with open(advisories_file_path, 'w') as file:
-            file.write(advisories)
+        with open(advisories_file_path, 'w') as f:
+            import fcntl
+            fcntl.lockf(f, fcntl.LOCK_EX)
+            f.write(advisories)
+            fcntl.lockf(f, fcntl.LOCK_UN)
 
     #
     # Fetch {package}-versions.json file
@@ -366,8 +375,11 @@ def pubspec_archive_hosted(d, package_name, package, archive_path):
 
         versions = versions[:-1] + ',"_fetchedAt":"' + timestamp + '"}'
 
-        with open(version_file_path, 'w') as file:
-            file.write(versions)
+        with open(version_file_path, 'w') as f:
+            import fcntl
+            fcntl.lockf(f, fcntl.LOCK_EX)
+            f.write(versions)
+            fcntl.lockf(f, fcntl.LOCK_UN)
 
     #
     # Fetch archive file
