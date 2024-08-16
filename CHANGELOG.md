@@ -2,6 +2,7 @@
 
 Aug 16, 2024
 1. ivi-homescreen EGL backend alpha transparency fix
+2. env cleanup in common.inc
 
 Aug 15, 2024
 1. add layer dependencies
