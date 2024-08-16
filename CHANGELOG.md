@@ -4,6 +4,7 @@ Aug 16, 2024
 1. ivi-homescreen EGL backend alpha transparency fix
 2. env cleanup in common.inc
 3. do_restore_pub_cache add --enforce-lockfile
+4. improve concurrent archive fetch
 
 Aug 15, 2024
 1. add layer dependencies

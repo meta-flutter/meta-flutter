@@ -390,10 +390,7 @@ def pubspec_archive_package(name: str, package: dict, project_path: str, output_
     """
 
     source = package.get('source', '')
-    if source == '':
-        logging.debug(f'Skipping: {package}')
-        return
-    elif source == 'sdk':
+    if source == 'sdk':
         logging.debug(f'Skipping: {package}')
         return
     elif source == 'path':
@@ -414,14 +411,20 @@ def pubspec_archive_packages_in_lock_file(base_path: str, output_path: str, walk
     """
     Archive pubspec packages for a given 'pubspec.lock' file
     """
+    import concurrent.futures
 
-    for dir_path, _, filenames in os.walk(base_path):
-        if 'pubspec.yaml' in filenames and 'pubspec.lock' not in filenames:
-            # create the lock file
-            run_command('dart pub get', dir_path, False)
-        if not walk:
-            break
+    fs = []
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        for dir_path, _, filenames in os.walk(base_path):
+            if 'pubspec.yaml' in filenames and 'pubspec.lock' not in filenames:
+                # create the lock file
+                fs.append(executor.submit(run_command,'dart pub get', dir_path, False))
+            if not walk:
+                break
 
+    concurrent.futures.wait(fs, timeout=None, return_when=concurrent.futures.ALL_COMPLETED)
+
+    fs = []
     for dir_path, _, filenames in os.walk(base_path):
         for filename in filenames:
             if filename == 'pubspec.lock':
@@ -432,11 +435,9 @@ def pubspec_archive_packages_in_lock_file(base_path: str, output_path: str, walk
                 pubspec_lock = get_yaml_obj(f'{dir_path}/{filename}')
                 packages = pubspec_lock['packages']
 
-                futures = []
-                import concurrent.futures
                 with concurrent.futures.ThreadPoolExecutor() as executor:
                     for name in packages:
-                        futures.append(
+                        fs.append(
                             executor.submit(pubspec_archive_package, name, package=packages[name],
                                             project_path=dir_path,
                                             output_path=output_path))

@@ -477,10 +477,7 @@ def pubspec_archive_package(d, name, package, project_path, archive_path):
     bb.debug(1, f'pubspec_archive_package: archive_path: {archive_path}')
 
     source = package.get('source', '')
-    if source == '':
-        bb.debug(1, f'Skipping: {package}')
-        return
-    elif source == 'sdk':
+    if source == 'sdk':
         bb.debug(1, f'Skipping: {package}')
         return
     elif source == 'path':
@@ -501,18 +498,24 @@ def pubspec_archive_packages_in_lock_file(d, base_path, archive_path, walk):
     """
     Archive all pubspec packages in a given 'pubspec.lock' file
     """
+    import concurrent.futures
+
     bb.debug(1, 'pubspec_archive_packages_in_lock_file++')
 
     bb.debug(1, f'pubspec_archive_packages_in_lock_file: base_path: {base_path}')
     bb.debug(1, f'pubspec_archive_packages_in_lock_file: archive_path: {archive_path}')
     bb.debug(1, f'pubspec_archive_packages_in_lock_file: walk: {walk}')
 
-    for dir_path, _, filenames in os.walk(base_path):
-        if 'pubspec.yaml' in filenames and 'pubspec.lock' not in filenames:
-            # create lock file if missing
-            run_command('dart pub get', dir_path)
-        if not walk:
-            break
+    fs = []
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        for dir_path, _, filenames in os.walk(base_path):
+            if 'pubspec.yaml' in filenames and 'pubspec.lock' not in filenames:
+                # create lock file if missing
+                fs.append(executor.submit, run_command('dart pub get', dir_path))
+            if not walk:
+                break
+
+    concurrent.futures.wait(fs, timeout=None, return_when=concurrent.futures.ALL_COMPLETED)
 
     for dir_path, _, filenames in os.walk(base_path):
         if 'pubspec.lock' in filenames:
