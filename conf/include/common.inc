@@ -38,8 +38,6 @@ inherit python3native
 
 python () {
     d.setVar('FLUTTER_SDK_VERSION', get_flutter_sdk_version(d))
-
-    setup_environment()
 }
 
 
@@ -394,6 +392,7 @@ def pubspec_archive_hosted(d, package_name, package, archive_path):
         for v in versions['versions']:
             if v['version'] == version:
                 package = v
+                break
 
         if not package:
             bb.warn(f'{package_name}: {version} not found in {version_file_path}')
@@ -426,6 +425,7 @@ def pubspec_archive_git(package_name, package, project_dir, archive_path):
     Archive git package
     """
     from urllib.parse import urlparse
+
     bb.debug(1, f'package_name: {package_name}')
     bb.debug(1, f'package: {package}')
     bb.debug(1, f'project_dir: {project_dir}')
@@ -484,7 +484,8 @@ def pubspec_archive_package(d, name, package, project_path, archive_path):
         bb.debug(1, f'Skipping: {package}')
         return
     elif source == 'git':
-        pubspec_archive_git(name, package, project_path, archive_path)
+        bb.debug(1, f'source git: {package}')
+        pubspec_archive_git(package_name=name, package=package, project_dir=project_path, archive_path=archive_path)
         return
     elif source == 'hosted':
         pubspec_archive_hosted(d, name, package, archive_path)
@@ -511,30 +512,38 @@ def pubspec_archive_packages_in_lock_file(d, base_path, archive_path, walk):
         for dir_path, _, filenames in os.walk(base_path):
             if 'pubspec.yaml' in filenames and 'pubspec.lock' not in filenames:
                 # create lock file if missing
-                fs.append(executor.submit, run_command('dart pub get', dir_path))
+                fs.append(executor.submit(run_command, 'dart pub get', dir_path))
             if not walk:
                 break
 
     concurrent.futures.wait(fs, timeout=None, return_when=concurrent.futures.ALL_COMPLETED)
 
-    for dir_path, _, filenames in os.walk(base_path):
-        if 'pubspec.lock' in filenames:
+    fs = []
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        for dir_path, _, filenames in os.walk(base_path):
+            for filename in filenames:
+                if filename == 'pubspec.lock':
 
-            bb.debug(1, f'Archiving {dir_path}/pubspec.lock')
-            bb.note(f'Archiving {dir_path}/pubspec.lock')
+                    bb.debug(1, f'Archiving {dir_path}pubspec.lock')
+                    bb.note(f'Archiving {dir_path}pubspec.lock')
 
-            # iterate pubspec.lock file
-            pubspec_lock = get_yaml_obj(f'{dir_path}/pubspec.lock')
-            packages = pubspec_lock['packages']
+                    # iterate pubspec.lock file
+                    pubspec_lock = get_yaml_obj(f'{dir_path}/pubspec.lock')
+                    packages = pubspec_lock['packages']
 
-            for name in packages:
-                bb.debug(1, f'name: {name}')
-                pubspec_archive_package(d, name, packages[name], dir_path, archive_path)
-            break
+                    for name in packages:
+                        bb.debug(1, f'package: {packages[name]}')
 
-        else:
+                        fs.append(
+                            executor.submit(pubspec_archive_package, d, name,
+                                            packages[name],
+                                            dir_path,
+                                            archive_path))
+                    break
             if not walk:
                 break
+
+    concurrent.futures.wait(fs, timeout=None, return_when=concurrent.futures.ALL_COMPLETED)
 
     bb.debug(1, 'pubspec_archive_packages_in_lock_file--')
 
@@ -616,7 +625,7 @@ def pubspec_get_package_version(d, desc_name, desc_url, version):
     return json.loads(buffer.getvalue().decode('utf-8'))
 
 
-def setup_environment():
+def setup_environment(d):
     env = os.environ
 
     pub_cache = d.getVar("PUB_CACHE")
@@ -672,6 +681,8 @@ do_archive_pub_cache[depends] += " \
     "
 python do_archive_pub_cache() {
 
+    setup_environment(d)
+
     #
     # Application
     #
@@ -686,9 +697,18 @@ python do_archive_pub_cache() {
 
     flutter_sdk_path = os.environ['FLUTTER_SDK_PATH']
 
-    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk_path, 'bin', 'cache', 'dart-sdk', 'pkg', 'macros'), pub_cache_archive_path, False)
-    pubspec_archive_packages_in_lock_file(d, os.path.join(flutter_sdk_path, 'packages'), pub_cache_archive_path, True)
-    pubspec_archive_packages_in_lock_file(d, app_root, pub_cache_archive_path, False)
+    pubspec_archive_packages_in_lock_file(d=d,
+                                          base_path=app_root,
+                                          archive_path=pub_cache_archive_path,
+                                          walk=False)
+    pubspec_archive_packages_in_lock_file(d=d,
+                                          base_path=os.path.join(flutter_sdk_path, 'packages'),
+                                          archive_path=pub_cache_archive_path,
+                                          walk=True)
+    pubspec_archive_packages_in_lock_file(d=d,
+                                          base_path=os.path.join(flutter_sdk_path, 'bin', 'cache', 'dart-sdk', 'pkg', '_macros'),
+                                          archive_path=pub_cache_archive_path,
+                                          walk=False)
 }
 
 
@@ -812,7 +832,7 @@ def pubspec_restore_project_pub_cache(d, base_path, archive_path, walk):
     """
     Create pub cache for specified project path
     """
-    pub_cache_path = env['PUB_CACHE']
+    pub_cache_path = os.environ['PUB_CACHE']
     if not pub_cache_path:
         bb.error("PUB_CACHE is not set")
         return
@@ -871,6 +891,8 @@ python do_restore_pub_cache() {
 
     import shutil
 
+    setup_environment(d)
+
     #
     # Application
     #
@@ -879,11 +901,12 @@ python do_restore_pub_cache() {
     archive_path = os.path.join(d.getVar("DL_DIR"), 'pub_cache')
 
     # Restore pub cache
+    pub_cache = os.environ['PUB_CACHE']
     shutil.rmtree(pub_cache, ignore_errors=True)
 
     flutter_sdk_path = os.environ['FLUTTER_SDK_PATH']
 
-    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk_path, 'bin', 'cache', 'dart-sdk', 'pkg', 'macros'), archive_path, False)
+    pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk_path, 'bin', 'cache', 'dart-sdk', 'pkg', '_macros'), archive_path, False)
     pubspec_restore_project_pub_cache(d, os.path.join(flutter_sdk_path, 'packages'), archive_path, True)
     pubspec_restore_project_pub_cache(d, app_root, archive_path, False)
 
@@ -898,6 +921,8 @@ python do_compile() {
     """
     Compiles project
     """
+
+    setup_environment(d)
 
     pubspec_yaml_appname = get_pubspec_yaml_appname(d)
     pubspec_appname = d.getVar("PUBSPEC_APPNAME")
@@ -917,7 +942,7 @@ python do_compile() {
         build_web(d, source_root)
 
     elif build_type == 'app':
-        build_app(d, source_dir, pubspec_appname, flutter_application_path, staging_dir_target, source_root)
+        build_app(d, source_dir, pubspec_appname, flutter_application_path, source_root)
 }
 
 
@@ -946,7 +971,7 @@ def version_tuple(v):
     return tuple(map(int, (v.split("."))))
 
 
-def build_app(d, source_dir, pubspec_appname, flutter_application_path, staging_dir_target, source_root):
+def build_app(d, source_dir, pubspec_appname, flutter_application_path, source_root):
     """
     Builds flutter application
     """
@@ -956,6 +981,7 @@ def build_app(d, source_dir, pubspec_appname, flutter_application_path, staging_
     # determine build type based on what flutter-engine installed.
     datadir = d.getVar('datadir')
     flutter_sdk_version = d.getVar('FLUTTER_SDK_VERSION')
+    staging_dir_target = d.getVar('STAGING_DIR_TARGET')
     flutter_runtime_modes = os.listdir(f'{staging_dir_target}{datadir}/flutter/{flutter_sdk_version}')
 
     flutter_app_runtime_modes = d.getVar('FLUTTER_APP_RUNTIME_MODES')
