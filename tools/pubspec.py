@@ -66,14 +66,16 @@ def main():
         return
 
     # flutter doctor implicitly fetches this
-    flutter_packages_path = os.path.join(get_flutter_sdk_path(), 'packages')
+    flutter_sdk_path = get_flutter_sdk_path()
 
     if not args.restore:
-        pubspec_archive_packages_in_lock_file(flutter_packages_path, args.archive_path, True)
+        pubspec_archive_packages_in_lock_file(os.path.join(flutter_sdk_path, 'bin', 'cache', 'dart-sdk', 'pkg', 'macros'), args.archive_path)
+        pubspec_archive_packages_in_lock_file(os.path.join(flutter_sdk_path, 'packages'), args.archive_path, True)
         pubspec_archive_packages_in_lock_file(args.project_path, args.archive_path, args.walk)
 
     else:
-        pubspec_restore_project_pub_cache(flutter_packages_path, args.archive_path, True)
+        pubspec_restore_project_pub_cache(os.path.join(flutter_sdk_path, 'bin', 'cache', 'dart-sdk', 'pkg', 'macros'), args.archive_path)
+        pubspec_restore_project_pub_cache(os.path.join(flutter_sdk_path, 'packages'), args.archive_path, True)
         pubspec_restore_project_pub_cache(args.project_path, args.archive_path, args.walk)
 
     logging.info("Done")
