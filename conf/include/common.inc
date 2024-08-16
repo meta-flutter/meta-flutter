@@ -885,7 +885,7 @@ python do_restore_pub_cache() {
     pubspec_restore_project_pub_cache(d, app_root, archive_path, False)
 
     # finalize
-    run_command('dart pub get --offline -v', app_root)
+    run_command('dart pub get --offline --enforce-lockfile -v', app_root)
 }
 
 #
