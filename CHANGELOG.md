@@ -1,5 +1,8 @@
 # Changelog
 
+Aug 16, 2024
+1. ivi-homescreen EGL backend alpha transparency fix
+
 Aug 15, 2024
 1. add layer dependencies
 2. file locking for DL_DIR write files
