@@ -16,6 +16,7 @@ SRCREV = "38b7a9a819d69fe8d59d4a0cea744d6ca353616f"
 SRC_URI = " \
     git://github.com/flutter/super_dash;lfs=0;branch=main;protocol=https;destsuffix=git \
     file://super_dash/0001-ivi-homescreen-support.patch \
+    file://super_dash/0001-intl-0.19.0.patch \
 "
 
 S = "${WORKDIR}/git"
