@@ -1,5 +1,15 @@
 # Changelog
 
+Aug 20, 2024
+1. flutter-engine GPU symbol export patch
+2. ivi-homescreen/flutter-auto set logging level to debug if !NDEBUG
+
+Aug 16, 2024
+1. ivi-homescreen EGL backend alpha transparency fix
+2. env cleanup in common.inc
+3. do_restore_pub_cache add --enforce-lockfile
+4. improve concurrent archive fetch
+
 Aug 15, 2024
 1. add layer dependencies
 2. file locking for DL_DIR write files

@@ -69,14 +69,14 @@ def main():
     flutter_sdk_path = get_flutter_sdk_path()
 
     if not args.restore:
-        pubspec_archive_packages_in_lock_file(os.path.join(flutter_sdk_path, 'bin', 'cache', 'dart-sdk', 'pkg', 'macros'), args.archive_path)
-        pubspec_archive_packages_in_lock_file(os.path.join(flutter_sdk_path, 'packages'), args.archive_path, True)
         pubspec_archive_packages_in_lock_file(args.project_path, args.archive_path, args.walk)
+        pubspec_archive_packages_in_lock_file(os.path.join(flutter_sdk_path, 'packages'), args.archive_path, True)
+        pubspec_archive_packages_in_lock_file(os.path.join(flutter_sdk_path, 'bin', 'cache', 'dart-sdk', 'pkg', '_macros'), args.archive_path)
 
     else:
-        pubspec_restore_project_pub_cache(os.path.join(flutter_sdk_path, 'bin', 'cache', 'dart-sdk', 'pkg', 'macros'), args.archive_path)
-        pubspec_restore_project_pub_cache(os.path.join(flutter_sdk_path, 'packages'), args.archive_path, True)
         pubspec_restore_project_pub_cache(args.project_path, args.archive_path, args.walk)
+        pubspec_restore_project_pub_cache(os.path.join(flutter_sdk_path, 'packages'), args.archive_path, True)
+        pubspec_restore_project_pub_cache(os.path.join(flutter_sdk_path, 'bin', 'cache', 'dart-sdk', 'pkg', '_macros'), args.archive_path)
 
     logging.info("Done")
 
@@ -314,6 +314,7 @@ def pubspec_archive_hosted(package_name: str, package: dict, output_path: str):
         for v in versions['versions']:
             if v['version'] == version:
                 package = v
+                break
 
         if not package:
             logging.warning(f'{package_name}: {version} not found in {version_file_path}')
@@ -390,10 +391,7 @@ def pubspec_archive_package(name: str, package: dict, project_path: str, output_
     """
 
     source = package.get('source', '')
-    if source == '':
-        logging.debug(f'Skipping: {package}')
-        return
-    elif source == 'sdk':
+    if source == 'sdk':
         logging.debug(f'Skipping: {package}')
         return
     elif source == 'path':
@@ -414,35 +412,41 @@ def pubspec_archive_packages_in_lock_file(base_path: str, output_path: str, walk
     """
     Archive pubspec packages for a given 'pubspec.lock' file
     """
+    import concurrent.futures
 
-    for dir_path, _, filenames in os.walk(base_path):
-        if 'pubspec.yaml' in filenames and 'pubspec.lock' not in filenames:
-            # create the lock file
-            run_command('dart pub get', dir_path, False)
-        if not walk:
-            break
+    fs = []
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        for dir_path, _, filenames in os.walk(base_path):
+            if 'pubspec.yaml' in filenames and 'pubspec.lock' not in filenames:
+                # create the lock file
+                fs.append(executor.submit(run_command,'dart pub get', dir_path, False))
+            if not walk:
+                break
 
-    for dir_path, _, filenames in os.walk(base_path):
-        for filename in filenames:
-            if filename == 'pubspec.lock':
+    concurrent.futures.wait(fs, timeout=None, return_when=concurrent.futures.ALL_COMPLETED)
 
-                logging.info(f'Archiving {dir_path}/{filename}')
+    fs = []
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        for dir_path, _, filenames in os.walk(base_path):
+            for filename in filenames:
+                if filename == 'pubspec.lock':
 
-                # iterate pubspec.lock file
-                pubspec_lock = get_yaml_obj(f'{dir_path}/{filename}')
-                packages = pubspec_lock['packages']
+                    logging.info(f'Archiving {dir_path}/{filename}')
 
-                futures = []
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    # iterate pubspec.lock file
+                    pubspec_lock = get_yaml_obj(f'{dir_path}/{filename}')
+                    packages = pubspec_lock['packages']
+
                     for name in packages:
-                        futures.append(
+                        fs.append(
                             executor.submit(pubspec_archive_package, name, package=packages[name],
                                             project_path=dir_path,
                                             output_path=output_path))
+                    break
+            if not walk:
                 break
-        if not walk:
-            break
+
+    concurrent.futures.wait(fs, timeout=None, return_when=concurrent.futures.ALL_COMPLETED)
 
 
 def pubspec_get_package_advisories(name: str, url: str) -> str:
