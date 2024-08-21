@@ -12,6 +12,7 @@ RDEPENDS:${PN} += " \
     flutter-samples-flutter-maps-firestore \
     flutter-samples-isolate-example \
     flutter-samples-experimental-pedometer-example \
+    flutter-samples-experimental-date-planner \
     flutter-samples-experimental-varfont-shader-puzzle \
     flutter-samples-experimental-federated-plugin-federated-plugin-example \
     flutter-samples-place-tracker \

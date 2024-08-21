@@ -1,0 +1,26 @@
+From 273a62a435e184499cabcccbeb5c50a99735f8e2 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@toyotaconnected.com>
+Date: Wed, 21 Aug 2024 11:24:45 -0700
+Subject: [PATCH] intl -> 0.19.0
+
+Signed-off-by: Joel Winarske <joel.winarske@toyotaconnected.com>
+---
+ pubspec.yaml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/pubspec.yaml b/pubspec.yaml
+index 9e1e0f5..d1ff507 100644
+--- a/pubspec.yaml
++++ b/pubspec.yaml
+@@ -30,7 +30,7 @@ dependencies:
+   flutter_localizations:
+     sdk: flutter
+   font_awesome_flutter: ^10.6.0
+-  intl: ^0.18.0
++  intl: ^0.19.0
+   leaderboard_repository:
+     path: packages/leaderboard_repository
+   leap: ^0.2.1
+-- 
+2.25.1
+

@@ -12,7 +12,7 @@ SECTION = "graphics"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=c52243a14a066c83e50525d9ad046678"
 
-SRCREV = "94ef390e7011a310c61010f52a8355db68f6acfc"
+SRCREV = "a0216e0e6bcf72523acab21f5c42ecb7d2f8ca98"
 SRC_URI = "git://github.com/rive-app/rive-flutter.git;lfs=1;branch=master;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"
