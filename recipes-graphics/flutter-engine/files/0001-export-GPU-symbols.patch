@@ -1,0 +1,26 @@
+From bfdda9a112f91117c4a13d89a88c27f4d1077dea Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@toyotaconnected.com>
+Date: Wed, 21 Aug 2024 07:44:19 -0700
+Subject: [PATCH] export GPU symbols
+
+Signed-off-by: Joel Winarske <joel.winarske@toyotaconnected.com>
+---
+ flutter/shell/platform/embedder/embedder_exports.lst | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/flutter/shell/platform/embedder/embedder_exports.lst b/flutter/shell/platform/embedder/embedder_exports.lst
+index ccaf84b2ea..d5755ed5c5 100644
+--- a/flutter/shell/platform/embedder/embedder_exports.lst
++++ b/flutter/shell/platform/embedder/embedder_exports.lst
+@@ -13,6 +13,8 @@
+     kDartIsolateSnapshotInstructions;
+     kDartVmSnapshotData;
+     kDartVmSnapshotInstructions;
++    InternalFlutterGpu*;
++    kInternalFlutterGpu*;
+   local:
+     *;
+ };
+-- 
+2.25.1
+

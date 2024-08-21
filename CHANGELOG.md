@@ -1,5 +1,8 @@
 # Changelog
 
+Aug 20, 2024
+1. flutter-engine GPU symbol export patch
+
 Aug 16, 2024
 1. ivi-homescreen EGL backend alpha transparency fix
 2. env cleanup in common.inc
