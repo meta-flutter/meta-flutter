@@ -2,8 +2,8 @@
 # Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
 #
 
-SUMMARY = "google_maps_in_flutter"
-DESCRIPTION = "A new Flutter project."
+SUMMARY = "date_planner"
+DESCRIPTION = "An iOS-style date planner."
 AUTHOR = "Google"
 HOMEPAGE = "None"
 BUGTRACKER = "None"
@@ -17,8 +17,8 @@ SRC_URI = "git://github.com/flutter/samples.git;lfs=1;branch=main;protocol=https
 
 S = "${WORKDIR}/git"
 
-PUBSPEC_APPNAME = "google_maps_in_flutter"
-FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-google-maps-google-maps-in-flutter"
-FLUTTER_APPLICATION_PATH = "google_maps"
+PUBSPEC_APPNAME = "date_planner"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-experimental-date-planner"
+FLUTTER_APPLICATION_PATH = "experimental/date_planner"
 
 inherit flutter-app
