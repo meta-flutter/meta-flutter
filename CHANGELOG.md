@@ -1,5 +1,9 @@
 # Changelog
 
+Sep 3, 2024
+1. Backout pubspec archiver
+2. enforce lockfile
+
 Aug 20, 2024
 1. flutter-engine GPU symbol export patch
 2. ivi-homescreen/flutter-auto set logging level to debug if !NDEBUG

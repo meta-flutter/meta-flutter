@@ -143,19 +143,14 @@
         ]
     },
     {
-        "uri": "https://github.com/flutter/gallery.git",
+        "uri": "https://github.com/flutter/flutter.git",
         "branch": "main",
         "license_file": "LICENSE",
         "license_type": "BSD-3-Clause",
         "author": "Google",
         "folder": "first-party",
-        "src_files": {
-            "": [
-                "0001-flutter-pub-upgrade-major-versions.patch"
-            ]
-        },
         "rdepends": {
-            "": [
+            "dev/integration_tests/flutter_gallery": [
                 "xdg-user-dirs"
             ]
         }
