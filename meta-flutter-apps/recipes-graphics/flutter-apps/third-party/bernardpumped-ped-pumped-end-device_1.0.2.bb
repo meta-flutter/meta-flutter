@@ -19,6 +19,7 @@ S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "pumped_end_device"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "bernardpumped-ped-pumped-end-device"
+PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = ""
 
 inherit flutter-app

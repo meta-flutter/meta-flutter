@@ -23,6 +23,7 @@ PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \
 
 PUBSPEC_APPNAME = "firebase_dynamic_links_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "firebase-flutterfire-packages-firebase-dynamic-links-firebase-dynamic-links-example"
+PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = "packages/firebase_dynamic_links/firebase_dynamic_links/example"
 
 inherit flutter-app

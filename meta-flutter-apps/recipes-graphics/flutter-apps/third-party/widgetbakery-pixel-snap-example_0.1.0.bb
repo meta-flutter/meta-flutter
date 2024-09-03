@@ -23,6 +23,7 @@ PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \
 
 PUBSPEC_APPNAME = "example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "widgetbakery-pixel-snap-example"
+PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = "example"
 
 inherit flutter-app

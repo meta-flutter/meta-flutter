@@ -3,6 +3,8 @@
 Sep 3, 2024
 1. Backout pubspec archiver
 2. enforce lockfile
+3. roll meta-flutter-apps
+4. use PUBSPEC_IGNORE_LOCKFILE="1" as default for all rolled recipes
 
 Aug 20, 2024
 1. flutter-engine GPU symbol export patch

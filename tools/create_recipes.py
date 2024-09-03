@@ -362,6 +362,7 @@ def create_recipe(directory,
 
         f.write(f'PUBSPEC_APPNAME = "{project_name}"\n')
         f.write(f'FLUTTER_APPLICATION_INSTALL_SUFFIX = "{recipe_name}"\n')
+        f.write(f'PUBSPEC_IGNORE_LOCKFILE = "1"\n')
 
         f.write(f'FLUTTER_APPLICATION_PATH = "{flutter_application_path}"\n')
 

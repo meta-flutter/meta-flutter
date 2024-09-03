@@ -19,6 +19,7 @@ S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "test_egl"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "meta-flutter-tests-textures-test-egl"
+PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = "textures/test_egl"
 
 inherit flutter-app
