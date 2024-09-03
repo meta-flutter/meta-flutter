@@ -144,7 +144,6 @@
     },
     {
         "uri": "https://github.com/flutter/flutter.git",
-        "branch": "main",
         "ver": "5874a72aa4c779a02553007c47dacbefba2374dc",
         "license_file": "LICENSE",
         "license_type": "BSD-3-Clause",
