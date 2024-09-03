@@ -23,6 +23,7 @@ S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "my_fox_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "playx-flutter-playx-3d-scene-example-my-fox-example"
+PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = "example"
 
 inherit flutter-app

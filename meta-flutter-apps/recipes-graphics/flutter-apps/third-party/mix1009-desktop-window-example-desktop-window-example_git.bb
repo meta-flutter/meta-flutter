@@ -19,6 +19,7 @@ S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "desktop_window_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "mix1009-desktop-window-example-desktop-window-example"
+PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = "example"
 
 inherit flutter-app

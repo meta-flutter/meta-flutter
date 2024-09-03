@@ -19,6 +19,7 @@ S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "theyakka-qr-example"
+PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = "example"
 
 inherit flutter-app
