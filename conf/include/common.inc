@@ -101,12 +101,17 @@ python do_archive_pub_cache() {
     env['PUB_CACHE'] = pub_cache
 
     shutil.rmtree(f'{pub_cache}', ignore_errors=True)
-    flutter_sdk_pub_cache = os.path.join(d.getVar("STAGING_DATADIR_NATIVE"), 'flutter/sdk/.pub-cache')
+
+    flutter_sdk = os.path.join(d.getVar("STAGING_DATADIR_NATIVE"), 'flutter/sdk')
+    flutter_sdk_pub_cache = os.path.join(flutter_sdk, '.pub-cache')
+
     shutil.copytree(flutter_sdk_pub_cache, pub_cache)
 
     workdir = d.getVar("WORKDIR")
+
     # required for dart: https://github.com/dart-lang/sdk/issues/41560
     env['HOME'] = f'{workdir}'
+
     # required for flutter: https://github.com/flutter/flutter/issues/59430
     env['XDG_CONFIG_HOME'] = f'{workdir}'
 
@@ -128,7 +133,6 @@ python do_archive_pub_cache() {
 
     env['NO_PROXY']       = 'localhost,127.0.0.1,::1'
 
-    flutter_sdk = os.path.join(d.getVar("STAGING_DATADIR_NATIVE"), 'flutter/sdk')
     env['PATH'] = f'{env["PATH"]}:{flutter_sdk}/bin'
 
     app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
@@ -173,11 +177,7 @@ python do_archive_pub_cache() {
     run_command(d, 'flutter pub get --enforce-lockfile', app_root, env)
     run_command(d, 'flutter pub get --enforce-lockfile --offline', app_root, env)
 
-    cp_cmd = \
-        'mkdir -p %s/.project | true; ' \
-        'cp -r .* %s/.project/ | true; ' \
-        % (pub_cache, pub_cache)
-
+    cp_cmd = f'mkdir -p {pub_cache}/.project | true; cp -r .* {pub_cache}/.project/ | true;'
     bb.note("Running [%s] in %s" % (cp_cmd, app_root))
     run_command(d, cp_cmd, app_root, env)
 
