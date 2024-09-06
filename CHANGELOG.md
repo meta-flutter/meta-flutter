@@ -1,5 +1,8 @@
 # Changelog
 
+Sep 6, 2024
+1. rive-text 0.4.11
+
 Sep 3, 2024
 1. Backout pubspec archiver
 2. enforce lockfile
