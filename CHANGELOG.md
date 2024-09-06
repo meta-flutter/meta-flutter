@@ -1,7 +1,7 @@
 # Changelog
 
 Sep 6, 2024
-1. rive-text 0.4.11
+1. Update ivi-homescreen-plugins for ivi-homescreen and flutter-auto
 
 Sep 3, 2024
 1. Backout pubspec archiver
