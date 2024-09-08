@@ -9,10 +9,10 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS:${PN} += " \
-    flutter-games-templates-basic \
-    flutter-games-templates-endless-runner \
-    flutter-games-templates-card \
-    flutter-games-samples-ads \
-    flutter-games-samples-multiplayer \
     flutter-games-samples-crossword \
+    flutter-games-samples-multiplayer \
+    flutter-games-samples-ads \
+    flutter-games-templates-endless-runner \
+    flutter-games-templates-basic \
+    flutter-games-templates-card \
 "
