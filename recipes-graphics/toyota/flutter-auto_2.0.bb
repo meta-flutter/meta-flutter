@@ -20,14 +20,10 @@ DEPENDS += "\
     wayland-protocols \
     "
 
-RDEPENDS:${PN} += "\
-   flutter-engine \
-   "
-
 REQUIRED_DISTRO_FEATURES = "wayland"
 
-HOMESCREEN_COMMIT ??= "e87c1797f838e20f0a4c1af309541d63986058ca"
-PLUGINS_COMMIT ??= "41d00635f89c064aa32f2cef3147c59b8f61694f"
+HOMESCREEN_COMMIT ??= "25b67b5a32cce10daa3f20e20d00bf0acfc27fac"
+PLUGINS_COMMIT ??= "875f40008e489c9e597694507622d5884eeed526"
 
 SRC_URI = "\
     gitsm://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=v2.0;name=homescreen \
@@ -64,6 +60,7 @@ PACKAGECONFIG ??= "\
     secure-storage \
     url_launcher \
     desktop_window_linux \
+    rive-text \
     "
 
 PACKAGECONFIG[backend-wayland-drm] = "-DBUILD_BACKEND_WAYLAND_DRM=ON,-DBUILD_BACKEND_WAYLAND_DRM=OFF"
@@ -132,6 +129,7 @@ PACKAGECONFIG[google_sign_in] = "-DBUILD_PLUGIN_GOOGLE_SIGN_IN=ON,-DBUILD_PLUGIN
 PACKAGECONFIG[pdf] = "-DBUILD_PLUGIN_PDF=ON, -DBUILD_PLUGIN_PDF=OFF, pdfium"
 PACKAGECONFIG[video_player_linux] = "-DBUILD_PLUGIN_VIDEO_PLAYER_LINUX=ON,-DBUILD_PLUGIN_VIDEO_PLAYER_LINUX=OFF, gstreamer1.0 gstreamer1.0-plugins-base ffmpeg"
 PACKAGECONFIG[camera] = "-DBUILD_PLUGIN_CAMERA=ON, -DBUILD_PLUGIN_CAMERA=OFF, libcamera"
+PACKAGECONFIG[rive-text] = "-DBUILD_PLUGIN_RIVE_TEXT=ON, -DBUILD_PLUGIN_RIVE_TEXT=OFF, rive-text"
 
 PACKAGECONFIG[sentry] = "\
     -DBUILD_CRASH_HANDLER=ON \
@@ -150,5 +148,10 @@ EXTRA_OECMAKE += "\
     -D BUILD_UNIT_TESTS=OFF \
     -D BUILD_DOCS=OFF \
 "
+
+RDEPENDS:${PN} += "\
+   flutter-engine \
+    ${@bb.utils.contains('PACKAGECONFIG', 'rive-text', 'rive-text', '', d)} \
+   "
 
 BBCLASSEXTEND = "verbose-logs"
