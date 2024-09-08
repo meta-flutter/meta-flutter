@@ -1,5 +1,10 @@
 # Changelog
 
+Sep 8, 2024
+1. Flutter SDK 3.24.2
+2. dart SDK 3.5.2
+3. ivi-homescreen/flutter-auto - rive-text plugin
+
 Sep 6, 2024
 1. Update ivi-homescreen-plugins for ivi-homescreen and flutter-auto
 

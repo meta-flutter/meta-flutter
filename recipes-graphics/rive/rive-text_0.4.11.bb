@@ -12,11 +12,13 @@ SECTION = "devtools"
 LICENSE = "MIT & Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=c52243a14a066c83e50525d9ad046678"
 
-SRCREV = "65a29b28f10f9347626bbfd9a13928f90bd3d6c6"
+SRCREV = "4e7699cb628276ec118eac1150cf7d1b34c18c14"
 SRC_URI = "git://github.com/meta-flutter/rive-common.git;protocol=https;lfs=0;nobranch=1"
 
 S = "${WORKDIR}/git"
 
 inherit cmake
 
+FILES_SOLIBSDEV = ""
+INSANE_SKIP:${PN} += "dev-so"
 FILES:${PN} = "${libdir}"
