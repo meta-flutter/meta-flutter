@@ -18,6 +18,7 @@ PUB_CACHE_EXTRA_ARCHIVE_PATH ??= ""
 APP_AOT_EXTRA ??= ""
 APP_AOT_ENTRY_FILE ??= "main.dart"
 APP_GEN_SNAPSHOT_FLAGS ??= ""
+APP_CONFIG ??= ""
 
 FLUTTER_APP_RUNTIME_MODES ?= "release"
 
@@ -26,8 +27,7 @@ FLUTTER_APPLICATION_INSTALL_SUFFIX ??= "${PUBSPEC_APPNAME}"
 FLUTTER_INSTALL_DIR = "${FLUTTER_APPLICATION_INSTALL_PREFIX}/${FLUTTER_APPLICATION_INSTALL_SUFFIX}"
 
 PUB_CACHE = "${WORKDIR}/pub_cache"
-_REV = "${@d.getVar('SRCPV') or d.getVar('PV')}"
-PUB_CACHE_ARCHIVE = "flutter-pub-cache-${PN}-${_REV}-${FLUTTER_SDK_TAG}.tar.bz2"
+PUB_CACHE_ARCHIVE = ""
 
 PUBSPEC_IGNORE_LOCKFILE ??= "0"
 
@@ -59,12 +59,45 @@ def run_command(d, cmd, cwd, env):
     # replace all consecutive whitespace characters (tabs, newlines etc.) with a single space
     cmd = re.sub('\s{2,}', ' ', cmd)
 
-    bb.note('Running [%s] in %s' % (cmd, cwd))
+    bb.note(f'Running [{cmd}] in {cwd}')
     (retval, output) = getstatusoutput(cmd, cwd, env)
     if retval:
         formatted_output = '\n  ' + output.replace('\n','\n  ')
         bb.note(f'Output:{formatted_output}')
         bb.fatal(f'{cmd} failed: {retval}')
+
+def md5_update_from_dir(directory, hash):
+    from pathlib import Path
+    assert Path(directory).is_dir()
+    for path in sorted(Path(directory).iterdir(), key=lambda p: str(p).lower()):
+        hash.update(path.name.encode())
+        if path.is_file():
+            with open(path, "rb") as f:
+                for chunk in iter(lambda: f.read(4096), b""):
+                    hash.update(chunk)
+        elif path.is_dir():
+            hash = md5_update_from_dir(path, hash)
+    return hash
+
+def md5_dir(directory):
+    import hashlib
+    return md5_update_from_dir(directory, hashlib.md5()).hexdigest()
+
+def get_pub_cache_archive_name(d, app_root):
+    """
+    Returns unique pub cache archive name
+    """
+    app_root_md5 = md5_dir(app_root)
+    pn = d.getVar('PN')
+    flutter_sdk_tag = d.getVar('FLUTTER_SDK_TAG')
+    pub_cache_archive = f'flutter-pub-cache-{pn}-{app_root_md5}-{flutter_sdk_tag}.tar.bz2'
+
+    workspace = d.getVar('WORKDIR')
+    file = os.path.join(workspace, 'PUB_CACHE_ARCHIVE')
+    with open(file, 'w+') as f:
+        f.write(pub_cache_archive)
+
+    return pub_cache_archive
 
 #
 # Archive Pub Cache
@@ -73,7 +106,6 @@ def run_command(d, cmd, cwd, env):
 addtask archive_pub_cache before restore_pub_cache after do_patch
 do_archive_pub_cache[network] = "1"
 do_archive_pub_cache[dirs] = "${WORKDIR} ${DL_DIR}"
-do_archive_pub_cache[lockfiles] += "${DL_DIR}/${PUB_CACHE_ARCHIVE}.lock"
 do_archive_pub_cache[depends] += " \
     flutter-sdk-native:do_populate_sysroot \
     pbzip2-native:do_populate_sysroot \
@@ -84,13 +116,19 @@ python do_archive_pub_cache() {
     import errno
     import multiprocessing
     import shutil
-    from   bb.fetch2 import FetchError
+    from bb.fetch2 import FetchError
 
-    localfile = d.getVar("PUB_CACHE_ARCHIVE")
+    workspace = d.getVar('WORKDIR')
+    pub_cache_archive_file = os.path.join(workspace, 'PUB_CACHE_ARCHIVE')
+    if os.path.exists(pub_cache_archive_file):
+        with open(pub_cache_archive_file, 'r') as f:
+            localfile = f.read()
+            if os.path.exists(localfile):
+                return
+
+    app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
+    localfile = get_pub_cache_archive_name(d, app_root)
     localpath = os.path.join(d.getVar("DL_DIR"), localfile)
-
-    if os.access(localpath, os.R_OK):
-        return
 
     env = os.environ
 
@@ -101,7 +139,6 @@ python do_archive_pub_cache() {
     env['PUB_CACHE'] = pub_cache
 
     shutil.rmtree(f'{pub_cache}', ignore_errors=True)
-
     flutter_sdk = os.path.join(d.getVar("STAGING_DATADIR_NATIVE"), 'flutter/sdk')
     flutter_sdk_pub_cache = os.path.join(flutter_sdk, '.pub-cache')
 
@@ -135,8 +172,6 @@ python do_archive_pub_cache() {
 
     env['PATH'] = f'{env["PATH"]}:{flutter_sdk}/bin'
 
-    app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
-
     #
     # Remove pubspec.lock file if present
     #
@@ -152,14 +187,12 @@ python do_archive_pub_cache() {
     pub_cache_extra_archive_path = d.getVar("PUB_CACHE_EXTRA_ARCHIVE_PATH")
     if pub_cache_extra_archive_cmd != None:
         path = d.getVar("PATH")
-        cmd = \
-            'export PUB_CACHE=%s; ' \
-            'export XDG_CONFIG_HOME=%s;' \
-            'export PATH=%s/bin:%s:%s;' \
-            '%s' % \
-            (pub_cache, workdir, flutter_sdk, path, pub_cache_extra_archive_path, pub_cache_extra_archive_cmd)
+        cmd = f'export PUB_CACHE={pub_cache}; ' \
+            f'export XDG_CONFIG_HOME={workdir};' \
+            f'export PATH={flutter_sdk}/bin:{path}:{pub_cache_extra_archive_path};' \
+            f'{pub_cache_extra_archive_cmd}'
 
-        bb.note("Running [%s] in %s" % (cmd, app_root))
+        bb.note(f'Running [{cmd}] in {app_root}')
         run_command(d, cmd, app_root, env)
 
     #
@@ -172,27 +205,28 @@ python do_archive_pub_cache() {
     # if no pubspec.lock, create it
     pubspec_lock = os.path.join(app_root, 'pubspec.lock')
     if not os.path.exists(pubspec_lock):
-        run_command(d, 'flutter pub get -v', app_root, env)
+        run_command(d, 'dart pub --suppress-analytics --directory . get --example', app_root, env)
+        run_command(d, 'dart pub --suppress-analytics --directory . get', app_root, env)
 
     run_command(d, 'flutter pub get --enforce-lockfile', app_root, env)
     run_command(d, 'flutter pub get --enforce-lockfile --offline', app_root, env)
 
     cp_cmd = f'mkdir -p {pub_cache}/.project | true; cp -r .* {pub_cache}/.project/ | true;'
-    bb.note("Running [%s] in %s" % (cp_cmd, app_root))
+    bb.note(f'Running [{cp_cmd}] in {app_root}')
     run_command(d, cp_cmd, app_root, env)
 
     bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
-    pack_cmd = "tar -I \"pbzip2 -p%s\" -cf %s ./" % (bb_number_threads, localpath)
+    pack_cmd = f'tar -I \"pbzip2 -p{bb_number_threads}\" -cf {localpath} ./'
 
-    bb.note("Running [%s] in %s" % (pack_cmd, pub_cache))
+    bb.note(f'Running [{pack_cmd}] in {pub_cache}')
     run_command(d, pack_cmd, pub_cache, env)
 
     if not os.path.exists(localpath):
-        raise FetchError("The fetch command returned success for pub cache, but %s doesn't exist?!" % (localpath), localpath)
+        raise FetchError(f'The fetch command returned success for pub cache, but {localpath} does not exist?!', localpath)
 
     if os.path.getsize(localpath) == 0:
         os.remove(localpath)
-        raise FetchError("The fetch of %s resulted in a zero size file?! Deleting and failing since this isn't right." % (localpath), localpath)
+        raise FetchError(f'The fetch of {localpath} resulted in a zero size file?! Deleting and failing since this is not right.', localpath)
 }
 
 #
@@ -201,7 +235,6 @@ python do_archive_pub_cache() {
 
 addtask restore_pub_cache before do_configure after do_archive_pub_cache
 do_restore_pub_cache[dirs] = "${WORKDIR} ${DL_DIR}"
-do_restore_pub_cache[lockfiles] += "${DL_DIR}/${PUB_CACHE_ARCHIVE}.lock"
 do_restore_pub_cache[depends] += " \
     pbzip2-native:do_populate_sysroot \
     tar-native:do_populate_sysroot \
@@ -214,24 +247,31 @@ python do_restore_pub_cache() {
     from   bb.fetch2 import subprocess_setup
     from   bb.fetch2 import UnpackError
 
-    localfile = d.getVar("PUB_CACHE_ARCHIVE")
+    app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
+
+    workspace = d.getVar('WORKDIR')
+    file = os.path.join(workspace, 'PUB_CACHE_ARCHIVE')
+    localfile = ''
+    with open(file, 'r') as f:
+        localfile = f.read()
+        if not localfile:
+            assert False
     localpath = os.path.join(d.getVar("DL_DIR"), localfile)
 
     bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
-    cmd = 'pbzip2 -dc -p%s %s | tar x --no-same-owner -f -' % (bb_number_threads, localpath)
+    cmd = f'pbzip2 -dc -p{bb_number_threads} {localpath} | tar x --no-same-owner -f -'
     unpackdir = d.getVar("PUB_CACHE")
     shutil.rmtree(unpackdir, ignore_errors=True)
     bb.utils.mkdirhier(unpackdir)
     path = d.getVar('PATH')
-    if path: cmd = 'PATH=\"%s\" %s' % (path, cmd)
-    bb.note("Running [%s] in %s" % (cmd, unpackdir))
+    if path: cmd = f'PATH=\"{path}\" {cmd}'
+    bb.note(f'Running [{cmd}] in {unpackdir}')
     ret = subprocess.call(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir)
 
     if ret != 0:
-        raise UnpackError("Unpack command %s failed with return value %s" % (cmd, ret), localpath)
+        raise UnpackError(f'Unpack command {cmd} failed with return value {ret}', localpath)
 
     # restore flutter pub get artifacts
-    app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
     cmd = \
         f'mv .project/.dart_tool {app_root}/ | true; ' \
         f'mv .project/.packages {app_root}/ | true; ' \
@@ -241,11 +281,11 @@ python do_restore_pub_cache() {
         f'mv .project/.metadata {app_root}/ | true; ' \
         f'mv .project/.packages {app_root}/ | true; ' \
         'rm -rf .project'
-    bb.note("Running [%s] in %s" % (cmd, unpackdir))
+    bb.note(f'Running [{cmd}] in {unpackdir}')
     ret = subprocess.call(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir)
 
     if ret != 0:
-        raise UnpackError("Restore .dart_tool command %s failed with return value %s" % (cmd, ret), localpath)
+        raise UnpackError(f'Restore .dart_tool command {cmd} failed with return value {ret}', localpath)
 }
 
 
@@ -253,10 +293,21 @@ python do_restore_pub_cache() {
 # clean pub cache archive
 #
 python do_cleanall:append() {
-    localfile = d.getVar("PUB_CACHE_ARCHIVE")
+
+    workspace = d.getVar('WORKDIR')
+    file = os.path.join(workspace, 'PUB_CACHE_ARCHIVE')
+    if not os.path.exists(file):
+        return
+    
+    localfile = ''
+    with open(file, 'r') as f:
+        localfile = f.read()
+        if not localfile:
+            assert False
+
     localpath = os.path.join(d.getVar("DL_DIR"), localfile)
 
-    bb.note("Removing [%s]" % (localpath))
+    bb.note(f'Removing [{localpath}]')
 
     try:
         os.remove(localpath)
