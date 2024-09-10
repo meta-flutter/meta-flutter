@@ -1,5 +1,8 @@
 # Changelog
 
+Sep 10, 2024
+1. fix for pub git fetching from secure repos
+
 Sep 9, 2024
 1. unique archive name using md5 of app root (directory)
 2. APP_CONFIG variable.  Installs string value as config.toml to bundle root.

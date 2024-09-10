@@ -99,6 +99,63 @@ def get_pub_cache_archive_name(d, app_root):
 
     return pub_cache_archive
 
+def get_archive_pub_cache_environment(d, pub_cache, flutter_sdk):
+    """
+    Returns environment to use with archive pub caching
+    """
+    PUB_CACHE_EXPORT_VARS = [
+        'HOME', 'PATH',
+        'HTTP_PROXY', 'http_proxy',
+        'HTTPS_PROXY', 'https_proxy',
+        'FTP_PROXY', 'ftp_proxy',
+        'FTPS_PROXY', 'ftps_proxy',
+        'NO_PROXY', 'no_proxy',
+        'ALL_PROXY', 'all_proxy',
+        'GIT_PROXY_COMMAND',
+        'GIT_SSH',
+        'GIT_SSH_COMMAND',
+        'GIT_SSL_CAINFO',
+        'GIT_SMART_HTTP',
+        'SSH_AUTH_SOCK', 'SSH_AGENT_PID',
+        'SOCKS5_USER', 'SOCKS5_PASSWD',
+        'DBUS_SESSION_BUS_ADDRESS',
+        'P4CONFIG',
+        'SSL_CERT_FILE',
+        'NODE_EXTRA_CA_CERTS',
+        'AWS_PROFILE',
+        'AWS_ACCESS_KEY_ID',
+        'AWS_SECRET_ACCESS_KEY',
+        'AWS_ROLE_ARN',
+        'AWS_WEB_IDENTITY_TOKEN_FILE',
+        'AWS_DEFAULT_REGION',
+        'AWS_SESSION_TOKEN',
+        'GIT_CACHE_PATH',
+        'REMOTE_CONTAINERS_IPC',
+        'SSL_CERT_DIR'
+        ]
+    newenv = {}
+    origenv = os.environ
+    for name in PUB_CACHE_EXPORT_VARS:
+        value = d.getVar(name)
+        if not value and origenv:
+            value = origenv.get(name)
+        if value:
+            newenv[name] = value
+
+    # clean existing pub-cache, populate from the flutter-sdk-native pub-cache
+    newenv['PUB_CACHE'] = pub_cache
+
+    # required for dart: https://github.com/dart-lang/sdk/issues/41560
+    newenv['HOME'] = d.getVar("WORKDIR")
+
+    # required for flutter: https://github.com/flutter/flutter/issues/59430
+    newenv['XDG_CONFIG_HOME'] = d.getVar("WORKDIR")
+
+    path = origenv.get('PATH')
+    newenv['PATH'] = f'{path}:{flutter_sdk}/bin:{pub_cache}/bin'
+
+    return newenv
+
 #
 # Archive Pub Cache
 #
@@ -130,47 +187,15 @@ python do_archive_pub_cache() {
     localfile = get_pub_cache_archive_name(d, app_root)
     localpath = os.path.join(d.getVar("DL_DIR"), localfile)
 
-    env = os.environ
-
-    #
-    # clean existing pub-cache, populate from the flutter-sdk-native pub-cache
-    #
     pub_cache = d.getVar("PUB_CACHE")
-    env['PUB_CACHE'] = pub_cache
-
-    shutil.rmtree(f'{pub_cache}', ignore_errors=True)
     flutter_sdk = os.path.join(d.getVar("STAGING_DATADIR_NATIVE"), 'flutter/sdk')
     flutter_sdk_pub_cache = os.path.join(flutter_sdk, '.pub-cache')
 
+    shutil.rmtree(pub_cache, ignore_errors=True)
     shutil.copytree(flutter_sdk_pub_cache, pub_cache)
 
-    workdir = d.getVar("WORKDIR")
-
-    # required for dart: https://github.com/dart-lang/sdk/issues/41560
-    env['HOME'] = f'{workdir}'
-
-    # required for flutter: https://github.com/flutter/flutter/issues/59430
-    env['XDG_CONFIG_HOME'] = f'{workdir}'
-
-    http_proxy = d.getVar('http_proxy')
-    if http_proxy != None:
-        env['http_proxy']     = f'{http_proxy}'
-
-    https_proxy = d.getVar('https_proxy')
-    if https_proxy != None:
-        env['https_proxy']    = f'{https_proxy}'
-
-    http_proxy_ = d.getVar('HTTP_PROXY')
-    if http_proxy_ != None:
-        env['HTTP_PROXY']     = f'{http_proxy_}'
-
-    https_proxy_ = d.getVar('HTTPS_PROXY')
-    if https_proxy_ != None:
-        env['HTTPS_PROXY']    = f'{https_proxy_}'
-
-    env['NO_PROXY']       = 'localhost,127.0.0.1,::1'
-
-    env['PATH'] = f'{env["PATH"]}:{flutter_sdk}/bin'
+    env = get_archive_pub_cache_environment(d, pub_cache, flutter_sdk)
+    bb.note(f'archive_pub_cache_environment: {env}')
 
     #
     # Remove pubspec.lock file if present
@@ -178,22 +203,23 @@ python do_archive_pub_cache() {
     if d.getVar("PUBSPEC_IGNORE_LOCKFILE") == "1":
         pubspec_lock = os.path.join(app_root, 'pubspec.lock')
         if os.path.exists(pubspec_lock):
+            bb.note('Deleting the pubspec.lock due to PUBSPEC_IGNORE_LOCKFILE = "1"')
             run_command(d, 'rm -rf pubspec.lock', app_root, env)
+        else:
+            bb.note('The pubspec.lock file is not present')
 
     #
-    # App hook to include something in archive 
+    # App hook to include something in archive
     #
     pub_cache_extra_archive_cmd = d.getVar("PUB_CACHE_EXTRA_ARCHIVE_CMD")
     pub_cache_extra_archive_path = d.getVar("PUB_CACHE_EXTRA_ARCHIVE_PATH")
-    if pub_cache_extra_archive_cmd != None:
-        path = d.getVar("PATH")
-        cmd = f'export PUB_CACHE={pub_cache}; ' \
-            f'export XDG_CONFIG_HOME={workdir};' \
-            f'export PATH={flutter_sdk}/bin:{path}:{pub_cache_extra_archive_path};' \
-            f'{pub_cache_extra_archive_cmd}'
-
-        bb.note(f'Running [{cmd}] in {app_root}')
-        run_command(d, cmd, app_root, env)
+    if len(pub_cache_extra_archive_cmd):
+        newenv = env
+        if len(pub_cache_extra_archive_path):
+            path = newenv['PATH']
+            newenv['PATH'] = f'{path}:{pub_cache_extra_archive_path}'
+        bb.note(f'Running [{pub_cache_extra_archive_cmd}] in {app_root} with env: {newenv}')
+        run_command(d, pub_cache_extra_archive_cmd, app_root, newenv)
 
     #
     # go online to fetch, then mark offline
