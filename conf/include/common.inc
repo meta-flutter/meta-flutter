@@ -238,13 +238,10 @@ python do_archive_pub_cache() {
     run_command(d, 'flutter pub get --enforce-lockfile --offline', app_root, env)
 
     cp_cmd = f'mkdir -p {pub_cache}/.project | true; cp -r .* {pub_cache}/.project/ | true;'
-    bb.note(f'Running [{cp_cmd}] in {app_root}')
     run_command(d, cp_cmd, app_root, env)
 
     bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
     pack_cmd = f'tar -I \"pbzip2 -p{bb_number_threads}\" -cf {localpath} ./'
-
-    bb.note(f'Running [{pack_cmd}] in {pub_cache}')
     run_command(d, pack_cmd, pub_cache, env)
 
     if not os.path.exists(localpath):
