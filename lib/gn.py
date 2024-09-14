@@ -64,6 +64,7 @@ class GN(FetchMethod):
         ud.syncpath = os.path.join(gndir, ud.syncdir)
         ud.localfile = ud.syncdir + "-" + srcrev + ".tar.bz2"
         ud.localpath = os.path.join(gndir, ud.localfile)
+        ud.trying_to_fetch_with_gclient = False
 
         sync_opt = d.getVar("EXTRA_GN_SYNC")
         curl_ca_bundle = d.getVar('CURL_CA_BUNDLE')
@@ -112,6 +113,7 @@ class GN(FetchMethod):
 
         uri = ud.url.split(";")[0]
 
+        ud.trying_to_fetch_with_gclient = True
         self._rungnclient(ud, d, False)
 
         # Sanity check since wget can pretend it succeed when it didn't
@@ -144,7 +146,12 @@ class GN(FetchMethod):
 
 
     def clean(self, ud, d):
-        bb.utils.remove(ud.syncpath, recurse=True)
+        # If an error occurs during the gclient sync, we aim to retain the partial sync directory.
+        # This helps prevent the need to re-fetch a large amount of source code only to encounter the same network issue again.
+        # The sync directory can grow up to 14GB.
+        # However, it will still be deleted when running bitbake -c cleanall.
+        if not ud.trying_to_fetch_with_gclient:
+            bb.utils.remove(ud.syncpath, recurse=True)
         bb.utils.remove(ud.localpath, recurse=True)
 
     def checkstatus(self, fetch, ud, d, try_again=True):
