@@ -104,9 +104,12 @@ Note: when using SDK you may need to add the following after installation:
 
 ## General Yocto Notes
 
-When building on systems with GCC version > than uninative in Yocto distro add the following to conf/local.conf
+* When building on systems with GCC version > than uninative in Yocto distro add the following to conf/local.conf
 
     INHERIT:remove = "uninative"
+
+
+* The initial fetch with Flutter build will download over 14GB of source code. Running `bitbake -C cleanall flutter-engine` will clear the download cache. However, if an error occurs, the download cache remains intact, allowing you to resume the fetch later.
 
 ## Flutter Workspace Automation
 
