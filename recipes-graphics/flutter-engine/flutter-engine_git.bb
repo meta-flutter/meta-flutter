@@ -163,6 +163,12 @@ do_configure() {
     test -z $X11_IS_PRESENT     && sed -i '/^pkg_config("x11") {/,/^}$/d' ${S}/flutter/shell/platform/linux/config/BUILD.gn
 
     #
+    # fix build without wayland
+    #
+    test -z $WAYLAND_IS_PRESENT && sed -i "s|ozone_platform_wayland = true|ozone_platform_wayland = false|g" ${S}/build/config/BUILDCONFIG.gn
+    test -z $X11_IS_PRESENT && sed -i "s|ozone_platform_x11 = true|ozone_platform_x11 = false|g" ${S}/build/config/BUILDCONFIG.gn 
+    
+    #
     # Custom Build config
     #
     cp ${WORKDIR}/BUILD.gn.in ${S}/build/toolchain/custom/BUILD.gn
