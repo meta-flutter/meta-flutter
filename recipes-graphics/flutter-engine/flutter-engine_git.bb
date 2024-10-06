@@ -28,6 +28,9 @@ SRC_URI_EXTRA = ""
 SRC_URI = "\
     gn://github.com/flutter/engine.git;gn_name=src/flutter \
     file://0001-export-GPU-symbols.patch \
+    file://0002-libcxx-uglify-support-musl.patch;patchdir=flutter/third_party \
+    file://0003-libcxx-return-type-in-wcstoull_l.patch;patchdir=flutter/third_party \
+    file://0004-suppres-musl-libc-warning.patch;patchdir=flutter/third_party/dart \
     file://BUILD.gn.in \
     ${SRC_URI_EXTRA} \
     "
@@ -103,6 +106,7 @@ GN_ARGS = '\
     --no-goma --no-rbe \
     --no-enable-unittests \
     --no-stripped \
+    ${@bb.utils.contains('TCLIBC', 'musl', '--no-backtrace', '', d)} \
     --target-os linux \
     --linux-cpu ${@gn_target_arch_name(d)} \
     --target-sysroot ${STAGING_DIR_TARGET} \
@@ -136,6 +140,7 @@ FLUTTER_ENGINE_DEBUG_PREFIX_MAP ?= " \
  -fdebug-prefix-map=${STAGING_DIR_NATIVE}= \
 "
 FLUTTER_ENGINE_DEBUG_FLAGS ?= "-g -feliminate-unused-debug-types ${FLUTTER_ENGINE_DEBUG_PREFIX_MAP}"
+FLUTTER_ENGINE_CXX_LIBC_FLAGS ?= "${@bb.utils.contains('TCLIBC', 'musl', '-D_LIBCPP_HAS_MUSL_LIBC', '', d)}"
 
 WAYLAND_IS_PRESENT="${@bb.utils.filter('DISTRO_FEATURES', 'wayland', d)}"
 X11_IS_PRESENT="${@bb.utils.filter('DISTRO_FEATURES', 'x11', d)}"
@@ -167,13 +172,19 @@ do_configure() {
     #
     test -z $WAYLAND_IS_PRESENT && sed -i "s|ozone_platform_wayland = true|ozone_platform_wayland = false|g" ${S}/build/config/BUILDCONFIG.gn
     test -z $X11_IS_PRESENT && sed -i "s|ozone_platform_x11 = true|ozone_platform_x11 = false|g" ${S}/build/config/BUILDCONFIG.gn 
+
+    #
+    # fix build with musl libc
+    #
+    [ "${TCLIBC}" = "musl" ] && sed -i "s|#define HAVE_MALLINFO 1||g" -i ${S}/flutter/third_party/swiftshader/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h
     
     #
     # Custom Build config
     #
     cp ${WORKDIR}/BUILD.gn.in ${S}/build/toolchain/custom/BUILD.gn
     sed -i "s|@DEBUG_FLAGS@|${FLUTTER_ENGINE_DEBUG_FLAGS}|g" ${S}/build/toolchain/custom/BUILD.gn
-
+    sed -i "s|@CXX_LIBC_FLAGS@|${FLUTTER_ENGINE_CXX_LIBC_FLAGS}|g" ${S}/build/toolchain/custom/BUILD.gn
+    
     #
     # Configure each mode defined in PACKAGECONFIG
     #
