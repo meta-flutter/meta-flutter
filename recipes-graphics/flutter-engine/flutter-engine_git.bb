@@ -16,6 +16,7 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 
 DEPENDS += "\
     zip-native \
+    freetype \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)} \
     "
 
