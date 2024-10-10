@@ -477,13 +477,24 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
 
             package_config_json = f'{source_dir}/{flutter_application_path}/.dart_tool/package_config.json'
 
+            #
+            # Extract Engine SDK
+            #
+            shutil.rmtree(f'{source_dir}/engine_sdk', ignore_errors=True)
+
+            staging_datadir = d.getVar('STAGING_DATADIR')
+            cmd = f'unzip {staging_datadir}/flutter/{flutter_sdk_version}/{runtime_mode}/engine_sdk.zip \
+                -d {source_dir}/engine_sdk'
+            run_command(d, cmd, source_root, env)
+
             if not new_build_scheme:
                 dart_runtime = f'{flutter_sdk}/bin/cache/dart-sdk/bin/dart'
                 frontend_snapshot = f'{flutter_sdk}/bin/cache/artifacts/engine/linux-{clang_build_arch(d)}/frontend_server.dart.snapshot'
                 dep_path = glob.glob(f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/kernel_snapshot.d')
             else:
                 dart_runtime = f'{flutter_sdk}/bin/cache/dart-sdk/bin/dartaotruntime'
-                frontend_snapshot = f'{flutter_sdk}/bin/cache/artifacts/engine/linux-{clang_build_arch(d)}/frontend_server_aot.dart.snapshot'
+                frontend_snapshot = f'{source_dir}/engine_sdk/sdk/frontend_server_aot.dart.snapshot'
+                flutter_app_sdk_root = f'{source_dir}/engine_sdk/sdk/flutter_patched_sdk'
                 dep_path = glob.glob(f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/kernel_snapshot_program.d')
 
             cmd = f'{dart_runtime} \
@@ -525,15 +536,7 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
 
             bb.note(f'aot_elf_{runtime_mode}: Started')
 
-            #
-            # Extract Engine SDK
-            #
-            shutil.rmtree(f'{source_dir}/engine_sdk', ignore_errors=True)
-
-            staging_datadir = d.getVar('STAGING_DATADIR')
-            cmd = f'unzip {staging_datadir}/flutter/{flutter_sdk_version}/{runtime_mode}/engine_sdk.zip \
-                -d {source_dir}/engine_sdk'
-            run_command(d, cmd, source_root, env)
+            
 
             #
             # Create libapp.so

@@ -265,6 +265,9 @@ do_install() {
         test -e ${S}/${BUILD_DIR}/flutter_patched_sdk && \
             cp -r ${S}/${BUILD_DIR}/flutter_patched_sdk ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/
 
+        # include compiled frontend server
+        cp ${S}/${BUILD_DIR}/frontend_server_aot.dart.snapshot ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/
+        
         cd ${S}/flutter
         echo "${SRCREV}"                   > ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/engine.version
         echo "${FLUTTER_ENGINE_REPO_URL}" >> ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/engine.version
