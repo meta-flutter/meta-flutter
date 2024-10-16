@@ -2,7 +2,7 @@
 # Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
 #
 
-SUMMARY = "google_maps_in_flutter"
+SUMMARY = "compass_app"
 DESCRIPTION = "A new Flutter project."
 AUTHOR = "Google"
 HOMEPAGE = "None"
@@ -17,9 +17,9 @@ SRC_URI = "git://github.com/flutter/samples.git;lfs=1;branch=main;protocol=https
 
 S = "${WORKDIR}/git"
 
-PUBSPEC_APPNAME = "google_maps_in_flutter"
-FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-google-maps-google-maps-in-flutter"
+PUBSPEC_APPNAME = "compass_app"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-compass-app"
 PUBSPEC_IGNORE_LOCKFILE = "1"
-FLUTTER_APPLICATION_PATH = "google_maps"
+FLUTTER_APPLICATION_PATH = "compass_app/app"
 
 inherit flutter-app
