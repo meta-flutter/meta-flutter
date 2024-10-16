@@ -1,5 +1,21 @@
 # Changelog
 
+Oct 15, 2024
+1. aarch64 - freetype2 depend
+2. Flutter 3.24.3
+3. Dart SDK 3.5.3
+4. Roll meta-flutter-apps
+
+Oct 14, 2024
+1. enable flutter-engine build without wayland
+2. build with musl libc
+
+Oct 3, 2024
+1. retain partial sync on fetch error
+
+Sep 28, 2024
+1. Do not copy parent directories in archive_pub
+
 Sep 10, 2024
 1. fix for pub git fetching from secure repos
 
