@@ -1,5 +1,8 @@
 # Changelog
 
+Oct 16, 2024
+1. flutter-engine: musl cleanup
+
 Oct 15, 2024
 1. aarch64 - freetype2 depend
 2. Flutter 3.24.3
