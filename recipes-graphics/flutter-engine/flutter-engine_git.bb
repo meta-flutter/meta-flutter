@@ -19,6 +19,10 @@ DEPENDS += "\
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)} \
     "
 
+DEPENDS:aarch64 += "\
+    freetype \
+    "
+
 PV = "${FLUTTER_SDK_VERSION}"
 
 S = "${WORKDIR}/src"
