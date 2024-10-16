@@ -32,11 +32,15 @@ SRC_URI_EXTRA = ""
 SRC_URI = "\
     gn://github.com/flutter/engine.git;gn_name=src/flutter \
     file://0001-export-GPU-symbols.patch \
+    file://BUILD.gn.in \
+    ${SRC_URI_EXTRA} \
+    "
+
+# musl-specific patches.
+SRC_URI:append:libc-musl = "\
     file://0002-libcxx-uglify-support-musl.patch;patchdir=flutter/third_party \
     file://0003-libcxx-return-type-in-wcstoull_l.patch;patchdir=flutter/third_party \
     file://0004-suppres-musl-libc-warning.patch;patchdir=flutter/third_party/dart \
-    file://BUILD.gn.in \
-    ${SRC_URI_EXTRA} \
     "
 
 inherit gn-fetcher features_check pkgconfig
@@ -97,26 +101,29 @@ PACKAGECONFIG[trace-gn] = "--trace-gn"
 PACKAGECONFIG[ubsan] = "--ubsan"
 PACKAGECONFIG[unoptimized] = "--unoptimized"
 PACKAGECONFIG[verbose] = "--verbose"
-PACKAGECONFIG[vulkan] = "--enable-vulkan,, wayland"
+PACKAGECONFIG[vulkan] = "--enable-vulkan"
 PACKAGECONFIG[impeller-3d] = "--enable-impeller-3d"
 
 CLANG_BUILD_ARCH = "${@clang_build_arch(d)}"
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
 CLANG_PATH = "${WORKDIR}/src/flutter/buildtools/linux-${CLANG_BUILD_ARCH}/clang"
 
-GN_ARGS = '\
+GN_ARGS = "\
     ${PACKAGECONFIG_CONFARGS} \
     --clang --lto \
     --no-goma --no-rbe \
     --no-enable-unittests \
     --no-stripped \
-    ${@bb.utils.contains('TCLIBC', 'musl', '--no-backtrace', '', d)} \
     --target-os linux \
     --linux-cpu ${@gn_target_arch_name(d)} \
     --target-sysroot ${STAGING_DIR_TARGET} \
     --target-toolchain ${CLANG_PATH} \
     --target-triple ${@gn_clang_triple_prefix(d)} \
-'
+    "
+
+GN_ARGS:append:libc-musl = "\
+    --no-backtrace \
+    "
 
 GN_ARGS:append:armv7 = " --arm-float-abi ${TARGET_FPU}"
 GN_ARGS:append:armv7a = " --arm-float-abi ${TARGET_FPU}"
@@ -135,16 +142,17 @@ GN_ARGS_LESS_RUNTIME_MODES="${@get_gn_args_less_runtime(d)}"
 FLUTTER_ENGINE_INSTALL_PREFIX ??= "${datadir}/flutter/${FLUTTER_SDK_VERSION}"
 
 FLUTTER_ENGINE_DEBUG_PREFIX_MAP ?= " \
- -fmacro-prefix-map=${S}=${TARGET_DBGSRC_DIR} \
- -fdebug-prefix-map=${S}=${TARGET_DBGSRC_DIR} \
- -fmacro-prefix-map=${B}=${TARGET_DBGSRC_DIR} \
- -fdebug-prefix-map=${B}=${TARGET_DBGSRC_DIR} \
- -fdebug-prefix-map=${STAGING_DIR_HOST}= \
- -fmacro-prefix-map=${STAGING_DIR_HOST}= \
- -fdebug-prefix-map=${STAGING_DIR_NATIVE}= \
-"
+    -fmacro-prefix-map=${S}=${TARGET_DBGSRC_DIR} \
+    -fdebug-prefix-map=${S}=${TARGET_DBGSRC_DIR} \
+    -fmacro-prefix-map=${B}=${TARGET_DBGSRC_DIR} \
+    -fdebug-prefix-map=${B}=${TARGET_DBGSRC_DIR} \
+    -fdebug-prefix-map=${STAGING_DIR_HOST}= \
+    -fmacro-prefix-map=${STAGING_DIR_HOST}= \
+    -fdebug-prefix-map=${STAGING_DIR_NATIVE}= \
+    "
 FLUTTER_ENGINE_DEBUG_FLAGS ?= "-g -feliminate-unused-debug-types ${FLUTTER_ENGINE_DEBUG_PREFIX_MAP}"
-FLUTTER_ENGINE_CXX_LIBC_FLAGS ?= "${@bb.utils.contains('TCLIBC', 'musl', '-D_LIBCPP_HAS_MUSL_LIBC', '', d)}"
+FLUTTER_ENGINE_CXX_LIBC_FLAGS ?= ""
+FLUTTER_ENGINE_CXX_LIBC_FLAGS:append:libc-musl = "-D_LIBCPP_HAS_MUSL_LIBC"
 
 WAYLAND_IS_PRESENT="${@bb.utils.filter('DISTRO_FEATURES', 'wayland', d)}"
 X11_IS_PRESENT="${@bb.utils.filter('DISTRO_FEATURES', 'x11', d)}"
