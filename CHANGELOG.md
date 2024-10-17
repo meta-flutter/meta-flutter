@@ -1,5 +1,9 @@
 # Changelog
 
+Oct 17, 2024
+1. Sony: roll + conditional libuv support
+2. Sony: flutter-external-texture-plugin: patch added
+
 Oct 16, 2024
 1. flutter-engine: musl cleanup
 
