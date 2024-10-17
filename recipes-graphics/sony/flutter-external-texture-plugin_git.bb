@@ -14,6 +14,10 @@ DEPENDS += "\
     wayland-native \
     "
 
+SRC_URI += "\
+    file://0001-Add-missing-stdint-header.patch \
+    "
+
 INSANE_SKIP:${PN} += " ldflags"
 SOLIBS = ".so"
 FILES_SOLIBSDEV = ""
