@@ -35,7 +35,7 @@ do_install () {
 	chown -R ${APP_CONTAINER_USER_NAME}:${APP_CONTAINER_USER_NAME} ${D}/home/${APP_CONTAINER_USER_NAME}
 }
 
-FILES_${PN} = "\
+FILES:${PN} = "\
     /home/${APP_CONTAINER_USER_NAME} \
 	"
 

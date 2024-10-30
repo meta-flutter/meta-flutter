@@ -1,0 +1,24 @@
+import("//build/toolchain/gcc_toolchain.gni")
+
+gcc_toolchain("@GN_TARGET_ARCH_NAME@") {
+  toolprefix = "@TARGET_SYS@-"
+
+  cc = "${toolprefix}gcc"
+  cxx = "${toolprefix}g++"
+
+  readelf = "${toolprefix}readelf"
+  nm = "${toolprefix}nm"
+  ar = "${toolprefix}ar"
+  ld = cxx
+
+  @EXTRA_CXXFLAGS@
+  extra_ldflags = "-static-libgcc -static-libstdc++ @LDFLAGS@"
+
+  toolchain_args = {
+    current_cpu = "@GN_TARGET_ARCH_NAME@"
+    current_os = "linux"
+
+    use_remoteexec = false
+    is_clang = false
+  }
+}

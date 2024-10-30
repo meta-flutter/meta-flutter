@@ -76,7 +76,7 @@ class CIPD(FetchMethod):
             ud.parm["version"],
             ud.localpath)
 
-        logger.debug(2, "Fetching %s using command '%s'" % (ud.url, ud.basecmd))
+        logger.debug(1, "Fetching %s using command '%s'" % (ud.url, ud.basecmd))
         runfetchcmd(ud.basecmd, d, False, workdir=None)
 
         if not os.path.exists(ud.localpath):
@@ -94,8 +94,8 @@ class CIPD(FetchMethod):
         bb.utils.mkdirhier(dest_dir)
 
         cmd = 'unzip -o %s -d %s' % (ud.localpath, dest_dir)
-        logger.debug(2,"Unpacking CIPD package %s to %s" % (ud.localpath, dest_dir))
-        logger.debug(2,"%s" % (cmd))
+        logger.debug(1, "Unpacking CIPD package %s to %s" % (ud.localpath, dest_dir))
+        logger.debug(1, "%s" % (cmd))
         try:
             subprocess.check_output(cmd, preexec_fn=subprocess_setup, shell=True, cwd=dest_dir, 
                                     stderr=subprocess.STDOUT, universal_newlines=True)
@@ -103,5 +103,5 @@ class CIPD(FetchMethod):
             raise UnpackError("Unpack command %s failed with return value %s\n%s" % (cmd, e.returncode, e.stdout), ud.url)
 
     def clean(self, ud, d):
-        logger.debug(2,"Cleaning CIPD package %s" % (ud.localpath))
+        logger.debug2("Cleaning CIPD package %s" % (ud.localpath))
         bb.utils.remove(ud.localpath, recurse=True)

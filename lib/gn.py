@@ -40,7 +40,7 @@ class GN(FetchMethod):
 
         ud.basename = "*"
 
-        uri = ud.url.split(';')[0].replace('gn://', f'{proto}://')
+        uri = ud.url.split(';')[0].replace('gn://', proto + '://')
 
         deps_file = d.getVar("GN_DEPS_FILE")
         custom_vars = d.getVar("GN_CUSTOM_VARS")
@@ -64,6 +64,7 @@ class GN(FetchMethod):
         ud.syncpath = os.path.join(gndir, ud.syncdir)
         ud.localfile = ud.syncdir + "-" + srcrev + ".tar.bz2"
         ud.localpath = os.path.join(gndir, ud.localfile)
+        ud.trying_to_fetch_with_gclient = False
 
         sync_opt = d.getVar("EXTRA_GN_SYNC")
         curl_ca_bundle = d.getVar('CURL_CA_BUNDLE')
@@ -71,11 +72,13 @@ class GN(FetchMethod):
 
         depot_tools_path = d.getVar("DEPOT_TOOLS")
         python3_folder = os.path.join(depot_tools_path, d.getVar("PYTHON3_PATH"))
+        vpython_virtualenv_root = d.getVar("VPYTHON_VIRTUALENV_ROOT")
 
         ud.basecmd = f'export DEPOT_TOOLS_UPDATE=0; \
             export CURL_CA_BUNDLE={curl_ca_bundle}; \
             export PATH="{depot_tools_path}:{python3_folder}:$PATH"; \
-            gclient config --spec \'{gclient_config}\' && \
+            export VPYTHON_VIRTUALENV_ROOT="{vpython_virtualenv_root}"; \
+            gclient config --spec \'{gclient_config}\'; \
             gclient sync --force {sync_opt} --revision {srcrev} {parallel_make} -v'
 
         bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
@@ -86,11 +89,13 @@ class GN(FetchMethod):
         bb.utils.mkdirhier(ud.syncpath)
         os.chdir(ud.syncpath)
 
-        logger.debug(2, f'Fetching {ud.url} using command "{ud.basecmd}"')
+        ud.trying_to_fetch_with_gclient = True
+        logger.debug(1, f'Fetching {ud.url} using command "{ud.basecmd}"')
         bb.fetch2.check_network_access(d, ud.basecmd, ud.url)
         runfetchcmd(ud.basecmd, d, quiet, workdir=None)
-        logger.debug(2, f'Packing {ud.url} using command "{ud.packcmd}"')
+        logger.debug(1, f'Packing {ud.url} using command "{ud.packcmd}"')
         runfetchcmd(ud.packcmd, d, quiet, workdir=None)
+        ud.trying_to_fetch_with_gclient = False
 
     def localpath(self, ud, d):
         """
@@ -138,11 +143,16 @@ class GN(FetchMethod):
             subprocess.check_output(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir, 
                                     stderr=subprocess.STDOUT, universal_newlines=True)
         except subprocess.CalledProcessError as e:
-            raise UnpackErrorf(f'Unpack command {cmd} failed with return value {e.returncode}\n{e.stdout}', ud.url)
+            raise UnpackError(f'Unpack command {cmd} failed with return value {e.returncode}\n{e.stdout}', ud.url)
 
 
     def clean(self, ud, d):
-        bb.utils.remove(ud.syncpath, recurse=True)
+        # If an error occurs during the gclient sync, we aim to retain the partial sync directory.
+        # This helps prevent the need to re-fetch a large amount of source code only to encounter the same network issue again.
+        # The sync directory can grow up to 14GB.
+        # However, it will still be deleted when running bitbake -c cleanall.
+        if not ud.trying_to_fetch_with_gclient:
+            bb.utils.remove(ud.syncpath, recurse=True)
         bb.utils.remove(ud.localpath, recurse=True)
 
     def checkstatus(self, fetch, ud, d, try_again=True):

@@ -23,10 +23,20 @@ DEPENDS += "\
     unzip-native \
     "
 
-RDEPENDS_${PN}-native += "ca-certificates-native curl-native perl perl-modules unzip-native"
-RDEPENDS_nativesdk-${PN} += "ca-certificates-native curl-native perl perl-modules unzip-native"
+RDEPENDS:${PN} += "\
+    atk \
+    ca-certificates \
+    curl \
+    fontconfig \
+    gtk+3 \
+    pango \
+    perl \
+    unzip \
+    "
 
 require conf/include/flutter-version.inc
+
+PV = "${FLUTTER_SDK_VERSION}"
 
 inherit pkgconfig
 
@@ -65,8 +75,6 @@ def run_command(d, cmd, cwd, env):
         bb.error("failed %s (cmd was %s)%s" % (retval, cmd, ":\n%s" % output if output else ""))
         return
 
-    bb.note(f'{output}')
-
 
 do_unpack[network] = "1"
 do_unpack[depends] += " \
@@ -75,7 +83,7 @@ do_unpack[depends] += " \
     ninja-native:do_populate_sysroot \
     unzip-native:do_populate_sysroot \
 "
-python do_unpack_append() {
+python do_unpack:append() {
     import shutil
 
     # clean cache folder if it exists
@@ -83,6 +91,7 @@ python do_unpack_append() {
     shutil.rmtree(f'{source_dir}/bin/cache', ignore_errors=True)
 
     env = os.environ
+    workdir = d.getVar('WORKDIR')
 
     staging_dir_native = d.getVar('STAGING_DIR_NATIVE')
     env['CURL_CA_BUNDLE'] = f'{staging_dir_native}/etc/ssl/certs/ca-certificates.crt'
@@ -90,6 +99,12 @@ python do_unpack_append() {
     path = env['PATH']
     env['PATH']           = f'{source_dir}/bin:{path}'
     env['PUB_CACHE']      = f'{source_dir}/.pub-cache'
+
+    workdir = d.getVar('WORKDIR')
+    # required for dart: https://github.com/dart-lang/sdk/issues/41560
+    env['HOME'] = f'{workdir}'
+    # required for flutter: https://github.com/flutter/flutter/issues/59430
+    env['XDG_CONFIG_HOME'] = f'{workdir}'
 
     http_proxy = d.getVar('http_proxy')
     if http_proxy != None:
@@ -118,12 +133,25 @@ python do_unpack_append() {
     run_command(d, 'flutter config --enable-web', source_dir, env)
     run_command(d, 'flutter config --no-analytics', source_dir, env)
     run_command(d, 'dart --disable-analytics', source_dir, env)
-    run_command(d, 'flutter precache', source_dir, env)
     run_command(d, 'flutter config --list', source_dir, env)
+
+    # check your installation and build the initial snapshot of the `flutter` tool
     run_command(d, 'flutter doctor -v', source_dir, env)
+    
+    # download all of the pub package dependencies needed to build any of the packages in the Flutter main distribution
+    run_command(d, 'flutter update-packages', source_dir, env)
+
+    # cache template packages
+    tmp_path = os.path.join(workdir, 'tmp')
+    run_command(d, f'mkdir -p {tmp_path}', source_dir, env)
+    run_command(d, 'flutter create --template=app app_sample', tmp_path, env)
+    run_command(d, 'flutter create --template=package package_sample', tmp_path, env)
+    run_command(d, 'flutter create --template=plugin plugin_sample', tmp_path, env)
+    run_command(d, f'rm -rf {tmp_path}', source_dir, env)
 }
 
 do_install() {
+
     chmod a+rw ${S} -R
 
     install -d ${D}${datadir}/flutter/sdk
@@ -131,11 +159,14 @@ do_install() {
     cp -rTv ${S}/. ${D}${datadir}/flutter/sdk
 }
 
+python () {
+    d.setVar('FLUTTER_SDK_VERSION', get_flutter_sdk_version(d))
+}
 
-ALLOW_EMPTY_${PN} = "1"
+ALLOW_EMPTY:${PN} = "1"
 
-FILES_${PN} = "${datadir}/flutter/sdk"
+FILES:${PN} = "${datadir}/flutter/sdk"
 
-INSANE_SKIP_${PN} += "already-stripped file-rdeps"
+INSANE_SKIP_${PN} += "ldflags already-stripped file-rdeps"
 
 BBCLASSEXTEND = "native nativesdk"
