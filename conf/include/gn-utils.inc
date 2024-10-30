@@ -29,6 +29,8 @@ def gn_host_arch_name(d):
         r'i[3456]86$': 'x86',
         r'x86_64$': 'x64',
         r'x64$': 'x64',
+        r'riscv32$': 'riscv32',
+        r'riscv64$': 'riscv64',
     }
     build_arch = d.getVar("BUILD_ARCH")
     for arch_regexp, gn_arch_name in arch_translations.items():
@@ -45,10 +47,12 @@ def gn_host_arch_name(d):
 # non-Python variables with overrides that are generic enough (i.e. "x86"
 # instead of "i586") and then use gn_target_arch_name() to return the right
 # value with some validation.
-GN_TARGET_ARCH_NAME_aarch64 = "arm64"
-GN_TARGET_ARCH_NAME_arm = "arm"
-GN_TARGET_ARCH_NAME_x86 = "x86"
-GN_TARGET_ARCH_NAME_x86-64 = "x64"
+GN_TARGET_ARCH_NAME:aarch64 = "arm64"
+GN_TARGET_ARCH_NAME:arm = "arm"
+GN_TARGET_ARCH_NAME:x86 = "x86"
+GN_TARGET_ARCH_NAME:x86-64 = "x64"
+GN_TARGET_ARCH_NAME:riscv32 = "riscv32"
+GN_TARGET_ARCH_NAME:riscv64 = "riscv64"
 
 def gn_target_arch_name(d):
     """Returns a GN architecture name corresponding to the target machine's
@@ -69,6 +73,8 @@ def gn_clang_triple_prefix(d):
         r'i[3456]86$': 'i386-unknown-linux-gnu',
         r'x86_64$': 'x86_64-unknown-linux-gnu',
         r'x64$': 'x86_64-unknown-linux-gnu',
+        r'riscv32$': 'riscv32-unknown-linux-gnu',
+        r'riscv64$': 'riscv64-unknown-linux-gnu',
     }
     build_arch = d.getVar("GN_TARGET_ARCH_NAME")
     for arch_regexp, gn_arch_name in arch_translations.items():
@@ -110,7 +116,18 @@ def parse_args(d):
 
     parser.add_argument('--unoptimized', default=False, action='store_true')
 
-    parser.add_argument('--enable-unittests', action='store_true', default=False)
+    parser.add_argument(
+        '--enable-unittests',
+        action='store_true',
+        default=False,
+        help='Force enable building unit test binaries.'
+    )
+    parser.add_argument(
+        '--no-enable-unittests',
+        default=False,
+        action='store_true',
+        help='Force disable building unit test binaries.'
+    )
 
     parser.add_argument(
         '--runtime-mode',
@@ -142,63 +159,103 @@ def parse_args(d):
     )
 
     parser.add_argument(
-        '--target-os',
+        '--dart-optimization-level',
         type=str,
-        choices=['android', 'ios', 'mac', 'linux', 'fuchsia', 'wasm', 'win']
+        help='The default optimization level for the Dart VM runtime.',
     )
+
     parser.add_argument(
-        '--android', dest='target_os', action='store_const', const='android'
+        '--target-os', type=str, choices=['android', 'ios', 'mac', 'linux', 'fuchsia', 'wasm', 'win']
     )
+    parser.add_argument('--android', dest='target_os', action='store_const', const='android')
     parser.add_argument(
-        '--android-cpu',
-        type=str,
-        choices=['arm', 'x64', 'x86', 'arm64'],
-        default='arm'
+        '--android-cpu', type=str, choices=['arm', 'x64', 'x86', 'arm64'], default='arm'
     )
+    parser.add_argument('--ios', dest='target_os', action='store_const', const='ios')
+    parser.add_argument('--ios-cpu', type=str, choices=['arm', 'arm64'], default='arm64')
+    parser.add_argument('--mac', dest='target_os', action='store_const', const='mac')
+    parser.add_argument('--mac-cpu', type=str, choices=['x64', 'arm64'], default='x64')
     parser.add_argument(
-        '--ios', dest='target_os', action='store_const', const='ios'
-    )
-    parser.add_argument(
-        '--ios-cpu', type=str, choices=['arm', 'arm64'], default='arm64'
-    )
-    parser.add_argument(
-        '--mac', dest='target_os', action='store_const', const='mac'
-    )
-    parser.add_argument(
-        '--mac-cpu', type=str, choices=['x64', 'arm64'], default='x64'
+        '--force-mac-arm64',
+        action='store_true',
+        default=False,
+        help='Force use of the clang_arm64 toolchain on an arm64 mac host when '
+        'building host binaries.'
     )
     parser.add_argument('--simulator', action='store_true', default=False)
+    parser.add_argument('--linux', dest='target_os', action='store_const', const='linux')
+    parser.add_argument('--fuchsia', dest='target_os', action='store_const', const='fuchsia')
+    parser.add_argument('--wasm', dest='target_os', action='store_const', const='wasm')
     parser.add_argument(
-        '--linux', dest='target_os', action='store_const', const='linux'
-    )
-    parser.add_argument(
-        '--fuchsia', dest='target_os', action='store_const', const='fuchsia'
-    )
-    parser.add_argument(
-        '--wasm', dest='target_os', action='store_const', const='wasm'
+        '--wasm-use-dwarf',
+        action='store_true',
+        default=False,
+        help='Embed dwarf debugging info in the output module instead of using '
+        'sourcemap files.'
     )
     parser.add_argument('--web', action='store_true', default=False)
+    parser.add_argument('--windows', dest='target_os', action='store_const', const='win')
+
+    parser.add_argument('--linux-cpu', type=str, choices=['x64', 'x86', 'arm64', 'arm', 'riscv32', 'riscv64'])
+    parser.add_argument('--fuchsia-cpu', type=str, choices=['x64', 'arm64'], default='x64')
+    parser.add_argument('--windows-cpu', type=str, choices=['x64', 'arm64', 'x86'], default='x64')
+    parser.add_argument('--simulator-cpu', type=str, choices=['x64', 'arm64'], default='x64')
+    parser.add_argument('--arm-float-abi', type=str, choices=['hard', 'soft', 'softfp'])
+
+    # Whether to compile in backtrace support.
+    # Available for Windows and POSIX platforms whose libc includes execinfo.h.
+    # MUSL doesn't include execinfo.h should be build with --no-backtrace.
     parser.add_argument(
-        '--windows', dest='target_os', action='store_const', const='win'
+        '--backtrace',
+        default=True,
+        action='store_true',
+        help='Whether OS support exists for collecting backtraces.'
     )
+    parser.add_argument('--no-backtrace', dest='backtrace', action='store_false')
 
     parser.add_argument(
-        '--linux-cpu', type=str, choices=['x64', 'x86', 'arm64', 'arm']
+        '--build-engine-artifacts',
+        default=True,
+        action='store_true',
+        help='Build the host-side development artifacts.'
     )
     parser.add_argument(
-        '--fuchsia-cpu', type=str, choices=['x64', 'arm64'], default='x64'
-    )
-    parser.add_argument(
-        '--windows-cpu', type=str, choices=['x64', 'arm64', 'x86'], default='x64'
-    )
-    parser.add_argument(
-        '--simulator-cpu', type=str, choices=['x64', 'arm64'], default='x64'
-    )
-    parser.add_argument(
-        '--arm-float-abi', type=str, choices=['hard', 'soft', 'softfp']
+        '--no-build-engine-artifacts',
+        dest='build_engine_artifacts',
+        action='store_false',
+        help='Do not build the host-side development artifacts.'
     )
 
-    parser.add_argument('--goma', default=True, action='store_true')
+    parser.add_argument('--rbe', default=None, action='store_true')
+    parser.add_argument('--no-rbe', dest='rbe', action='store_false')
+    parser.add_argument(
+        '--rbe-server-address', default=None, type=str, help='The reproxy serveraddress'
+    )
+    parser.add_argument(
+        '--rbe-exec-strategy',
+        default=None,
+        type=str,
+        help='The RBE execution strategy.',
+        choices=['local', 'remote', 'remote_local_fallback', 'racing']
+    )
+    parser.add_argument(
+        '--rbe-dial-timeout',
+        default=None,
+        type=str,
+        help='The timeout for connecting to the local reproxy server.',
+    )
+    parser.add_argument(
+        '--rbe-platform',
+        default=None,
+        type=str,
+        help='The RBE "platform" string. This is used to identify remote platform '
+        'settings like the docker image to use to run the command.'
+    )
+    parser.add_argument(
+        '--rbe-dir', default=None, type=str, help='The location of the reclient binaries.'
+    )
+
+    parser.add_argument('--goma', default=None, action='store_true')
     parser.add_argument('--no-goma', dest='goma', action='store_false')
     parser.add_argument(
         '--xcode-symlinks',
@@ -211,10 +268,7 @@ def parse_args(d):
         'variable may be set to 1 to achieve the same effect.'
     )
     parser.add_argument(
-        '--no-xcode-symlinks',
-        dest='xcode_symlinks',
-        default=False,
-        action='store_false'
+        '--no-xcode-symlinks', dest='xcode_symlinks', default=False, action='store_false'
     )
     parser.add_argument(
         '--depot-tools',
@@ -228,52 +282,28 @@ def parse_args(d):
     parser.add_argument('--no-lto', dest='lto', action='store_false')
 
     parser.add_argument('--clang', action='store_const', const=True)
-    parser.add_argument(
-        '--no-clang', dest='clang', action='store_const', const=False
-    )
+    parser.add_argument('--no-clang', dest='clang', action='store_const', const=False)
 
+    parser.add_argument('--clang-static-analyzer', default=False, action='store_true')
     parser.add_argument(
-        '--clang-static-analyzer', default=False, action='store_true'
-    )
-    parser.add_argument(
-        '--no-clang-static-analyzer',
-        dest='clang_static_analyzer',
-        action='store_false'
+        '--no-clang-static-analyzer', dest='clang_static_analyzer', action='store_false'
     )
 
     parser.add_argument('--target-sysroot', type=str)
     parser.add_argument('--target-toolchain', type=str)
     parser.add_argument('--target-triple', type=str)
     parser.add_argument(
-        '--operator-new-alignment',
-        dest='operator_new_alignment',
-        type=str,
-        default=None
+        '--operator-new-alignment', dest='operator_new_alignment', type=str, default=None
     )
 
-    parser.add_argument(
-        '--macos-enable-metal', action='store_true', default=False
-    )
+    parser.add_argument('--macos-enable-metal', action='store_true', default=False)
     parser.add_argument('--enable-vulkan', action='store_true', default=False)
 
     parser.add_argument('--enable-fontconfig', action='store_true', default=False)
-    parser.add_argument(
-        '--enable-vulkan-validation-layers', action='store_true', default=False
-    )
-
-    parser.add_argument('--enable-skshaper', action='store_true', default=True)
-    parser.add_argument(
-        '--no-enable-skshaper', dest='enable_skshaper', action='store_false'
-    )
-    parser.add_argument(
-        '--always-use-skshaper', action='store_true', default=False
-    )
+    parser.add_argument('--enable-vulkan-validation-layers', action='store_true', default=False)
 
     parser.add_argument(
-        '--embedder-for-target',
-        dest='embedder_for_target',
-        action='store_true',
-        default=False
+        '--embedder-for-target', dest='embedder_for_target', action='store_true', default=False
     )
 
     parser.add_argument('--coverage', default=False, action='store_true')
@@ -297,36 +327,20 @@ def parse_args(d):
         action='store_true',
         help='include trained dart2js and dartdevc snapshots. Enable only on steps that create an SDK'
     )
-    parser.add_argument(
-        '--no-full-dart-sdk', dest='full_dart_sdk', action='store_false'
-    )
-
-    parser.add_argument(
-        '--build-web-sdk',
-        default=False,
-        action='store_true',
-        help='build the flutter web sdk'
-    )
-    parser.add_argument(
-        '--no-build-web-sdk', dest='build_web_sdk', action='store_false'
-    )
+    parser.add_argument('--no-full-dart-sdk', dest='full_dart_sdk', action='store_false')
 
     parser.add_argument(
         '--build-canvaskit',
         default=False,
         action='store_true',
-        help='build canvaskit from source'
-    )
-    parser.add_argument(
-        '--no-build-canvaskit', dest='build_canvaskit', action='store_false'
+        help='build canvaskit from source (DEPRECATED: use ninja targets to select what to build)'
     )
 
     parser.add_argument(
         '--ide',
         default='',
         type=str,
-        help='The IDE files to generate using GN. Use `gn gen help` and look for the --ide flag to'
-        +
+        help='The IDE files to generate using GN. Use `gn gen help` and look for the --ide flag to' +
         ' see supported IDEs. If this flag is not specified, a platform specific default is selected.'
     )
 
@@ -382,16 +396,10 @@ def parse_args(d):
         '--prebuilt-dart-sdk',
         default=True,
         action='store_true',
-        help='Whether to use a prebuilt Dart SDK instead of building one. This defaults to '
-        + 'true and is enabled on CI.'
+        help='Whether to use a prebuilt Dart SDK instead of building one. This defaults to ' +
+        'true and is enabled on CI.'
     )
-    parser.add_argument(
-        '--no-prebuilt-dart-sdk', dest='prebuilt_dart_sdk', action='store_false'
-    )
-
-    parser.add_argument(
-        '--fuchsia-target-api-level', dest='fuchsia_target_api_level'
-    )
+    parser.add_argument('--no-prebuilt-dart-sdk', dest='prebuilt_dart_sdk', action='store_false')
 
     # Flags for Dart features.
     parser.add_argument(
@@ -404,12 +412,6 @@ def parse_args(d):
 
     # Impeller flags.
     parser.add_argument(
-        '--enable-impeller-playground',
-        default=False,
-        action='store_true',
-        help='Whether impeller unit tests run in playground mode.'
-    )
-    parser.add_argument(
         '--prebuilt-impellerc',
         default=None,
         type=str,
@@ -417,13 +419,26 @@ def parse_args(d):
         'Do not use this outside of CI or with impellerc from a different engine version.'
     )
 
-    # This is currently a no-op, will be removed shortly.
     parser.add_argument(
-        '--enable-impeller-vulkan',
+        '--enable-impeller-3d',
         default=False,
         action='store_true',
-        help='Enables WIP impeller support for vulkan. ' +
-        'https://github.com/flutter/flutter/issues/107357'
+        help='Enables experimental 3d support.'
+    )
+
+    parser.add_argument(
+        '--enable-impeller-trace-canvas',
+        default=False,
+        action='store_true',
+        help='Enables tracing calls to Canvas.'
+    )
+    parser.add_argument('--malioc-path', type=str, help='The path to the malioc tool.')
+
+    parser.add_argument(
+        '--impeller-cmake-example',
+        default=False,
+        action='store_true',
+        help='Do not run GN. Instead configure the Impeller cmake example build.',
     )
 
     # Sanitizers.
@@ -442,14 +457,36 @@ def parse_args(d):
 
     parser.add_argument(
         '--trace-gn',
-        default=False,
+        default=True,
         action='store_true',
         help='Write a GN trace log (gn_trace.json) in the Chromium tracing '
         'format in the build directory.'
     )
 
+    parser.add_argument(
+        '--darwin-extension-safe',
+        default=False,
+        action='store_true',
+        help='Whether the produced Flutter.framework is app extension safe. Only for iOS.'
+    )
+
     # Verbose output.
     parser.add_argument('--verbose', default=False, action='store_true')
+
+    parser.add_argument(
+        '--gn-args',
+        action='append',
+        help='Additional gn args to be passed to gn. If you '
+        'need to use this, it should probably be another switch '
+        'in //flutter/tools/gn.',
+    )
+
+    parser.add_argument(
+        '--use-glfw-swiftshader',
+        default=False,
+        action='store_true',
+        help='Forces glfw to use swiftshader.',
+    )
 
     return parser.parse_known_args(args)[0]
 
