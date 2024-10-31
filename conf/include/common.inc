@@ -104,7 +104,7 @@ def get_archive_pub_cache_environment(d, pub_cache, flutter_sdk):
     Returns environment to use with archive pub caching
     """
     PUB_CACHE_EXPORT_VARS = [
-        'HOME', 'PATH',
+        'PATH',
         'HTTP_PROXY', 'http_proxy',
         'HTTPS_PROXY', 'https_proxy',
         'FTP_PROXY', 'ftp_proxy',
@@ -237,7 +237,7 @@ python do_archive_pub_cache() {
     run_command(d, 'flutter pub get --enforce-lockfile', app_root, env)
     run_command(d, 'flutter pub get --enforce-lockfile --offline', app_root, env)
 
-    cp_cmd = f'mkdir -p {pub_cache}/.project | true; cp -r .* {pub_cache}/.project/ | true;'
+    cp_cmd = f'mkdir -p {pub_cache}/.project | true; cp -rT . {pub_cache}/.project/ | true;'
     run_command(d, cp_cmd, app_root, env)
 
     bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()

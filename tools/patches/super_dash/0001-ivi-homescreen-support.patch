@@ -1,0 +1,37 @@
+From 4977717a5bf7478e894e07005ce04e93953df0bf Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Thu, 11 Jan 2024 09:57:15 -0800
+Subject: [PATCH] ivi-homescreen support
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ lib/firebase_options_prod.dart | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/lib/firebase_options_prod.dart b/lib/firebase_options_prod.dart
+index 6a10cf5..3204d9f 100644
+--- a/lib/firebase_options_prod.dart
++++ b/lib/firebase_options_prod.dart
+@@ -21,6 +21,7 @@ class DefaultFirebaseOptions {
+     }
+     switch (defaultTargetPlatform) {
+       case TargetPlatform.android:
++      case TargetPlatform.linux:
+         return android;
+       case TargetPlatform.iOS:
+         return ios;
+@@ -34,11 +35,6 @@ class DefaultFirebaseOptions {
+           'DefaultFirebaseOptions have not been configured for windows - '
+           'you can reconfigure this by running the FlutterFire CLI again.',
+         );
+-      case TargetPlatform.linux:
+-        throw UnsupportedError(
+-          'DefaultFirebaseOptions have not been configured for linux - '
+-          'you can reconfigure this by running the FlutterFire CLI again.',
+-        );
+       default:
+         throw UnsupportedError(
+           'DefaultFirebaseOptions are not supported for this platform.',
+-- 
+2.43.0
+

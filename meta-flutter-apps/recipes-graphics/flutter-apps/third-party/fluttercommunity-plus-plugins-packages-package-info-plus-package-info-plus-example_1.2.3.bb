@@ -12,8 +12,8 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=aaa4daf7a83c6896af2c007b59db56e4"
 
-SRCREV = "2119168267e436e5900ea09cf68dd110e51b01e0"
-SRC_URI = "git://github.com/fluttercommunity/plus_plugins.git;lfs=1;nobranch=1;protocol=https;destsuffix=git"
+SRCREV = "8ad1c6d9e061a59383f82f9b4a7703ef03e4c04c"
+SRC_URI = "git://github.com/fluttercommunity/plus_plugins.git;lfs=1;branch=main;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"
 
@@ -23,6 +23,7 @@ PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \
 
 PUBSPEC_APPNAME = "package_info_plus_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "fluttercommunity-plus-plugins-packages-package-info-plus-package-info-plus-example"
+PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = "packages/package_info_plus/package_info_plus/example"
 
 inherit flutter-app

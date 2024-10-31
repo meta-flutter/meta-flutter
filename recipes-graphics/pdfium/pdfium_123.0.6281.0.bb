@@ -11,7 +11,7 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=c93507531cc9bb8e24a05f2a1a4036c7"
 
-DEPENDS += "\
+DEPENDS = "\
     freetype \
     glib-2.0 \
     libpng \
@@ -37,10 +37,10 @@ require conf/include/gn-utils.inc
 
 # For gn.bbclass
 GN_CUSTOM_VARS ?= '{"checkout_configuration": "small"}'
-EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
+EXTRA_GN_SYNC ?= "--nohooks --shallow --no-history -R -D"
 
 EXTRA_CXXFLAGS = ""
-#TODO aarch64 musl "extra_cxxflags= \"-flax-vector-conversions\""
+EXTRA_CXXFLAGS:append:libc-musl = "-flax-vector-conversions"
 
 PACKAGECONFIG ??= "release"
 

@@ -12,13 +12,14 @@ SECTION = "graphics"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=eb51e6812edbf587a5462bf17f2692a2"
 
-SRCREV = "ff0d2255546ab92e8437cdcdab01e7cad0a66b2f"
-SRC_URI = "git://github.com/Baseflow/flutter-geolocator.git;lfs=1;nobranch=1;protocol=https;destsuffix=git"
+SRCREV = "b53e4a5da27d25033b1a863004ad548c5b07b4e4"
+SRC_URI = "git://github.com/Baseflow/flutter-geolocator.git;lfs=1;branch=main;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "geolocator_linux_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "baseflow-flutter-geolocator-linux-geolocator-linux-example"
+PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = "geolocator_linux/example"
 
 inherit flutter-app

@@ -12,6 +12,7 @@ RDEPENDS:${PN} += " \
     flutter-samples-flutter-maps-firestore \
     flutter-samples-isolate-example \
     flutter-samples-experimental-pedometer-example \
+    flutter-samples-experimental-date-planner \
     flutter-samples-experimental-varfont-shader-puzzle \
     flutter-samples-experimental-federated-plugin-federated-plugin-example \
     flutter-samples-place-tracker \
@@ -32,9 +33,14 @@ RDEPENDS:${PN} += " \
     flutter-samples-add-to-app-plugin-flutter-module-using-plugin \
     flutter-samples-add-to-app-multiple-flutters-multiple-flutters-module \
     flutter-samples-deeplink-store-example \
+    flutter-samples-dynamic-theme \
     flutter-samples-animations \
+    flutter-samples-compass-app \
     flutter-samples-simple-shader \
+    flutter-samples-ai-recipe-generation \
+    flutter-samples-gemini-tasks \
     flutter-samples-navigation-and-routing-bookstore \
+    flutter-samples-asset-transformation \
     flutter-samples-material-3-demo \
     flutter-samples-desktop-photo-search-fluent-ui \
     flutter-samples-desktop-photo-search-material \

@@ -108,6 +108,19 @@
             "web/provider_shopper",
             "web/simplistic_editor",
             "web/web_dashboard"
+        ],
+        "compiler_requires_network": [
+            "animations",
+            "desktop_photo_search/fluent_ui",
+            "desktop_photo_search/material",
+            "form_app",
+            "infinite_list",
+            "isolate_example",
+            "navigation_and_routing",
+            "provider_counter",
+            "provider_shopper",
+            "simplistic_calculator",
+            "veggieseasons"
         ]
     },
     {
@@ -124,24 +137,20 @@
         "license_file": "LICENSE",
         "license_type": "MIT",
         "author": "gskinner team",
-        "folder": "third-party"
+        "folder": "third-party",
+        "compiler_requires_network": [
+            ""
+        ]
     },
     {
-        "uri": "https://github.com/bdero/flutter-scene-example.git",
-        "branch": "master",
-        "license_type": "CLOSED",
-        "author": "Brandon DeRosier",
-        "folder": "first-party"
-    },
-    {
-        "uri": "https://github.com/flutter/gallery.git",
-        "branch": "main",
+        "uri": "https://github.com/flutter/flutter.git",
+        "ver": "5874a72aa4c779a02553007c47dacbefba2374dc",
         "license_file": "LICENSE",
         "license_type": "BSD-3-Clause",
         "author": "Google",
         "folder": "first-party",
         "rdepends": {
-            "": [
+            "dev/integration_tests/flutter_gallery": [
                 "xdg-user-dirs"
             ]
         }
@@ -163,14 +172,6 @@
         "license_file": "LICENSE",
         "license_type": "BSD-3-Clause",
         "author": "Yakka",
-        "folder": "third-party"
-    },
-    {
-        "uri": "https://github.com/meta-flutter/flutter_animated_background.git",
-        "branch": "meta-flutter",
-        "license_file": "LICENSE",
-        "license_type": "MIT",
-        "author": "Andre Baltazar",
         "folder": "third-party"
     },
     {
@@ -351,7 +352,8 @@
         "src_folder": "super_dash",
         "src_files": {
             "": [
-                "0001-ivi-homescreen-support.patch"
+                "0001-ivi-homescreen-support.patch",
+                "0001-intl-0.19.0.patch"
             ]
         },
         "variables": {
@@ -377,25 +379,5 @@
                 "rive-text"
             ]
         }
-    },
-    {
-        "uri": "https://github.com/RevenueCat/purchases-flutter.git",
-        "branch": "main",
-        "license_file": "LICENSE",
-        "license_type": "MIT",
-        "author": "RevenueCat",
-        "folder": "third-party",
-        "src_folder": "purchases-flutter",
-        "src_files": {
-            "revenuecat_examples/MagicWeather": [
-                "0001-generic-Linux.patch"
-            ],
-            "revenuecat_examples/purchase_tester": [
-                "0001-generic-Linux.patch"
-            ]
-        },
-        "ignore": [
-            "api_tester"
-        ]
     }
 ]

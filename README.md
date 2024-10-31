@@ -2,6 +2,8 @@
 
 Yocto Layer for Google Flutter related projects.
 
+### Discord Server https://discord.gg/cBkecwT65Q
+
 ### Recommended development flow
 
 * Create a flutter workspace using [flutter_workspace.py](https://github.com/meta-flutter/workspace-automation/blob/main/flutter_workspace.py)
@@ -17,20 +19,20 @@ Yocto Layer for Google Flutter related projects.
 
 ### Flutter Application recipe variables
 
-| Variable                             | Description                                                                                                                         |
+| Variable                             | Description|
 |--------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| `FLUTTER_APPLICATION_PATH`           | This is the path relative to the root of the repository. Override in your application recipe.                                       |
-| `FLUTTER_PREBUILD_CMD`               | If set will run before Flutter build step.                                                                                          |
-| `PUB_CACHE_EXTRA_ARCHIVE_CMD`        | Command that is run prior to archive step of pub cache fetch. e.g. melos bootstrap.                                                 |
-| `PUB_CACHE_EXTRA_ARCHIVE_PATH`       | Appends a path to `$PATH` which affects `PUB_CACHE_EXTRA_ARCHIVE_CMD`                                                               |
-| `APP_AOT_EXTRA`                      | Allows passing dart defines to AOT step. e.g. `-DFLUTTER_APP_FLAVOR=prod`.                                                          |
-| `APP_AOT_ENTRY_FILE`                 | Allows overriding the entry file. Default is `main.dart`.                                                                           |
-| `APP_GEN_SNAPSHOT_FLAGS`             | Additional flags to pass to gen_snapshot. Default is `--obfuscate`.                                                                 |
-| `FLUTTER_APP_RUNTIME_MODES`          | Allows overriding modes that install app. Default is `release`.                                                                     |
-| `FLUTTER_APPLICATION_INSTALL_PREFIX` | Install prefix for flutter application install. Overriding enables installing into user directory. Default is `${datadir}/flutter`. |
-| `FLUTTER_APPLICATION_INSTALL_SUFFIX` | Install suffix for flutter application install. Default is "${PUBSPEC_APPNAME}".                                                    |
-| `PUBSPEC_IGNORE_LOCKFILE`            | Delete the `pubspec.lock` file during the build process                                                                             |
-| `PUBSPEC_ENFORCE_LOCKFILE`           | Run `flutter pub get` with the `--enforce-lockfile` flag, preventing dependencies from being upgraded during build`                 |
+| `FLUTTER_APPLICATION_PATH`           | This is the path relative to the root of the repository. Override in your application recipe.|
+| `FLUTTER_PREBUILD_CMD`               | If set will run before Flutter build step.|
+| `PUB_CACHE_EXTRA_ARCHIVE_CMD`        | Command that is run prior to archive step of pub cache fetch. e.g. melos bootstrap.|
+| `PUB_CACHE_EXTRA_ARCHIVE_PATH`       | Appends a path to `$PATH` which affects `PUB_CACHE_EXTRA_ARCHIVE_CMD`|
+| `APP_AOT_EXTRA`                      | Allows passing dart defines to AOT step. e.g. `-DFLUTTER_APP_FLAVOR=prod`.|
+| `APP_AOT_ENTRY_FILE`                 | Allows overriding the entry file. Default is `main.dart`.|
+| `APP_GEN_SNAPSHOT_FLAGS`             | Additional flags to pass to gen_snapshot. Default is `--obfuscate`.|
+| `FLUTTER_APP_RUNTIME_MODES`          | Allows overriding modes that install app. Default is `release`.|
+| `FLUTTER_APPLICATION_INSTALL_PREFIX` | Install prefix for flutter application install. Overriding enables installing into user directory. Default is `${datadir}/flutter`.|
+| `FLUTTER_APPLICATION_INSTALL_SUFFIX` | Install suffix for flutter application install. Default is "${PUBSPEC_APPNAME}".|
+| `PUBSPEC_IGNORE_LOCKFILE`            | Deletes pubspec.lock file if present.  Used in case where lock file does not build.|
+| `APP_CONFIG`                         | toml file to install into bundle folder.  File will be installed as config.toml in the bundle root.|
 
 ### Supported Engine Variants
 
@@ -38,6 +40,14 @@ Yocto Layer for Google Flutter related projects.
 * profile
 * release
 * jit_release
+
+## Required Layers
+* core
+* meta-python
+* openembedded-layer
+
+## Recommended Layers
+* clang-layer
 
 ## Dynamic Layers
 
@@ -50,7 +60,7 @@ Zenity is used for fileselector plugin on ivi-homescreen.  To enable this add me
 ## Overview
 
 Target BSP is expected to have a GPU with OpenGLES v2.0+ support.  
-If you selecting a part go with v3.0+, ideally one with Vulkan support.
+If you are selecting a part go with v3.0+, ideally one with Vulkan support.
 
 ## Notes
 
@@ -94,9 +104,12 @@ Note: when using SDK you may need to add the following after installation:
 
 ## General Yocto Notes
 
-When building on systems with GCC version > than uninative in Yocto distro add the following to conf/local.conf
+* When building on systems with GCC version > than uninative in Yocto distro add the following to conf/local.conf
 
     INHERIT:remove = "uninative"
+
+
+* The initial fetch with Flutter build will download over 14GB of source code. Running `bitbake -C cleanall flutter-engine` will clear the download cache. However, if an error occurs, the download cache remains intact, allowing you to resume the fetch later.
 
 ## Flutter Workspace Automation
 
@@ -132,31 +145,30 @@ Test gallery app
     cd gallery
     flutter run -d linux
 
-## Process to Auto Roll Flutter Applications
+## Process to Auto Roll Flutter Applications, Flutter SDK version, and Dart-SDK recipe
 
-Origin of truth for Flutter Applications:
-
-    conf/include/flutter-apps.json
-
-Example roll
-
-    cd /mnt/raid10
     git clone https://github.com/meta-flutter/meta-flutter
-    git clone https://github.com/meta-flutter/workspace-automation
-    cd workspace-automation
-    ./roll_meta_flutter.py --path /mnt/raid10/meta-flutter --json /mnt/raid10/meta-flutter/conf/include/flutter-apps.json --patch-dir=/mnt/raid10/workspace-automation/patches
+    cd meta-flutter
 
-## Process to update Flutter SDK version
+channel `stable`
 
-1. Follow process to Auto Roll Flutter Applications.  This step provides the latest `conf/include/releases_linux.json`
-2. Review `conf/include/releases_linux.json` to determine the Flutter SDK stable version.
-3. Update `conf/include/flutter-version.inc` with updated stable version.
-4. Determine version of Dart SDK for stable channel and update recipe `recipes-devtools/dart/dart-sdk_x.x.x.bb`
-5. Update `recipes-platform/images/app-container-user/dev_profile`
+    tools/roll_meta_flutter.py
+
+channel `beta`
+
+    tools/roll_meta_flutter.py --channel=beta
+
+channel `dev`
+
+    tools/roll_meta_flutter.py --channel=dev
+
+specific version
+
+    tools/roll_meta_flutter.py --version=2.40.0
 
 ## conf/include/flutter-apps.json
 
-This file is the origin of truth for all of the Flutter Applications present in this layer, and is consumed by [roll_meta_flutter.py](https://github.com/meta-flutter/workspace-automation/blob/main/roll_meta_flutter.py).
+This file is the origin of truth for all of the Flutter Applications present, and is used by tools/roll_meta_flutter.py.
 
 roll_meta_flutter.py autogenerates all of the flutter application recipes.
 
