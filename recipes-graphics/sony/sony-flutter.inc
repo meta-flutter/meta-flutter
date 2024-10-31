@@ -14,25 +14,32 @@ DEPENDS += "\
     flutter-engine \
     libinput \
     libxkbcommon \
-    systemd \
     virtual/egl \
     "
 
-RDEPENDS:${PN} += "xkeyboard-config"
+RDEPENDS:${PN} += " \
+    xkeyboard-config \
+    libxkbcommon \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '', 'libuv', d)} \
+    "
 
-REQUIRED_DISTRO_FEATURES += "opengl systemd"
+REQUIRED_DISTRO_FEATURES += "opengl"
 
 SRC_REPO ??= "github.com/sony/flutter-embedded-linux.git"
 SRC_REPO_BRANCH ??= "master"
 
 SRC_URI = "git://${SRC_REPO};protocol=https;branch=${SRC_REPO_BRANCH}"
-SRCREV ??= "28de1eb56d6afff0ae7bdc68787a0ae620ccc51d"
+SRCREV ??= "9d0ff07b5e1cccbead808ddff0f13f1c5ceeae52"
 
 S = "${WORKDIR}/git"
 
 inherit pkgconfig cmake features_check
 
 require conf/include/flutter-version.inc
+
+PACKAGECONFIG:append = " ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'systemd', 'libuv', d)}"
+PACKAGECONFIG[systemd] = ",,systemd,libuv"
+PACKAGECONFIG[libuv] = ",,libuv"
 
 EXTRA_OECMAKE += "-D USER_PROJECT_PATH=${S}/examples/${PN}"
 

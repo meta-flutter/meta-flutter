@@ -14,4 +14,5 @@ RDEPENDS:${PN} += " \
     flutter-games-templates-card \
     flutter-games-samples-ads \
     flutter-games-samples-multiplayer \
+    flutter-games-samples-crossword \
 "

@@ -19,6 +19,10 @@ DEPENDS += "\
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)} \
     "
 
+DEPENDS:aarch64 += "\
+    freetype \
+    "
+
 PV = "${FLUTTER_SDK_VERSION}"
 
 S = "${WORKDIR}/src"
@@ -30,6 +34,13 @@ SRC_URI = "\
     file://0001-export-GPU-symbols.patch \
     file://BUILD.gn.in \
     ${SRC_URI_EXTRA} \
+    "
+
+# musl-specific patches.
+SRC_URI:append:libc-musl = "\
+    file://0002-libcxx-uglify-support-musl.patch;patchdir=flutter/third_party \
+    file://0003-libcxx-return-type-in-wcstoull_l.patch;patchdir=flutter/third_party \
+    file://0004-suppres-musl-libc-warning.patch;patchdir=flutter/third_party/dart \
     "
 
 inherit gn-fetcher features_check pkgconfig
@@ -90,14 +101,14 @@ PACKAGECONFIG[trace-gn] = "--trace-gn"
 PACKAGECONFIG[ubsan] = "--ubsan"
 PACKAGECONFIG[unoptimized] = "--unoptimized"
 PACKAGECONFIG[verbose] = "--verbose"
-PACKAGECONFIG[vulkan] = "--enable-vulkan,, wayland"
+PACKAGECONFIG[vulkan] = "--enable-vulkan"
 PACKAGECONFIG[impeller-3d] = "--enable-impeller-3d"
 
 CLANG_BUILD_ARCH = "${@clang_build_arch(d)}"
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
 CLANG_PATH = "${WORKDIR}/src/flutter/buildtools/linux-${CLANG_BUILD_ARCH}/clang"
 
-GN_ARGS = '\
+GN_ARGS = "\
     ${PACKAGECONFIG_CONFARGS} \
     --clang --lto \
     --no-goma --no-rbe \
@@ -108,7 +119,11 @@ GN_ARGS = '\
     --target-sysroot ${STAGING_DIR_TARGET} \
     --target-toolchain ${CLANG_PATH} \
     --target-triple ${@gn_clang_triple_prefix(d)} \
-'
+    "
+
+GN_ARGS:append:libc-musl = "\
+    --no-backtrace \
+    "
 
 GN_ARGS:append:armv7 = " --arm-float-abi ${TARGET_FPU}"
 GN_ARGS:append:armv7a = " --arm-float-abi ${TARGET_FPU}"
@@ -127,15 +142,17 @@ GN_ARGS_LESS_RUNTIME_MODES="${@get_gn_args_less_runtime(d)}"
 FLUTTER_ENGINE_INSTALL_PREFIX ??= "${datadir}/flutter/${FLUTTER_SDK_VERSION}"
 
 FLUTTER_ENGINE_DEBUG_PREFIX_MAP ?= " \
- -fmacro-prefix-map=${S}=${TARGET_DBGSRC_DIR} \
- -fdebug-prefix-map=${S}=${TARGET_DBGSRC_DIR} \
- -fmacro-prefix-map=${B}=${TARGET_DBGSRC_DIR} \
- -fdebug-prefix-map=${B}=${TARGET_DBGSRC_DIR} \
- -fdebug-prefix-map=${STAGING_DIR_HOST}= \
- -fmacro-prefix-map=${STAGING_DIR_HOST}= \
- -fdebug-prefix-map=${STAGING_DIR_NATIVE}= \
-"
+    -fmacro-prefix-map=${S}=${TARGET_DBGSRC_DIR} \
+    -fdebug-prefix-map=${S}=${TARGET_DBGSRC_DIR} \
+    -fmacro-prefix-map=${B}=${TARGET_DBGSRC_DIR} \
+    -fdebug-prefix-map=${B}=${TARGET_DBGSRC_DIR} \
+    -fdebug-prefix-map=${STAGING_DIR_HOST}= \
+    -fmacro-prefix-map=${STAGING_DIR_HOST}= \
+    -fdebug-prefix-map=${STAGING_DIR_NATIVE}= \
+    "
 FLUTTER_ENGINE_DEBUG_FLAGS ?= "-g -feliminate-unused-debug-types ${FLUTTER_ENGINE_DEBUG_PREFIX_MAP}"
+FLUTTER_ENGINE_CXX_LIBC_FLAGS ?= ""
+FLUTTER_ENGINE_CXX_LIBC_FLAGS:append:libc-musl = "-D_LIBCPP_HAS_MUSL_LIBC"
 
 WAYLAND_IS_PRESENT="${@bb.utils.filter('DISTRO_FEATURES', 'wayland', d)}"
 X11_IS_PRESENT="${@bb.utils.filter('DISTRO_FEATURES', 'x11', d)}"
@@ -163,11 +180,23 @@ do_configure() {
     test -z $X11_IS_PRESENT     && sed -i '/^pkg_config("x11") {/,/^}$/d' ${S}/flutter/shell/platform/linux/config/BUILD.gn
 
     #
+    # fix build without wayland
+    #
+    test -z $WAYLAND_IS_PRESENT && sed -i "s|ozone_platform_wayland = true|ozone_platform_wayland = false|g" ${S}/build/config/BUILDCONFIG.gn
+    test -z $X11_IS_PRESENT && sed -i "s|ozone_platform_x11 = true|ozone_platform_x11 = false|g" ${S}/build/config/BUILDCONFIG.gn 
+
+    #
+    # fix build with musl libc
+    #
+    [ "${TCLIBC}" = "musl" ] && sed -i "s|#define HAVE_MALLINFO 1||g" -i ${S}/flutter/third_party/swiftshader/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h
+    
+    #
     # Custom Build config
     #
     cp ${WORKDIR}/BUILD.gn.in ${S}/build/toolchain/custom/BUILD.gn
     sed -i "s|@DEBUG_FLAGS@|${FLUTTER_ENGINE_DEBUG_FLAGS}|g" ${S}/build/toolchain/custom/BUILD.gn
-
+    sed -i "s|@CXX_LIBC_FLAGS@|${FLUTTER_ENGINE_CXX_LIBC_FLAGS}|g" ${S}/build/toolchain/custom/BUILD.gn
+    
     #
     # Configure each mode defined in PACKAGECONFIG
     #
@@ -195,13 +224,12 @@ do_configure() {
 do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 
 do_compile() {
-
     FLUTTER_RUNTIME_MODES="${@bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d)}"
     bbnote "FLUTTER_RUNTIME_MODES=${FLUTTER_RUNTIME_MODES}"
 
     for MODE in $FLUTTER_RUNTIME_MODES; do
         BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${MODE}/g")"    
-        ninja -C "${BUILD_DIR}" $PARALLEL_MAKE
+        HOME=${WORKDIR} ninja -C "${BUILD_DIR}" $PARALLEL_MAKE
     done
 }
 do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
