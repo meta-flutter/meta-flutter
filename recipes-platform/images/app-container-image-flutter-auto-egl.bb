@@ -13,9 +13,7 @@ DISTRO_FEATURES:append = " wayland opengl systemd pam"
 
 IMAGE_INSTALL += " \
     \
-    flutter-auto-with-logging \
-    \
-    packagegroup-flutter-test-apps \
+    flutter-auto-verbose-logs \
     \
     weston \
     weston-init \

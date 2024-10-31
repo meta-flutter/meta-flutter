@@ -16,9 +16,7 @@ IMAGE_INSTALL += " \
     swiftshader \
     vulkan-tools \
     \
-    flutter-auto-with-logging \
-    \
-    packagegroup-flutter-test-apps \
+    flutter-auto-verbose-logs \
     \
     weston \
     weston-init \
