@@ -1,5 +1,8 @@
 # Changelog
 
+Nov 1, 2024
+1. remove libcamera dynamic layer. Removes requirement for meta-multimedia
+
 Oct 17, 2024
 1. Sony: roll + conditional libuv support
 2. Sony: flutter-external-texture-plugin: patch added
