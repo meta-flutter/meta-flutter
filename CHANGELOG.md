@@ -1,5 +1,8 @@
 # Changelog
 
+Nov 1, 2024
+1. remove libcamera dynamic layer. Removes requirement for meta-multimedia
+
 Oct 30, 2024
 1. Feature parity with scarthgap
 
