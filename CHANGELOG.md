@@ -2,6 +2,7 @@
 
 Nov 1, 2024
 1. remove libcamera dynamic layer. Removes requirement for meta-multimedia
+2. remove camera and webview_flutter_view from default PACKAGECONFIG
 
 Oct 17, 2024
 1. Sony: roll + conditional libuv support
