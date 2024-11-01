@@ -77,9 +77,7 @@ jobs:
           echo 'LICENSE_FLAGS_ACCEPTED += "commercial"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-ffmpeg = " openssl"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-auto = " filament-view"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:remove:pn-flutter-auto = " camera webview_flutter_view"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-ivi-homescreen = " filament-view"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:remove:pn-ivi-homescreen = " camera webview_flutter_view"' >> ./conf/local.conf
           echo '***************************************'
           echo 'IMAGE_INSTALL:append = " \
               gstreamer1.0 \
