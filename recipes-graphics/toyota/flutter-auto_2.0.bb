@@ -52,10 +52,8 @@ PACKAGECONFIG ??= "\
     wdt_systemd \
     \
     nav_render_view \
-    webview_flutter_view \
     \
     audioplayer_linux \
-    camera \
     go_router \
     secure-storage \
     url_launcher \
