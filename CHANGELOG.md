@@ -4,6 +4,7 @@ Nov 4, 2024
 1. libwebrtc
 2. roll depot_tools
 3. create VPYTHON_VIRTUALENV_ROOT directory in gn fetcher
+4. roll pdfium to chromium/6694
 
 Nov 1, 2024
 1. remove libcamera dynamic layer. Removes requirement for meta-multimedia
