@@ -379,5 +379,14 @@
                 "rive-text"
             ]
         }
+    },
+    {
+        "uri": "https://github.com/firebase/FirebaseUI-Flutter",
+        "branch": "main",
+        "license_file": "LICENSE",
+        "license_type": "Apache-2.0",
+        "author": "Google",
+        "folder": "first-party"
     }
+
 ]
