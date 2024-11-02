@@ -12,7 +12,7 @@ SECTION = "graphics"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57"
 
-SRCREV = "1cce28065c6b50b9c8c3568fe63dc32259a7665e"
+SRCREV = "db3dadf0ced407a9c170561b40802138d17a9369"
 SRC_URI = "git://github.com/googleads/googleads-mobile-flutter.git;lfs=0;branch=main;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"
