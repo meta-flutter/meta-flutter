@@ -64,3 +64,5 @@ index e996d4a3b..b8c4b3dc2 100644
  
  #if defined(WIN32) && defined(FPDFSDK_EXPORTS)
  #define FPDF_CALLCONV __stdcall
+ 
+ 
