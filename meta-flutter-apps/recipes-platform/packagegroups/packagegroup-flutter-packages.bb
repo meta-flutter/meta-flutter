@@ -9,6 +9,8 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS:${PN} += " \
+    flutter-packages-third-party-packages-flutter-svg-example \
+    flutter-packages-vector-graphics-example \
     flutter-packages-pointer-interceptor-pointer-interceptor-pointer-interceptor-example \
     flutter-packages-url-launcher-url-launcher-linux-url-launcher-example \
     flutter-packages-pigeon-platform-tests-alternate-language-test-plugin-alternate-language-test-plugin-example \
