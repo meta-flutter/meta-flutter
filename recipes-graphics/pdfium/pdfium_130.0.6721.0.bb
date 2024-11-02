@@ -3,7 +3,8 @@
 #
 
 SUMMARY = "PDFium"
-DESCRIPTION = "PDF rendering engine"
+DESCRIPTION = "PDF rendering engine \
+               Reference: https://github.com/bblanchon/pdfium-binaries"
 AUTHOR = "Google PDFium Team"
 HOMEPAGE = "https://pdfium.googlesource.com/pdfium"
 BUGTRACKER = "https://bugs.chromium.org/p/pdfium/issues/list"
@@ -19,7 +20,7 @@ DEPENDS = "\
     zlib \
     "
 
-SRCREV = "7c7a6087e09e1a344984a6d0c5fbc2af36eca7ea"
+SRCREV = "2b675cf15ab4b68bf1ed4e0511ba2479e11f1605"
 SRC_URI = "\
     gn://pdfium.googlesource.com/pdfium.git;gn_name=pdfium \
     file://public_headers.patch \
@@ -40,7 +41,9 @@ GN_CUSTOM_VARS ?= '{"checkout_configuration": "small"}'
 EXTRA_GN_SYNC ?= "--nohooks --shallow --no-history -R -D"
 
 EXTRA_CXXFLAGS = ""
-EXTRA_CXXFLAGS:append:libc-musl = "-flax-vector-conversions"
+EXTRA_CXXFLAGS:append:libc-musl = "\
+    -flax-vector-conversions \
+    "
 
 PACKAGECONFIG ??= "release"
 
