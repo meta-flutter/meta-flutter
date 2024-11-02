@@ -19,7 +19,7 @@ DEPENDS += " \
 
 CURL_CA_BUNDLE ??= "${STAGING_DIR_NATIVE}/etc/ssl/certs/ca-certificates.crt"
 DEPOT_TOOLS ??= "${STAGING_DIR_NATIVE}/usr/share/depot_tools"
-VPYTHON_VIRTUALENV_ROOT ??= "${WORKDIR}/vpython"
+VPYTHON_VIRTUALENV_ROOT ??= "${WORKDIR}/.vpython-root"
 PYTHON3_PATH ??= ".cipd_bin/3.11/bin"
 EXTRA_GN_SYNC ??= ""
 GN_CUSTOM_VARS ??= "{}"
@@ -40,7 +40,7 @@ do_configure:prepend() {
     export HTTP_PROXY=${HTTP_PROXY}
     export HTTPS_PROXY=${HTTPS_PROXY}
     export NO_PROXY=localhost,127.0.0.1,::1
-    export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON3_PATH}:${PATH}
+    export PATH=${DEPOT_TOOLS}/${PYTHON3_PATH}:${DEPOT_TOOLS}:${PATH}
     export DEPOT_TOOLS_UPDATE=0
     export VPYTHON_VIRTUALENV_ROOT=${VPYTHON_VIRTUALENV_ROOT}
 }
@@ -52,7 +52,7 @@ do_compile:prepend() {
     export HTTP_PROXY=${HTTP_PROXY}
     export HTTPS_PROXY=${HTTPS_PROXY}
     export NO_PROXY=localhost,127.0.0.1,::1
-    export PATH=${DEPOT_TOOLS}:${DEPOT_TOOLS}/${PYTHON3_PATH}:${PATH}
+    export PATH=${DEPOT_TOOLS}/${PYTHON3_PATH}:${DEPOT_TOOLS}:${PATH}
     export DEPOT_TOOLS_UPDATE=0
     export VPYTHON_VIRTUALENV_ROOT=${VPYTHON_VIRTUALENV_ROOT}
 }

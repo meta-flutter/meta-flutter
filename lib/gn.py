@@ -77,6 +77,8 @@ class GN(FetchMethod):
         ud.basecmd = f'export DEPOT_TOOLS_UPDATE=0; \
             export CURL_CA_BUNDLE={curl_ca_bundle}; \
             export PATH="{depot_tools_path}:{python3_folder}:$PATH"; \
+            rm -rf $VPYTHON_VIRTUALENV_ROOT ||true; \
+            mkdir -p $VPYTHON_VIRTUALENV_ROOT; \
             export VPYTHON_VIRTUALENV_ROOT="{vpython_virtualenv_root}"; \
             gclient config --spec \'{gclient_config}\'; \
             gclient sync --force {sync_opt} --revision {srcrev} {parallel_make} -v'
