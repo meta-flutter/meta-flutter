@@ -1,0 +1,26 @@
+From fb0f7a0e7ab3d5965126e2572fe1e219187e27ee Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Sat, 2 Nov 2024 20:59:34 -0700
+Subject: [PATCH] add libwebrtc target
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ BUILD.gn | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/BUILD.gn b/BUILD.gn
+index 571049f..d2fce89 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -38,7 +38,7 @@ if (!build_with_chromium) {
+   # 'ninja default' and then 'ninja all', the second build should do no work.
+   group("default") {
+     testonly = true
+-    deps = [ ":webrtc" ]
++    deps = [ ":webrtc","//libwebrtc", ]
+     if (rtc_build_examples) {
+       deps += [ "examples" ]
+     }
+-- 
+2.43.5
+

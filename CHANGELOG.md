@@ -1,5 +1,10 @@
 # Changelog
 
+Nov 4, 2024
+1. libwebrtc
+2. roll depot_tools
+3. create VPYTHON_VIRTUALENV_ROOT directory in gn fetcher
+
 Nov 1, 2024
 1. remove libcamera dynamic layer. Removes requirement for meta-multimedia
 2. remove camera and webview_flutter_view from default PACKAGECONFIG

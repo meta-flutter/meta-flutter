@@ -16,8 +16,8 @@ DEPENDS += " \
 
 CURL_CA_BUNDLE ??= "${STAGING_DIR_NATIVE}/etc/ssl/certs/ca-certificates.crt"
 DEPOT_TOOLS ??= "${STAGING_DIR_NATIVE}/usr/share/depot_tools"
-PYTHON3_PATH ??= "bootstrap-2@3.11.6.chromium.30_bin/python3/bin"
-VPYTHON_VIRTUALENV_ROOT ??= "${WORKDIR}/vpython"
+VPYTHON_VIRTUALENV_ROOT ??= "${WORKDIR}/.vpython-root"
+PYTHON3_PATH ??= ".cipd_bin/3.11/bin"
 do_fetch[depends] += " \
     ca-certificates-native:do_populate_sysroot \
     depot-tools-native:do_populate_sysroot \
