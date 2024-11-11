@@ -220,6 +220,11 @@ do_configure() {
 
         bbnote `cat ${ARGS_FILE}`
     done
+
+    # vpython files are maked as readonly,
+    # so, do_clean/do_rm_work will be failed due to the permission error.
+    # So, we give the write permission to those files
+    find ${VPYTHON_VIRTUALENV_ROOT} -print0 | xargs --verbose -0 chmod a+w
 }
 do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 
@@ -228,7 +233,7 @@ do_compile() {
     bbnote "FLUTTER_RUNTIME_MODES=${FLUTTER_RUNTIME_MODES}"
 
     for MODE in $FLUTTER_RUNTIME_MODES; do
-        BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${MODE}/g")"    
+        BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${MODE}/g")"
         HOME=${WORKDIR} ninja -C "${BUILD_DIR}" $PARALLEL_MAKE
     done
 }
