@@ -15,9 +15,9 @@ jobs:
       YOCTO_BRANCH: dunfell
 
     runs-on: [self-hosted, linux]
-
+    
     container:
-      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      image: ghcr.io/meta-flutter/meta-flutter/ubuntu-20-dev:main
       options:
         --user 1001:1001
         --userns keep-id:uid=1001,gid=1001
@@ -42,12 +42,11 @@ jobs:
           cd ../dunfell-linux-dummy
           pwd
           ls -la
-          rm -rf poky meta-openembedded meta-clang meta-drm meta-vulkan
+          rm -rf poky meta-openembedded meta-clang meta-vulkan
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded &
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git &
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-drm.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-vulkan.git &
+          git clone -b dunfell-clang12 --single-branch https://github.com/kraj/meta-clang.git meta-clang &
           wait
 
       - name: Configure build
@@ -74,7 +73,7 @@ jobs:
           echo 'DISTRO_FEATURES:append = " systemd x11 wayland opengl polkit"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES_BACKFILL_CONSIDERED = ""' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"' >> ./conf/local.conf
-          echo 'LICENSE_FLAGS_ACCEPTED += "commercial"' >> ./conf/local.conf
+          echo 'LICENSE_FLAGS_WHITELIST += "commercial"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-ffmpeg = " openssl"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-auto = " filament-view"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-ivi-homescreen = " filament-view"' >> ./conf/local.conf
@@ -100,8 +99,6 @@ jobs:
               ../meta-openembedded/meta-networking \
               ../meta-openembedded/meta-oe \
               ../meta-openembedded/meta-python \
-              ../meta-clang \
-              ../meta-drm \
               ../meta-vulkan \
               ../../meta-flutter \
               ../../meta-flutter/meta-flutter-apps
@@ -145,8 +142,8 @@ jobs:
         working-directory: ../dunfell-linux-dummy
         run: |
           . ./poky/oe-init-build-env
-          bitbake ivi-homescreen -c do_cleansstate
-          bitbake ivi-homescreen
+          bitbake flutter-gallery -c do_cleansstate
+          bitbake flutter-gallery
 
       - name: Build flutter-auto
         shell: bash
@@ -163,22 +160,6 @@ jobs:
           . ./poky/oe-init-build-env
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
-
-      - name: Build Sony flutter-drm-eglstream-backend
-        shell: bash
-        working-directory: ../dunfell-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-drm-eglstream-backend -c do_cleansstate
-          bitbake flutter-drm-eglstream-backend
-
-      - name: Build Sony drm gbm backend
-        shell: bash
-        working-directory: ../dunfell-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-drm-gbm-backend -c do_cleansstate
-          bitbake flutter-drm-gbm-backend
 
       - name: Build Sony external texture plugin
         shell: bash

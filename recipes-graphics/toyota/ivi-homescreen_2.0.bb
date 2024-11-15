@@ -49,7 +49,6 @@ PACKAGECONFIG ??= "\
     client-xdg \
     \
     nav_render_view \
-    webview_flutter_view \
     \
     audioplayer_linux \
     go_router \
