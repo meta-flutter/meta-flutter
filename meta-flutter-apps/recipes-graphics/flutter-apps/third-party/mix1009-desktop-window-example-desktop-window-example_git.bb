@@ -12,7 +12,7 @@ SECTION = "graphics"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=317abe6e25431a1de96b8420a663f94b"
 
-SRCREV = "5426687b01a737fbd6ce5e12b0b12e5ac74cd628"
+SRCREV = "83ab89c74bcaddbb11f9eaf138c19256610c81f6"
 SRC_URI = "git://github.com/mix1009/desktop_window.git;lfs=0;branch=master;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"

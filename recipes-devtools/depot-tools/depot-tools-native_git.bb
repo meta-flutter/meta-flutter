@@ -7,7 +7,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=c2c05f9bdd5fc0b458037c2d1fb8d95e"
 
 SRC_URI = "git://chromium.googlesource.com/chromium/tools/depot_tools;protocol=https;branch=main"
 
-SRCREV = "120efcb475aa5f8c6f38c4598c602f4713015112"
+SRCREV = "39b2e4efd608584059aa5bb9af8e65597ca86276"
 
 S = "${WORKDIR}/git"
 
@@ -21,8 +21,6 @@ do_configure() {
     cd ${S}
     export DEPOT_TOOLS_UPDATE=0
     export PATH=${S}:$PATH
-    export VPYTHON_VIRTUALENV_ROOT=${VPYTHON_VIRTUALENV_ROOT}
-    export CIPD_CACHE_DIR="${WORKDIR}/cipd"
 
     gclient --version
 }
