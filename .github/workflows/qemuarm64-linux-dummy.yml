@@ -142,8 +142,8 @@ jobs:
         working-directory: ../dunfell-linux-dummy
         run: |
           . ./poky/oe-init-build-env
-          bitbake flutter-gallery -c do_cleansstate
-          bitbake flutter-gallery
+          bitbake ivi-homescreen -c do_cleansstate
+          bitbake ivi-homescreen
 
       - name: Build flutter-auto
         shell: bash
