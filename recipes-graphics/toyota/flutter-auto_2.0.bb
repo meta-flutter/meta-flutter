@@ -22,8 +22,8 @@ DEPENDS += "\
 
 REQUIRED_DISTRO_FEATURES = "wayland"
 
-HOMESCREEN_COMMIT ??= "25b67b5a32cce10daa3f20e20d00bf0acfc27fac"
-PLUGINS_COMMIT ??= "875f40008e489c9e597694507622d5884eeed526"
+HOMESCREEN_COMMIT ??= "d68b3ea867c81bc2b8295589ed3f6284c71b8f24"
+PLUGINS_COMMIT ??= "78836a2fe640a02ce462f2da7c853dad9effa405"
 
 SRC_URI = "\
     gitsm://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=v2.0;name=homescreen \
@@ -52,7 +52,6 @@ PACKAGECONFIG ??= "\
     wdt_systemd \
     \
     nav_render_view \
-    webview_flutter_view \
     \
     audioplayer_linux \
     go_router \
