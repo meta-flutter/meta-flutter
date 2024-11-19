@@ -1,4 +1,5 @@
 # Copyright 2017 The Flutter Authors. All rights reserved.
+# Copyright 2023-2024 Joel Winarske. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -10,14 +11,15 @@ toolchain("custom") {
   # We can't do string interpolation ($ in strings) on things with dots in
   # them. To allow us to use $cc below, for example, we create copies of
   # these values in our scope.
-  cc = "${toolchain_bin}/clang"
-  cxx = "${toolchain_bin}/clang++"
+  cc = "${toolchain_bin}/clang -fuse-ld=lld -Wno-unused-command-line-argument"
+  cxx = "${toolchain_bin}/clang++ -fuse-ld=lld -Wno-unused-command-line-argument"
   ar = "${toolchain_bin}/llvm-ar"
-  ld = "${toolchain_bin}/clang++"
+  ld = "${toolchain_bin}/clang++ -fuse-ld=lld -Wno-unused-command-line-argument"
   readelf = "${toolchain_bin}/llvm-readelf"
   nm = "${toolchain_bin}/llvm-nm"
   strip = "${toolchain_bin}/llvm-strip"
   debug_flags = "@DEBUG_FLAGS@"
+  cxx_libc_flags = "@CXX_LIBC_FLAGS@"
 
   target_triple_flags = "--target=${custom_target_triple}"
   sysroot_flags = "--sysroot ${custom_sysroot}"
@@ -39,7 +41,7 @@ toolchain("custom") {
 
   tool("cxx") {
     depfile = "{{output}}.d"
-    command = "$cxx -MD -MF $depfile $target_triple_flags $sysroot_flags {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} $debug_flags -c {{source}} -o {{output}}"
+    command = "$cxx -MD -MF $depfile $target_triple_flags $sysroot_flags {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}} $debug_flags $cxx_libc_flags -c {{source}} -o {{output}}"
     depsformat = "gcc"
     description = "CXX {{output}}"
     outputs =
@@ -83,9 +85,10 @@ toolchain("custom") {
     link_command = "$ld $target_triple_flags $sysroot_flags -shared {{ldflags}} $debug_flags -o $unstripped_sofile $custom_lib_flags -Wl,--build-id=sha1 -Wl,-soname=$soname @$rspfile"
     toc_command = "{ $readelf -d $unstripped_sofile | grep SONAME ; $nm -gD -f posix $unstripped_sofile | cut -f1-2 -d' '; } > $temporary_tocname"
     replace_command = "if ! cmp -s $temporary_tocname $tocfile; then mv $temporary_tocname $tocfile; fi"
+    strip_command = "$strip -o $sofile $unstripped_sofile"
 
     command =
-        "$link_command && $toc_command && $replace_command"
+        "$link_command && $toc_command && $replace_command && $strip_command"
     rspfile_content = "-Wl,--whole-archive {{inputs}} {{solibs}} -Wl,--no-whole-archive {{libs}}"
 
     description = "SOLINK $sofile"

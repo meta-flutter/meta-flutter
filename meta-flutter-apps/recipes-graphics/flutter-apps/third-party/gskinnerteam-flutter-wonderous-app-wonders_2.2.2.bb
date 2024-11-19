@@ -12,13 +12,17 @@ SECTION = "graphics"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=6570d633a333be7d4362fdecbf311bfd"
 
-SRCREV = "0331605e1eebfa8199a8fff10d7ee56e4560845f"
-SRC_URI = "git://github.com/gskinnerTeam/flutter-wonderous-app.git;lfs=0;nobranch=1;protocol=https;destsuffix=git"
+SRCREV = "a12a4d7ed6f98ee230f512c7651fb4e789fe90c4"
+SRC_URI = "git://github.com/gskinnerTeam/flutter-wonderous-app.git;lfs=0;branch=main;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "wonders"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "gskinnerteam-flutter-wonderous-app-wonders"
+PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = ""
 
 inherit flutter-app
+
+do_compile[network] = "1"
+

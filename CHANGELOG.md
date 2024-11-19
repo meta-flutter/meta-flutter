@@ -1,5 +1,170 @@
 # Changelog
 
+Nov 4, 2024
+1. libwebrtc
+2. roll depot_tools
+3. create VPYTHON_VIRTUALENV_ROOT directory in gn fetcher
+4. roll pdfium to chromium/6694
+
+Nov 1, 2024
+1. remove libcamera dynamic layer. Removes requirement for meta-multimedia
+2. remove camera and webview_flutter_view from default PACKAGECONFIG
+
+Oct 17, 2024
+1. Sony: roll + conditional libuv support
+2. Sony: flutter-external-texture-plugin: patch added
+
+Oct 16, 2024
+1. flutter-engine: musl cleanup
+
+Oct 15, 2024
+1. aarch64 - freetype2 depend
+2. Flutter 3.24.3
+3. Dart SDK 3.5.3
+4. Roll meta-flutter-apps
+
+Oct 14, 2024
+1. enable flutter-engine build without wayland
+2. build with musl libc
+
+Oct 3, 2024
+1. retain partial sync on fetch error
+
+Sep 28, 2024
+1. Do not copy parent directories in archive_pub
+
+Sep 10, 2024
+1. fix for pub git fetching from secure repos
+
+Sep 9, 2024
+1. unique archive name using md5 of app root (directory)
+2. APP_CONFIG variable.  Installs string value as config.toml to bundle root.
+
+Sep 8, 2024
+1. Flutter SDK 3.24.2
+2. dart SDK 3.5.2
+3. ivi-homescreen/flutter-auto - rive-text plugin
+
+Sep 6, 2024
+1. Update ivi-homescreen-plugins for ivi-homescreen and flutter-auto
+2. rive-text 0.4.11
+
+Sep 3, 2024
+1. Backout pubspec archiver
+2. enforce lockfile
+3. roll meta-flutter-apps
+4. use PUBSPEC_IGNORE_LOCKFILE="1" as default for all rolled recipes
+5. Add flutter sdk apps
+6. revise flutter-sdk-native caching
+7. roll ivi-homescreen/flutter-auto; filament-view updates
+
+Aug 20, 2024
+1. flutter-engine GPU symbol export patch
+2. ivi-homescreen/flutter-auto set logging level to debug if !NDEBUG
+3. Flutter SDK 3.24.1
+
+Aug 16, 2024
+1. ivi-homescreen EGL backend alpha transparency fix
+2. env cleanup in common.inc
+3. do_restore_pub_cache add --enforce-lockfile
+4. improve concurrent archive fetch
+
+Aug 15, 2024
+1. add layer dependencies
+2. file locking for DL_DIR write files
+
+Aug 14, 2024
+1. missing include python3-dir to common.inc
+
+Aug 13. 2024
+1. caching pub fetcher v1
+2. auto-roll apps; known build breaks on gallery and super-dash
+
+Aug 12, 2024
+1. pubspec tool supports hosted and git sources
+
+Aug 11, 2024
+1. pubspec.py tool
+   Enable pre-populating DL_DIR via generic options
+   Walk folder specified by --input
+   Restore step if --restore used
+2. tools folder linter updates
+3. roll recipes
+
+Aug 10, 2024
+1. pubspec.py tool
+   pub cache package archiver functional unit test
+
+Aug 9, 2024
+1. flutter app build update - unique to 3.24.0
+2. added missing app_root definitions in common.inc
+3. tools/roll_meta_flutter.py - add support for `compiler_requires_network` key
+4. remove non-building apps
+5. ivi-homescreen/flutter-auto WDT phase I
+6. remove pdf from ivi-homescreen default package config; due to riscv64
+7. ivi-homescreen - add missing comma in build flags for pdf packageconfig
+8. flutter aot generation version agnostic
+
+Aug 8, 2024
+1. add channel option to roll_meta_flutter.py
+2. roll_meta_flutter.py now updates dart-sdk recipe
+
+Aug 7, 2024
+1. Flutter SDK 3.24.0
+2. Dart SDK 3.5.0
+3. Roll flutter-pi
+
+Aug 6, 2024
+1. flutter-engine
+   - riscv64 support - requires clang-layer or will be ignored
+   - uses external clang toolchain if clang-layer present
+   - link everything with ldd.  Required for RISC-V
+   - Vulkan DRM support via dynamic "vulkan_header" config
+   - only check for x11 package if x11 is in DISTRO_FEATURES
+   - do_install refactor
+   - shared module .debug files install to -dbg package
+2. flutter-auto/homescreen
+   - vulkan-headers submodule
+
+Aug 4, 2024
+1. Dart SDK 3.4.4
+
+Aug 1, 2024
+1. Roll to Flutter SDK 3.22.3
+2. ivi-homescreen/flutter-auto v2 Notify Display Update support
+
+Jul 30, 2024
+1. ivi-homescreen/flutter-auto v2 fix bad_optional_access
+
+Jul 29, 2024
+1. Roll ivi-homescreen v2 and flutter-auto v2
+
+Jul 9, 2024
+1. Discord Server
+
+Jul 4, 2024
+1. flutter-engine patch/patch rework for 3.22.2
+2. remove unused patches from tools
+3. set BBFILE_PRIORITY_meta-flutter correctly
+
+Jul 3, 2024
+1. roll_meta_flutter.py tool. See tools/README.md
+2. correct ivi-homescreen executable name to `homescreen`
+
+June 28, 2024
+1. v2 - restore app_on_output callback assignment for AGL client
+2. v2 - change ENABLE_AGL_CLIENT to ENABLE_AGL_SHELL_CLIENT
+
+June 27, 2024
+1. v2 - update package config flags
+2. v2 - remove install of libwayland-gen.a from waypp
+3. v2 - remove use of `find_package(OpenGL` in waypp.
+
+June 26, 2024
+1. Roll v2 - waypp/libliftoff + examples, plugin updates
+2. v2 - remove file-selector from package cfg default as it depends on meta-gnome
+3. v2 - add package config flag for v2 examples (waypp+libliftoff)
+
 May 20, 2024
 1. Roll v2 - cleanup plugin_common
 

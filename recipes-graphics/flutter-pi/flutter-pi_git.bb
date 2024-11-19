@@ -21,6 +21,7 @@ DEPENDS += "\
     libinput \
     libxkbcommon \
     virtual/egl \
+    systemd \
    "
 
 RDEPENDS:${PN} += "\
@@ -33,13 +34,13 @@ RRECOMMENDS:${PN} += "\
     liberation-fonts \
     "
 
-REQUIRED_DISTRO_FEATURES = "opengl"
+REQUIRED_DISTRO_FEATURES = "opengl systemd"
 
 SRC_REPO ??= "github.com/ardera/flutter-pi.git"
 SRC_REPO_BRANCH ??= "master"
 
 SRC_URI = "git://${SRC_REPO};protocol=https;branch=${SRC_REPO_BRANCH}"
-SRCREV ??= "bb66b3332da0b05650b865e804045b121f469155"
+SRCREV ??= "37bd9773c1938e5f76208bc4e8632fdbbb4190ff"
 
 S = "${WORKDIR}/git"
 

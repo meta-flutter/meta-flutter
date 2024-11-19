@@ -12,8 +12,8 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=aaa4daf7a83c6896af2c007b59db56e4"
 
-SRCREV = "2119168267e436e5900ea09cf68dd110e51b01e0"
-SRC_URI = "git://github.com/fluttercommunity/plus_plugins.git;lfs=1;nobranch=1;protocol=https;destsuffix=git"
+SRCREV = "2c9c5269f6a31d805d0d6970d64b0f5ab2d358ba"
+SRC_URI = "git://github.com/fluttercommunity/plus_plugins.git;lfs=1;branch=main;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"
 
@@ -23,6 +23,7 @@ PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \
 
 PUBSPEC_APPNAME = "battery_plus_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "fluttercommunity-plus-plugins-packages-battery-plus-battery-plus-example"
+PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = "packages/battery_plus/battery_plus/example"
 
 inherit flutter-app

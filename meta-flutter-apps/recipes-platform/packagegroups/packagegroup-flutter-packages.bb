@@ -9,6 +9,8 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS:${PN} += " \
+    flutter-packages-third-party-packages-flutter-svg-example \
+    flutter-packages-vector-graphics-example \
     flutter-packages-pointer-interceptor-pointer-interceptor-pointer-interceptor-example \
     flutter-packages-url-launcher-url-launcher-linux-url-launcher-example \
     flutter-packages-pigeon-platform-tests-alternate-language-test-plugin-alternate-language-test-plugin-example \
@@ -17,7 +19,7 @@ RDEPENDS:${PN} += " \
     flutter-packages-xdg-directories-xdg-directories-example \
     flutter-packages-image-picker-image-picker-image-picker-example \
     flutter-packages-image-picker-image-picker-linux-example \
-    flutter-packages-two-dimensional-scrollables-table-view-example \
+    flutter-packages-two-dimensional-scrollables-two-dimensional-examples \
     flutter-packages-quick-actions-quick-actions-quick-actions-example \
     flutter-packages-rfw-example-hello \
     flutter-packages-rfw-example-local \
@@ -29,12 +31,11 @@ RDEPENDS:${PN} += " \
     flutter-packages-flutter-markdown-flutter-markdown-example \
     flutter-packages-go-router-go-router-examples \
     flutter-packages-go-router-builder-go-router-builder-example \
-    flutter-packages-dynamic-layouts-example \
-    flutter-packages-platform-plaform-example \
     flutter-packages-flutter-lints-example \
     flutter-packages-webview-flutter-webview-flutter-webview-flutter-example \
     flutter-packages-webview-flutter-webview-flutter-android-webview-flutter-android-example \
     flutter-packages-google-maps-flutter-google-maps-flutter-google-maps-flutter-example \
+    flutter-packages-google-maps-flutter-google-maps-flutter-ios-example-google-maps-flutter-example \
     flutter-packages-animations-example \
     flutter-packages-shared-preferences-shared-preferences-linux-shared-preferences-linux-example \
     flutter-packages-flutter-image-flutter-image-example \
@@ -43,4 +44,5 @@ RDEPENDS:${PN} += " \
     flutter-packages-flutter-adaptive-scaffold-flutter-adaptive-scaffold-example \
     flutter-packages-espresso-example \
     flutter-packages-in-app-purchase-in-app-purchase-in-app-purchase-example \
+    flutter-packages-interactive-media-ads-interactive-media-ads-example \
 "

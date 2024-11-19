@@ -12,15 +12,14 @@ SECTION = "graphics"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=c52243a14a066c83e50525d9ad046678"
 
-SRCREV = "ed8a68df54a2c6b01ed39cae9156ecf00af65959"
-SRC_URI = " \
-    git://github.com/rive-app/rive-flutter.git;lfs=1;branch=master;protocol=https;destsuffix=git;name=rive_flutter \
-"
+SRCREV = "5ae54033750e9821135feaaec5e81b2d8efb4ef2"
+SRC_URI = "git://github.com/rive-app/rive-flutter.git;lfs=1;branch=master;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "rive_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "rive-app-rive-flutter-example-rive-example"
+PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = "example"
 
 inherit flutter-app
