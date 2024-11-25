@@ -22,6 +22,9 @@ do_configure() {
     export DEPOT_TOOLS_UPDATE=0
     export PATH=${S}:$PATH
 
+    # Required since depot_tools_config_dir will return a path based on XDG_CONFIG_HOME
+    export XDG_CONFIG_HOME=${WORKDIR}
+
     gclient --version
 }
 
