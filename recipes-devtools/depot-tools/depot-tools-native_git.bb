@@ -13,6 +13,8 @@ S = "${WORKDIR}/git"
 
 inherit native
 
+VPYTHON_VIRTUALENV_ROOT ??= "${WORKDIR}/.vpython-root"
+
 do_configure[network] = "1"
 do_configure() {
     export http_proxy=${http_proxy}
@@ -21,6 +23,7 @@ do_configure() {
     cd ${S}
     export DEPOT_TOOLS_UPDATE=0
     export PATH=${S}:$PATH
+    export VPYTHON_VIRTUALENV_ROOT=${VPYTHON_VIRTUALENV_ROOT}
 
     # Required since depot_tools_config_dir will return a path based on XDG_CONFIG_HOME
     export XDG_CONFIG_HOME=${WORKDIR}
