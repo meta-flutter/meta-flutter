@@ -49,7 +49,7 @@ PACKAGECONFIG ??= "\
     client-xdg \
     client-agl-shell \
     \
-    wdt_systemd \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'wdt_systemd', '', d)} \
     \
     nav_render_view \
     \
