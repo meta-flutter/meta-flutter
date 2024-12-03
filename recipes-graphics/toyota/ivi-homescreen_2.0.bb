@@ -54,7 +54,7 @@ PACKAGECONFIG ??= "\
     go_router \
     secure-storage \
     url_launcher \
-    video_player_linux \
+    ${@bb.utils.contains('LICENSE_FLAGS_ACCEPTED', 'commercial', 'video_player_linux', '', d)} \
     desktop_window_linux \
     "
 
