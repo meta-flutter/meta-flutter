@@ -1,5 +1,8 @@
 # Changelog
 
+Dec 17, 2024
+1. Flutter SDK 3.27.1
+
 Nov 4, 2024
 1. libwebrtc
 2. roll depot_tools
