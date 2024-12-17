@@ -1,5 +1,9 @@
 # Changelog
 
+Dec 17, 2024
+1. roll ivi-homescreen + plugins
+2. roll flutter-auto + plugins
+
 Nov 4, 2024
 1. libwebrtc
 2. roll depot_tools
