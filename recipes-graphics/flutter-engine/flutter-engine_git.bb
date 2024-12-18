@@ -223,6 +223,8 @@ do_configure() {
 do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 
 do_compile() {
+    # required for dart: https://github.com/dart-lang/sdk/issues/41560
+    export HOME=${WORKDIR}
 
     FLUTTER_RUNTIME_MODES="${@bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d)}"
     bbnote "FLUTTER_RUNTIME_MODES=${FLUTTER_RUNTIME_MODES}"

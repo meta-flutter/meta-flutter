@@ -73,8 +73,10 @@ class GN(FetchMethod):
         depot_tools_path = d.getVar("DEPOT_TOOLS")
         python3_folder = os.path.join(depot_tools_path, d.getVar("PYTHON3_PATH"))
         vpython_virtualenv_root = d.getVar("VPYTHON_VIRTUALENV_ROOT")
+        depot_tools_xdg_config_home = d.getVar("DEPOT_TOOLS_XDG_CONFIG_HOME")
 
         ud.basecmd = f'export DEPOT_TOOLS_UPDATE=0; \
+            export XDG_CONFIG_HOME={depot_tools_xdg_config_home}; \
             export CURL_CA_BUNDLE={curl_ca_bundle}; \
             export PATH="{depot_tools_path}:{python3_folder}:$PATH"; \
             rm -rf $VPYTHON_VIRTUALENV_ROOT ||true; \
