@@ -31,7 +31,6 @@ SRC_URI_EXTRA = ""
 
 SRC_URI = "\
     gn://github.com/flutter/engine.git;gn_name=src/flutter \
-    file://0001-export-GPU-symbols.patch \
     file://BUILD.gn.in \
     ${SRC_URI_EXTRA} \
     "
