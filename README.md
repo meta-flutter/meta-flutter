@@ -21,18 +21,18 @@ Yocto Layer for Google Flutter related projects.
 
 | Variable                             | Description|
 |--------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| `FLUTTER_APPLICATION_PATH`           | This is the path relative to the root of the repository. Override in your application recipe.                                       |
-| `FLUTTER_PREBUILD_CMD`               | If set will run before Flutter build step.                                                                                          |
-| `PUB_CACHE_EXTRA_ARCHIVE_CMD`        | Command that is run prior to archive step of pub cache fetch. e.g. melos bootstrap.                                                 |
-| `PUB_CACHE_EXTRA_ARCHIVE_PATH`       | Appends a path to `$PATH` which affects `PUB_CACHE_EXTRA_ARCHIVE_CMD`                                                               |
-| `APP_AOT_EXTRA`                      | Allows passing dart defines to AOT step. e.g. `-DFLUTTER_APP_FLAVOR=prod`.                                                          |
-| `APP_AOT_ENTRY_FILE`                 | Allows overriding the entry file. Default is `main.dart`.                                                                           |
-| `APP_GEN_SNAPSHOT_FLAGS`             | Additional flags to pass to gen_snapshot. Default is `--obfuscate`.                                                                 |
-| `FLUTTER_APP_RUNTIME_MODES`          | Allows overriding modes that install app. Default is `release`.                                                                     |
-| `FLUTTER_APPLICATION_INSTALL_PREFIX` | Install prefix for flutter application install. Overriding enables installing into user directory. Default is `${datadir}/flutter`. |
-| `FLUTTER_APPLICATION_INSTALL_SUFFIX` | Install suffix for flutter application install. Default is "${PUBSPEC_APPNAME}".                                                    |
-| `PUBSPEC_IGNORE_LOCKFILE`            | Delete the `pubspec.lock` file during the build process                                                                             |
-| `PUBSPEC_ENFORCE_LOCKFILE`           | Run `flutter pub get` with the `--enforce-lockfile` flag, preventing dependencies from being upgraded during build`                 |
+| `FLUTTER_APPLICATION_PATH`           | This is the path relative to the root of the repository. Override in your application recipe.|
+| `FLUTTER_PREBUILD_CMD`               | If set will run before Flutter build step.|
+| `PUB_CACHE_EXTRA_ARCHIVE_CMD`        | Command that is run prior to archive step of pub cache fetch. e.g. melos bootstrap.|
+| `PUB_CACHE_EXTRA_ARCHIVE_PATH`       | Appends a path to `$PATH` which affects `PUB_CACHE_EXTRA_ARCHIVE_CMD`|
+| `APP_AOT_EXTRA`                      | Allows passing dart defines to AOT step. e.g. `-DFLUTTER_APP_FLAVOR=prod`.|
+| `APP_AOT_ENTRY_FILE`                 | Allows overriding the entry file. Default is `main.dart`.|
+| `APP_GEN_SNAPSHOT_FLAGS`             | Additional flags to pass to gen_snapshot. Default is `--obfuscate`.|
+| `FLUTTER_APP_RUNTIME_MODES`          | Allows overriding modes that install app. Default is `release`.|
+| `FLUTTER_APPLICATION_INSTALL_PREFIX` | Install prefix for flutter application install. Overriding enables installing into user directory. Default is `${datadir}/flutter`.|
+| `FLUTTER_APPLICATION_INSTALL_SUFFIX` | Install suffix for flutter application install. Default is "${PUBSPEC_APPNAME}".|
+| `PUBSPEC_IGNORE_LOCKFILE`            | Deletes pubspec.lock file if present.  Used in case where lock file does not build.|
+| `APP_CONFIG`                         | toml file to install into bundle folder.  File will be installed as config.toml in the bundle root.|
 
 ### Supported Engine Variants
 
