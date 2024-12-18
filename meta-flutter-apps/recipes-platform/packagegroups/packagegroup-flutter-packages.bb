@@ -28,6 +28,7 @@ RDEPENDS:${PN} += " \
     flutter-packages-google-sign-in-google-sign-in-google-sign-in-example \
     flutter-packages-local-auth-local-auth-darwin-local-auth-darwin-example \
     flutter-packages-local-auth-local-auth-local-auth-example \
+    flutter-packages-google-adsense-google-adsense-example \
     flutter-packages-flutter-markdown-flutter-markdown-example \
     flutter-packages-go-router-go-router-examples \
     flutter-packages-go-router-builder-go-router-builder-example \
