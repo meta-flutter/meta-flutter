@@ -19,13 +19,15 @@ jobs:
     container:
       image: ghcr.io/meta-flutter/ubuntu-20-dev:main
       options:
+        --read-only
+        --log-driver=none
         --user 1001:1001
         --userns keep-id:uid=1001,gid=1001
         --security-opt label=disable
         --pids-limit=-1
         --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
         --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
-        -v /tmp:/tmp
+        -v /home/runner/.ssh:/home/dev/.ssh:ro
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
         -v /mnt/raid10/github-ci/sstate/yocto/scarthgap-linux-dummy:/home/dev/sstate:Z
 
