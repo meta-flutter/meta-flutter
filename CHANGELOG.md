@@ -3,6 +3,7 @@
 Dec 17, 2024
 1. roll ivi-homescreen + plugins
 2. roll flutter-auto + plugins
+3. Flutter SDK 3.27.1
 
 Nov 4, 2024
 1. libwebrtc
