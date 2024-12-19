@@ -9,6 +9,8 @@ https://github.com/llvm/llvm-project/commit/67b0b02ec9f2bbc57bf8f0550828d97f460a
 
 Differential Revision: https://reviews.llvm.org/D141208
 
+Upstream-Status: Inappropriate
+
 (cherry picked from commit fc87452916c0d8759625aad65e9335778ce9cc68)
 ---
  libcxx/include/__support/musl/xlocale.h | 2 +-

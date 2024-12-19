@@ -3,6 +3,8 @@ From: Joel Winarske <joel.winarske@gmail.com>
 Date: Sun, 4 Aug 2024 20:53:56 +0000
 Subject: [PATCH] tonic riscv support
 
+Upstream-Status: Inappropriate
+
 Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
  flutter/third_party/tonic/common/build_config.h | 10 ++++++++++

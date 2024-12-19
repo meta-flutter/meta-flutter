@@ -1,3 +1,4 @@
+Upstream-Status: Inappropriate
 diff --git a/fpdfsdk/fpdf_view.cpp b/fpdfsdk/fpdf_view.cpp
 index 6b0a1c161..7a8788676 100644
 --- a/fpdfsdk/fpdf_view.cpp

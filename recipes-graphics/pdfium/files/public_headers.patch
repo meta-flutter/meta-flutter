@@ -1,3 +1,4 @@
+Upstream-Status: Inappropriate
 diff --git a/public/cpp/fpdf_deleters.h b/public/cpp/fpdf_deleters.h
 index 633ddf5e3..3ecd19e0b 100644
 --- a/public/cpp/fpdf_deleters.h
