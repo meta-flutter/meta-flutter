@@ -16,6 +16,7 @@ DEPENDS += " \
 
 CURL_CA_BUNDLE ??= "${STAGING_DIR_NATIVE}/etc/ssl/certs/ca-certificates.crt"
 DEPOT_TOOLS ??= "${STAGING_DIR_NATIVE}/usr/share/depot_tools"
+DEPOT_TOOLS_XDG_CONFIG_HOME ??= "${WORKDIR}"
 VPYTHON_VIRTUALENV_ROOT ??= "${WORKDIR}/.vpython-root"
 PYTHON3_PATH ??= ".cipd_bin/3.11/bin"
 do_fetch[depends] += " \

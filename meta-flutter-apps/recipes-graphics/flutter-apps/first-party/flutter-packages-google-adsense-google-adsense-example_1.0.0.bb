@@ -2,8 +2,8 @@
 # Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
 #
 
-SUMMARY = "flutter_adaptive_scaffold_example"
-DESCRIPTION = "Multiple examples of the usage of the AdaptiveScaffold widget and its lower level widgets."
+SUMMARY = "google_adsense_example"
+DESCRIPTION = "A new Flutter project."
 AUTHOR = "Google"
 HOMEPAGE = "None"
 BUGTRACKER = "None"
@@ -17,9 +17,9 @@ SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=http
 
 S = "${WORKDIR}/git"
 
-PUBSPEC_APPNAME = "flutter_adaptive_scaffold_example"
-FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-flutter-adaptive-scaffold-flutter-adaptive-scaffold-example"
+PUBSPEC_APPNAME = "google_adsense_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-google-adsense-google-adsense-example"
 PUBSPEC_IGNORE_LOCKFILE = "1"
-FLUTTER_APPLICATION_PATH = "packages/flutter_adaptive_scaffold/example"
+FLUTTER_APPLICATION_PATH = "packages/google_adsense/example"
 
 inherit flutter-app

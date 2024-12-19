@@ -67,10 +67,12 @@ class CIPD(FetchMethod):
         os.chdir(ud.dlpath)
 
         ud.basecmd = "export PATH=\"%s:${PATH}\"; \
+            export XDG_CONFIG_HOME=%s; \
             export DEPOT_TOOLS_UPDATE=0; \
             export CURL_CA_BUNDLE=%s; \
             cipd pkg-fetch %s -version %s -out %s" % (
             d.getVar("DEPOT_TOOLS"),
+            d.getVar("DEPOT_TOOLS_XDG_CONFIG_HOME"),
             d.getVar('CURL_CA_BUNDLE'),
             ud.url.split(";")[0].replace("cipd://", ""),
             ud.parm["version"],

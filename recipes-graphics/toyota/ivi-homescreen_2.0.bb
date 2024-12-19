@@ -22,8 +22,8 @@ DEPENDS += "\
 
 REQUIRED_DISTRO_FEATURES = "wayland"
 
-HOMESCREEN_COMMIT ??= "d68b3ea867c81bc2b8295589ed3f6284c71b8f24"
-PLUGINS_COMMIT ??= "78836a2fe640a02ce462f2da7c853dad9effa405"
+HOMESCREEN_COMMIT ??= "bd892a66639ebadbf10a8027e07967edb3c467fd"
+PLUGINS_COMMIT ??= "d942c8ec0199b44d19e0285770c0718499afd93b"
 
 SRC_URI = "\
     gitsm://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=v2.0;name=homescreen \
@@ -138,6 +138,7 @@ PACKAGECONFIG[examples] = "-DBUILD_EXAMPLES=ON, -DBUILD_EXAMPLES=OFF"
 PACKAGECONFIG[verbose] = "-DCMAKE_BUILD_TYPE=Debug -DDEBUG_PLATFORM_MESSAGES=ON, -DDEBUG_PLATFORM_MESSAGES=OFF"
 
 EXTRA_OECMAKE += "\
+    -D PLUGINS_DIR=${S}/ivi-homescreen-plugins/plugins/plugins \
     -D EXE_OUTPUT_NAME=homescreen \
     -D ENABLE_LTO=ON \
     -D BUILD_UNIT_TESTS=OFF \
