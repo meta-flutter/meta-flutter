@@ -3,6 +3,8 @@ From: Joel Winarske <joel.winarske@gmail.com>
 Date: Tue, 6 Aug 2024 08:03:59 -0700
 Subject: [PATCH] gn riscv32 and riscv64
 
+Upstream-Status: Inappropriate
+
 Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
  flutter/tools/gn | 2 +-

@@ -3,6 +3,8 @@ From: Joel Winarske <joel.winarske@gmail.com>
 Date: Wed, 28 Feb 2024 10:32:59 -0800
 Subject: [PATCH] Changes for generic Linux
 
+Upstream-Status: Inappropriate
+
 Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
  example/.metadata             | 24 ++++++++++++++++++++++--

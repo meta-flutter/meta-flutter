@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: (C) 2020-2023 Joel Winarske
+# SPDX-FileCopyrightText: (C) 2020-2024 Joel Winarske
 # SPDX-License-Identifier: Apache-2.0
 #
 # Script to build custom Flutter AOT artifacts for Release and Profile runtime

@@ -1,3 +1,4 @@
+Upstream-Status: Inappropriate
 diff --git a/BUILD.gn b/BUILD.gn
 index 62210c2f6..053fbff6d 100644
 --- a/BUILD.gn

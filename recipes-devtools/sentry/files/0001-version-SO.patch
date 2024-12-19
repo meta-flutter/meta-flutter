@@ -3,6 +3,8 @@ From: Joel Winarske <joel.winarske@gmail.com>
 Date: Sat, 10 Feb 2024 08:24:15 -0800
 Subject: [PATCH] version SO
 
+Upstream-Status: Inappropriate
+
 Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
  CMakeLists.txt | 3 ++-
