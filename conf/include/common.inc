@@ -31,9 +31,6 @@ PUB_CACHE_ARCHIVE = ""
 
 PUBSPEC_IGNORE_LOCKFILE ??= "0"
 
-PUBSPEC_IGNORE_LOCKFILE ??= "0"
-PUBSPEC_ENFORCE_LOCKFILE ??= "0"
-
 FLUTTER_SDK = "${STAGING_DIR_NATIVE}/usr/share/flutter/sdk"
 
 require conf/include/clang-utils.inc
@@ -350,9 +347,6 @@ python do_compile() {
     pubspec_appname = d.getVar("PUBSPEC_APPNAME")
     if pubspec_appname != pubspec_yaml_appname:
         bb.fatal("Set PUBSPEC_APPNAME to match name value in pubspec.yaml")
-
-    if d.getVar("PUBSPEC_IGNORE_LOCKFILE") == "1" and d.getVar("PUBSPEC_ENFORCE_LOCKFILE") == "1":
-        bb.fatal("Both PUBSPEC_IGNORE_LOCKFILE and PUBSPEC_ENFORCE_LOCKFILE are set which is invalid")
 
     flutter_sdk = d.getVar('FLUTTER_SDK')
 

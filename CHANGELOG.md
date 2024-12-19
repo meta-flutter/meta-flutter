@@ -55,6 +55,7 @@ Sep 8, 2024
 
 Sep 6, 2024
 1. Update ivi-homescreen-plugins for ivi-homescreen and flutter-auto
+2. rive-text 0.4.11
 
 Sep 3, 2024
 1. Backout pubspec archiver
