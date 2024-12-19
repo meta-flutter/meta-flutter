@@ -1,9 +1,11 @@
 From 7707f2535b7495921fa51729b1bdc759153178a8 Mon Sep 17 00:00:00 2001
-From: Joel Winarske <joel.winarske@toyotaconnected.com>
+From: Joel Winarske <joel.winarske@gmail.com>
 Date: Wed, 21 Aug 2024 11:19:12 -0700
 Subject: [PATCH] flutter pub upgrade --major-versions
 
-Signed-off-by: Joel Winarske <joel.winarske@toyotaconnected.com>
+Upstream-Status: Inappropriate
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
  pubspec.lock | 241 ++++++++++++++++++++++++++++-----------------------
  pubspec.yaml |   4 +-

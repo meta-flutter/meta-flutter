@@ -7,6 +7,8 @@ Uglify __support/musl
 
 Reviewed By: philnik
 
+Upstream-Status: Inappropriate
+
 Differential Revision: https://reviews.llvm.org/D129429
 ---
  libcxx/include/__support/musl/xlocale.h | 20 ++++++++++----------

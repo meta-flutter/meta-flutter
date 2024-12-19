@@ -3,6 +3,8 @@ From: Joel Winarske <joel.winarske@gmail.com>
 Date: Thu, 17 Oct 2024 09:17:00 -0700
 Subject: [PATCH] Add missing stdint header
 
+Upstream-Status: Inappropriate
+
 Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
  .../common/client_wrapper/include/flutter/binary_messenger.h     | 1 +

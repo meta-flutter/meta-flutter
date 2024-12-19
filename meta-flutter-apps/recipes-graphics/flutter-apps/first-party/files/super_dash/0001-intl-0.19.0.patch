@@ -1,9 +1,11 @@
 From 273a62a435e184499cabcccbeb5c50a99735f8e2 Mon Sep 17 00:00:00 2001
-From: Joel Winarske <joel.winarske@toyotaconnected.com>
+From: Joel Winarske <joel.winarske@gmail.com>
 Date: Wed, 21 Aug 2024 11:24:45 -0700
 Subject: [PATCH] intl -> 0.19.0
 
-Signed-off-by: Joel Winarske <joel.winarske@toyotaconnected.com>
+Upstream-Status: Inappropriate
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
  pubspec.yaml | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
