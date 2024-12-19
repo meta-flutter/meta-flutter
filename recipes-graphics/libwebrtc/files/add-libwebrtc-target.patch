@@ -3,6 +3,8 @@ From: Joel Winarske <joel.winarske@gmail.com>
 Date: Sat, 2 Nov 2024 20:59:34 -0700
 Subject: [PATCH] add libwebrtc target
 
+Upstream-Status: Inappropriate
+
 Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
  BUILD.gn | 2 +-

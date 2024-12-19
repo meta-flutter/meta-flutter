@@ -3,6 +3,8 @@ From: Joel Winarske <joel.winarske@gmail.com>
 Date: Sun, 4 Aug 2024 20:41:17 +0000
 Subject: [PATCH] swiftshader-riscv
 
+Upstream-Status: Inappropriate
+
 Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
  flutter/third_party/swiftshader/src/Reactor/BUILD.gn | 2 +-

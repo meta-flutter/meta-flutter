@@ -2,7 +2,7 @@
 # Copyright (c) 2024 Joel Winarske. All rights reserved.
 #
 
-SUMMARY = "libbrtc"
+SUMMARY = "libwebrtc"
 DESCRIPTION = "A C++ wrapper for binary release, mainly used for \
                flutter-webrtc desktop (windows, linux, embedded)."
 AUTHOR = "webrtc team"
@@ -35,7 +35,7 @@ SRCREV_libwebrtc = "a6522062f83cac380a4544e036114015cf061ffa"
 S = "${WORKDIR}/src"
 B = "${WORKDIR}/src/out/Linux-${GN_TARGET_ARCH_NAME}"
 
-inherit gn-fetcher features_check pkgconfig
+inherit gn-fetcher pkgconfig
 
 require conf/include/gn-utils.inc
 

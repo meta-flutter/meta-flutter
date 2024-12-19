@@ -3,6 +3,8 @@ From: andryblack <blackicebox@gmail.com>
 Date: Mon, 7 Oct 2024 01:14:14 +0300
 Subject: [PATCH] suppres musl libc warning
 
+Upstream-Status: Inappropriate
+
 ---
  runtime/bin/socket_base_posix.cc | 4 ++++
  1 file changed, 4 insertions(+)
