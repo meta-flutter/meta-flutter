@@ -3,6 +3,8 @@ From: Joel Winarske <joel.winarske@gmail.com>
 Date: Wed, 27 Mar 2024 06:33:55 -0700
 Subject: [PATCH] RISC-V support
 
+Upstream-Status: Inappropriate
+
 Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
  src/modulefinder/sentry_modulefinder_linux.c | 12 +++++++-----
