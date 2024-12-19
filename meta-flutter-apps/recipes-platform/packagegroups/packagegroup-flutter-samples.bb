@@ -37,7 +37,6 @@ RDEPENDS:${PN} += " \
     flutter-samples-animations \
     flutter-samples-compass-app \
     flutter-samples-simple-shader \
-    flutter-samples-ai-recipe-generation \
     flutter-samples-gemini-tasks \
     flutter-samples-navigation-and-routing-bookstore \
     flutter-samples-asset-transformation \
