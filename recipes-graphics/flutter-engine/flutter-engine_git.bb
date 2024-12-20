@@ -105,7 +105,7 @@ PACKAGECONFIG[impeller-3d] = "--enable-impeller-3d"
 
 CLANG_BUILD_ARCH = "${@clang_build_arch(d)}"
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
-CLANG_PATH = "${WORKDIR}/src/flutter/buildtools/linux-${CLANG_BUILD_ARCH}/clang"
+CLANG_PATH = "${S}/flutter/buildtools/linux-${CLANG_BUILD_ARCH}/clang"
 
 GN_ARGS = "\
     ${PACKAGECONFIG_CONFARGS} \
@@ -208,10 +208,10 @@ do_configure() {
 
         # make it easy to parse
         BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${MODE}/g")"
-        ARGS_FILE="${WORKDIR}/src/${BUILD_DIR}/args.gn"
+        ARGS_FILE="${S}/${BUILD_DIR}/args.gn"
 
         # remove in case this is a rebuild and you're not using rm_work.bbclass
-        rm -rf ${WORKDIR}/src/${BUILD_DIR} | true
+        rm -rf ${S}/${BUILD_DIR} | true
 
         ./flutter/tools/gn ${GN_ARGS_LESS_RUNTIME_MODES} --runtime-mode ${MODE}
 

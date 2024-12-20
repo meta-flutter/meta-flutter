@@ -26,9 +26,9 @@ SOLIBS = ".so"
 FILES_SOLIBSDEV = ""
 
 do_install() {
-    install -D -m0755 ${WORKDIR}/build/flutter-client \
+    install -D -m0755 ${B}/flutter-client \
         ${D}${bindir}/flutter-client
-    install -D -m0644 ${WORKDIR}/build/plugins/video_player/libvideo_player_plugin.so \
+    install -D -m0644 ${B}/plugins/video_player/libvideo_player_plugin.so \
         ${D}${libdir}/libvideo_player_plugin.so
 }
 

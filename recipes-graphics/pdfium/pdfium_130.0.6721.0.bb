@@ -30,7 +30,7 @@ SRC_URI = "\
     "
 
 S = "${WORKDIR}/pdfium"
-B = "${WORKDIR}/pdfium/out"
+B = "${S}/out"
 
 inherit gn-fetcher pkgconfig
 
@@ -60,7 +60,9 @@ GN_ARGS = '\
     use_system_freetype = true \
     use_system_libopenjpeg2 = true \
     use_system_zlib = true \
+    use_system_jpeg = true \
     use_system_libpng = true \
+    use_system_libjpeg = true \
     \
     is_clang = false \
     clang_use_chrome_plugins = false \
