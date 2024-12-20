@@ -30,7 +30,7 @@ REQUIRED_DISTRO_FEATURES = "wayland opengl"
 SRCREV ??= "a038ce00031ed5a9a89b4d8dd7dbde5e3d7ade6e"
 SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=v1.0"
 
-S = "${WORKDIR}/git"
+S = "${UNPACKDIR}/git"
 
 inherit cmake features_check pkgconfig 
 

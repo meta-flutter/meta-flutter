@@ -48,7 +48,7 @@ SRC_URI = "\
 SRC_URI[flutter-sdk.sha256sum] = "${@get_flutter_sha256(d)}"
 SRC_URI[fonts.sha256sum] = "e56fa8e9bb4589fde964be3de451f3e5b251e4a1eafb1dc98d94add034dd5a86"
 
-S = "${WORKDIR}/flutter"
+S = "${UNPACKDIR}/flutter"
 
 def getstatusoutput(cmd, cwd, env):
     from subprocess import check_output, CalledProcessError, STDOUT
@@ -94,7 +94,6 @@ python do_unpack:append() {
     shutil.rmtree(f'{source_dir}/bin/cache', ignore_errors=True)
 
     env = os.environ
-    workdir = d.getVar('WORKDIR')
 
     staging_dir_native = d.getVar('STAGING_DIR_NATIVE')
     env['CURL_CA_BUNDLE'] = f'{staging_dir_native}/etc/ssl/certs/ca-certificates.crt'

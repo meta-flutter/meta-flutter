@@ -31,7 +31,7 @@ SRC_REPO_BRANCH ??= "master"
 SRC_URI = "git://${SRC_REPO};protocol=https;branch=${SRC_REPO_BRANCH}"
 SRCREV ??= "9d0ff07b5e1cccbead808ddff0f13f1c5ceeae52"
 
-S = "${WORKDIR}/git"
+S = "${UNPACKDIR}/git"
 
 inherit pkgconfig cmake features_check
 
@@ -44,10 +44,6 @@ PACKAGECONFIG[libuv] = ",,libuv"
 EXTRA_OECMAKE += "-D USER_PROJECT_PATH=${S}/examples/${PN}"
 
 do_configure:prepend() {
-
-    rm -rf ${S}/build || true
-
-    mkdir -p ${S}/build || true
 
     # determine build type based on what flutter-engine installed
     FLUTTER_RUNTIME_MODES="$(ls ${STAGING_DIR_TARGET}${datadir}/flutter/${FLUTTER_SDK_VERSION}/)"
@@ -66,6 +62,7 @@ do_configure:prepend() {
 
     FLUTTER_ENGINE_PATH=${STAGING_DIR_TARGET}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}
 
+    rm -rf ${S}/build |true && mkdir -p ${S}/build
     ln -sf ${FLUTTER_ENGINE_PATH}/lib/libflutter_engine.so ${S}/build/libflutter_engine.so
 }
 

@@ -25,7 +25,7 @@ DEPENDS:aarch64 += "\
 
 PV = "${FLUTTER_SDK_VERSION}"
 
-S = "${WORKDIR}/src"
+S = "${UNPACKDIR}/src"
 
 SRC_URI_EXTRA = ""
 
@@ -105,7 +105,7 @@ PACKAGECONFIG[impeller-3d] = "--enable-impeller-3d"
 
 CLANG_BUILD_ARCH = "${@clang_build_arch(d)}"
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
-CLANG_PATH = "${WORKDIR}/src/flutter/buildtools/linux-${CLANG_BUILD_ARCH}/clang"
+CLANG_PATH = "${S}/flutter/buildtools/linux-${CLANG_BUILD_ARCH}/clang"
 
 GN_ARGS = "\
     ${PACKAGECONFIG_CONFARGS} \
@@ -192,7 +192,7 @@ do_configure() {
     #
     # Custom Build config
     #
-    cp ${WORKDIR}/BUILD.gn.in ${S}/build/toolchain/custom/BUILD.gn
+    cp ${UNPACKDIR}/BUILD.gn.in ${S}/build/toolchain/custom/BUILD.gn
     sed -i "s|@DEBUG_FLAGS@|${FLUTTER_ENGINE_DEBUG_FLAGS}|g" ${S}/build/toolchain/custom/BUILD.gn
     sed -i "s|@CXX_LIBC_FLAGS@|${FLUTTER_ENGINE_CXX_LIBC_FLAGS}|g" ${S}/build/toolchain/custom/BUILD.gn
     
@@ -208,10 +208,10 @@ do_configure() {
 
         # make it easy to parse
         BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${MODE}/g")"
-        ARGS_FILE="${WORKDIR}/src/${BUILD_DIR}/args.gn"
+        ARGS_FILE="${S}/${BUILD_DIR}/args.gn"
 
         # remove in case this is a rebuild and you're not using rm_work.bbclass
-        rm -rf ${WORKDIR}/src/${BUILD_DIR} | true
+        rm -rf ${S}/${BUILD_DIR} | true
 
         ./flutter/tools/gn ${GN_ARGS_LESS_RUNTIME_MODES} --runtime-mode ${MODE}
 

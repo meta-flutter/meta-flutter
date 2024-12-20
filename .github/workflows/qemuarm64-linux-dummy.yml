@@ -1,4 +1,4 @@
-name: scarthgap-qemuarm64-linux-dummy
+name: master-qemuarm64-linux-dummy
 
 on:
   pull_request:
@@ -12,7 +12,7 @@ jobs:
 
     env:
       MACHINE: qemuarm64
-      YOCTO_BRANCH: scarthgap
+      YOCTO_BRANCH: master
 
     runs-on: [self-hosted, linux]
 
@@ -29,7 +29,7 @@ jobs:
         --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
         -v /home/runner/.ssh:/home/dev/.ssh:ro
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
-        -v /mnt/raid10/github-ci/sstate/yocto/scarthgap-linux-dummy:/home/dev/sstate:Z
+        -v /mnt/raid10/github-ci/sstate/yocto/master-linux-dummy:/home/dev/sstate:Z
 
 
     steps:
@@ -40,13 +40,13 @@ jobs:
 
       - name: Fetch poky
         run: |
-          [ -d ../scarthgap-linux-dummy ] || mkdir -p ../scarthgap-linux-dummy
-          cd ../scarthgap-linux-dummy
+          [ -d ../master-linux-dummy ] || mkdir -p ../master-linux-dummy
+          cd ../master-linux-dummy
           pwd
           ls -la
           rm -rf poky meta-openembedded meta-clang meta-drm meta-vulkan
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded &
+          git clone -b styhead --single-branch git://git.yoctoproject.org/poky &
+          git clone -b styhead --single-branch git://git.openembedded.org/meta-openembedded &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-drm.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-vulkan.git &
@@ -54,7 +54,7 @@ jobs:
 
       - name: Configure build
         shell: bash
-        working-directory: ../scarthgap-linux-dummy
+        working-directory: ../master-linux-dummy
         run: |
           rm -rf build/conf
           . ./poky/oe-init-build-env
@@ -122,14 +122,14 @@ jobs:
 
       - name: Build core-image-minimal
         shell: bash
-        working-directory: ../scarthgap-linux-dummy
+        working-directory: ../master-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake core-image-minimal
 
       - name: Build dart-sdk
         shell: bash
-        working-directory: ../scarthgap-linux-dummy
+        working-directory: ../master-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake dart-sdk -c do_cleansstate
@@ -137,7 +137,7 @@ jobs:
 
       - name: Build pdfium
         shell: bash
-        working-directory: ../scarthgap-linux-dummy
+        working-directory: ../master-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake pdfium -c do_cleansstate
@@ -145,15 +145,31 @@ jobs:
 
       - name: Build libwebrtc
         shell: bash
-        working-directory: ../scarthgap-linux-dummy
+        working-directory: ../master-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake libwebrtc -c do_cleansstate
           bitbake libwebrtc
 
+      - name: Build sentry
+        shell: bash
+        working-directory: ../master-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake sentry -c do_cleansstate
+          bitbake sentry
+
+      - name: Build rive-text
+        shell: bash
+        working-directory: ../master-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake rive-text -c do_cleansstate
+          bitbake rive-text
+
       - name: Build flutter-engine
         shell: bash
-        working-directory: ../scarthgap-linux-dummy
+        working-directory: ../master-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-engine -c do_cleansstate
@@ -161,7 +177,7 @@ jobs:
 
       - name: Build ivi-homescreen
         shell: bash
-        working-directory: ../scarthgap-linux-dummy
+        working-directory: ../master-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake ivi-homescreen -c do_cleansstate
@@ -169,7 +185,7 @@ jobs:
 
       - name: Build flutter-auto
         shell: bash
-        working-directory: ../scarthgap-linux-dummy
+        working-directory: ../master-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-auto -c do_cleansstate
@@ -177,7 +193,7 @@ jobs:
 
       - name: Build flutter-pi
         shell: bash
-        working-directory: ../scarthgap-linux-dummy
+        working-directory: ../master-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-pi -c do_cleansstate
@@ -185,7 +201,7 @@ jobs:
 
       - name: Build Sony flutter-drm-eglstream-backend
         shell: bash
-        working-directory: ../scarthgap-linux-dummy
+        working-directory: ../master-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-drm-eglstream-backend -c do_cleansstate
@@ -193,7 +209,7 @@ jobs:
 
       - name: Build Sony drm gbm backend
         shell: bash
-        working-directory: ../scarthgap-linux-dummy
+        working-directory: ../master-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-drm-gbm-backend -c do_cleansstate
@@ -201,7 +217,7 @@ jobs:
 
       - name: Build Sony external texture plugin
         shell: bash
-        working-directory: ../scarthgap-linux-dummy
+        working-directory: ../master-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-external-texture-plugin -c do_cleansstate
@@ -209,7 +225,7 @@ jobs:
 
       - name: Build Sony video player plugin
         shell: bash
-        working-directory: ../scarthgap-linux-dummy
+        working-directory: ../master-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-video-player-plugin -c do_cleansstate
@@ -217,7 +233,7 @@ jobs:
 
       - name: Build Sony Wayland Client
         shell: bash
-        working-directory: ../scarthgap-linux-dummy
+        working-directory: ../master-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-wayland-client -c do_cleansstate
@@ -225,7 +241,7 @@ jobs:
 
       - name: Build Sony X11 Client
         shell: bash
-        working-directory: ../scarthgap-linux-dummy
+        working-directory: ../master-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-x11-client -c do_cleansstate
@@ -233,7 +249,7 @@ jobs:
 
       - name: Build flutter-samples-material-3-demo
         shell: bash
-        working-directory: ../scarthgap-linux-dummy
+        working-directory: ../master-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-samples-material-3-demo -c do_cleansstate

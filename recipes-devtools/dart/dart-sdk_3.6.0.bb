@@ -25,7 +25,7 @@ SRC_URI = " \
     file://gcc_toolchain.gni.in \
 "
 
-S = "${WORKDIR}/sdk"
+S = "${UNPACKDIR}/sdk"
 
 inherit gn-fetcher pkgconfig
 
@@ -66,7 +66,7 @@ do_configure() {
     cd ${S}
 
     # prevent tmp path warning
-    cp ${WORKDIR}/gcc_toolchain.gni.in ${S}/build/toolchain/gcc_toolchain.gni
+    cp ${UNPACKDIR}/gcc_toolchain.gni.in ${S}/build/toolchain/gcc_toolchain.gni
     sed -i "s|@DEBUG_FLAGS@|${DEBUG_FLAGS}|g" ${S}/build/toolchain/gcc_toolchain.gni
 
     # we only build one mode type
@@ -114,7 +114,7 @@ do_install() {
     cp -R ${BUILD_DIR}/dart-sdk/* ${D}${datadir}/dart-sdk/
 }
 
-INSANE_SKIP:${PN} = "already-stripped ldflags"
+INSANE_SKIP:${PN} = "already-stripped ldflags buildpaths"
 
 FILES:${PN} += "${datadir}"
 

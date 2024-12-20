@@ -42,7 +42,7 @@ SRC_REPO_BRANCH ??= "master"
 SRC_URI = "git://${SRC_REPO};protocol=https;branch=${SRC_REPO_BRANCH}"
 SRCREV ??= "37bd9773c1938e5f76208bc4e8632fdbbb4190ff"
 
-S = "${WORKDIR}/git"
+S = "${UNPACKDIR}/git"
 
 inherit pkgconfig cmake features_check
 

@@ -38,7 +38,7 @@ do_install() {
         install -d ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/lib
 
         if [ ! -z "${APP_CONFIG}" ]; then
-            install -D -m 0644 ${WORKDIR}/${APP_CONFIG} \
+            install -D -m 0644 ${UNPACKDIR}/${APP_CONFIG} \
                 ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/config.toml
         fi
 
@@ -65,7 +65,7 @@ do_install() {
     done
 }
 
-INSANE_SKIP:${PN} += " ldflags libdir dev-so"
+INSANE_SKIP:${PN} += " ldflags libdir dev-so buildpaths"
 
 FILES:${PN} = "\
     ${bindir} \

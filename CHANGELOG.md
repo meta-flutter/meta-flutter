@@ -1,5 +1,16 @@
 # Changelog
 
+Dec 20, 2024
+1. remove comp-surf-pbr
+2. remove rive-taffy-ffi
+3. update libwebrtc to mux x11/wayland support
+4. pdfium x64 builds. Added to x64 CI
+5. add rive-text and sentry to CI
+
+Dec 19, 2024
+1. rebase main from scarthgap
+2. Update copyright range, upstream patch status, typo
+
 Dec 18, 2024
 1. roll ivi-homescreen-plugins; filament view wayland protocol error fix
 
