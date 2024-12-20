@@ -15,7 +15,7 @@ DEPENDS += "\
     "
 
 do_install() {
-    install -D -m0755 ${WORKDIR}/build/flutter-client \
+    install -D -m0755 ${B}/flutter-client \
         ${D}${bindir}/flutter-client
 }
 

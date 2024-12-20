@@ -23,9 +23,9 @@ SOLIBS = ".so"
 FILES_SOLIBSDEV = ""
 
 do_install() {
-    install -D -m0755 ${WORKDIR}/build/flutter-client \
+    install -D -m0755 ${B}/flutter-client \
         ${D}${bindir}/flutter-client
-    install -D -m0644 ${WORKDIR}/build/plugins/external_texture_test/libexternal_texture_test_plugin.so \
+    install -D -m0644 ${B}/plugins/external_texture_test/libexternal_texture_test_plugin.so \
         ${D}${libdir}/libexternal_texture_test_plugin.so
 }
 
