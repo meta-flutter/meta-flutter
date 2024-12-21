@@ -21,8 +21,10 @@ DEPENDS += "\
     gtk+3 \
     \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'pipewire', '', d)} \
-    ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'pulseaudio', '', d)} \
+    pulseaudio \
     "
+
+DEPENDS:append:x86-64 = " nasm-native"
  
 SRCREV = "b99fd2c270361aea2d458e61ac4a4cd2443bdbf6"
 SRC_URI = "\
