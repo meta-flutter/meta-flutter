@@ -15,7 +15,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=42965befa56026d7850ae73c307e6477"
 SRCREV = "e8b9b2c428ff1c347712c6940f80f9051bcea2a0"
 SRC_URI = "git://github.com/widgetbakery/pixel_snap;lfs=0;branch=main;protocol=https;destsuffix=git"
 
-S = "${WORKDIR}/git"
+S = "${UNPACKDIR}/git"
 
 PUB_CACHE_EXTRA_ARCHIVE_PATH = "${WORKDIR}/pub_cache/bin"
 PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \

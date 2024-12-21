@@ -15,7 +15,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=ad4a5a1c16c771bac65521dacef3900e"
 SRCREV = "20ecdf243a323417a51e21f0b8c055445645d01e"
 SRC_URI = "git://github.com/mogol/flutter_secure_storage.git;lfs=0;branch=develop;protocol=https;destsuffix=git"
 
-S = "${WORKDIR}/git"
+S = "${UNPACKDIR}/git"
 
 PUB_CACHE_EXTRA_ARCHIVE_PATH = "${WORKDIR}/pub_cache/bin"
 PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \

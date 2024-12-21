@@ -32,7 +32,7 @@ LIBCPLUSPLUS = "-stdlib=libc++"
 SRCREV = "dd22e78e99ed708fdb39f01f7c067ae5cbe34e9a"
 SRC_URI = "gitsm://github.com/meta-flutter/rive-common.git;protocol=https;lfs=0;nobranch=1"
 
-S = "${WORKDIR}/git"
+S = "${UNPACKDIR}/git"
 
 inherit cmake
 

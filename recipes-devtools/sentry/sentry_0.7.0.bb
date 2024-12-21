@@ -23,7 +23,7 @@ SRC_URI = " \
     file://0002-RISC-V-support.patch \
 "
 
-S = "${WORKDIR}/git"
+S = "${UNPACKDIR}/git"
 
 inherit cmake pkgconfig 
 

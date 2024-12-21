@@ -350,7 +350,7 @@ def create_recipe(directory,
         else:
             f.write(f'SRC_URI = "{fetcher}://{url};{lfs_option};{branch_option};protocol=https;destsuffix=git"\n')
         f.write('\n')
-        f.write('S = "${WORKDIR}/git"\n')
+        f.write('S = "${UNPACKDIR}/git"\n')
         f.write('\n')
 
         # detect melos

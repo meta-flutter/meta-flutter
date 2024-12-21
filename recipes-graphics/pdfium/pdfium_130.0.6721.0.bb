@@ -29,8 +29,8 @@ SRC_URI = "\
     file://toolchain.gn.in \
     "
 
-S = "${WORKDIR}/pdfium"
-B = "${WORKDIR}/pdfium/out"
+S = "${UNPACKDIR}/pdfium"
+B = "${S}/out"
 
 inherit gn-fetcher pkgconfig
 
@@ -60,7 +60,9 @@ GN_ARGS = '\
     use_system_freetype = true \
     use_system_libopenjpeg2 = true \
     use_system_zlib = true \
+    use_system_jpeg = true \
     use_system_libpng = true \
+    use_system_libjpeg = true \
     \
     is_clang = false \
     clang_use_chrome_plugins = false \
@@ -79,7 +81,7 @@ do_configure() {
     #
     # configure toolchain file
     #
-    cp ${WORKDIR}/toolchain.gn.in ${S}/build/toolchain/linux/BUILD.gn
+    cp ${UNPACKDIR}/toolchain.gn.in ${S}/build/toolchain/linux/BUILD.gn
     sed -i "s|@GN_TARGET_ARCH_NAME@|${GN_TARGET_ARCH_NAME}|g" ${S}/build/toolchain/linux/BUILD.gn
     sed -i "s|@TARGET_SYS@|${TARGET_SYS}|g"                   ${S}/build/toolchain/linux/BUILD.gn
     sed -i "s|@LDFLAGS@|${LDFLAGS}|g"                         ${S}/build/toolchain/linux/BUILD.gn

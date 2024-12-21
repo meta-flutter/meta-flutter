@@ -10,7 +10,7 @@ REQUIRED_DISTRO_FEATURES += "x11"
 require sony-flutter.inc
 
 do_install() {
-    install -D -m0755 ${WORKDIR}/build/flutter-x11-client \
+    install -D -m0755 ${B}/flutter-x11-client \
         ${D}${bindir}/flutter-x11-client
 }
 

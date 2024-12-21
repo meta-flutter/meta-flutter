@@ -9,8 +9,11 @@ HOMEPAGE = "https://github.com/toyota-connected/ivi-homescreen"
 BUGTRACKER = "https://github.com/toyota-connected/ivi-homescreen/issues"
 SECTION = "graphics"
 
-LICENSE = "Apache-2.0"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=39ae29158ce710399736340c60147314"
+LICENSE = "Apache-2.0 & Apache-2.0"
+LIC_FILES_CHKSUM = "\
+    file://LICENSE;md5=39ae29158ce710399736340c60147314 \
+    file://${UNPACKDIR}/ivi-homescreen-plugins/LICENSE;md5=39ae29158ce710399736340c60147314 \
+    "
 
 DEPENDS += "\
     glib-2.0 \
@@ -27,14 +30,14 @@ PLUGINS_COMMIT ??= "d942c8ec0199b44d19e0285770c0718499afd93b"
 
 SRC_URI = "\
     gitsm://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=v2.0;name=homescreen \
-    git://github.com/toyota-connected/ivi-homescreen-plugins.git;protocol=https;branch=v2.0;name=plugins;destsuffix=${S}/ivi-homescreen-plugins \
+    git://github.com/toyota-connected/ivi-homescreen-plugins.git;protocol=https;branch=v2.0;name=plugins;destsuffix=ivi-homescreen-plugins \
 "
 SRCREV_FORMAT .= "_homescreen"
 SRCREV_homescreen = "${HOMESCREEN_COMMIT}"
 SRCREV_FORMAT .= "_plugins"
 SRCREV_plugins = "${PLUGINS_COMMIT}"
 
-S = "${WORKDIR}/git"
+S = "${UNPACKDIR}/git"
 
 CRASH_HANDLER_DSN ??= ""
 
@@ -54,6 +57,7 @@ PACKAGECONFIG ??= "\
     nav_render_view \
     \
     audioplayer_linux \
+    ${@bb.utils.contains('IMAGE_INSTALL', 'flatpak', 'flatpak', '', d)} \
     go_router \
     secure-storage \
     url_launcher \
@@ -122,6 +126,7 @@ PACKAGECONFIG[firebase_storage] = "\
     -DFIREBASE_SDK_LIBDIR=${STAGING_LIBDIR}/firebase-cpp-sdk, \
     -DBUILD_PLUGIN_FIREBASE_STORAGE=OFF"
 PACKAGECONFIG[desktop_window_linux] = "-DBUILD_PLUGIN_DESKTOP_WINDOW_LINUX=ON,-DBUILD_PLUGIN_DESKTOP_WINDOW_LINUX=OFF"
+PACKAGECONFIG[flatpak] = "-DBUILD_PLUGIN_FLATPAK=ON, -DBUILD_PLUGIN_FLATPAK=OFF, flatpak"
 PACKAGECONFIG[go_router] = "-DBUILD_PLUGIN_GO_ROUTER=ON,-DBUILD_PLUGIN_GO_ROUTER=OFF"
 PACKAGECONFIG[google_sign_in] = "-DBUILD_PLUGIN_GOOGLE_SIGN_IN=ON,-DBUILD_PLUGIN_GOOGLE_SIGN_IN=OFF, curl"
 PACKAGECONFIG[pdf] = "-DBUILD_PLUGIN_PDF=ON, -DBUILD_PLUGIN_PDF=OFF, pdfium"
@@ -141,7 +146,7 @@ PACKAGECONFIG[examples] = "-DBUILD_EXAMPLES=ON, -DBUILD_EXAMPLES=OFF"
 PACKAGECONFIG[verbose] = "-DCMAKE_BUILD_TYPE=Debug -DDEBUG_PLATFORM_MESSAGES=ON, -DDEBUG_PLATFORM_MESSAGES=OFF"
 
 EXTRA_OECMAKE += "\
-    -D PLUGINS_DIR=${S}/ivi-homescreen-plugins/plugins/plugins \
+    -D PLUGINS_DIR=${UNPACKDIR}/ivi-homescreen-plugins/plugins/plugins \
     -D EXE_OUTPUT_NAME=${PN} \
     -D ENABLE_LTO=ON \
     -D BUILD_UNIT_TESTS=OFF \

@@ -9,6 +9,7 @@ AUTHOR = "webrtc team"
 HOMEPAGE = "https://github.com/webrtc-sdk/libwebrtc"
 BUGTRACKER = "https://github.com/webrtc-sdk/libwebrtc/issues/list"
 SECTION = "graphics"
+
 LICENSE = "BSD-3-Clause & MIT"
 LIC_FILES_CHKSUM = "\
     file://LICENSE;md5=ad296492125bc71530d06234d9bfebe0 \
@@ -18,10 +19,12 @@ LIC_FILES_CHKSUM = "\
 DEPENDS += "\
     glib-2.0 \
     gtk+3 \
-    pipewire \
+    \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'pipewire', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'pulseaudio', '', d)} \
     "
-
-SRCREV = "543121ba1cd47780e92d48546b880333265b37b5"
+ 
+SRCREV = "b99fd2c270361aea2d458e61ac4a4cd2443bdbf6"
 SRC_URI = "\
     gn://github.com/webrtc-sdk/webrtc.git;gn_name=src \
     git://github.com/webrtc-sdk/libwebrtc.git;;protocol=https;lfs=0;branch=main;destsuffix=src/libwebrtc;name=libwebrtc \
@@ -30,10 +33,10 @@ SRC_URI = "\
     "
 
 SRCREV_FORMAT .= "_libwebrtc"
-SRCREV_libwebrtc = "a6522062f83cac380a4544e036114015cf061ffa"
+SRCREV_libwebrtc = "e10d33c06c9c908d4f04f11540f4cd4ad3fad25f"
 
-S = "${WORKDIR}/src"
-B = "${WORKDIR}/src/out/Linux-${GN_TARGET_ARCH_NAME}"
+S = "${UNPACKDIR}/src"
+B = "${S}/out/Linux-${GN_TARGET_ARCH_NAME}"
 
 inherit gn-fetcher pkgconfig
 
@@ -47,6 +50,8 @@ GN_ARGS = '\
     target_cpu=\"${GN_TARGET_ARCH_NAME}\" \
     target_triple=\"${TARGET_SYS}\" \
     target_sysroot=\"${STAGING_DIR_TARGET}\" \
+    use_sysroot=false \
+    rtc_use_pipewire=${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'true', 'false', d)} \
     is_debug=false \
     rtc_include_tests=false \
     rtc_use_h264=true \
@@ -56,7 +61,8 @@ GN_ARGS = '\
     use_custom_libcxx=true \
     rtc_enable_protobuf=false \
     ozone_auto_platforms=false \
-    ozone_platform_wayland=true \
+    ozone_platform_wayland=${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'true', 'false', d)} \
+    ozone_platform_x11=${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'true', 'false', d)} \
 '
 
 do_configure() {
@@ -78,7 +84,7 @@ do_configure() {
     # configure toolchain file
     #
 
-    cp ${WORKDIR}/toolchain.gn.in ${S}/build/toolchain/linux/BUILD.gn
+    cp ${UNPACKDIR}/toolchain.gn.in ${S}/build/toolchain/linux/BUILD.gn
 
     sed -i "s|@GN_TARGET_ARCH_NAME@|${GN_TARGET_ARCH_NAME}|g" ${S}/build/toolchain/linux/BUILD.gn
     sed -i "s|@TARGET_SYS@|${TARGET_SYS}|g"                   ${S}/build/toolchain/linux/BUILD.gn

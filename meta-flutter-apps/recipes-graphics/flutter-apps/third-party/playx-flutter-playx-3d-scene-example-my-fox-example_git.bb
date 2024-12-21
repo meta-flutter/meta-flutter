@@ -19,7 +19,7 @@ SRC_URI = " \
     file://sourcya-playx-3d-scene/textured_pbr.filamat;destsuffix=git/assets/materials \
 "
 
-S = "${WORKDIR}/git"
+S = "${UNPACKDIR}/git"
 
 PUBSPEC_APPNAME = "my_fox_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "playx-flutter-playx-3d-scene-example-my-fox-example"
