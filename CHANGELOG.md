@@ -1,5 +1,8 @@
 # Changelog
 
+Jan 17, 2025
+1. roll ivi-homescreen/flutter-auto
+
 Dec 20, 2024
 1. remove comp-surf-pbr
 2. remove rive-taffy-ffi
