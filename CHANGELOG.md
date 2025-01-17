@@ -1,5 +1,8 @@
 # Changelog
 
+Jan 17, 2025
+1. roll ivi-homescreen/flutter-auto
+
 Dec 18, 2024
 1. roll ivi-homescreen-plugins; filament view wayland protocol error fix
 
