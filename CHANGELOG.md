@@ -1,5 +1,8 @@
 # Changelog
 
+Feb 10, 2025
+1. roll ivi-homescreen/flutter-auto
+
 Jan 17, 2025
 1. roll ivi-homescreen/flutter-auto
 
