@@ -19,13 +19,13 @@ DEPENDS += "\
     xz-native \
     "
 
-SRCREV = "ae7ca5199a0559db0ae60533e9cedd3ce0d6ab04"
+SRCREV = "42f3fc1c648bc66e56c822a95e6139bb116020c3"
 SRC_URI = " \
     gn://github.com/dart-lang/sdk.git;gn_name=sdk \
     file://gcc_toolchain.gni.in \
 "
 
-S = "${WORKDIR}/sdk"
+S = "${UNPACKDIR}/sdk"
 
 inherit gn-fetcher pkgconfig
 
@@ -66,7 +66,7 @@ do_configure() {
     cd ${S}
 
     # prevent tmp path warning
-    cp ${WORKDIR}/gcc_toolchain.gni.in ${S}/build/toolchain/gcc_toolchain.gni
+    cp ${UNPACKDIR}/gcc_toolchain.gni.in ${S}/build/toolchain/gcc_toolchain.gni
     sed -i "s|@DEBUG_FLAGS@|${DEBUG_FLAGS}|g" ${S}/build/toolchain/gcc_toolchain.gni
 
     # we only build one mode type
@@ -114,7 +114,7 @@ do_install() {
     cp -R ${BUILD_DIR}/dart-sdk/* ${D}${datadir}/dart-sdk/
 }
 
-INSANE_SKIP:${PN} = "already-stripped ldflags"
+INSANE_SKIP:${PN} = "already-stripped ldflags buildpaths"
 
 FILES:${PN} += "${datadir}"
 
