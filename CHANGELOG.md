@@ -2,6 +2,7 @@
 
 Feb 10, 2025
 1. roll ivi-homescreen/flutter-auto
+2. roll Flutter SDK - 3.27.4
 
 Jan 17, 2025
 1. roll ivi-homescreen/flutter-auto
