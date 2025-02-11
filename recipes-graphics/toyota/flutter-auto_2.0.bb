@@ -9,8 +9,11 @@ HOMEPAGE = "https://github.com/toyota-connected/ivi-homescreen"
 BUGTRACKER = "https://github.com/toyota-connected/ivi-homescreen/issues"
 SECTION = "graphics"
 
-LICENSE = "Apache-2.0"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=39ae29158ce710399736340c60147314"
+LICENSE = "Apache-2.0 & Apache-2.0"
+LIC_FILES_CHKSUM = "\
+    file://LICENSE;md5=39ae29158ce710399736340c60147314 \
+    file://${S}/ivi-homescreen-plugins/LICENSE;md5=39ae29158ce710399736340c60147314 \
+    "
 
 DEPENDS += "\
     glib-2.0 \
