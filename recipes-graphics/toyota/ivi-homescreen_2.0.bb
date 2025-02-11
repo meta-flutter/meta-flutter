@@ -144,8 +144,10 @@ PACKAGECONFIG[verbose] = "-DCMAKE_BUILD_TYPE=Debug -DDEBUG_PLATFORM_MESSAGES=ON,
 
 EXTRA_OECMAKE += "\
     -D PLUGINS_DIR=${UNPACKDIR}/ivi-homescreen-plugins/plugins \
-    -D EXE_OUTPUT_NAME=homescreen \
+    -D LLVM_CONFIG=${STAGING_BINDIR_NATIVE}/llvm-config \
+    -D ENABLE_STATIC_LINK=OFF \
     -D ENABLE_LTO=ON \
+    -D EXE_OUTPUT_NAME=${PN} \
     -D BUILD_UNIT_TESTS=OFF \
     -D BUILD_DOCS=OFF \
 "
