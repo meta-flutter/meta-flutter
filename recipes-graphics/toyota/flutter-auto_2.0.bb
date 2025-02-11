@@ -12,7 +12,7 @@ SECTION = "graphics"
 LICENSE = "Apache-2.0 & Apache-2.0"
 LIC_FILES_CHKSUM = "\
     file://LICENSE;md5=39ae29158ce710399736340c60147314 \
-    file://${UNPACKDIR}/ivi-homescreen-plugins/LICENSE;md5=39ae29158ce710399736340c60147314 \
+    file://${S}/ivi-homescreen-plugins/LICENSE;md5=39ae29158ce710399736340c60147314 \
     "
 
 DEPENDS += "\
@@ -30,7 +30,7 @@ PLUGINS_COMMIT ??= "821431140d3beeb1ae799e8687f5b0c21210ba0e"
 
 SRC_URI = "\
     gitsm://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=v2.0;name=homescreen \
-    git://github.com/toyota-connected/ivi-homescreen-plugins.git;protocol=https;branch=v2.0;name=plugins;destsuffix=ivi-homescreen-plugins \
+    git://github.com/toyota-connected/ivi-homescreen-plugins.git;protocol=https;branch=v2.0;name=plugins;destsuffix=${S}/ivi-homescreen-plugins \
 "
 SRCREV_FORMAT .= "_homescreen"
 SRCREV_homescreen = "${HOMESCREEN_COMMIT}"
@@ -146,7 +146,7 @@ PACKAGECONFIG[examples] = "-DBUILD_EXAMPLES=ON, -DBUILD_EXAMPLES=OFF"
 PACKAGECONFIG[verbose] = "-DCMAKE_BUILD_TYPE=Debug -DDEBUG_PLATFORM_MESSAGES=ON, -DDEBUG_PLATFORM_MESSAGES=OFF"
 
 EXTRA_OECMAKE += "\
-    -D PLUGINS_DIR=${UNPACKDIR}/ivi-homescreen-plugins/plugins \
+    -D PLUGINS_DIR=${S}/ivi-homescreen-plugins/plugins \
     -D LLVM_CONFIG=${STAGING_BINDIR_NATIVE}/llvm-config \
     -D ENABLE_STATIC_LINK=OFF \
     -D ENABLE_LTO=ON \
