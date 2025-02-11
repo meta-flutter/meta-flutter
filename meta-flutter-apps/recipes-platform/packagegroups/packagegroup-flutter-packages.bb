@@ -39,6 +39,7 @@ RDEPENDS:${PN} += " \
     flutter-packages-google-maps-flutter-google-maps-flutter-ios-example-google-maps-flutter-example \
     flutter-packages-animations-example \
     flutter-packages-shared-preferences-shared-preferences-linux-shared-preferences-linux-example \
+    flutter-packages-shared-preferences-shared-preferences-shared-preferences-tool \
     flutter-packages-flutter-image-flutter-image-example \
     flutter-packages-path-provider-path-provider-linux-pathproviderexample \
     flutter-packages-extension-google-sign-in-as-googleapis-auth-extension-google-sign-in-example \
