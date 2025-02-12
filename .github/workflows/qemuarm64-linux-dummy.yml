@@ -120,13 +120,6 @@ jobs:
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
 
-      - name: Build core-image-minimal
-        shell: bash
-        working-directory: ../master-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake core-image-minimal
-
       - name: Build dart-sdk
         shell: bash
         working-directory: ../master-linux-dummy
