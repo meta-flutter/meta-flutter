@@ -71,8 +71,8 @@ jobs:
           echo 'SSTATE_MIRRORS ?= "file://.* https://sstate.yoctoproject.org/all/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
           echo '***************************************'
-          echo 'DISTRO_FEATURES:remove = "sysvinit ptest"' >> ./conf/local.conf
-          echo 'DISTRO_FEATURES:append = " systemd x11 wayland opengl polkit"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:remove = "sysvinit ptest x11"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:append = " systemd wayland opengl polkit"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES_BACKFILL_CONSIDERED = ""' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_WHITELIST += "commercial"' >> ./conf/local.conf
@@ -115,13 +115,6 @@ jobs:
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
           bitbake flutter-sdk-native -c do_cleansstate
-
-      - name: Build core-image-minimal
-        shell: bash
-        working-directory: ../dunfell-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake core-image-minimal
 
       - name: Build dart-sdk
         shell: bash
@@ -186,14 +179,6 @@ jobs:
           . ./poky/oe-init-build-env
           bitbake flutter-wayland-client -c do_cleansstate
           bitbake flutter-wayland-client
-
-      - name: Build Sony X11 Client
-        shell: bash
-        working-directory: ../dunfell-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-x11-client -c do_cleansstate
-          bitbake flutter-x11-client
 
       - name: Build flutter-samples-material-3-demo
         shell: bash
