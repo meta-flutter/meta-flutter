@@ -49,6 +49,7 @@ RDEPENDS:${PN} += " \
     flutter-samples-google-maps-google-maps-in-flutter \
     flutter-samples-platform-design \
     flutter-samples-context-menus \
+    flutter-samples-rolodex \
     flutter-samples-game-template \
     flutter-samples-veggieseasons \
 "

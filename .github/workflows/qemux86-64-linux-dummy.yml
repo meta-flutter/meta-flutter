@@ -45,8 +45,8 @@ jobs:
           pwd
           ls -la
           rm -rf poky meta-openembedded meta-clang meta-drm meta-vulkan
-          git clone -b styhead --single-branch git://git.yoctoproject.org/poky &
-          git clone -b styhead --single-branch git://git.openembedded.org/meta-openembedded &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-drm.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-vulkan.git &
@@ -72,13 +72,14 @@ jobs:
           echo 'SSTATE_MIRRORS ?= "file://.* https://sstate.yoctoproject.org/all/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
           echo '***************************************'
-          echo 'DISTRO_FEATURES:remove = "sysvinit ptest"' >> ./conf/local.conf
-          echo 'DISTRO_FEATURES:append = " systemd x11 wayland opengl polkit"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:remove = "sysvinit ptest x11"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:append = " systemd wayland opengl polkit"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES_BACKFILL_CONSIDERED = ""' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += "commercial"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-auto = " filament-view"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-ivi-homescreen = " filament-view"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:remove:pn-flutter-engine = " debug profile"' >> ./conf/local.conf
           echo '***************************************'
           echo 'IMAGE_INSTALL:append = " \
               gstreamer1.0 \
@@ -117,13 +118,6 @@ jobs:
           bitbake -e > bb.environment
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
-
-      - name: Build core-image-minimal
-        shell: bash
-        working-directory: ../master-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake core-image-minimal
 
       - name: Build dart-sdk
         shell: bash
@@ -228,14 +222,6 @@ jobs:
           . ./poky/oe-init-build-env
           bitbake flutter-wayland-client -c do_cleansstate
           bitbake flutter-wayland-client
-
-      - name: Build Sony X11 Client
-        shell: bash
-        working-directory: ../master-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-x11-client -c do_cleansstate
-          bitbake flutter-x11-client
 
       - name: Build flutter-samples-material-3-demo
         shell: bash

@@ -2,8 +2,8 @@
 # Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
 #
 
-SUMMARY = "pedometer_example"
-DESCRIPTION = "Demonstrates how to use the pedometer plugin."
+SUMMARY = "rolodex"
+DESCRIPTION = "A new Flutter project."
 AUTHOR = "Google"
 HOMEPAGE = "None"
 BUGTRACKER = "None"
@@ -17,9 +17,9 @@ SRC_URI = "git://github.com/flutter/samples.git;lfs=1;branch=main;protocol=https
 
 S = "${UNPACKDIR}/git"
 
-PUBSPEC_APPNAME = "pedometer_example"
-FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-experimental-pedometer-example"
+PUBSPEC_APPNAME = "rolodex"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-rolodex"
 PUBSPEC_IGNORE_LOCKFILE = "1"
-FLUTTER_APPLICATION_PATH = "experimental/pedometer/example"
+FLUTTER_APPLICATION_PATH = "rolodex"
 
 inherit flutter-app

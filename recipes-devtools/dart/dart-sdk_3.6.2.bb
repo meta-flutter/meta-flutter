@@ -19,7 +19,7 @@ DEPENDS += "\
     xz-native \
     "
 
-SRCREV = "ae7ca5199a0559db0ae60533e9cedd3ce0d6ab04"
+SRCREV = "42f3fc1c648bc66e56c822a95e6139bb116020c3"
 SRC_URI = " \
     gn://github.com/dart-lang/sdk.git;gn_name=sdk \
     file://gcc_toolchain.gni.in \
