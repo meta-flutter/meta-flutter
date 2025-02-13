@@ -2,8 +2,8 @@
 # Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
 #
 
-SUMMARY = "infinitelist"
-DESCRIPTION = "A sample implementation of an infinite list."
+SUMMARY = "rolodex"
+DESCRIPTION = "A new Flutter project."
 AUTHOR = "Google"
 HOMEPAGE = "None"
 BUGTRACKER = "None"
@@ -17,12 +17,9 @@ SRC_URI = "git://github.com/flutter/samples.git;lfs=1;branch=main;protocol=https
 
 S = "${WORKDIR}/git"
 
-PUBSPEC_APPNAME = "infinitelist"
-FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-infinite-list-infinitelist"
+PUBSPEC_APPNAME = "rolodex"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-rolodex"
 PUBSPEC_IGNORE_LOCKFILE = "1"
-FLUTTER_APPLICATION_PATH = "infinite_list"
+FLUTTER_APPLICATION_PATH = "rolodex"
 
 inherit flutter-app
-
-do_compile[network] = "1"
-

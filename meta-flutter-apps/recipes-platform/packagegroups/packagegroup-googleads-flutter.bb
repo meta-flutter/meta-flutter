@@ -17,6 +17,7 @@ RDEPENDS:${PN} += " \
     googleads-flutter-samples-admob-app-open-example \
     googleads-flutter-samples-admob-interstitial-example \
     googleads-flutter-samples-admob-rewarded-interstitial-example \
+    googleads-flutter-packages-mediation-gma-mediation-line-example \
     googleads-flutter-packages-mediation-gma-mediation-liftoffmonetize-example \
     googleads-flutter-packages-mediation-gma-mediation-mintegral-example \
     googleads-flutter-packages-mediation-gma-mediation-applovin-example \
@@ -25,6 +26,7 @@ RDEPENDS:${PN} += " \
     googleads-flutter-packages-mediation-gma-mediation-dtexchange-example \
     googleads-flutter-packages-mediation-gma-mediation-pangle-example \
     googleads-flutter-packages-mediation-gma-mediation-unity-example \
+    googleads-flutter-packages-mediation-gma-mediation-chartboost-example \
     googleads-flutter-packages-mediation-gma-mediation-ironsource-example \
     googleads-flutter-packages-google-mobile-ads-example \
 "

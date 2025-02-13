@@ -2,8 +2,8 @@
 # Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
 #
 
-SUMMARY = "local"
-DESCRIPTION = "Example of new custom local widgets for RFW"
+SUMMARY = "shared_preferences_tool"
+DESCRIPTION = "DevTools extension for package:shared_preferences. Manage SharedPreferences efficiently. Edit, search, and view keys."
 AUTHOR = "Google"
 HOMEPAGE = "None"
 BUGTRACKER = "None"
@@ -17,9 +17,9 @@ SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=http
 
 S = "${WORKDIR}/git"
 
-PUBSPEC_APPNAME = "local"
-FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-rfw-example-local"
+PUBSPEC_APPNAME = "shared_preferences_tool"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-shared-preferences-shared-preferences-shared-preferences-tool"
 PUBSPEC_IGNORE_LOCKFILE = "1"
-FLUTTER_APPLICATION_PATH = "packages/rfw/example/local"
+FLUTTER_APPLICATION_PATH = "packages/shared_preferences/shared_preferences_tool"
 
 inherit flutter-app
