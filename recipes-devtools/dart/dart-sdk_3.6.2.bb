@@ -25,7 +25,7 @@ SRC_URI = " \
     file://gcc_toolchain.gni.in \
 "
 
-S = "${UNPACKDIR}/sdk"
+S = "${WORKDIR}/sdk"
 
 inherit gn-fetcher pkgconfig
 
@@ -66,7 +66,7 @@ do_configure() {
     cd ${S}
 
     # prevent tmp path warning
-    cp ${UNPACKDIR}/gcc_toolchain.gni.in ${S}/build/toolchain/gcc_toolchain.gni
+    cp ${WORKDIR}/gcc_toolchain.gni.in ${S}/build/toolchain/gcc_toolchain.gni
     sed -i "s|@DEBUG_FLAGS@|${DEBUG_FLAGS}|g" ${S}/build/toolchain/gcc_toolchain.gni
 
     # we only build one mode type
