@@ -1,5 +1,12 @@
 # Changelog
 
+March 14, 2025
+1. roll ivi-homescreen/flutter-auto
+   -Remove FPS overlay
+    Resolves long standing NXP weston protocol errror
+    Better to use weston debug feature that prints FPS of all surfaces
+   -Cursor Disable - using nullptr instead of surface
+
 Feb 10, 2025
 1. roll ivi-homescreen/flutter-auto
 
