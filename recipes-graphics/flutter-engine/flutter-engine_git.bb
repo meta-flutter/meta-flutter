@@ -320,7 +320,7 @@ FILES:${PN} = "\
     ${datadir}/flutter \
     "
 
-FILES:${PN}-dbg = "\
+FILES:${PN}-dbg += "\
     ${FLUTTER_ENGINE_INSTALL_PREFIX}/*/lib/.debug \
     "
 
