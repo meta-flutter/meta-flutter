@@ -3,7 +3,6 @@
 #
 
 DESCRIPTION = "Flutter Embedder with EGLStream Backend."
-CVE_PRODUCT = "flutter-drm-eglstream"
 
 REQUIRED_DISTRO_FEATURES += "wayland"
 

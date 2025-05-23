@@ -3,7 +3,6 @@
 #
 
 DESCRIPTION = "Flutter Embedder with video player plugin."
-CVE_PRODUCT = "libvideo_player_plugin.so"
 
 REQUIRED_DISTRO_FEATURES += "wayland"
 

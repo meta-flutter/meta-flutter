@@ -3,7 +3,6 @@
 #
 
 DESCRIPTION = "Flutter Embedder with DRM GBM Backend."
-CVE_PRODUCT = "flutter-drm-gbm-backend"
 
 require sony-flutter.inc
 

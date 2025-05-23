@@ -11,7 +11,6 @@ AUTHOR = "Google"
 HOMEPAGE = "https://flutter.dev/"
 BUGTRACKER = "https://github.com/flutter/flutter/issues"
 SECTION = "graphics"
-CVE_PRODUCT = ""
 
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=1d84cf16c48e571923f837136633a265"

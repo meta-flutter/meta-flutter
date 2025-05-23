@@ -8,7 +8,6 @@ AUTHOR = "joel.winarske@toyotaconnected.com"
 HOMEPAGE = "https://github.com/toyota-connected/ivi-homescreen"
 BUGTRACKER = "https://github.com/toyota-connected/ivi-homescreen/issues"
 SECTION = "graphics"
-CVE_PRODUCT = "homescreen"
 
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=39ae29158ce710399736340c60147314"

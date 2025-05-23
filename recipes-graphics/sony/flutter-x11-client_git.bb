@@ -3,7 +3,6 @@
 #
 
 DESCRIPTION = "Flutter Embedder with X11 Backend."
-CVE_PRODUCT = "flutter-x11-client"
 
 REQUIRED_DISTRO_FEATURES += "x11"
 

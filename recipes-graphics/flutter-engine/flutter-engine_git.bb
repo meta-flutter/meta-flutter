@@ -5,12 +5,11 @@
 SUMMARY = "Flutter Engine"
 DESCRIPTION = "Google Flutter Engine for use with Flutter applications"
 AUTHOR = "Flutter Team"
-HOMEPAGE = "https://github.com/flutter/engine/"
+HOMEPAGE = "https://github.com/flutter/flutter/"
 BUGTRACKER = "https://github.com/flutter/flutter/issues"
 SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://flutter/LICENSE;md5=a60894397335535eb10b54e2fff9f265"
-CVE_PRODUCT = "libflutter_engine.so"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
@@ -30,10 +29,12 @@ S = "${UNPACKDIR}/src"
 SRC_URI_EXTRA = ""
 
 SRC_URI = "\
-    gn://github.com/flutter/engine.git;gn_name=src/flutter \
+    https://storage.googleapis.com/flutter_infra_release/releases/${@get_flutter_archive(d)};name=flutter-sdk \
+    gn://github.com/flutter/flutter.git;gn_name=. \
     file://BUILD.gn.in \
     ${SRC_URI_EXTRA} \
-    "
+"
+SRC_URI[flutter-sdk.sha256sum] = "${@get_flutter_sha256(d)}"
 
 # musl-specific patches.
 SRC_URI:append:libc-musl = "\
