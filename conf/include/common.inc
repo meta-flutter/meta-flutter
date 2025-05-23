@@ -168,6 +168,7 @@ do_archive_pub_cache[depends] += " \
     pbzip2-native:do_populate_sysroot \
     tar-native:do_populate_sysroot \
     "
+do_archive_pub_cache[deptask] = "do_patch"
 python do_archive_pub_cache() {
 
     import errno
