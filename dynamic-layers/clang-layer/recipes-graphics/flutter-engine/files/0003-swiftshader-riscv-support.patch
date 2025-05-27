@@ -1,0 +1,28 @@
+From 9d3788480dba3dcc27cd00d4852c968b0e5de502 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Sun, 4 Aug 2024 20:41:17 +0000
+Subject: [PATCH] swiftshader-riscv
+
+Upstream-Status: Inappropriate
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ engine/src/flutter/third_party/swiftshader/src/Reactor/BUILD.gn | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/engine/src/flutter/third_party/swiftshader/src/Reactor/BUILD.gn b/engine/src/flutter/third_party/swiftshader/src/Reactor/BUILD.gn
+index 67dfeb0..dcb1361 100644
+--- a/engine/src/flutter/third_party/swiftshader/src/Reactor/BUILD.gn
++++ b/engine/src/flutter/third_party/swiftshader/src/Reactor/BUILD.gn
+@@ -307,7 +307,7 @@ if (supports_subzero) {
+ 
+ if (supports_llvm) {
+   swiftshader_source_set("swiftshader_llvm_reactor") {
+-    llvm_dir = "../../third_party/llvm-10.0"
++    llvm_dir = "../../third_party/llvm-16.0"
+ 
+     deps = [
+       ":swiftshader_reactor_base",
+-- 
+2.45.2
+
