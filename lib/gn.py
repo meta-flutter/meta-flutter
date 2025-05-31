@@ -68,7 +68,7 @@ class GN(FetchMethod):
 
         sync_opt = d.getVar("EXTRA_GN_SYNC")
         curl_ca_bundle = d.getVar('CURL_CA_BUNDLE')
-        parallel_make = d.getVar('PARALLEL_MAKE')
+        bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
 
         depot_tools_path = d.getVar("DEPOT_TOOLS")
         python3_folder = os.path.join(depot_tools_path, d.getVar("PYTHON3_PATH"))
@@ -83,9 +83,8 @@ class GN(FetchMethod):
             rm -rf $VPYTHON_VIRTUALENV_ROOT ||true; \
             mkdir -p $VPYTHON_VIRTUALENV_ROOT; \
             gclient config --spec \'{gclient_config}\'; \
-            gclient sync --force {sync_opt} --revision {srcrev} {parallel_make} -v'
+            gclient sync --force {sync_opt} --revision {srcrev} -j {bb_number_threads} -v'
 
-        bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
 
         ud.packcmd = f'tar -I "pbzip2 -p{bb_number_threads}" -cf {ud.localpath} ./'
 
