@@ -95,10 +95,9 @@ class GN(FetchMethod):
             export XDG_CONFIG_HOME={depot_tools_xdg_config_home}; \
             export CURL_CA_BUNDLE={curl_ca_bundle}; \
             export PATH="{depot_tools_path}:{python3_folder}:$PATH"; \
-            rm -rf {vpython_virtualenv_root} ||true; \
-            mkdir -p {vpython_virtualenv_root}; \
             export VPYTHON_VIRTUALENV_ROOT="{vpython_virtualenv_root}"; \
-            cd "{ud.syncpath}"; \
+            rm -rf $VPYTHON_VIRTUALENV_ROOT ||true; \
+            mkdir -p $VPYTHON_VIRTUALENV_ROOT; \
             gclient config --spec \'{gclient_config}\'; \
             gclient sync {sync_opt} -j {bb_number_threads} -v'
 
