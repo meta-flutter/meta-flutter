@@ -143,7 +143,7 @@ GN_TUNE_ARGS:append:armv7 = "arm_tune = \"${@gn_get_tune_features(d)}\""
 GN_TUNE_ARGS:append:armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\""
 GN_TUNE_ARGS:append:armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
 
-TMP_OUT_DIR = "${@get_gn_tmp_out_dir_relative(d)}"
+TMP_OUT_DIR = "${@get_gn_tmp_out_dir(d)}"
 
 GN_ARGS_LESS_RUNTIME_MODES = "${@get_gn_args_less_runtime(d)}"
 
@@ -164,6 +164,7 @@ FLUTTER_ENGINE_CXX_LIBC_FLAGS:append:libc-musl = "-D_LIBCPP_HAS_MUSL_LIBC"
 
 WAYLAND_IS_PRESENT = "${@bb.utils.filter('DISTRO_FEATURES', 'wayland', d)}"
 X11_IS_PRESENT = "${@bb.utils.filter('DISTRO_FEATURES', 'x11', d)}"
+VULKAN_HEADER_GNI = "${S}/flutter/build_overrides/vulkan_headers.gni"
 
 
 do_configure() {
