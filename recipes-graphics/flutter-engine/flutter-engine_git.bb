@@ -245,12 +245,15 @@ do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 do_install() {
 
     cd ${S}/engine/src
+    ENGINE_SRC_DIR=$(pwd)
 
     FLUTTER_RUNTIME_MODES="${@bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d)}"
     bbnote "FLUTTER_RUNTIME_MODES=${FLUTTER_RUNTIME_MODES}"
 
+
     for MODE in $FLUTTER_RUNTIME_MODES; do
 
+        cd ${ENGINE_SRC_DIR}
         BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${MODE}/g")"
 
         #
@@ -311,9 +314,11 @@ do_install() {
 
         cp "${BUILD_DIR}/args.gn" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/args.gn
 
+        cwd=$(pwd)
         cd ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/
         zip -r engine_sdk.zip sdk
         rm -rf sdk
+        cd $cwd
 
     done
 }
