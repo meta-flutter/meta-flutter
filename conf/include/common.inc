@@ -61,9 +61,11 @@ def run_command(d, cmd, cwd, env):
 
     bb.note(f'Running [{cmd}] in {cwd}')
     (retval, output) = getstatusoutput(cmd, cwd, env)
+
+    formatted_output = '\n  ' + output.replace('\n','\n  ')
+    bb.note(f'Output:{formatted_output}')
+
     if retval:
-        formatted_output = '\n  ' + output.replace('\n','\n  ')
-        bb.note(f'Output:{formatted_output}')
         bb.fatal(f'{cmd} failed: {retval}')
 
 def md5_update_from_dir(directory, hash):
