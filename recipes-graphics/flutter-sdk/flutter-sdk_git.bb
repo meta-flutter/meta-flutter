@@ -162,6 +162,11 @@ do_install() {
     cp -rTv ${S}/. ${D}${datadir}/flutter/sdk
 }
 
+do_install:append:class-target () {
+    rm -rf ${D}${datadir}/flutter/sdk/bin/cache/artifacts/engine
+    rm -rf ${D}${datadir}/flutter/sdk/bin/cache/dart-sdk/bin
+}
+
 python () {
     d.setVar('FLUTTER_SDK_VERSION', get_flutter_sdk_version(d))
 }

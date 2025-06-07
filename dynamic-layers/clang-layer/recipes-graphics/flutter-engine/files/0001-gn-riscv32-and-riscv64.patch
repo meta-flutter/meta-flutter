@@ -7,13 +7,13 @@ Upstream-Status: Inappropriate
 
 Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
- flutter/tools/gn | 2 +-
+ engine/src/flutter/tools/gn | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/flutter/tools/gn b/flutter/tools/gn
+diff --git a/engine/src/flutter/tools/gn b/engine/src/flutter/tools/gn
 index 0be76e5477..8fee233aed 100755
---- a/flutter/tools/gn
-+++ b/flutter/tools/gn
+--- a/engine/src/flutter/tools/gn
++++ b/engine/src/flutter/tools/gn
 @@ -1015,7 +1015,7 @@ def parse_args(args):
    parser.add_argument('--web', action='store_true', default=False)
    parser.add_argument('--windows', dest='target_os', action='store_const', const='win')

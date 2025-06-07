@@ -61,9 +61,11 @@ def run_command(d, cmd, cwd, env):
 
     bb.note(f'Running [{cmd}] in {cwd}')
     (retval, output) = getstatusoutput(cmd, cwd, env)
+
+    formatted_output = '\n  ' + output.replace('\n','\n  ')
+    bb.note(f'Output:{formatted_output}')
+
     if retval:
-        formatted_output = '\n  ' + output.replace('\n','\n  ')
-        bb.note(f'Output:{formatted_output}')
         bb.fatal(f'{cmd} failed: {retval}')
 
 def md5_update_from_dir(directory, hash):
@@ -469,7 +471,7 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
 
             flutter_native_assets = ''
             yaml_path = glob.glob(f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/native_assets.yaml')
-            if os.path.isfile(yaml_path[0]):
+            if yaml_path and os.path.isfile(yaml_path[0]):
                 flutter_native_assets = f'--native-assets {yaml_path[0]}'
 
             app_aot_extra = d.getVar("APP_AOT_EXTRA")

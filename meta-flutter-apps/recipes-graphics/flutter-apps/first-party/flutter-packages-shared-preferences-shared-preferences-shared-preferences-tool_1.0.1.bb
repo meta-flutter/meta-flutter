@@ -12,10 +12,10 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=a60894397335535eb10b54e2fff9f265"
 
-SRCREV = "fec5ec563e795ace623d90857f4d1def7e86d3d8"
+SRCREV = "6eebe72ca3975373a5fab06a009ec5ffeabdb495"
 SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=https;destsuffix=git"
 
-S = "${UNPACKDIR}/git"
+S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "shared_preferences_tool"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-shared-preferences-shared-preferences-shared-preferences-tool"
