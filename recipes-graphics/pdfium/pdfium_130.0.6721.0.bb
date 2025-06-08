@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2025 Joel Winarske. All rights reserved.
 #
 
 SUMMARY = "PDFium"
@@ -18,19 +18,21 @@ DEPENDS += "\
     libpng \
     openjpeg \
     zlib \
+    depot-tools-native \
+    ninja-native \
     "
 
 SRCREV = "2b675cf15ab4b68bf1ed4e0511ba2479e11f1605"
 SRC_URI = "\
-    gn://pdfium.googlesource.com/pdfium.git;gn_name=pdfium \
+    gn://pdfium.googlesource.com/pdfium.git \
     file://public_headers.patch \
     file://shared_library.patch \
     file://v8_init.patch \
     file://toolchain.gn.in \
     "
 
-S = "${WORKDIR}/pdfium"
-B = "${WORKDIR}/pdfium/out"
+S = "${WORKDIR}/gn/pdfium"
+B = "${WORKDIR}/gn/out"
 
 inherit gn-fetcher pkgconfig
 
