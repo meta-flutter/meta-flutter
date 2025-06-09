@@ -21,7 +21,7 @@ DEPENDS += "\
 
 S = "${WORKDIR}/gn"
 
-SRCREV = "b04011c77cd93e6ab9144af37976733b558d716c"
+SRCREV = "05589740efb305ceef593b3db6cab2910c17d480"
 SRC_URI = " \
     gn://github.com/dart-lang/sdk.git;gn_name=sdk \
     file://gcc_toolchain.gni.in \
