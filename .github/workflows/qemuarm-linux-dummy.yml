@@ -48,7 +48,7 @@ jobs:
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-vulkan.git &
-          git clone -b dunfell-clang12 --single-branch https://github.com/kraj/meta-clang.git meta-clang &
+          git clone -b dunfell-clang14 --single-branch https://github.com/kraj/meta-clang.git meta-clang &
           wait
 
       - name: Configure build
