@@ -19,13 +19,9 @@ DEPENDS += "\
     xz-native \
     "
 
-<<<<<<<< HEAD:recipes-devtools/dart/dart-sdk_3.6.0.bb
-SRCREV = "ae7ca5199a0559db0ae60533e9cedd3ce0d6ab04"
-========
 S = "${WORKDIR}/gn"
 
 SRCREV = "b04011c77cd93e6ab9144af37976733b558d716c"
->>>>>>>> c4a0870 (Flutter SDK 3.32.0):recipes-devtools/dart/dart-sdk_3.8.0.bb
 SRC_URI = " \
     gn://github.com/dart-lang/sdk.git;gn_name=sdk \
     file://gcc_toolchain.gni.in \
