@@ -49,7 +49,7 @@ jobs:
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded &
           git clone -b kirkstone-clang18       --single-branch https://github.com/kraj/meta-clang.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-drm.git &
-          git clone -b jw/roll-kirkstone       --single-branch https://github.com/jwinarske/meta-vulkan.git &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-vulkan.git &
           wait
 
       - name: Configure build

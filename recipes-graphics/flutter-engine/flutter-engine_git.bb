@@ -74,7 +74,6 @@ PACKAGECONFIG ??= "\
     embedder-for-target \
     fontconfig \
     mallinfo2 \
-    impeller-3d \
     "
 
 PACKAGECONFIG[asan] = "--asan"
@@ -111,7 +110,7 @@ CLANG_PATH = "${S}/engine/src/flutter/buildtools/linux-${CLANG_BUILD_ARCH}/clang
 
 GN_ARGS = "\
     ${PACKAGECONFIG_CONFARGS} \
-    --clang --lto \
+    --clang \
     --no-goma --no-rbe \
     --no-enable-unittests \
     --no-stripped \
