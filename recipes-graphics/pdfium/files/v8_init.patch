@@ -1,0 +1,89 @@
+Upstream-Status: Inappropriate
+diff --git a/fpdfsdk/fpdf_view.cpp b/fpdfsdk/fpdf_view.cpp
+index 58a42e289..5c97b7e4e 100644
+--- a/fpdfsdk/fpdf_view.cpp
++++ b/fpdfsdk/fpdf_view.cpp
+@@ -58,6 +58,9 @@
+ 
+ #ifdef PDF_ENABLE_V8
+ #include "fxjs/cfx_v8_array_buffer_allocator.h"
++#include "v8/include/libplatform/libplatform.h"
++#include "v8/include/v8-array-buffer.h"
++#include "v8/include/v8-initialization.h"
+ #endif
+ 
+ #ifdef PDF_ENABLE_XFA
+@@ -118,6 +121,11 @@ namespace {
+ 
+ bool g_bLibraryInitialized = false;
+ 
++#ifdef PDF_ENABLE_V8
++v8::Platform* g_platform = nullptr;
++v8::Isolate* g_isolate = nullptr;
++#endif
++
+ void SetRendererType(FPDF_RENDERER_TYPE public_type) {
+   // Internal definition of renderer types must stay updated with respect to
+   // the public definition, such that all public definitions can be mapped to
+@@ -237,6 +245,22 @@ FPDF_InitLibraryWithConfig(const FPDF_LIBRARY_CONFIG* config) {
+     return;
+   }
+ 
++#ifdef PDF_ENABLE_V8
++  g_platform = v8::platform::NewDefaultPlatform().release();
++  v8::V8::InitializePlatform(g_platform);
++
++#ifdef PDF_ENABLE_XFA
++  cppgc::InitializeProcess(g_platform->GetPageAllocator());
++#endif
++
++  v8::V8::Initialize();
++
++  v8::Isolate::CreateParams params;
++  params.array_buffer_allocator = static_cast<v8::ArrayBuffer::Allocator*>(
++      FPDF_GetArrayBufferAllocatorSharedInstance());
++  g_isolate = v8::Isolate::New(params);
++#endif  // PDF_ENABLE_V8
++
+   FX_InitializeMemoryAllocators();
+   CFX_Timer::InitializeGlobals();
+   CFX_GEModule::Create(config ? config->m_pUserFontPaths : nullptr);
+@@ -250,14 +274,12 @@ FPDF_InitLibraryWithConfig(const FPDF_LIBRARY_CONFIG* config) {
+   CPDFXFA_ModuleInit();
+ #endif  // PDF_ENABLE_XFA
+ 
+-  if (config && config->version >= 2) {
+-    void* platform = config->version >= 3 ? config->m_pPlatform : nullptr;
+-    IJS_Runtime::Initialize(config->m_v8EmbedderSlot, config->m_pIsolate,
+-                            platform);
++#if PDF_ENABLE_V8
++  IJS_Runtime::Initialize(0, g_isolate, g_platform);
++#endif  // PDF_ENABLE_V8
+ 
+-    if (config->version >= 4) {
+-      SetRendererType(config->m_RendererType);
+-    }
++  if (config && config->version >= 4) {
++    SetRendererType(config->m_RendererType);
+   }
+   g_bLibraryInitialized = true;
+ }
+@@ -285,6 +307,19 @@ FPDF_EXPORT void FPDF_CALLCONV FPDF_DestroyLibrary() {
+   CFX_Timer::DestroyGlobals();
+   FX_DestroyMemoryAllocators();
+ 
++#ifdef PDF_ENABLE_XFA
++  cppgc::ShutdownProcess();
++#endif
++
++#ifdef PDF_ENABLE_V8
++  g_isolate->Dispose();
++  g_isolate = nullptr;
++  v8::V8::Dispose();
++  v8::V8::DisposePlatform();
++  delete g_platform;
++  g_platform = nullptr;
++#endif  // PDF_ENABLE_V8
++
+   g_bLibraryInitialized = false;
+ }

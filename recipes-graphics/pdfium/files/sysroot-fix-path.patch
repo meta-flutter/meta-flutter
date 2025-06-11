@@ -1,0 +1,16 @@
+Upstream-Status: Inappropriate
+diff --git a/build/config/linux/pkg_config.gni b/build/config/linux/pkg_config.gni
+index f8a4bbe72..6d73623c3 100644
+--- a/build/config/linux/pkg_config.gni
++++ b/build/config/linux/pkg_config.gni
+@@ -60,9 +60,7 @@ common_pkg_config_args = []
+ 
+ # Chrome OS uses custom pkg_config wrappers that require absolute paths as inputs.
+ # See https://chromium-review.googlesource.com/c/chromium/src/+/6506002
+-_pkg_config_requires_abs_path =
+-    pkg_config != "" ||
+-    (current_toolchain == host_toolchain && host_pkg_config != "")
++_pkg_config_requires_abs_path = true
+ 
+ # Chrome-adjacent repos might be using different sysroot versions (e.g. ANGLE).
+ _enable_cache =
