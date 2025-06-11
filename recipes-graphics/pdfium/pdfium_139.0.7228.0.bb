@@ -22,12 +22,13 @@ DEPENDS += "\
     ninja-native \
     "
 
-SRCREV = "2b675cf15ab4b68bf1ed4e0511ba2479e11f1605"
+SRCREV = "4e4d7a14a4d9d484feb4a4770a892cd964cfd968"
 SRC_URI = "\
     gn://pdfium.googlesource.com/pdfium.git \
     file://public_headers.patch \
     file://shared_library.patch \
     file://v8_init.patch \
+    file://sysroot-fix-path.patch \
     file://toolchain.gn.in \
     "
 
