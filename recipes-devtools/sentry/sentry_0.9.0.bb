@@ -16,7 +16,7 @@ DEPENDS += "\
     curl \
     "
 
-SRCREV ??= "4ec95c0725df5f34440db8fa8d37b4c519fce74e"
+SRCREV ??= "6129d36d717b77d53c8af8fe439ed0370fb63ea4"
 SRC_URI = " \
     gitsm://github.com/getsentry/sentry-native.git;protocol=https;branch=master \
     file://0001-version-SO.patch \
