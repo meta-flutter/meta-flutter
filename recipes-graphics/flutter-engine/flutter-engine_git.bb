@@ -74,6 +74,7 @@ PACKAGECONFIG ??= "\
     embedder-for-target \
     fontconfig \
     mallinfo2 \
+    impeller-3d \
     "
 
 PACKAGECONFIG[asan] = "--asan"
