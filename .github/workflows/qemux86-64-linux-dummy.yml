@@ -135,6 +135,14 @@ jobs:
           bitbake pdfium -c do_cleansstate
           bitbake pdfium
 
+      - name: Build libwebrtc
+        shell: bash
+        working-directory: ../master-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake libwebrtc -c do_cleansstate
+          bitbake libwebrtc
+
       - name: Build sentry
         shell: bash
         working-directory: ../master-linux-dummy
