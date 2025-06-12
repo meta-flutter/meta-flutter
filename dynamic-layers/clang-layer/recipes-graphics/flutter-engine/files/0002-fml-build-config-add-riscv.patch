@@ -1,0 +1,36 @@
+From 8b34fbdace418dcf338492ac63ce1048ecc20bf5 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Wed, 13 Mar 2024 21:28:43 +0000
+Subject: [PATCH] fml build config add riscv
+
+Upstream-Status: Inappropriate
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ engine/src/flutter/fml/build_config.h | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/engine/src/flutter/fml/build_config.h b/fml/build_config.h
+index d42a88e..9ee6e04 100644
+--- a/engine/src/flutter/fml/build_config.h
++++ b/engine/src/flutter/fml/build_config.h
+@@ -93,6 +93,16 @@
+ #define FML_ARCH_CPU_ARM64 1
+ #define FML_ARCH_CPU_64_BITS 1
+ #define FML_ARCH_CPU_LITTLE_ENDIAN 1
++#elif defined(__riscv)
++#define FML_ARCH_CPU_RISC_FAMILY 1
++#if (__riscv_xlen == 32)
++#define FML_ARCH_CPU_RISCV32 1
++#define FML_ARCH_CPU_32_BITS 1
++#elif (__riscv_xlen == 64)
++#define FML_ARCH_CPU_RISCV64 1
++#define FML_ARCH_CPU_64_BITS 1
++#endif
++#define FML_ARCH_CPU_LITTLE_ENDIAN 1
+ #elif defined(__pnacl__)
+ #define FML_ARCH_CPU_32_BITS 1
+ #define FML_ARCH_CPU_LITTLE_ENDIAN 1
+-- 
+2.44.0
+

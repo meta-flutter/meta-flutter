@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2025 Joel Winarske. All rights reserved.
 #
 
 SUMMARY = "Embedded Linux embedding for Flutter"
@@ -29,7 +29,7 @@ SRC_REPO ??= "github.com/sony/flutter-embedded-linux.git"
 SRC_REPO_BRANCH ??= "master"
 
 SRC_URI = "git://${SRC_REPO};protocol=https;branch=${SRC_REPO_BRANCH}"
-SRCREV ??= "9d0ff07b5e1cccbead808ddff0f13f1c5ceeae52"
+SRCREV ??= "1653fa656bf9fe9fa5f84789a59b0c07671a8fc8"
 
 S = "${WORKDIR}/git"
 
