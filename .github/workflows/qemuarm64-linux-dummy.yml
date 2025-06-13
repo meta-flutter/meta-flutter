@@ -17,7 +17,7 @@ jobs:
     runs-on: [self-hosted, linux]
     
     container:
-      image: ghcr.io/meta-flutter/meta-flutter/ubuntu-20-dev:main
+      image: ghcr.io/meta-flutter/meta-flutter/ubuntu-22-dev:main
       options:
         --read-only
         --log-driver=none
