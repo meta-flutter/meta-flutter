@@ -20,7 +20,6 @@ SRCREV ??= "4ec95c0725df5f34440db8fa8d37b4c519fce74e"
 SRC_URI = " \
     gitsm://github.com/getsentry/sentry-native.git;protocol=https;branch=master \
     file://0001-version-SO.patch \
-    file://0002-RISC-V-support.patch \
 "
 
 S = "${WORKDIR}/git"
