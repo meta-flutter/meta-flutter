@@ -32,6 +32,7 @@ SRC_URI_EXTRA = ""
 SRC_URI = "\
     gn://github.com/flutter/engine.git;gn_name=src/flutter \
     file://BUILD.gn.in \
+    file://0001-memcpy-void-cast.patch \
     ${SRC_URI_EXTRA} \
     "
 
