@@ -473,7 +473,7 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
 
             flutter_native_assets = ''
             yaml_path = glob.glob(f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/native_assets.yaml')
-            if os.path.isfile(yaml_path[0]):
+            if yaml_path and os.path.isfile(yaml_path[0]):
                 flutter_native_assets = f'--native-assets {yaml_path[0]}'
 
             app_aot_extra = d.getVar("APP_AOT_EXTRA")

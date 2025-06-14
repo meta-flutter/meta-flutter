@@ -11,7 +11,7 @@ SECTION = "graphics"
 
 LICENSE = "CLOSED"
 
-SRCREV = "f51657c94185e72d550f28a9fbc5e5c0d7e94c44"
+SRCREV = "6a69d3b9664791f5dbb0c303dd645309a76fc004"
 SRC_URI = "git://github.com/flutter/games.git;lfs=1;branch=main;protocol=https;destsuffix=git"
 
 S = "${WORKDIR}/git"

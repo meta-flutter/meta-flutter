@@ -5,7 +5,7 @@ This fetcher is created for gclient.
 The main target is flutter-engine, so for other gclient projects, this fetcher might not work.
 
 Copyright (c) 2020-2022 Woven Alpha, Inc
-Copyright (c) 2023-2024 Joel Winarske. All rights reserved.
+Copyright (c) 2023-2025 Joel Winarske. All rights reserved.
 """
 
 import os
@@ -33,10 +33,9 @@ class GN(FetchMethod):
 
     def urldata_init(self, ud, d):
         # syntax: gn://<URL>;gn_name=<NAME>;destdir=<D>;proto=<PROTO>
-        name = ud.parm.get("gn_name", "src")
-
-        ud.destdir = "" if "destdir" not in ud.parm else ud.parm["destdir"]
-        proto = "https" if "proto" not in ud.parm else ud.parm["proto"]
+        name = ud.parm.get("gn_name", ".")
+        ud.destdir = ud.parm.get("destdir", d.getVar("S"))
+        proto = ud.parm.get("proto", "https")
 
         ud.basename = "*"
 
@@ -58,36 +57,44 @@ class GN(FetchMethod):
 ]'''
 
         srcrev = d.getVar("SRCREV")
-        dl_dir = d.getVar("DL_DIR")
-        gndir = os.path.join(dl_dir, "gn")
-        ud.syncdir = uri.replace(":", "").replace("/", "_")
-        ud.syncpath = os.path.join(gndir, ud.syncdir)
-        ud.localfile = ud.syncdir + "-" + srcrev + ".tar.bz2"
-        ud.localpath = os.path.join(gndir, ud.localfile)
+
+        ud.syncpath = ud.parm.get("gclientdir", d.getVar("S"))
+
+        ud.localfile = d.getVar("PN") + '-' + d.getVar("PV") + "-" + srcrev + ".tar.bz2"
+        ud.localpath = os.path.join(d.getVar("WORKDIR"), ud.localfile)
+
         ud.trying_to_fetch_with_gclient = False
 
         sync_opt = d.getVar("EXTRA_GN_SYNC")
         curl_ca_bundle = d.getVar('CURL_CA_BUNDLE')
-        parallel_make = d.getVar('PARALLEL_MAKE')
+        bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
 
         depot_tools_path = d.getVar("DEPOT_TOOLS")
         python3_folder = os.path.join(depot_tools_path, d.getVar("PYTHON3_PATH"))
         vpython_virtualenv_root = d.getVar("VPYTHON_VIRTUALENV_ROOT")
         depot_tools_xdg_config_home = d.getVar("DEPOT_TOOLS_XDG_CONFIG_HOME")
 
+        srcdir = d.getVar("S")
+
         ud.basecmd = f'export DEPOT_TOOLS_UPDATE=0; \
             export XDG_CONFIG_HOME={depot_tools_xdg_config_home}; \
             export CURL_CA_BUNDLE={curl_ca_bundle}; \
             export PATH="{depot_tools_path}:{python3_folder}:$PATH"; \
-            rm -rf $VPYTHON_VIRTUALENV_ROOT ||true; \
-            mkdir -p $VPYTHON_VIRTUALENV_ROOT; \
+            rm -rf {vpython_virtualenv_root} ||true; \
+            mkdir -p {vpython_virtualenv_root}; \
             export VPYTHON_VIRTUALENV_ROOT="{vpython_virtualenv_root}"; \
+            cd "{ud.syncpath}"; \
             gclient config --spec \'{gclient_config}\'; \
-            gclient sync --force {sync_opt} --revision {srcrev} {parallel_make} -v'
+            gclient sync --force {sync_opt} --revision {srcrev} -j {bb_number_threads} -v'
 
-        bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
 
-        ud.packcmd = f'tar -I "pbzip2 -p{bb_number_threads}" -cf {ud.localpath} ./'
+        dl_dir = d.getVar("DL_DIR")
+        # pack the source code into a tarball
+        # remove the source directory after packing
+        # move the tarball to the download directory
+        ud.packcmd = f'tar -I "pbzip2 -p{bb_number_threads}" -cf {ud.localpath} ./; \
+            rm -rf {srcdir}; \
+            mv {ud.localpath} {dl_dir}/'
 
     def _rungnclient(self, ud, d, quiet):
         bb.utils.mkdirhier(ud.syncpath)
@@ -99,6 +106,7 @@ class GN(FetchMethod):
         runfetchcmd(ud.basecmd, d, quiet, workdir=None)
         logger.debug(1, f'Packing {ud.url} using command "{ud.packcmd}"')
         runfetchcmd(ud.packcmd, d, quiet, workdir=None)
+
         ud.trying_to_fetch_with_gclient = False
 
     def localpath(self, ud, d):
@@ -107,9 +115,7 @@ class GN(FetchMethod):
         Can also setup variables in urldata for use in go (saving code duplication
         and duplicate code execution)
         """
-        dl_dir = d.getVar("DL_DIR")
-        gndir = os.path.join(dl_dir, "gn")
-        return os.path.join(gndir, ud.localfile)
+        return os.path.join(d.getVar("DL_DIR"), ud.localfile)
 
     def download(self, ud, d):
         """Fetch urls"""
@@ -144,7 +150,7 @@ class GN(FetchMethod):
             cmd = f'PATH="{path}" {cmd}'
         bb.note("Unpacking {file} to {unpackdir}")
         try:
-            subprocess.check_output(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir, 
+            subprocess.check_output(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir,
                                     stderr=subprocess.STDOUT, universal_newlines=True)
         except subprocess.CalledProcessError as e:
             raise UnpackError(f'Unpack command {cmd} failed with return value {e.returncode}\n{e.stdout}', ud.url)

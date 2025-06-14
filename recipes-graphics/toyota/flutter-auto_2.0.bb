@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2025 Joel Winarske. All rights reserved.
 #
 
 SUMMARY = "Toyota IVI Homescreen v2.0"
@@ -25,8 +25,8 @@ DEPENDS += "\
 
 REQUIRED_DISTRO_FEATURES = "wayland"
 
-HOMESCREEN_COMMIT ??= "10a9cdf27d862173c3ff5f85cf67663421f905ec"
-PLUGINS_COMMIT ??= "77018f5d9bfca3283115ec8f0655bfa43a2cd991"
+HOMESCREEN_COMMIT ??= "ff98967d01a70a9f974bdc337d47c769d150aaa2"
+PLUGINS_COMMIT ??= "83fe2b317bc32a02cba173c39916c3200ba4e337"
 
 SRC_URI = "\
     gitsm://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=v2.0;name=homescreen \

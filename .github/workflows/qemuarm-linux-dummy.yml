@@ -17,7 +17,7 @@ jobs:
     runs-on: [self-hosted, linux]
 
     container:
-      image: ghcr.io/meta-flutter/ubuntu-20-dev:main
+      image: ghcr.io/meta-flutter/meta-flutter/ubuntu-22-dev:main
       options:
         --read-only
         --log-driver=none
@@ -48,7 +48,7 @@ jobs:
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-vulkan.git &
-          git clone -b dunfell-clang12 --single-branch https://github.com/kraj/meta-clang.git meta-clang &
+          git clone -b dunfell-clang14 --single-branch https://github.com/kraj/meta-clang.git meta-clang &
           wait
 
       - name: Configure build
