@@ -34,6 +34,7 @@ SRC_URI = "\
     git://github.com/flutter/flutter.git;protocol=https;nobranch=1;name=flutter_sdk \
     gn://github.com/flutter/flutter.git \
     file://BUILD.gn.in \
+    file://0001-memcpy-void-cast.patch \
     ${SRC_URI_EXTRA} \
     "
 SRCREV_FORMAT .= "_flutter_sdk"
