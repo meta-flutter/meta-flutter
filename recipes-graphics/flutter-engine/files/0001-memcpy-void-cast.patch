@@ -1,0 +1,28 @@
+From 2a572410979e8f51e959ae993757b1147de74832 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Sat, 14 Jun 2025 05:18:54 -0700
+Subject: [PATCH] memcpy void* cast
+
+Upstream-Status: Inappropriate
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ flutter/third_party/skia/src/gpu/tessellate/MiddleOutPolygonTriangulator.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/flutter/third_party/skia/src/gpu/tessellate/MiddleOutPolygonTriangulator.h b/flutter/third_party/skia/src/gpu/tessellate/MiddleOutPolygonTriangulator.h
+index fe93130a5b..36fe1ee9ce 100644
+--- a/flutter/third_party/skia/src/gpu/tessellate/MiddleOutPolygonTriangulator.h
++++ b/flutter/third_party/skia/src/gpu/tessellate/MiddleOutPolygonTriangulator.h
+@@ -90,7 +90,7 @@ public:
+         }
+ 
+         PoppedTriangleStack(PoppedTriangleStack&& that) {
+-            memcpy(this, &that, sizeof(*this));
++            memcpy(static_cast<void*>(this), &that, sizeof(*this));
+             that.fMiddleOut = nullptr;  // Don't do a stack update during our destructor.
+         }
+ 
+-- 
+2.43.5
+
