@@ -40,7 +40,18 @@ inherit gn-fetcher pkgconfig
 require conf/include/gn-utils.inc
 
 # For gn.bbclass
-GN_CUSTOM_VARS ?= '{"checkout_configuration": "small"}'
+# Trick `gclient sync`. Download some binary in order to satisfy dependencies.
+# Check reasoning at:
+# - https://github.com/meta-flutter/meta-flutter/issues/411#issuecomment-2955621158
+# Keep this workaround while the following issue is unsolved:
+# - https://issues.chromium.org/issues/424205782
+GN_CUSTOM_VARS ?= '\
+{\
+    "reclient_package": "gn/gn/", \
+    "reclient_version": "git_revision:b99a82ca8ee957da829d6313b818b99df8e7ccb8", \
+    "checkout_configuration": "small" \
+}'
+
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 
 EXTRA_CXXFLAGS = ""
