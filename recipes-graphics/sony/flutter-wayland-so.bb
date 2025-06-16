@@ -17,7 +17,7 @@ EXTRA_OECMAKE += "-DBUILD_ELINUX_SO=ON"
 
 do_install() {
     install -d ${D}${libdir}
-    install -m 0755 ${WORKDIR}/build/libflutter_elinux_wayland.so ${D}${bindir}
+    install -m 0755 ${WORKDIR}/build/libflutter_elinux_wayland.so ${D}${libdir}
 }
 
 FILES:${PN} = "${libdir}"
