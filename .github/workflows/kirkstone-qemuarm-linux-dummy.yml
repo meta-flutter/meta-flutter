@@ -1,4 +1,4 @@
-name: kirkstone-qemuarm64-linux-dummy
+name: kirkstone-qemuarm-linux-dummy
 
 on:
   pull_request:
@@ -8,10 +8,10 @@ on:
 
 jobs:
 
-  qemuarm64-linux-dummy:
+  kirkstone-qemuarm-linux-dummy:
 
     env:
-      MACHINE: qemuarm64
+      MACHINE: qemuarm
       YOCTO_BRANCH: kirkstone
 
     runs-on: [self-hosted, linux]
@@ -77,7 +77,6 @@ jobs:
           echo 'DISTRO_FEATURES_BACKFILL_CONSIDERED = ""' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += "commercial"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:append:pn-ffmpeg = " openssl"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-auto = " filament-view"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-ivi-homescreen = " filament-view"' >> ./conf/local.conf
           echo '***************************************'

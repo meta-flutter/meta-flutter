@@ -1,4 +1,4 @@
-name: kirkstone-qemuarm-linux-dummy
+name: kirkstone-qemux86-64-linux-dummy
 
 on:
   pull_request:
@@ -8,10 +8,10 @@ on:
 
 jobs:
 
-  qemuarm-linux-dummy:
+  kirkstone-qemux86-64-linux-dummy:
 
     env:
-      MACHINE: qemuarm
+      MACHINE: qemux86-64
       YOCTO_BRANCH: kirkstone
 
     runs-on: [self-hosted, linux]
@@ -116,7 +116,6 @@ jobs:
           bitbake -e > bb.environment
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
-          bitbake flutter-sdk-native -c do_cleansstate
 
       - name: Build core-image-minimal
         shell: bash
