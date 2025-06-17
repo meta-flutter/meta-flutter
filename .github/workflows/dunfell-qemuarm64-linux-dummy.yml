@@ -1,4 +1,4 @@
-name: dunfell-qemuarm-linux-dummy
+name: dunfell-qemuarm64-linux-dummy
 
 on:
   pull_request:
@@ -8,14 +8,14 @@ on:
 
 jobs:
 
-  qemuarm-linux-dummy:
+  dunfell-qemuarm64-linux-dummy:
 
     env:
-      MACHINE: qemuarm
+      MACHINE: qemuarm64
       YOCTO_BRANCH: dunfell
 
     runs-on: [self-hosted, linux]
-
+    
     container:
       image: ghcr.io/meta-flutter/meta-flutter/ubuntu-22-dev:main
       options:

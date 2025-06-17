@@ -8,7 +8,7 @@ on:
 
 jobs:
 
-  qemux86-64-linux-dummy:
+  dunfell-qemux86-64-linux-dummy:
 
     env:
       MACHINE: qemux86-64
