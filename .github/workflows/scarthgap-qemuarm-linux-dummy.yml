@@ -1,4 +1,4 @@
-name: scarthgap-qemux86-64-linux-dummy
+name: scarthgap-qemuarm-linux-dummy
 
 on:
   pull_request:
@@ -8,10 +8,10 @@ on:
 
 jobs:
 
-  qemux86-64-linux-dummy:
+  scarthgap-qemuarm-linux-dummy:
 
     env:
-      MACHINE: qemux86-64
+      MACHINE: qemuarm
       YOCTO_BRANCH: scarthgap
 
     runs-on: [self-hosted, linux]
@@ -117,6 +117,7 @@ jobs:
           bitbake -e > bb.environment
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates-native -c do_cleansstate
+          bitbake flutter-sdk-native -c do_cleansstate
 
       - name: Build core-image-minimal
         shell: bash
@@ -132,6 +133,22 @@ jobs:
           . ./poky/oe-init-build-env
           bitbake dart-sdk -c do_cleansstate
           bitbake dart-sdk
+
+      - name: Build pdfium
+        shell: bash
+        working-directory: ../scarthgap-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake pdfium -c do_cleansstate
+          bitbake pdfium
+
+      - name: Build libwebrtc
+        shell: bash
+        working-directory: ../scarthgap-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake libwebrtc -c do_cleansstate
+          bitbake libwebrtc
 
       - name: Build flutter-engine
         shell: bash

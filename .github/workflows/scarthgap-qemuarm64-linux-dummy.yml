@@ -1,4 +1,4 @@
-name: scarthgap-qemuarm-linux-dummy
+name: scarthgap-qemuarm64-linux-dummy
 
 on:
   pull_request:
@@ -8,10 +8,10 @@ on:
 
 jobs:
 
-  qemuarm-linux-dummy:
+  scarthgap-qemuarm64-linux-dummy:
 
     env:
-      MACHINE: qemuarm
+      MACHINE: qemuarm64
       YOCTO_BRANCH: scarthgap
 
     runs-on: [self-hosted, linux]
@@ -77,6 +77,7 @@ jobs:
           echo 'DISTRO_FEATURES_BACKFILL_CONSIDERED = ""' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += "commercial"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:append:pn-ffmpeg = " openssl"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-auto = " filament-view"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-ivi-homescreen = " filament-view"' >> ./conf/local.conf
           echo '***************************************'
