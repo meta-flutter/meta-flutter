@@ -230,6 +230,14 @@ jobs:
           bitbake flutter-x11-client -c do_cleansstate
           bitbake flutter-x11-client
 
+      - name: Build Sony Wayland Client .so
+        shell: bash
+        working-directory: ../scarthgap-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake flutter-wayland-so -c do_cleansstate
+          bitbake flutter-wayland-so
+
       - name: Build flutter-samples-material-3-demo
         shell: bash
         working-directory: ../scarthgap-linux-dummy
