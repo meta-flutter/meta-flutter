@@ -1,5 +1,28 @@
 # Changelog
 
+Jul 2, 2025
+1. Roll ivi-homescreen + ivi-homescreen-plugins
+
+Jun 19, 2025
+1. Roll ivi-homescreen + ivi-homescreen-plugins
+
+Jun 17, 2025
+1. Rename CI
+
+Jun 14, 2025
+1. Update CI to use Ubuntu 22.04 LTS
+2. ivi-homescreen-plugins clang14 fixes
+3. Disable filament-view in CI
+
+Jun 9, 2025
+1. Flutter SDK 3.32.0
+2. Make sure we always start in the right folder in do_install
+3. Handly empty glob in commin.inc
+4. Flutter 3.32.2
+
+Jun 7, 2025
+1. Always write verbose commands' output from flutter commands to bitbake logs
+
 March 14, 2025
 1. roll ivi-homescreen/flutter-auto
    -Remove FPS overlay
