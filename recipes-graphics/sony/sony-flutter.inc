@@ -31,8 +31,6 @@ SRC_REPO_BRANCH ??= "master"
 SRC_URI = "git://${SRC_REPO};protocol=https;branch=${SRC_REPO_BRANCH}"
 SRCREV ??= "9d0ff07b5e1cccbead808ddff0f13f1c5ceeae52"
 
-S = "${UNPACKDIR}/git"
-
 inherit pkgconfig cmake features_check
 
 require conf/include/flutter-version.inc
