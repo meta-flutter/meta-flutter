@@ -337,7 +337,7 @@ def create_recipe(directory,
 
         if patch_dir and src_files:
             f.write('SRC_URI = " \\\n')
-            f.write(f'    {fetcher}://{url};{lfs_option};{branch_option};protocol=https;destsuffix=git \\\n')
+            f.write(f'    {fetcher}://{url};{lfs_option};{branch_option};protocol=https \\\n')
             files = src_files.get(f'{flutter_application_path}')
             if files:
                 for file in files:
@@ -348,9 +348,7 @@ def create_recipe(directory,
                         f.write(f'    file://{file} \\\n')
                 f.write('\"\n')
         else:
-            f.write(f'SRC_URI = "{fetcher}://{url};{lfs_option};{branch_option};protocol=https;destsuffix=git"\n')
-        f.write('\n')
-        f.write('S = "${WORKDIR}/git"\n')
+            f.write(f'SRC_URI = "{fetcher}://{url};{lfs_option};{branch_option};protocol=https"\n')
         f.write('\n')
 
         # detect melos
