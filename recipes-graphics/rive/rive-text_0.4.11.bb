@@ -22,12 +22,6 @@ SRC_URI = "git://github.com/meta-flutter/rive-common.git;protocol=https;lfs=0;no
 
 inherit cmake
 
-# Toolchain setup
-RUNTIME = "llvm"
-TOOLCHAIN = "clang"
-PREFERRED_PROVIDER_libgcc = "compiler-rt"
-LIBCPLUSPLUS = "-stdlib=libc++"
-
 FILES_SOLIBSDEV = ""
 INSANE_SKIP:${PN} += "dev-so"
 FILES:${PN} = "${libdir}"
