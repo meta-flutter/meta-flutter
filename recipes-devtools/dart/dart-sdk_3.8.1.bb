@@ -17,6 +17,8 @@ DEPENDS += "\
     depot-tools-native \
     ninja-native \
     xz-native \
+    compiler-rt \
+    libcxx \
     "
 
 S = "${WORKDIR}/gn"
@@ -49,7 +51,7 @@ PACKAGECONFIG[git-version] = "--git-version"
 PACKAGECONFIG[dynamic-modules] = "--dart-dynamic-modules"
 PACKAGECONFIG[codesigning-identity] = "--codesigning-identity ${CODESIGNING_IDENTITY}"
 
-GN_ARGS = "${PACKAGECONFIG_CONFARGS} --no-rbe"
+GN_ARGS = "${PACKAGECONFIG_CONFARGS} --clang --no-rbe"
 
 # all, debug, release, product
 GN_ARGS:append = " --mode product"
@@ -79,7 +81,7 @@ do_configure() {
     cd ${S}
 
     # prevent tmp path warning
-    cp ${WORKDIR}/gcc_toolchain.gni.in sdk/build/toolchain/gcc_toolchain.gni
+    cp ${S}/../gcc_toolchain.gni.in sdk/build/toolchain/gcc_toolchain.gni
     sed -i "s|@DEBUG_FLAGS@|${DEBUG_FLAGS}|g" sdk/build/toolchain/gcc_toolchain.gni
 
     # we only build one mode type

@@ -16,6 +16,9 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 DEPENDS += "\
     zip-native \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)} \
+    \
+    compiler-rt \
+    libcxx \
     "
 
 DEPENDS:aarch64 += "\
@@ -33,24 +36,33 @@ SRC_URI_EXTRA = ""
 SRC_URI = "\
     git://github.com/flutter/flutter.git;protocol=https;nobranch=1;name=flutter_sdk \
     gn://github.com/flutter/flutter.git \
-    file://BUILD.gn.in \
     file://0001-memcpy-void-cast.patch \
+    file://0001-swiftshader-pointer-cast-to-void.patch \
+    file://BUILD.gn.in \
     ${SRC_URI_EXTRA} \
     "
-SRCREV_FORMAT .= "_flutter_sdk"
-SRCREV_flutter_sdk = "${@get_flutter_hash(d)}"
 
-S = "${WORKDIR}/gn"
+SRC_URI_EXTRA:riscv64 += "\
+    file://0001-gn-riscv32-and-riscv64.patch \
+    file://0002-fml-build-config-add-riscv.patch \
+    file://0003-swiftshader-riscv-support.patch \
+    file://0004-tonic-riscv-support.patch \
+    file://0001-abseil-clang-compiler-warnings.patch \
+    file://0001-Add-risc-v-32-64-support-to-native-assets.patch \
+    "
 
-# musl-specific patches.
 SRC_URI:append:libc-musl = "\
     file://0002-libcxx-uglify-support-musl.patch;patchdir=engine/src/flutter/third_party \
     file://0003-libcxx-return-type-in-wcstoull_l.patch;patchdir=engine/src/flutter/third_party \
     file://0004-suppres-musl-libc-warning.patch;patchdir=engine/src/flutter/third_party/dart \
     "
 
-inherit gn-fetcher features_check pkgconfig
+SRCREV_FORMAT .= "_flutter_sdk"
+SRCREV_flutter_sdk = "${@get_flutter_hash(d)}"
 
+S = "${WORKDIR}/gn"
+
+inherit gn-fetcher features_check pkgconfig
 
 # For gn.bbclass
 GN_CUSTOM_VARS ?= '\
@@ -68,6 +80,7 @@ COMPATIBLE_MACHINE:armv7a = "(.*)"
 COMPATIBLE_MACHINE:armv7ve = "(.*)"
 COMPATIBLE_MACHINE:x86 = "(.*)"
 COMPATIBLE_MACHINE:x86-64 = "(.*)"
+COMPATIBLE_MACHINE:riscv64 = "(.*)"
 
 PACKAGECONFIG ??= "\
     desktop-embeddings \
@@ -106,9 +119,19 @@ PACKAGECONFIG[verbose] = "--verbose"
 PACKAGECONFIG[vulkan] = "--enable-vulkan"
 PACKAGECONFIG[impeller-3d] = "--enable-impeller-3d"
 
+RUNTIME = "llvm"
+TOOLCHAIN = "clang"
+PREFERRED_PROVIDER_libgcc = "compiler-rt"
+LIBCPLUSPLUS = "-stdlib=libc++"
+
 CLANG_BUILD_ARCH = "${@clang_build_arch(d)}"
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
+
+# Use Flutter's clang toolchain
 CLANG_PATH = "${S}/engine/src/flutter/buildtools/linux-${CLANG_BUILD_ARCH}/clang"
+
+# Use system clang for riscv64; required for linking
+CLANG_PATH:riscv64 = "${STAGING_DIR_NATIVE}/usr"
 
 GN_ARGS = "\
     ${PACKAGECONFIG_CONFARGS} \
@@ -137,7 +160,7 @@ GN_TUNE_ARGS:append:armv7 = "arm_tune = \"${@gn_get_tune_features(d)}\""
 GN_TUNE_ARGS:append:armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\""
 GN_TUNE_ARGS:append:armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
 
-TMP_OUT_DIR = "${@get_gn_tmp_out_dir(d)}"
+TMP_OUT_DIR = "${@get_gn_tmp_out_dir_relative(d)}"
 
 GN_ARGS_LESS_RUNTIME_MODES = "${@get_gn_args_less_runtime(d)}"
 
@@ -158,7 +181,6 @@ FLUTTER_ENGINE_CXX_LIBC_FLAGS:append:libc-musl = "-D_LIBCPP_HAS_MUSL_LIBC"
 
 WAYLAND_IS_PRESENT = "${@bb.utils.filter('DISTRO_FEATURES', 'wayland', d)}"
 X11_IS_PRESENT = "${@bb.utils.filter('DISTRO_FEATURES', 'x11', d)}"
-VULKAN_HEADER_GNI = "${S}/flutter/build_overrides/vulkan_headers.gni"
 
 
 do_configure() {
@@ -197,7 +219,7 @@ do_configure() {
     #
     # Custom Build config
     #
-    cp ${WORKDIR}/BUILD.gn.in build/toolchain/custom/BUILD.gn
+    cp ${S}/../BUILD.gn.in build/toolchain/custom/BUILD.gn
     sed -i "s|@DEBUG_FLAGS@|${FLUTTER_ENGINE_DEBUG_FLAGS}|g" build/toolchain/custom/BUILD.gn
     sed -i "s|@CXX_LIBC_FLAGS@|${FLUTTER_ENGINE_CXX_LIBC_FLAGS}|g" build/toolchain/custom/BUILD.gn
     
@@ -226,6 +248,21 @@ do_configure() {
     done
 }
 do_configure[depends] += "depot-tools-native:do_populate_sysroot"
+
+do_configure:riscv64:append() {
+    cwd=$(pwd)
+    cd ${STAGING_DIR_TARGET}/usr/lib
+
+    test -e crtbeginS.o && rm crtbeginS.o
+    test -e crtendS.o && rm crtendS.o
+    test -e libgcc.a && rm libgcc.a
+
+    ln -s "$(find -iname crtbeginS.o)" crtbeginS.o
+    ln -s "$(find -iname crtendS.o)" crtendS.o
+    ln -s "$(find -iname libgcc.a)" libgcc.a
+
+    cd $cwd
+}
 
 do_compile() {
 

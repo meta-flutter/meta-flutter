@@ -13,7 +13,7 @@ LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=df6bd2163489eedcdea6b9406bcbe1dd"
 
 SRCREV = "c92bed290b4f696e8434cc0af4af020420e518bc"
-SRC_URI = "git://github.com/meta-flutter/tests;lfs=0;branch=main;protocol=https;destsuffix=git"
+SRC_URI = "git://github.com/meta-flutter/tests;lfs=0;branch=main;protocol=https"
 
 S = "${WORKDIR}/git"
 

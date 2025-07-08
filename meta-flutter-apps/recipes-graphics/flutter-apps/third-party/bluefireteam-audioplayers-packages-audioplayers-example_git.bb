@@ -13,9 +13,13 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=c40600261a3b45d01ebc98bcb0a6b2d5"
 
 SRCREV = "f2269aeb270154e5f3571e1e025d340cfbca4686"
-SRC_URI = "git://github.com/bluefireteam/audioplayers.git;lfs=0;branch=main;protocol=https;destsuffix=git"
+SRC_URI = "git://github.com/bluefireteam/audioplayers.git;lfs=0;branch=main;protocol=https"
 
 S = "${WORKDIR}/git"
+
+PUB_CACHE_EXTRA_ARCHIVE_PATH = "${WORKDIR}/pub_cache/bin"
+PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \
+    melos bootstrap"
 
 PUBSPEC_APPNAME = "audioplayers_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "bluefireteam-audioplayers-packages-audioplayers-example"

@@ -13,7 +13,7 @@ LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=a60894397335535eb10b54e2fff9f265"
 
 SRCREV = "49a7b2f28fbcb51d249797ac3a1bd13e58d611f8"
-SRC_URI = "git://github.com/meta-flutter/video_player_linux.git;lfs=0;branch=main;protocol=https;destsuffix=git"
+SRC_URI = "git://github.com/meta-flutter/video_player_linux.git;lfs=0;branch=main;protocol=https"
 
 S = "${WORKDIR}/git"
 

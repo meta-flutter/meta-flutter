@@ -12,7 +12,7 @@ SECTION = "graphics"
 LICENSE = "CLOSED"
 
 SRCREV = "690ccb793dade39c8082c2606b407a949d56cb8c"
-SRC_URI = "git://github.com/knopp/layer_playground.git;lfs=0;branch=main;protocol=https;destsuffix=git"
+SRC_URI = "git://github.com/knopp/layer_playground.git;lfs=0;branch=main;protocol=https"
 
 S = "${WORKDIR}/git"
 

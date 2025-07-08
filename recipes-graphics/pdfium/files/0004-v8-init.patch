@@ -1,9 +1,18 @@
+From d604b64af412ad535bad0d57ae5111d7431c5ff3 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Tue, 8 Jul 2025 15:25:45 -0700
+Subject: [PATCH 4/4] v8 init
+
 Upstream-Status: Inappropriate
+---
+ fpdfsdk/fpdf_view.cpp | 49 ++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 42 insertions(+), 7 deletions(-)
+
 diff --git a/fpdfsdk/fpdf_view.cpp b/fpdfsdk/fpdf_view.cpp
-index 58a42e289..5c97b7e4e 100644
+index 786063e91..671f8e5a3 100644
 --- a/fpdfsdk/fpdf_view.cpp
 +++ b/fpdfsdk/fpdf_view.cpp
-@@ -58,6 +58,9 @@
+@@ -61,6 +61,9 @@
  
  #ifdef PDF_ENABLE_V8
  #include "fxjs/cfx_v8_array_buffer_allocator.h"
@@ -13,7 +22,7 @@ index 58a42e289..5c97b7e4e 100644
  #endif
  
  #ifdef PDF_ENABLE_XFA
-@@ -118,6 +121,11 @@ namespace {
+@@ -121,6 +124,11 @@ namespace {
  
  bool g_bLibraryInitialized = false;
  
@@ -25,7 +34,7 @@ index 58a42e289..5c97b7e4e 100644
  void SetRendererType(FPDF_RENDERER_TYPE public_type) {
    // Internal definition of renderer types must stay updated with respect to
    // the public definition, such that all public definitions can be mapped to
-@@ -237,6 +245,22 @@ FPDF_InitLibraryWithConfig(const FPDF_LIBRARY_CONFIG* config) {
+@@ -240,6 +248,22 @@ FPDF_InitLibraryWithConfig(const FPDF_LIBRARY_CONFIG* config) {
      return;
    }
  
@@ -48,7 +57,7 @@ index 58a42e289..5c97b7e4e 100644
    FX_InitializeMemoryAllocators();
    CFX_Timer::InitializeGlobals();
    CFX_GEModule::Create(config ? config->m_pUserFontPaths : nullptr);
-@@ -250,14 +274,12 @@ FPDF_InitLibraryWithConfig(const FPDF_LIBRARY_CONFIG* config) {
+@@ -253,14 +277,12 @@ FPDF_InitLibraryWithConfig(const FPDF_LIBRARY_CONFIG* config) {
    CPDFXFA_ModuleInit();
  #endif  // PDF_ENABLE_XFA
  
@@ -68,7 +77,7 @@ index 58a42e289..5c97b7e4e 100644
    }
    g_bLibraryInitialized = true;
  }
-@@ -285,6 +307,19 @@ FPDF_EXPORT void FPDF_CALLCONV FPDF_DestroyLibrary() {
+@@ -288,6 +310,19 @@ FPDF_EXPORT void FPDF_CALLCONV FPDF_DestroyLibrary() {
    CFX_Timer::DestroyGlobals();
    FX_DestroyMemoryAllocators();
  
@@ -87,3 +96,7 @@ index 58a42e289..5c97b7e4e 100644
 +
    g_bLibraryInitialized = false;
  }
+ 
+-- 
+2.50.0
+

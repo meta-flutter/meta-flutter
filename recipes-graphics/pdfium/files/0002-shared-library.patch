@@ -1,0 +1,36 @@
+From c85630c004ab1d14dd1e04d1f1ce52a2096272f0 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Tue, 8 Jul 2025 15:20:24 -0700
+Subject: [PATCH 2/4] shared library
+
+Upstream-Status: Inappropriate
+---
+ BUILD.gn | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/BUILD.gn b/BUILD.gn
+index 164be170e..75899502f 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -219,7 +219,7 @@ group("pdfium_public_headers") {
+   ]
+ }
+ 
+-component("pdfium") {
++shared_library("pdfium") {
+   output_name = "pdfium"
+   libs = []
+   configs += [ ":pdfium_strict_config" ]
+@@ -257,6 +257,9 @@ component("pdfium") {
+       "gdi32.lib",
+       "user32.lib",
+     ]
++    sources = [
++      "resources.rc"
++    ]
+   }
+ 
+   if (is_mac) {
+-- 
+2.50.0
+
