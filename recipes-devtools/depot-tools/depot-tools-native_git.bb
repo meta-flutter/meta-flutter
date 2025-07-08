@@ -9,8 +9,6 @@ SRC_URI = "git://chromium.googlesource.com/chromium/tools/depot_tools;protocol=h
 
 SRCREV = "39b2e4efd608584059aa5bb9af8e65597ca86276"
 
-S = "${UNPACKDIR}/git"
-
 inherit native
 
 VPYTHON_VIRTUALENV_ROOT ??= "${UNPACKDIR}/.vpython-root"

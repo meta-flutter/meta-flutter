@@ -37,8 +37,6 @@ SRCREV_homescreen = "${HOMESCREEN_COMMIT}"
 SRCREV_FORMAT .= "_plugins"
 SRCREV_plugins = "${PLUGINS_COMMIT}"
 
-S = "${UNPACKDIR}/git"
-
 CRASH_HANDLER_DSN ??= ""
 
 inherit cmake features_check pkgconfig

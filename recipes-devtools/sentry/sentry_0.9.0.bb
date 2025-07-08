@@ -22,8 +22,6 @@ SRC_URI = " \
     file://0001-version-SO.patch \
 "
 
-S = "${UNPACKDIR}/git"
-
 inherit cmake pkgconfig 
 
 EXTRA_OECMAKE += "\
