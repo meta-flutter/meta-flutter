@@ -16,9 +16,6 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 DEPENDS += "\
     zip-native \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)} \
-    \
-    compiler-rt \
-    libcxx \
     "
 
 DEPENDS:aarch64 += "\
@@ -41,28 +38,20 @@ SRC_URI = "\
     file://BUILD.gn.in \
     ${SRC_URI_EXTRA} \
     "
+SRCREV_FORMAT .= "_flutter_sdk"
+SRCREV_flutter_sdk = "${@get_flutter_hash(d)}"
 
-SRC_URI_EXTRA:riscv64 += "\
-    file://0001-gn-riscv32-and-riscv64.patch \
-    file://0002-fml-build-config-add-riscv.patch \
-    file://0003-swiftshader-riscv-support.patch \
-    file://0004-tonic-riscv-support.patch \
-    file://0001-abseil-clang-compiler-warnings.patch \
-    file://0001-Add-risc-v-32-64-support-to-native-assets.patch \
-    "
+S = "${UNPACKDIR}/gn"
 
+# musl-specific patches.
 SRC_URI:append:libc-musl = "\
     file://0002-libcxx-uglify-support-musl.patch;patchdir=engine/src/flutter/third_party \
     file://0003-libcxx-return-type-in-wcstoull_l.patch;patchdir=engine/src/flutter/third_party \
     file://0004-suppres-musl-libc-warning.patch;patchdir=engine/src/flutter/third_party/dart \
     "
 
-SRCREV_FORMAT .= "_flutter_sdk"
-SRCREV_flutter_sdk = "${@get_flutter_hash(d)}"
-
-S = "${UNPACKDIR}/gn"
-
 inherit gn-fetcher features_check pkgconfig
+
 
 # For gn.bbclass
 GN_CUSTOM_VARS ?= '\
@@ -80,7 +69,6 @@ COMPATIBLE_MACHINE:armv7a = "(.*)"
 COMPATIBLE_MACHINE:armv7ve = "(.*)"
 COMPATIBLE_MACHINE:x86 = "(.*)"
 COMPATIBLE_MACHINE:x86-64 = "(.*)"
-COMPATIBLE_MACHINE:riscv64 = "(.*)"
 
 PACKAGECONFIG ??= "\
     desktop-embeddings \
@@ -119,19 +107,9 @@ PACKAGECONFIG[verbose] = "--verbose"
 PACKAGECONFIG[vulkan] = "--enable-vulkan"
 PACKAGECONFIG[impeller-3d] = "--enable-impeller-3d"
 
-RUNTIME = "llvm"
-TOOLCHAIN = "clang"
-PREFERRED_PROVIDER_libgcc = "compiler-rt"
-LIBCPLUSPLUS = "-stdlib=libc++"
-
 CLANG_BUILD_ARCH = "${@clang_build_arch(d)}"
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
-
-# Use Flutter's clang toolchain
 CLANG_PATH = "${S}/engine/src/flutter/buildtools/linux-${CLANG_BUILD_ARCH}/clang"
-
-# Use system clang for riscv64; required for linking
-CLANG_PATH:riscv64 = "${STAGING_DIR_NATIVE}/usr"
 
 GN_ARGS = "\
     ${PACKAGECONFIG_CONFARGS} \
@@ -167,8 +145,8 @@ GN_ARGS_LESS_RUNTIME_MODES = "${@get_gn_args_less_runtime(d)}"
 FLUTTER_ENGINE_INSTALL_PREFIX ??= "${datadir}/flutter/${FLUTTER_SDK_VERSION}"
 
 FLUTTER_ENGINE_DEBUG_PREFIX_MAP ?= " \
-    -fmacro-prefix-map=${S}=${TARGET_DBGSRC_DIR} \
-    -fdebug-prefix-map=${S}=${TARGET_DBGSRC_DIR} \
+    -fmacro-prefix-map=${S}/engine/src=${TARGET_DBGSRC_DIR} \
+    -fdebug-prefix-map=${S}/engine/src=${TARGET_DBGSRC_DIR} \
     -fmacro-prefix-map=${B}=${TARGET_DBGSRC_DIR} \
     -fdebug-prefix-map=${B}=${TARGET_DBGSRC_DIR} \
     -fdebug-prefix-map=${STAGING_DIR_HOST}= \
@@ -215,14 +193,14 @@ do_configure() {
     # fix build with musl libc
     #
     [ "${TCLIBC}" = "musl" ] && sed -i "s|#define HAVE_MALLINFO 1||g" -i flutter/third_party/swiftshader/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h
-    
+
     #
     # Custom Build config
     #
-    cp ${S}/../BUILD.gn.in build/toolchain/custom/BUILD.gn
+    cp ${UNPACKDIR}/BUILD.gn.in build/toolchain/custom/BUILD.gn
     sed -i "s|@DEBUG_FLAGS@|${FLUTTER_ENGINE_DEBUG_FLAGS}|g" build/toolchain/custom/BUILD.gn
     sed -i "s|@CXX_LIBC_FLAGS@|${FLUTTER_ENGINE_CXX_LIBC_FLAGS}|g" build/toolchain/custom/BUILD.gn
-    
+
     #
     # Configure each mode defined in PACKAGECONFIG
     #
@@ -249,21 +227,6 @@ do_configure() {
 }
 do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 
-do_configure:riscv64:append() {
-    cwd=$(pwd)
-    cd ${STAGING_DIR_TARGET}/usr/lib
-
-    test -e crtbeginS.o && rm crtbeginS.o
-    test -e crtendS.o && rm crtendS.o
-    test -e libgcc.a && rm libgcc.a
-
-    ln -s "$(find -iname crtbeginS.o)" crtbeginS.o
-    ln -s "$(find -iname crtendS.o)" crtendS.o
-    ln -s "$(find -iname libgcc.a)" libgcc.a
-
-    cd $cwd
-}
-
 do_compile() {
 
     cd ${S}/engine/src
@@ -283,16 +246,14 @@ do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
 do_install() {
 
-    cd ${S}/engine/src
-    ENGINE_SRC_DIR=$(pwd)
-
     FLUTTER_RUNTIME_MODES="${@bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d)}"
     bbnote "FLUTTER_RUNTIME_MODES=${FLUTTER_RUNTIME_MODES}"
 
 
     for MODE in $FLUTTER_RUNTIME_MODES; do
 
-        cd ${ENGINE_SRC_DIR}
+        cd ${S}/engine/src
+
         BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${MODE}/g")"
 
         #

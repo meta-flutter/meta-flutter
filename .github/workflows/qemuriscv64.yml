@@ -44,10 +44,11 @@ jobs:
           cd ../master-linux-dummy
           pwd
           ls -la
-          rm -rf poky meta-openembedded meta-drm meta-vulkan
+          rm -rf poky meta-openembedded meta-clang meta-drm meta-vulkan
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/riscv/meta-riscv.git &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-drm.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-vulkan.git &
           wait
@@ -101,6 +102,7 @@ jobs:
               ../meta-openembedded/meta-networking \
               ../meta-openembedded/meta-oe \
               ../meta-openembedded/meta-python \
+              ../meta-clang \
               ../meta-riscv \
               ../meta-drm \
               ../meta-vulkan \
@@ -164,54 +166,6 @@ jobs:
           . ./poky/oe-init-build-env
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
-
-      - name: Build Sony flutter-drm-eglstream-backend
-        shell: bash
-        working-directory: ../master-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-drm-eglstream-backend -c do_cleansstate
-          bitbake flutter-drm-eglstream-backend
-
-      - name: Build Sony drm gbm backend
-        shell: bash
-        working-directory: ../master-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-drm-gbm-backend -c do_cleansstate
-          bitbake flutter-drm-gbm-backend
-
-      - name: Build Sony external texture plugin
-        shell: bash
-        working-directory: ../master-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-external-texture-plugin -c do_cleansstate
-          bitbake flutter-external-texture-plugin
-
-      - name: Build Sony video player plugin
-        shell: bash
-        working-directory: ../master-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-video-player-plugin -c do_cleansstate
-          bitbake flutter-video-player-plugin
-
-      - name: Build Sony Wayland Client
-        shell: bash
-        working-directory: ../master-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-wayland-client -c do_cleansstate
-          bitbake flutter-wayland-client
-
-      - name: Build Sony X11 Client
-        shell: bash
-        working-directory: ../master-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-x11-client -c do_cleansstate
-          bitbake flutter-x11-client
 
       - name: Build flutter-samples-material-3-demo
         shell: bash

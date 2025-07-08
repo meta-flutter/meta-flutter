@@ -51,13 +51,7 @@ PACKAGECONFIG[git-version] = "--git-version"
 PACKAGECONFIG[dynamic-modules] = "--dart-dynamic-modules"
 PACKAGECONFIG[codesigning-identity] = "--codesigning-identity ${CODESIGNING_IDENTITY}"
 
-GN_ARGS = "${PACKAGECONFIG_CONFARGS} --clang --no-rbe"
-
-# Toolchain setup
-RUNTIME = "llvm"
-TOOLCHAIN = "clang"
-PREFERRED_PROVIDER_libgcc = "compiler-rt"
-LIBCPLUSPLUS = "-stdlib=libc++"
+GN_ARGS = "${PACKAGECONFIG_CONFARGS} --no-rbe"
 
 # all, debug, release, product
 GN_ARGS:append = " --mode product"
@@ -87,7 +81,7 @@ do_configure() {
     cd ${S}
 
     # prevent tmp path warning
-    cp ${S}/../gcc_toolchain.gni.in sdk/build/toolchain/gcc_toolchain.gni
+    cp ${UNPACKDIR}/gcc_toolchain.gni.in sdk/build/toolchain/gcc_toolchain.gni
     sed -i "s|@DEBUG_FLAGS@|${DEBUG_FLAGS}|g" sdk/build/toolchain/gcc_toolchain.gni
 
     # we only build one mode type
