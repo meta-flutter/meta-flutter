@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2025 Joel Winarske. All rights reserved.
 #
 
 SUMMARY = "Toyota IVI Homescreen v2.0"
@@ -21,12 +21,14 @@ DEPENDS += "\
     wayland \
     wayland-native \
     wayland-protocols \
+    compiler-rt \
+    libcxx \
     "
 
 REQUIRED_DISTRO_FEATURES = "wayland"
 
-HOMESCREEN_COMMIT ??= "10a9cdf27d862173c3ff5f85cf67663421f905ec"
-PLUGINS_COMMIT ??= "77018f5d9bfca3283115ec8f0655bfa43a2cd991"
+HOMESCREEN_COMMIT ??= "bc85acbad58b61da5fbfa97926c267ddb8e07abc"
+PLUGINS_COMMIT ??= "451aa46e2c7b14fbb306383eebaad45d0457caa6"
 
 SRC_URI = "\
     gitsm://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=v2.0;name=homescreen \
@@ -142,6 +144,12 @@ PACKAGECONFIG[sanitize] = "-DSANITIZE_ADDRESS=ON, -DSANITIZE_ADDRESS=OFF"
 
 PACKAGECONFIG[examples] = "-DBUILD_EXAMPLES=ON, -DBUILD_EXAMPLES=OFF"
 PACKAGECONFIG[verbose] = "-DCMAKE_BUILD_TYPE=Debug -DDEBUG_PLATFORM_MESSAGES=ON, -DDEBUG_PLATFORM_MESSAGES=OFF"
+
+# Toolchain setup
+RUNTIME = "llvm"
+TOOLCHAIN = "clang"
+PREFERRED_PROVIDER_libgcc = "compiler-rt"
+LIBCPLUSPLUS = "-stdlib=libc++"
 
 EXTRA_OECMAKE += "\
     -D PLUGINS_DIR=${S}/ivi-homescreen-plugins/plugins \

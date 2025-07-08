@@ -284,21 +284,6 @@
         }
     },
     {
-        "uri": "https://github.com/playx-flutter/playx-3d-scene.git",
-        "branch": "main",
-        "license_file": "LICENSE",
-        "license_type": "MIT",
-        "author": "Sourcya.io",
-        "folder": "third-party",
-        "src_folder": "sourcya-playx-3d-scene",
-        "src_files": {
-            "example": [
-                "0001-ivi-homescreen-support.patch",
-                "textured_pbr.filamat;destsuffix=git/assets/materials"
-            ]
-        }
-    },
-    {
         "uri": "https://github.com/meta-flutter/video_player_linux.git",
         "branch": "main",
         "license_file": "LICENSE",

@@ -14,12 +14,11 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=c86726684354692a7dc458504fecd5fc"
 
 SRCREV = "38b7a9a819d69fe8d59d4a0cea744d6ca353616f"
 SRC_URI = " \
-    git://github.com/flutter/super_dash;lfs=0;branch=main;protocol=https;destsuffix=git \
+    git://github.com/flutter/super_dash;lfs=0;branch=main;protocol=https \
     file://super_dash/0001-ivi-homescreen-support.patch \
     file://super_dash/0001-intl-0.19.0.patch \
 "
 
-S = "${UNPACKDIR}/git"
 
 PUBSPEC_APPNAME = "super_dash"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-super-dash-super-dash"

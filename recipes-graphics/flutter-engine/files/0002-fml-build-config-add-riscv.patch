@@ -7,13 +7,13 @@ Upstream-Status: Inappropriate
 
 Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
- flutter/fml/build_config.h | 10 ++++++++++
+ engine/src/flutter/fml/build_config.h | 10 ++++++++++
  1 file changed, 10 insertions(+)
 
-diff --git a/flutter/fml/build_config.h b/fml/build_config.h
+diff --git a/engine/src/flutter/fml/build_config.h b/fml/build_config.h
 index d42a88e..9ee6e04 100644
---- a/flutter/fml/build_config.h
-+++ b/flutter/fml/build_config.h
+--- a/engine/src/flutter/fml/build_config.h
++++ b/engine/src/flutter/fml/build_config.h
 @@ -93,6 +93,16 @@
  #define FML_ARCH_CPU_ARM64 1
  #define FML_ARCH_CPU_64_BITS 1

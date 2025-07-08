@@ -1,54 +1,68 @@
 #
-# Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2025 Joel Winarske. All rights reserved.
 #
 
 SUMMARY = "Flutter Engine"
 DESCRIPTION = "Google Flutter Engine for use with Flutter applications"
 AUTHOR = "Flutter Team"
-HOMEPAGE = "https://github.com/flutter/engine/"
+HOMEPAGE = "https://github.com/flutter/flutter/"
 BUGTRACKER = "https://github.com/flutter/flutter/issues"
 SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
-LIC_FILES_CHKSUM = "file://flutter/LICENSE;md5=a60894397335535eb10b54e2fff9f265"
-CVE_PRODUCT = "libflutter_engine.so"
+LIC_FILES_CHKSUM = "file://engine/src/LICENSE;md5=537e0b52077bf0a616d0a0c8a79bc9d5"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 DEPENDS += "\
     zip-native \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)} \
+    \
+    compiler-rt \
+    libcxx \
     "
 
 DEPENDS:aarch64 += "\
     freetype \
     "
 
-PV = "${FLUTTER_SDK_VERSION}"
-
-S = "${UNPACKDIR}/src"
-
-SRC_URI_EXTRA = ""
-
-SRC_URI = "\
-    gn://github.com/flutter/engine.git;gn_name=src/flutter \
-    file://BUILD.gn.in \
-    file://0001-memcpy-void-cast.patch \
-    ${SRC_URI_EXTRA} \
-    "
-
-# musl-specific patches.
-SRC_URI:append:libc-musl = "\
-    file://0002-libcxx-uglify-support-musl.patch;patchdir=flutter/third_party \
-    file://0003-libcxx-return-type-in-wcstoull_l.patch;patchdir=flutter/third_party \
-    file://0004-suppres-musl-libc-warning.patch;patchdir=flutter/third_party/dart \
-    "
-
-inherit gn-fetcher features_check pkgconfig
-
 require conf/include/gn-utils.inc
 require conf/include/clang-utils.inc
 require conf/include/flutter-version.inc
 
+PV = "${FLUTTER_SDK_VERSION}"
+
+SRC_URI_EXTRA = ""
+
+SRC_URI = "\
+    git://github.com/flutter/flutter.git;protocol=https;nobranch=1;name=flutter_sdk \
+    gn://github.com/flutter/flutter.git \
+    file://0001-memcpy-void-cast.patch \
+    file://0001-swiftshader-pointer-cast-to-void.patch \
+    file://BUILD.gn.in \
+    ${SRC_URI_EXTRA} \
+    "
+
+SRC_URI_EXTRA:riscv64 += "\
+    file://0001-gn-riscv32-and-riscv64.patch \
+    file://0002-fml-build-config-add-riscv.patch \
+    file://0003-swiftshader-riscv-support.patch \
+    file://0004-tonic-riscv-support.patch \
+    file://0001-abseil-clang-compiler-warnings.patch \
+    file://0001-Add-risc-v-32-64-support-to-native-assets.patch \
+    "
+
+SRC_URI:append:libc-musl = "\
+    file://0002-libcxx-uglify-support-musl.patch;patchdir=engine/src/flutter/third_party \
+    file://0003-libcxx-return-type-in-wcstoull_l.patch;patchdir=engine/src/flutter/third_party \
+    file://0004-suppres-musl-libc-warning.patch;patchdir=engine/src/flutter/third_party/dart \
+    "
+
+SRCREV_FORMAT .= "_flutter_sdk"
+SRCREV_flutter_sdk = "${@get_flutter_hash(d)}"
+
+S = "${UNPACKDIR}/gn"
+
+inherit gn-fetcher features_check pkgconfig
 
 # For gn.bbclass
 GN_CUSTOM_VARS ?= '\
@@ -66,6 +80,7 @@ COMPATIBLE_MACHINE:armv7a = "(.*)"
 COMPATIBLE_MACHINE:armv7ve = "(.*)"
 COMPATIBLE_MACHINE:x86 = "(.*)"
 COMPATIBLE_MACHINE:x86-64 = "(.*)"
+COMPATIBLE_MACHINE:riscv64 = "(.*)"
 
 PACKAGECONFIG ??= "\
     desktop-embeddings \
@@ -104,9 +119,19 @@ PACKAGECONFIG[verbose] = "--verbose"
 PACKAGECONFIG[vulkan] = "--enable-vulkan"
 PACKAGECONFIG[impeller-3d] = "--enable-impeller-3d"
 
+RUNTIME = "llvm"
+TOOLCHAIN = "clang"
+PREFERRED_PROVIDER_libgcc = "compiler-rt"
+LIBCPLUSPLUS = "-stdlib=libc++"
+
 CLANG_BUILD_ARCH = "${@clang_build_arch(d)}"
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
-CLANG_PATH = "${S}/flutter/buildtools/linux-${CLANG_BUILD_ARCH}/clang"
+
+# Use Flutter's clang toolchain
+CLANG_PATH = "${S}/engine/src/flutter/buildtools/linux-${CLANG_BUILD_ARCH}/clang"
+
+# Use system clang for riscv64; required for linking
+CLANG_PATH:riscv64 = "${STAGING_DIR_NATIVE}/usr"
 
 GN_ARGS = "\
     ${PACKAGECONFIG_CONFARGS} \
@@ -135,7 +160,7 @@ GN_TUNE_ARGS:append:armv7 = "arm_tune = \"${@gn_get_tune_features(d)}\""
 GN_TUNE_ARGS:append:armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\""
 GN_TUNE_ARGS:append:armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
 
-TMP_OUT_DIR = "${@get_gn_tmp_out_dir(d)}"
+TMP_OUT_DIR = "${@get_gn_tmp_out_dir_relative(d)}"
 
 GN_ARGS_LESS_RUNTIME_MODES = "${@get_gn_args_less_runtime(d)}"
 
@@ -156,46 +181,47 @@ FLUTTER_ENGINE_CXX_LIBC_FLAGS:append:libc-musl = "-D_LIBCPP_HAS_MUSL_LIBC"
 
 WAYLAND_IS_PRESENT = "${@bb.utils.filter('DISTRO_FEATURES', 'wayland', d)}"
 X11_IS_PRESENT = "${@bb.utils.filter('DISTRO_FEATURES', 'x11', d)}"
-VULKAN_HEADER_GNI = "${S}/flutter/build_overrides/vulkan_headers.gni"
 
 
 do_configure() {
+
+    cd ${S}/engine/src
 
     #
     # disable default sysroot
     #
 
-    sed -i "s|use_default_linux_sysroot = true|use_default_linux_sysroot = false|g" ${S}/build/config/sysroot.gni
+    sed -i "s|use_default_linux_sysroot = true|use_default_linux_sysroot = false|g" build/config/sysroot.gni
 
     #
     # vulkan_headers override: enables DRM case
     #
 
-    test -z $WAYLAND_IS_PRESENT && sed -i "s|vulkan_use_wayland = true|vulkan_use_wayland = false|g" ${VULKAN_HEADER_GNI}
-    test -z $X11_IS_PRESENT     && sed -i "s|vulkan_use_x11 = true|vulkan_use_x11 = false|g" ${VULKAN_HEADER_GNI}
+    test -z $WAYLAND_IS_PRESENT && sed -i "s|vulkan_use_wayland = true|vulkan_use_wayland = false|g" build_overrides/vulkan_headers.gni
+    test -z $X11_IS_PRESENT     && sed -i "s|vulkan_use_x11 = true|vulkan_use_x11 = false|g" build_overrides/vulkan_headers.gni
 
     #
     # remove x11 package check if x11 is not available
     #
-    test -z $X11_IS_PRESENT     && sed -i '/^pkg_config("x11") {/,/^}$/d' ${S}/flutter/shell/platform/linux/config/BUILD.gn
+    test -z $X11_IS_PRESENT && sed -i '/^pkg_config("x11") {/,/^}$/d' flutter/shell/platform/linux/config/BUILD.gn
 
     #
     # fix build without wayland
     #
-    test -z $WAYLAND_IS_PRESENT && sed -i "s|ozone_platform_wayland = true|ozone_platform_wayland = false|g" ${S}/build/config/BUILDCONFIG.gn
-    test -z $X11_IS_PRESENT && sed -i "s|ozone_platform_x11 = true|ozone_platform_x11 = false|g" ${S}/build/config/BUILDCONFIG.gn 
+    test -z $WAYLAND_IS_PRESENT && sed -i "s|ozone_platform_wayland = true|ozone_platform_wayland = false|g" build/config/BUILDCONFIG.gn
+    test -z $X11_IS_PRESENT && sed -i "s|ozone_platform_x11 = true|ozone_platform_x11 = false|g" build/config/BUILDCONFIG.gn 
 
     #
     # fix build with musl libc
     #
-    [ "${TCLIBC}" = "musl" ] && sed -i "s|#define HAVE_MALLINFO 1||g" -i ${S}/flutter/third_party/swiftshader/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h
+    [ "${TCLIBC}" = "musl" ] && sed -i "s|#define HAVE_MALLINFO 1||g" -i flutter/third_party/swiftshader/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h
     
     #
     # Custom Build config
     #
-    cp ${UNPACKDIR}/BUILD.gn.in ${S}/build/toolchain/custom/BUILD.gn
-    sed -i "s|@DEBUG_FLAGS@|${FLUTTER_ENGINE_DEBUG_FLAGS}|g" ${S}/build/toolchain/custom/BUILD.gn
-    sed -i "s|@CXX_LIBC_FLAGS@|${FLUTTER_ENGINE_CXX_LIBC_FLAGS}|g" ${S}/build/toolchain/custom/BUILD.gn
+    cp ${S}/../BUILD.gn.in build/toolchain/custom/BUILD.gn
+    sed -i "s|@DEBUG_FLAGS@|${FLUTTER_ENGINE_DEBUG_FLAGS}|g" build/toolchain/custom/BUILD.gn
+    sed -i "s|@CXX_LIBC_FLAGS@|${FLUTTER_ENGINE_CXX_LIBC_FLAGS}|g" build/toolchain/custom/BUILD.gn
     
     #
     # Configure each mode defined in PACKAGECONFIG
@@ -209,12 +235,12 @@ do_configure() {
 
         # make it easy to parse
         BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${MODE}/g")"
-        ARGS_FILE="${S}/${BUILD_DIR}/args.gn"
+        ARGS_FILE="${BUILD_DIR}/args.gn"
 
         # remove in case this is a rebuild and you're not using rm_work.bbclass
-        rm -rf ${S}/${BUILD_DIR} | true
+        rm -rf ${BUILD_DIR} | true
 
-        ./flutter/tools/gn ${GN_ARGS_LESS_RUNTIME_MODES} --runtime-mode ${MODE}
+        flutter/tools/gn ${GN_ARGS_LESS_RUNTIME_MODES} --runtime-mode ${MODE}
 
         echo ${GN_TUNE_ARGS} >> "${ARGS_FILE}"
 
@@ -223,7 +249,25 @@ do_configure() {
 }
 do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 
+do_configure:riscv64:append() {
+    cwd=$(pwd)
+    cd ${STAGING_DIR_TARGET}/usr/lib
+
+    test -e crtbeginS.o && rm crtbeginS.o
+    test -e crtendS.o && rm crtendS.o
+    test -e libgcc.a && rm libgcc.a
+
+    ln -s "$(find -iname crtbeginS.o)" crtbeginS.o
+    ln -s "$(find -iname crtendS.o)" crtendS.o
+    ln -s "$(find -iname libgcc.a)" libgcc.a
+
+    cd $cwd
+}
+
 do_compile() {
+
+    cd ${S}/engine/src
+
     # required for dart: https://github.com/dart-lang/sdk/issues/41560
     export HOME=${WORKDIR}
 
@@ -231,7 +275,7 @@ do_compile() {
     bbnote "FLUTTER_RUNTIME_MODES=${FLUTTER_RUNTIME_MODES}"
 
     for MODE in $FLUTTER_RUNTIME_MODES; do
-        BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${MODE}/g")"    
+        BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${MODE}/g")"
         ninja -C "${BUILD_DIR}" $PARALLEL_MAKE
     done
 }
@@ -239,11 +283,16 @@ do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
 do_install() {
 
+    cd ${S}/engine/src
+    ENGINE_SRC_DIR=$(pwd)
+
     FLUTTER_RUNTIME_MODES="${@bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d)}"
     bbnote "FLUTTER_RUNTIME_MODES=${FLUTTER_RUNTIME_MODES}"
 
+
     for MODE in $FLUTTER_RUNTIME_MODES; do
 
+        cd ${ENGINE_SRC_DIR}
         BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${MODE}/g")"
 
         #
@@ -260,13 +309,13 @@ do_install() {
         #
         # Headers
         #
-        install -m 0644 ${S}/${BUILD_DIR}/flutter_embedder.h ${D}${includedir}/flutter_embedder.h
+        install -m 0644 ${BUILD_DIR}/flutter_embedder.h ${D}${includedir}/flutter_embedder.h
 
         #
         # Shared modules
         #
         cwd=$(pwd)
-        cd ${S}/${BUILD_DIR}/so.unstripped
+        cd ${BUILD_DIR}/so.unstripped
         for file in *; do
             cp "$file" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/lib/
             cp "../$file.TOC" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/lib/
@@ -276,16 +325,17 @@ do_install() {
         #
         # Data
         #
-        install -m 0644 ${S}/${BUILD_DIR}/icudtl.dat ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/data/icudtl.dat
+        install -m 0644 ${BUILD_DIR}/icudtl.dat ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/data/icudtl.dat
 
-        test -e ${S}/${BUILD_DIR}/shader_lib && \
-            cp -r ${S}/${BUILD_DIR}/shader_lib ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/lib/
+        test -e ${BUILD_DIR}/shader_lib && \
+            cp -r ${BUILD_DIR}/shader_lib \
+                  ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/lib/
 
         #
         # Executables
         #
         cwd=$(pwd)
-        cd ${S}/${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped
+        cd ${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped
         for file in *; do
             # copy the unstripped variant one up
             cp "../$file" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/
@@ -293,20 +343,21 @@ do_install() {
         cd $cwd
 
         # include patched sdk for local-engine scenarios
-        test -e ${S}/${BUILD_DIR}/flutter_patched_sdk && \
-            cp -r ${S}/${BUILD_DIR}/flutter_patched_sdk ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/
+        test -e ${BUILD_DIR}/flutter_patched_sdk && \
+            cp -r ${BUILD_DIR}/flutter_patched_sdk ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/
 
-        cd ${S}/flutter
         echo "${SRCREV}"                   > ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/engine.version
         echo "${FLUTTER_ENGINE_REPO_URL}" >> ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/engine.version
         echo "${FLUTTER_SDK_VERSION}"      > ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/flutter_sdk.version
         echo "${MODE}"                     > ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/flutter.runtime
 
-        cp "${S}/${BUILD_DIR}/args.gn"       ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/args.gn
+        cp "${BUILD_DIR}/args.gn" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/args.gn
 
+        cwd=$(pwd)
         cd ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/
         zip -r engine_sdk.zip sdk
         rm -rf sdk
+        cd $cwd
 
     done
 }
