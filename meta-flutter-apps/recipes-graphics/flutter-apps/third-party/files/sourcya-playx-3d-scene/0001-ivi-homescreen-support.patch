@@ -3,6 +3,8 @@ From: Joel Winarske <joel.winarske@gmail.com>
 Date: Thu, 11 Jan 2024 09:49:41 -0800
 Subject: [PATCH] ivi-homescreen support
 
+Upstream-Status: Inappropriate
+
 Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
  example/lib/main.dart            | 1 +
