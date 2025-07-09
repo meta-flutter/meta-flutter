@@ -1,4 +1,4 @@
-name: scarthgap-qemuriscv64-linux-dummy
+name: scarthgap-qemuriscv64
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ on:
 
 jobs:
 
-  scarthgap-qemuriscv64-linux-dummy:
+  scarthgap-qemuriscv64:
 
     env:
       MACHINE: qemuriscv64
@@ -44,13 +44,11 @@ jobs:
           cd ../scarthgap-linux-dummy
           pwd
           ls -la
-          rm -rf poky meta-openembedded meta-clang meta-drm meta-vulkan
+          rm -rf poky meta-openembedded meta-clang
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/riscv/meta-riscv.git &
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-drm.git &
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-vulkan.git &
           wait
 
       - name: Configure build
@@ -68,19 +66,14 @@ jobs:
           echo '***************************************'
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
-          echo 'BB_SIGNATURE_HANDLER = "OEEquivHash"' >> ./conf/local.conf
-          echo 'BB_HASHSERVE = "auto"' >> ./conf/local.conf
-          echo 'SSTATE_MIRRORS ?= "file://.* https://sstate.yoctoproject.org/all/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
           echo '***************************************'
           echo 'DISTRO_FEATURES:remove = "sysvinit ptest"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES:append = " systemd x11 wayland opengl polkit"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES_BACKFILL_CONSIDERED = ""' >> ./conf/local.conf
-          echo 'PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += "commercial"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-ffmpeg = " openssl"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:append:pn-flutter-auto = " filament-view"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:append:pn-ivi-homescreen = " filament-view"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:remove:pn-flutter-engine = " debug profile"' >> ./conf/local.conf
           echo '***************************************'
           echo 'IMAGE_INSTALL:append = " \
               gstreamer1.0 \
@@ -97,7 +90,6 @@ jobs:
           echo '***************************************'
           bitbake-layers show-layers
           bitbake-layers add-layer \
-              ../meta-clang \
               ../meta-openembedded/meta-filesystems \
               ../meta-openembedded/meta-gnome \
               ../meta-openembedded/meta-multimedia \
@@ -106,8 +98,6 @@ jobs:
               ../meta-openembedded/meta-python \
               ../meta-clang \
               ../meta-riscv \
-              ../meta-drm \
-              ../meta-vulkan \
               ../../meta-flutter \
               ../../meta-flutter/meta-flutter-apps
           bitbake-layers show-layers
@@ -137,22 +127,6 @@ jobs:
           bitbake dart-sdk -c do_cleansstate
           bitbake dart-sdk
 
-      - name: Build pdfium
-        shell: bash
-        working-directory: ../scarthgap-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake pdfium -c do_cleansstate
-          bitbake pdfium
-
-      - name: Build libwebrtc
-        shell: bash
-        working-directory: ../scarthgap-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake libwebrtc -c do_cleansstate
-          bitbake libwebrtc
-
       - name: Build flutter-engine
         shell: bash
         working-directory: ../scarthgap-linux-dummy
@@ -176,62 +150,6 @@ jobs:
           . ./poky/oe-init-build-env
           bitbake flutter-auto -c do_cleansstate
           bitbake flutter-auto
-
-      - name: Build flutter-pi
-        shell: bash
-        working-directory: ../scarthgap-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-pi -c do_cleansstate
-          bitbake flutter-pi
-
-      - name: Build Sony flutter-drm-eglstream-backend
-        shell: bash
-        working-directory: ../scarthgap-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-drm-eglstream-backend -c do_cleansstate
-          bitbake flutter-drm-eglstream-backend
-
-      - name: Build Sony drm gbm backend
-        shell: bash
-        working-directory: ../scarthgap-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-drm-gbm-backend -c do_cleansstate
-          bitbake flutter-drm-gbm-backend
-
-      - name: Build Sony external texture plugin
-        shell: bash
-        working-directory: ../scarthgap-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-external-texture-plugin -c do_cleansstate
-          bitbake flutter-external-texture-plugin
-
-      - name: Build Sony video player plugin
-        shell: bash
-        working-directory: ../scarthgap-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-video-player-plugin -c do_cleansstate
-          bitbake flutter-video-player-plugin
-
-      - name: Build Sony Wayland Client
-        shell: bash
-        working-directory: ../scarthgap-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-wayland-client -c do_cleansstate
-          bitbake flutter-wayland-client
-
-      - name: Build Sony X11 Client
-        shell: bash
-        working-directory: ../scarthgap-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-x11-client -c do_cleansstate
-          bitbake flutter-x11-client
 
       - name: Build flutter-samples-material-3-demo
         shell: bash
