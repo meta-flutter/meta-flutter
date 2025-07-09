@@ -54,6 +54,7 @@ PACKAGECONFIG ??= "\
     nav_render_view \
     \
     audioplayer_linux \
+    ${@bb.utils.contains('IMAGE_INSTALL', 'flatpak', 'flatpak', '', d)} \
     go_router \
     secure-storage \
     url_launcher \
@@ -122,6 +123,7 @@ PACKAGECONFIG[firebase_storage] = "\
     -DFIREBASE_SDK_LIBDIR=${STAGING_LIBDIR}/firebase-cpp-sdk, \
     -DBUILD_PLUGIN_FIREBASE_STORAGE=OFF"
 PACKAGECONFIG[desktop_window_linux] = "-DBUILD_PLUGIN_DESKTOP_WINDOW_LINUX=ON,-DBUILD_PLUGIN_DESKTOP_WINDOW_LINUX=OFF"
+PACKAGECONFIG[flatpak] = "-DBUILD_PLUGIN_FLATPAK=ON, -DBUILD_PLUGIN_FLATPAK=OFF, flatpak"
 PACKAGECONFIG[go_router] = "-DBUILD_PLUGIN_GO_ROUTER=ON,-DBUILD_PLUGIN_GO_ROUTER=OFF"
 PACKAGECONFIG[google_sign_in] = "-DBUILD_PLUGIN_GOOGLE_SIGN_IN=ON,-DBUILD_PLUGIN_GOOGLE_SIGN_IN=OFF, curl"
 PACKAGECONFIG[pdf] = "-DBUILD_PLUGIN_PDF=ON, -DBUILD_PLUGIN_PDF=OFF, pdfium"
