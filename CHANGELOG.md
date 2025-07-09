@@ -1,7 +1,15 @@
 # Changelog
 
+Jul 9, 2025
+1. ivi-homescreen/flutter-auto - enable flatpak plugin if `flatpak` is present in IMAGE_INSTALL
+
+Jul 7, 2025
+1. pdfium - remove static compilation of libgcc and libg++
+2. flutter-engine 3.32.5 risc-v update - uses system clang for riscv64
+
 Jul 2, 2025
-1. Roll ivi-homescreen + ivi-homescreen-plugins
+1. Flutter SDK 3.32.5
+2. Roll ivi-homescreen + ivi-homescreen-plugins
 
 Jun 19, 2025
 1. Roll ivi-homescreen + ivi-homescreen-plugins
