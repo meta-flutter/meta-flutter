@@ -13,9 +13,8 @@ LICENSE = "GPL-3.0"
 LIC_FILES_CHKSUM = "file://COPYING;md5=e49f4652534af377a713df3d9dec60cb"
 
 SRCREV = "de1c4cf92bf629a0fff0d5462e2ba9575b77de67"
-SRC_URI = "git://github.com/bernardpumped/ped.git;lfs=0;branch=next_main;protocol=https;destsuffix=git"
+SRC_URI = "git://github.com/bernardpumped/ped.git;lfs=0;branch=next_main;protocol=https"
 
-S = "${UNPACKDIR}/git"
 
 PUBSPEC_APPNAME = "pumped_end_device"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "bernardpumped-ped-pumped-end-device"

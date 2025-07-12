@@ -490,7 +490,7 @@ def parse_args(d):
 
     return parser.parse_known_args(args)[0]
 
-def get_gn_tmp_out_dir(d):
+def get_gn_tmp_out_dir_relative(d):
     """Gets output directory based on the Package Configuration args."""
     import os
 
@@ -544,7 +544,7 @@ def get_gn_tmp_out_dir(d):
     if args.target_dir != '':
         target_dir = [args.target_dir]
 
-    return os.path.join(args.out_dir, 'out', '_'.join(target_dir))
+    return os.path.join('out', '_'.join(target_dir))
 
 
 def get_gn_args_less_runtime(d):

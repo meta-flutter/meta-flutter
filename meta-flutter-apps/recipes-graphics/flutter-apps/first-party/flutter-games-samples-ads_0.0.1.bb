@@ -11,10 +11,9 @@ SECTION = "graphics"
 
 LICENSE = "CLOSED"
 
-SRCREV = "f51657c94185e72d550f28a9fbc5e5c0d7e94c44"
-SRC_URI = "git://github.com/flutter/games.git;lfs=1;branch=main;protocol=https;destsuffix=git"
+SRCREV = "8a7d15bad36a9eeba62044b838b54e00aa355bf4"
+SRC_URI = "git://github.com/flutter/games.git;lfs=1;branch=main;protocol=https"
 
-S = "${UNPACKDIR}/git"
 
 PUBSPEC_APPNAME = "ads"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-games-samples-ads"

@@ -96,7 +96,6 @@ jobs:
           echo '***************************************'
           bitbake-layers show-layers
           bitbake-layers add-layer \
-              ../meta-clang \
               ../meta-openembedded/meta-filesystems \
               ../meta-openembedded/meta-gnome \
               ../meta-openembedded/meta-multimedia \

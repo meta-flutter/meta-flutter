@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2025 Joel Winarske. All rights reserved.
 #
 
 SUMMARY = "PDFium"
@@ -18,26 +18,44 @@ DEPENDS += "\
     libpng \
     openjpeg \
     zlib \
+    depot-tools-native \
+    ninja-native \
     "
 
-SRCREV = "2b675cf15ab4b68bf1ed4e0511ba2479e11f1605"
+DEPENDS:append:x86-64 = " nasm-native"
+
+SRCREV = "4e4d7a14a4d9d484feb4a4770a892cd964cfd968"
 SRC_URI = "\
-    gn://pdfium.googlesource.com/pdfium.git;gn_name=pdfium \
-    file://public_headers.patch \
-    file://shared_library.patch \
-    file://v8_init.patch \
+    gn://pdfium.googlesource.com/pdfium.git \
+    \
+    file://0001-public-headers.patch \
+    file://0002-shared-library.patch \
+    file://0003-sysroot-fix-path.patch \
+    file://0004-v8-init.patch \
+    \
     file://toolchain.gn.in \
     "
 
-S = "${UNPACKDIR}/pdfium"
-B = "${S}/out"
+S = "${UNPACKDIR}/gn/pdfium"
+B = "${UNPACKDIR}/gn/out"
 
 inherit gn-fetcher pkgconfig
 
 require conf/include/gn-utils.inc
 
 # For gn.bbclass
-GN_CUSTOM_VARS ?= '{"checkout_configuration": "small"}'
+# Trick `gclient sync`. Download some binary in order to satisfy dependencies.
+# Check reasoning at:
+# - https://github.com/meta-flutter/meta-flutter/issues/411#issuecomment-2955621158
+# Keep this workaround while the following issue is unsolved:
+# - https://issues.chromium.org/issues/424205782
+GN_CUSTOM_VARS ?= '\
+{\
+    "reclient_package": "gn/gn/", \
+    "reclient_version": "git_revision:b99a82ca8ee957da829d6313b818b99df8e7ccb8", \
+    "checkout_configuration": "small" \
+}'
+
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 
 EXTRA_CXXFLAGS = ""
@@ -60,9 +78,7 @@ GN_ARGS = '\
     use_system_freetype = true \
     use_system_libopenjpeg2 = true \
     use_system_zlib = true \
-    use_system_jpeg = true \
     use_system_libpng = true \
-    use_system_libjpeg = true \
     \
     is_clang = false \
     clang_use_chrome_plugins = false \
@@ -81,12 +97,11 @@ do_configure() {
     #
     # configure toolchain file
     #
-    cp ${UNPACKDIR}/toolchain.gn.in ${S}/build/toolchain/linux/BUILD.gn
+    cp ${S}/../../toolchain.gn.in ${S}/build/toolchain/linux/BUILD.gn
     sed -i "s|@GN_TARGET_ARCH_NAME@|${GN_TARGET_ARCH_NAME}|g" ${S}/build/toolchain/linux/BUILD.gn
     sed -i "s|@TARGET_SYS@|${TARGET_SYS}|g"                   ${S}/build/toolchain/linux/BUILD.gn
     sed -i "s|@LDFLAGS@|${LDFLAGS}|g"                         ${S}/build/toolchain/linux/BUILD.gn
     sed -i "s|@EXTRA_CXXFLAGS@|${EXTRA_CXXFLAGS}|g"           ${S}/build/toolchain/linux/BUILD.gn
-
 
     gn gen --args='${GN_ARGS}' "${B}"
 }

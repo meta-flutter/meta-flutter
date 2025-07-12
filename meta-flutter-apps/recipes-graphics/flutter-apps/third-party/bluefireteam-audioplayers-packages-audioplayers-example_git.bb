@@ -10,12 +10,11 @@ BUGTRACKER = "None"
 SECTION = "graphics"
 
 LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=bacf6c2e93531d3d438d05353cede782"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=c40600261a3b45d01ebc98bcb0a6b2d5"
 
-SRCREV = "6d8cd3e6f5b8734e6225717a510e2858ada96109"
-SRC_URI = "git://github.com/bluefireteam/audioplayers.git;lfs=0;branch=main;protocol=https;destsuffix=git"
+SRCREV = "f2269aeb270154e5f3571e1e025d340cfbca4686"
+SRC_URI = "git://github.com/bluefireteam/audioplayers.git;lfs=0;branch=main;protocol=https"
 
-S = "${UNPACKDIR}/git"
 
 PUB_CACHE_EXTRA_ARCHIVE_PATH = "${WORKDIR}/pub_cache/bin"
 PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \

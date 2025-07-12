@@ -13,9 +13,8 @@ LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=6c189f90a66a3490dde93cebc211f9c0"
 
 SRCREV = "d5e7206396105d643113618290bbcc755d05f492"
-SRC_URI = "git://github.com/theyakka/qr.flutter.git;lfs=0;branch=master;protocol=https;destsuffix=git"
+SRC_URI = "git://github.com/theyakka/qr.flutter.git;lfs=0;branch=master;protocol=https"
 
-S = "${UNPACKDIR}/git"
 
 PUBSPEC_APPNAME = "example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "theyakka-qr-example"
