@@ -77,8 +77,6 @@ jobs:
           echo 'DISTRO_FEATURES_BACKFILL_CONSIDERED = ""' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += "commercial"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:append:pn-flutter-auto = " filament-view"' >> ./conf/local.conf
-          echo 'PACKAGECONFIG:append:pn-ivi-homescreen = " filament-view"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:remove:pn-flutter-engine = " debug profile"' >> ./conf/local.conf
           echo '***************************************'
           echo 'IMAGE_INSTALL:append = " \
@@ -96,7 +94,6 @@ jobs:
           echo '***************************************'
           bitbake-layers show-layers
           bitbake-layers add-layer \
-              ../meta-clang \
               ../meta-openembedded/meta-filesystems \
               ../meta-openembedded/meta-gnome \
               ../meta-openembedded/meta-multimedia \
@@ -126,14 +123,6 @@ jobs:
           . ./poky/oe-init-build-env
           bitbake dart-sdk -c do_cleansstate
           bitbake dart-sdk
-
-      - name: Build pdfium
-        shell: bash
-        working-directory: ../master-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake pdfium -c do_cleansstate
-          bitbake pdfium
 
       - name: Build sentry
         shell: bash
@@ -182,46 +171,6 @@ jobs:
           . ./poky/oe-init-build-env
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
-
-      - name: Build Sony flutter-drm-eglstream-backend
-        shell: bash
-        working-directory: ../master-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-drm-eglstream-backend -c do_cleansstate
-          bitbake flutter-drm-eglstream-backend
-
-      - name: Build Sony drm gbm backend
-        shell: bash
-        working-directory: ../master-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-drm-gbm-backend -c do_cleansstate
-          bitbake flutter-drm-gbm-backend
-
-      - name: Build Sony external texture plugin
-        shell: bash
-        working-directory: ../master-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-external-texture-plugin -c do_cleansstate
-          bitbake flutter-external-texture-plugin
-
-      - name: Build Sony video player plugin
-        shell: bash
-        working-directory: ../master-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-video-player-plugin -c do_cleansstate
-          bitbake flutter-video-player-plugin
-
-      - name: Build Sony Wayland Client
-        shell: bash
-        working-directory: ../master-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-wayland-client -c do_cleansstate
-          bitbake flutter-wayland-client
 
       - name: Build flutter-samples-material-3-demo
         shell: bash

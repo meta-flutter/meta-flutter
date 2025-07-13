@@ -12,10 +12,9 @@ SECTION = "graphics"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57"
 
-SRCREV = "1a7104f541e323aa81a324c790605be1d463b5e5"
-SRC_URI = "git://github.com/firebase/FirebaseUI-Flutter;lfs=0;branch=main;protocol=https;destsuffix=git"
+SRCREV = "b59c6e9a071eb45edcf72bfd7f990e2013b2348a"
+SRC_URI = "git://github.com/firebase/FirebaseUI-Flutter;lfs=0;branch=main;protocol=https"
 
-S = "${UNPACKDIR}/git"
 
 PUB_CACHE_EXTRA_ARCHIVE_PATH = "${WORKDIR}/pub_cache/bin"
 PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \
