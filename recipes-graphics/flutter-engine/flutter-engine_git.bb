@@ -50,15 +50,22 @@ SRC_URI:append:libc-musl = "\
 
 inherit gn-fetcher features_check pkgconfig
 
+# GN variables
 
-# For gn.bbclass
+# enable building on aarch64 host
+GN_PRE_FETCH_CMD = '\
+    sed -i "s|# Always download the JDK since java is required for running the formatter.|'condition': 'download_jdk',|g" ${S}/DEPS \
+'
+
 GN_CUSTOM_VARS ?= '\
 {\
     "download_android_deps": False, \
     "download_windows_deps": False, \
-    "download_linux_deps": False,   \
+    "download_linux_deps": False, \
+    "download_jdk": False, \
 }'
-EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
+
+EXTRA_GN_SYNC ?= "--shallow --no-history"
 
 COMPATIBLE_MACHINE = "(-)"
 COMPATIBLE_MACHINE:aarch64 = "(.*)"
