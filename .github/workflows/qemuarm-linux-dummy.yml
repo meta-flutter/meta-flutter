@@ -44,10 +44,9 @@ jobs:
           cd ../master-linux-dummy
           pwd
           ls -la
-          rm -rf poky meta-openembedded meta-clang meta-drm meta-vulkan
+          rm -rf poky meta-openembedded meta-drm meta-vulkan
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded &
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-drm.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-vulkan.git &
           wait
@@ -100,7 +99,6 @@ jobs:
               ../meta-openembedded/meta-networking \
               ../meta-openembedded/meta-oe \
               ../meta-openembedded/meta-python \
-              ../meta-clang \
               ../meta-drm \
               ../meta-vulkan \
               ../../meta-flutter \
