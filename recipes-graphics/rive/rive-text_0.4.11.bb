@@ -20,6 +20,14 @@ DEPENDS += "\
 SRCREV = "4e7699cb628276ec118eac1150cf7d1b34c18c14"
 SRC_URI = "git://github.com/meta-flutter/rive-common.git;protocol=https;lfs=0;nobranch=1"
 
+TOOLCHAIN = "clang"
+TOOLCHAIN_NATIVE = "clang"
+TC_CXX_RUNTIME = "llvm"
+PREFERRED_PROVIDER_llvm = "clang"
+PREFERRED_PROVIDER_llvm-native = "clang-native"
+PREFERRED_PROVIDER_libgcc = "compiler-rt"
+LIBCPLUSPLUS = "-stdlib=libc++"
+
 inherit cmake
 
 FILES_SOLIBSDEV = ""
