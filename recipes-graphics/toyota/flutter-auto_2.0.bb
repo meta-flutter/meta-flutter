@@ -23,7 +23,8 @@ DEPENDS += "\
     wayland-protocols \
     compiler-rt \
     libcxx \
-    "
+    lld-native \
+"
 
 REQUIRED_DISTRO_FEATURES = "wayland"
 
