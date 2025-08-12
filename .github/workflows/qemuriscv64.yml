@@ -172,3 +172,27 @@ jobs:
           . ./poky/oe-init-build-env
           bitbake flutter-samples-material-3-demo -c do_cleansstate
           bitbake flutter-samples-material-3-demo
+
+      - name: Build toyota-connected-tcna-packages-camera-linux-camera-example
+        shell: bash
+        working-directory: ../master-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake toyota-connected-tcna-packages-camera-linux-camera-example -c do_cleansstate
+          bitbake toyota-connected-tcna-packages-camera-linux-camera-example
+
+      - name: Build toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo
+        shell: bash
+        working-directory: ../master-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo -c do_cleansstate
+          bitbake toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo
+
+      - name: Build toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example
+        shell: bash
+        working-directory: ../master-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example -c do_cleansstate
+          bitbake toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example
