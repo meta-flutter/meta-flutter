@@ -1,5 +1,9 @@
 # Changelog
 
+Aug 15, 2025
+
+1. Flutter SDK 3.32.8
+
 March 14, 2025
 1. roll ivi-homescreen/flutter-auto
    -Remove FPS overlay
