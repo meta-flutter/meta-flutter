@@ -372,6 +372,30 @@
         "license_type": "Apache-2.0",
         "author": "Google",
         "folder": "first-party"
+    },
+    {
+        "uri": "https://github.com/toyota-connected/tcna-packages.git",
+        "branch": "main",
+        "license_file": "LICENSE",
+        "license_type": "BSD-3-Clause",
+        "author": "Toyota Connected North America",
+        "folder": "third-party",
+        "ignore": [
+            "packages/webview/webview_flutter_linux/example"
+        ],
+        "variables": {
+            "packages/camera/camera_linux/example": [
+                "",
+                "do_unpack[network] = \"1\""
+            ],
+            "packages/filament_scene/example": [
+                "",
+                "do_unpack[network] = \"1\""
+            ],
+            "packages/video_player/video_player_linux/example": [
+                "",
+                "do_unpack[network] = \"1\""
+            ]
+        }
     }
-
 ]

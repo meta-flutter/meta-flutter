@@ -44,11 +44,10 @@ jobs:
           cd ../master-linux-dummy
           pwd
           ls -la
-          rm -rf poky meta-openembedded meta-clang meta-drm meta-vulkan
+          rm -rf poky meta-openembedded meta-drm meta-vulkan
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/riscv/meta-riscv.git &
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-drm.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-vulkan.git &
           wait
@@ -102,7 +101,6 @@ jobs:
               ../meta-openembedded/meta-networking \
               ../meta-openembedded/meta-oe \
               ../meta-openembedded/meta-python \
-              ../meta-clang \
               ../meta-riscv \
               ../meta-drm \
               ../meta-vulkan \
@@ -174,3 +172,27 @@ jobs:
           . ./poky/oe-init-build-env
           bitbake flutter-samples-material-3-demo -c do_cleansstate
           bitbake flutter-samples-material-3-demo
+
+      - name: Build toyota-connected-tcna-packages-camera-linux-camera-example
+        shell: bash
+        working-directory: ../master-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake toyota-connected-tcna-packages-camera-linux-camera-example -c do_cleansstate
+          bitbake toyota-connected-tcna-packages-camera-linux-camera-example
+
+      - name: Build toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo
+        shell: bash
+        working-directory: ../master-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo -c do_cleansstate
+          bitbake toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo
+
+      - name: Build toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example
+        shell: bash
+        working-directory: ../master-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example -c do_cleansstate
+          bitbake toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example

@@ -29,6 +29,14 @@ SRC_URI = " \
     file://gcc_toolchain.gni.in \
 "
 
+TOOLCHAIN = "clang"
+TOOLCHAIN_NATIVE = "clang"
+TC_CXX_RUNTIME = "llvm"
+PREFERRED_PROVIDER_llvm = "clang"
+PREFERRED_PROVIDER_llvm-native = "clang-native"
+PREFERRED_PROVIDER_libgcc = "compiler-rt"
+LIBCPLUSPLUS = "-stdlib=libc++"
+
 inherit gn-fetcher pkgconfig
 
 require conf/include/gn-utils.inc
@@ -45,13 +53,12 @@ PACKAGECONFIG[platform-sdk] = "--platform-sdk"
 PACKAGECONFIG[use-crashpad] = "--use-crashpad"
 PACKAGECONFIG[use-qemu] = "--use-qemu"
 PACKAGECONFIG[exclude-kernel-service] = "--exclude-kernel-service"
-PACKAGECONFIG[clang] = "--clang, --no-clang"
 PACKAGECONFIG[verbose] = "--verbose"
 PACKAGECONFIG[git-version] = "--git-version"
 PACKAGECONFIG[dynamic-modules] = "--dart-dynamic-modules"
 PACKAGECONFIG[codesigning-identity] = "--codesigning-identity ${CODESIGNING_IDENTITY}"
 
-GN_ARGS = "${PACKAGECONFIG_CONFARGS} --no-rbe"
+GN_ARGS = "${PACKAGECONFIG_CONFARGS} --no-rbe --clang"
 
 # all, debug, release, product
 GN_ARGS:append = " --mode product"

@@ -23,7 +23,8 @@ DEPENDS += "\
     wayland-protocols \
     compiler-rt \
     libcxx \
-    "
+    lld-native \
+"
 
 REQUIRED_DISTRO_FEATURES = "wayland"
 
@@ -40,6 +41,14 @@ SRCREV_FORMAT .= "_plugins"
 SRCREV_plugins = "${PLUGINS_COMMIT}"
 
 CRASH_HANDLER_DSN ??= ""
+
+TOOLCHAIN = "clang"
+TOOLCHAIN_NATIVE = "clang"
+TC_CXX_RUNTIME = "llvm"
+PREFERRED_PROVIDER_llvm = "clang"
+PREFERRED_PROVIDER_llvm-native = "clang-native"
+PREFERRED_PROVIDER_libgcc = "compiler-rt"
+LIBCPLUSPLUS = "-stdlib=libc++"
 
 inherit cmake features_check pkgconfig
 
@@ -144,6 +153,7 @@ PACKAGECONFIG[verbose] = "-DCMAKE_BUILD_TYPE=Debug -DDEBUG_PLATFORM_MESSAGES=ON,
 
 
 EXTRA_OECMAKE += "\
+    -D LLVM_CONFIG=${STAGING_BINDIR_NATIVE}/llvm-config \
     -D PLUGINS_DIR=${S}/ivi-homescreen-plugins/plugins \
     -D ENABLE_STATIC_LINK=OFF \
     -D ENABLE_LTO=ON \

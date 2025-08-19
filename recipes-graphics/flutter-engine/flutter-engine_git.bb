@@ -16,11 +16,21 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 DEPENDS += "\
     zip-native \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)} \
+    compiler-rt \
+    libcxx \
     "
 
 DEPENDS:aarch64 += "\
     freetype \
     "
+
+TOOLCHAIN = "clang"
+TOOLCHAIN_NATIVE = "clang"
+TC_CXX_RUNTIME = "llvm"
+PREFERRED_PROVIDER_llvm = "clang"
+PREFERRED_PROVIDER_llvm-native = "clang-native"
+PREFERRED_PROVIDER_libgcc = "compiler-rt"
+LIBCPLUSPLUS = "-stdlib=libc++"
 
 require conf/include/gn-utils.inc
 require conf/include/clang-utils.inc
@@ -42,6 +52,16 @@ SRCREV_FORMAT .= "_flutter_sdk"
 SRCREV_flutter_sdk = "${@get_flutter_hash(d)}"
 
 S = "${UNPACKDIR}/gn"
+
+# riscv64 specific patches
+SRC_URI_EXTRA:riscv64 += "\
+    file://0001-gn-riscv32-and-riscv64.patch \
+    file://0002-fml-build-config-add-riscv.patch \
+    file://0003-swiftshader-riscv-support.patch \
+    file://0004-tonic-riscv-support.patch \
+    file://0001-abseil-clang-compiler-warnings.patch \
+    file://0001-Add-risc-v-32-64-support-to-native-assets.patch \
+"
 
 # musl-specific patches.
 SRC_URI:append:libc-musl = "\
@@ -69,6 +89,7 @@ COMPATIBLE_MACHINE:armv7a = "(.*)"
 COMPATIBLE_MACHINE:armv7ve = "(.*)"
 COMPATIBLE_MACHINE:x86 = "(.*)"
 COMPATIBLE_MACHINE:x86-64 = "(.*)"
+COMPATIBLE_MACHINE:riscv64 = "(.*)"
 
 PACKAGECONFIG ??= "\
     desktop-embeddings \
@@ -110,6 +131,9 @@ PACKAGECONFIG[impeller-3d] = "--enable-impeller-3d"
 CLANG_BUILD_ARCH = "${@clang_build_arch(d)}"
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
 CLANG_PATH = "${S}/engine/src/flutter/buildtools/linux-${CLANG_BUILD_ARCH}/clang"
+
+# Use system clang for riscv64; required for linking
+CLANG_PATH:riscv64 = "${STAGING_DIR_NATIVE}/usr"
 
 GN_ARGS = "\
     ${PACKAGECONFIG_CONFARGS} \
@@ -224,6 +248,17 @@ do_configure() {
 
         bbnote `cat ${ARGS_FILE}`
     done
+
+    # external clang toolchain
+    cd ${STAGING_DIR_TARGET}/usr/lib
+
+    test -e crtbeginS.o && rm crtbeginS.o
+    test -e crtendS.o && rm crtendS.o
+    test -e libgcc.a && rm libgcc.a
+
+    ln -s "$(find -iname crtbeginS.o)" crtbeginS.o
+    ln -s "$(find -iname crtendS.o)" crtendS.o
+    ln -s "$(find -iname libgcc.a)" libgcc.a
 }
 do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 
