@@ -424,7 +424,12 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
 
         bb.note(f'[{runtime_mode}] flutter build {flutter_build_args}: Starting')
 
-        build_folder = os.path.join(source_root, 'build')
+        # Use one build folder per runtime mode
+        build_folder_name = f'build_{runtime_mode}'
+        build_folder = os.path.join(source_root, build_folder_name)
+        cmd = f'flutter config --build-dir={build_folder_name}'
+        run_command(d, cmd, source_root, env)
+
         if os.path.exists(build_folder):
             run_command(d, 'flutter clean -v', source_root, env)
 
@@ -518,12 +523,13 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
 
             # remove kernel_blob.bin to save space
             try:
-                os.remove(f'{source_dir}/{flutter_application_path}/build/flutter_assets/kernel_blob.bin')
+                os.remove(f'{source_dir}/{flutter_application_path}/{build_folder_name}/flutter_assets/kernel_blob.bin')
             except OSError:
                 pass
 
             # create empty file for apps that check for kernel_blob.bin
-            run_command(d, 'touch build/flutter_assets/kernel_blob.bin', source_root, env)
+            cmd = f'touch {build_folder_name}/flutter_assets/kernel_blob.bin'
+            run_command(d, cmd, source_root, env)
 
             bb.note(f'aot_elf_{runtime_mode}: Started')
 
@@ -547,5 +553,7 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
                 --elf=libapp.so \
                 --strip \
                 {app_gen_snapshot_flags} \
-                {flutter_app_output_dill}'
+                {flutter_app_output_dill}; \
+                mkdir -p {build_folder}; \
+                mv libapp.so {build_folder};'
             run_command(d, cmd, source_root, env)
