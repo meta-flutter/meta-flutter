@@ -15,7 +15,6 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=df6bd2163489eedcdea6b9406bcbe1dd"
 SRCREV = "c92bed290b4f696e8434cc0af4af020420e518bc"
 SRC_URI = "git://github.com/meta-flutter/tests;lfs=0;branch=main;protocol=https"
 
-
 PUBSPEC_APPNAME = "test_egl"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "meta-flutter-tests-textures-test-egl"
 PUBSPEC_IGNORE_LOCKFILE = "1"

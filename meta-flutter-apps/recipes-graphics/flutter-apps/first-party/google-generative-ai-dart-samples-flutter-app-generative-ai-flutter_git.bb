@@ -15,7 +15,6 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=175792518e4ac015ab6696d16c4f607e"
 SRCREV = "19c1d6018b253ebfcd6a35eed7bc556cf6ff4d8e"
 SRC_URI = "git://github.com/google/generative-ai-dart.git;lfs=1;branch=main;protocol=https"
 
-
 PUBSPEC_APPNAME = "generative_ai_flutter"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "google-generative-ai-dart-samples-flutter-app-generative-ai-flutter"
 PUBSPEC_IGNORE_LOCKFILE = "1"

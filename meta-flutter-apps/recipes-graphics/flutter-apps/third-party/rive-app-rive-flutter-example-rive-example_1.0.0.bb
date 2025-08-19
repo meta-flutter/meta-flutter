@@ -12,9 +12,8 @@ SECTION = "graphics"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=c52243a14a066c83e50525d9ad046678"
 
-SRCREV = "2b91ad3e27f6cafccf542e053f464e58e41c6b92"
+SRCREV = "d8d2bf2fc9a9bdc23507285de4039edc17d5cf30"
 SRC_URI = "git://github.com/rive-app/rive-flutter.git;lfs=1;branch=master;protocol=https"
-
 
 PUBSPEC_APPNAME = "rive_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "rive-app-rive-flutter-example-rive-example"

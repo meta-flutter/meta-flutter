@@ -170,14 +170,6 @@ jobs:
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
 
-      - name: Build flutter-samples-material-3-demo
-        shell: bash
-        working-directory: ../master-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake flutter-samples-material-3-demo -c do_cleansstate
-          bitbake flutter-samples-material-3-demo
-
       - name: Build toyota-connected-tcna-packages-camera-linux-camera-example
         shell: bash
         working-directory: ../master-linux-dummy

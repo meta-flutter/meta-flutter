@@ -12,9 +12,8 @@ SECTION = "graphics"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57"
 
-SRCREV = "9ec68e84a2d3a0fc7b14c0a4885d15e709575d7a"
+SRCREV = "7fc5e04bbb80080115afdf9809c3a25fbf77ff3f"
 SRC_URI = "git://github.com/googleads/googleads-mobile-flutter.git;lfs=0;branch=main;protocol=https"
-
 
 PUBSPEC_APPNAME = "gma_mediation_applovin_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "googleads-flutter-packages-mediation-gma-mediation-applovin-example"

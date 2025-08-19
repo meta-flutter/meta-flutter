@@ -2,8 +2,8 @@
 # Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
 #
 
-SUMMARY = "gma_mediation_inmobi_example"
-DESCRIPTION = "Demonstrates how to use the gma_mediation_inmobi plugin."
+SUMMARY = "gma_mediation_pubmatic_example"
+DESCRIPTION = "Demonstrates how to use the gma_mediation_pubmatic plugin."
 AUTHOR = "Goolge Ads"
 HOMEPAGE = "None"
 BUGTRACKER = "None"
@@ -15,9 +15,9 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57"
 SRCREV = "7fc5e04bbb80080115afdf9809c3a25fbf77ff3f"
 SRC_URI = "git://github.com/googleads/googleads-mobile-flutter.git;lfs=0;branch=main;protocol=https"
 
-PUBSPEC_APPNAME = "gma_mediation_inmobi_example"
-FLUTTER_APPLICATION_INSTALL_SUFFIX = "googleads-flutter-packages-mediation-gma-mediation-inmobi-example"
+PUBSPEC_APPNAME = "gma_mediation_pubmatic_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "googleads-flutter-packages-mediation-gma-mediation-pubmatic-example"
 PUBSPEC_IGNORE_LOCKFILE = "1"
-FLUTTER_APPLICATION_PATH = "packages/mediation/gma_mediation_inmobi/example"
+FLUTTER_APPLICATION_PATH = "packages/mediation/gma_mediation_pubmatic/example"
 
 inherit flutter-app
