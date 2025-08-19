@@ -79,39 +79,49 @@ COMPATIBLE_MACHINE:x86-64 = "(.*)"
 PACKAGECONFIG ??= "\
     desktop-embeddings \
     debug profile release \
+    engine-artifacts \
     embedder-for-target \
     fontconfig \
     mallinfo2 \
-    impeller-3d \
+    dart-dynamic-modules \
     "
 
-PACKAGECONFIG[asan] = "--asan"
-PACKAGECONFIG[coverage] = "--coverage"
-PACKAGECONFIG[dart-debug] = "--dart-debug"
+PACKAGECONFIG[unoptimized] = "--unoptimized"
+PACKAGECONFIG[unittests] = "--enable-unittests, --no-enable-unittests"
 PACKAGECONFIG[debug] = "--runtime-mode debug"
-PACKAGECONFIG[desktop-embeddings] = ",--disable-desktop-embeddings, glib-2.0 gtk+3"
-PACKAGECONFIG[embedder-examples] = "--build-embedder-examples,--no-build-embedder-examples"
-PACKAGECONFIG[embedder-for-target] = "--embedder-for-target"
-PACKAGECONFIG[fontconfig] = "--enable-fontconfig,,fontconfig"
-PACKAGECONFIG[full-dart-debug] = "--full-dart-debug"
-PACKAGECONFIG[full-dart-sdk] = "--full-dart-sdk"
-PACKAGECONFIG[glfw-shell] = "--build-glfw-shell,--no-build-glfw-shell, glfw"
-PACKAGECONFIG[interpreter] = "--interpreter"
-PACKAGECONFIG[jit_release] = "--runtime-mode jit_release"
-PACKAGECONFIG[lsan] = "--lsan"
-PACKAGECONFIG[mallinfo2] = "--use-mallinfo2"
-PACKAGECONFIG[msan] = "--msan"
-PACKAGECONFIG[prebuilt-dart-sdk] = "--prebuilt-dart-sdk,--no-prebuilt-dart-sdk"
 PACKAGECONFIG[profile] = "--runtime-mode profile"
 PACKAGECONFIG[release] = "--runtime-mode release"
-PACKAGECONFIG[static-analyzer] = "--clang-static-analyzer"
-PACKAGECONFIG[tsan] = "--tsan"
-PACKAGECONFIG[trace-gn] = "--trace-gn"
-PACKAGECONFIG[ubsan] = "--ubsan"
-PACKAGECONFIG[unoptimized] = "--unoptimized"
-PACKAGECONFIG[verbose] = "--verbose"
+PACKAGECONFIG[jit_release] = "--runtime-mode jit_release"
+PACKAGECONFIG[dart-debug] = "--dart-debug"
+PACKAGECONFIG[dart-version-git-info] = ",--no-dart-version-git-info"
+PACKAGECONFIG[full-dart-debug] = "--full-dart-debug"
+PACKAGECONFIG[backtrace] = "--backtrace,--no-backtrace"
+PACKAGECONFIG[engine-artifacts] = "--build-engine-artifacts,--no-build-engine-artifacts"
+PACKAGECONFIG[clang-static-analyzer] = "--clang-static-analyzer,--no-clang-static-analyzer"
 PACKAGECONFIG[vulkan] = "--enable-vulkan"
-PACKAGECONFIG[impeller-3d] = "--enable-impeller-3d"
+PACKAGECONFIG[fontconfig] = "--enable-fontconfig,,fontconfig"
+PACKAGECONFIG[vulkan-validation-layers] = "--enable-vulkan-validation-layers"
+PACKAGECONFIG[embedder-for-target] = "--embedder-for-target"
+PACKAGECONFIG[coverage] = "--coverage"
+PACKAGECONFIG[full-dart-sdk] = "--full-dart-sdk,--no-full-dart-sdk"
+PACKAGECONFIG[desktop-embeddings] = ",--disable-desktop-embeddings, glib-2.0 gtk+3"
+PACKAGECONFIG[glfw-shell] = "--build-glfw-shell,--no-build-glfw-shell, glfw"
+PACKAGECONFIG[embedder-examples] = "--build-embedder-examples,--no-build-embedder-examples"
+PACKAGECONFIG[prebuilt-dart-sdk] = "--prebuilt-dart-sdk,--no-prebuilt-dart-sdk"
+PACKAGECONFIG[mallinfo2] = "--use-mallinfo2"
+PACKAGECONFIG[allow-deprecated-api-calls] = "--allow-deprecated-api-calls"
+PACKAGECONFIG[asan] = "--asan"
+PACKAGECONFIG[lsan] = "--lsan"
+PACKAGECONFIG[msan] = "--msan"
+PACKAGECONFIG[tsan] = "--tsan"
+PACKAGECONFIG[ubsan] = "--ubsan"
+PACKAGECONFIG[fstack-protector] = "--fstack-protector"
+PACKAGECONFIG[verbose] = "--verbose"
+PACKAGECONFIG[glfw-swiftshader] = "--use-glfw-swiftshader"
+PACKAGECONFIG[dart-dynamic-modules] = "--dart-dynamic-modules,--no-dart-dynamic-modules"
+PACKAGECONFIG[no-dart-secure-socket] = "--no-dart-secure-socket"
+PACKAGECONFIG[slimpeller] = "--slimpeller"
+
 
 CLANG_BUILD_ARCH = "${@clang_build_arch(d)}"
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
@@ -121,7 +131,6 @@ GN_ARGS = "\
     ${PACKAGECONFIG_CONFARGS} \
     --clang \
     --no-goma --no-rbe \
-    --no-enable-unittests \
     --no-stripped \
     --target-os linux \
     --linux-cpu ${@gn_target_arch_name(d)} \
