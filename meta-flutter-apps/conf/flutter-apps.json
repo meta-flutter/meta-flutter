@@ -408,6 +408,20 @@
         },
         "ignore": [
             "packages/webview/webview_flutter_linux/example"
-        ]
+        ],
+        "variables": {
+            "packages/camera/camera_linux/example": [
+                "",
+                "do_unpack[network] = \"1\""
+            ],
+            "packages/filament_scene/example": [
+                "",
+                "do_unpack[network] = \"1\""
+            ],
+            "packages/video_player/video_player_linux/example": [
+                "",
+                "do_unpack[network] = \"1\""
+            ]
+        }
     }
 ]
