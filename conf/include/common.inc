@@ -405,6 +405,7 @@ def versiontuple(v):
 def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_path, staging_dir_target, source_root, env):
     import glob
     import shutil
+    import json
 
     # determine build type based on what flutter-engine installed.
     datadir = d.getVar('datadir')
@@ -479,7 +480,12 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
             app_aot_extra = d.getVar("APP_AOT_EXTRA")
             app_aot_entry_file = d.getVar("APP_AOT_ENTRY_FILE")
 
+            workspace_ref_json = f'{source_dir}/{flutter_application_path}/.dart_tool/pub/workspace_ref.json'
             package_config_json = f'{source_dir}/{flutter_application_path}/.dart_tool/package_config.json'
+            if os.path.isfile(workspace_ref_json):
+                with open(workspace_ref_json, 'r') as f:
+                    workspace_ref_json_content = json.load(f)
+                    package_config_json = f'{os.path.dirname(workspace_ref_json)}/{workspace_ref_json_content["workspaceRoot"]}/.dart_tool/package_config.json'
 
             if not new_build_scheme:
                 dart_runtime = f'{flutter_sdk}/bin/cache/dart-sdk/bin/dart'
