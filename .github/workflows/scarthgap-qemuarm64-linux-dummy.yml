@@ -1,4 +1,4 @@
-name: kirkstone-qemuarm-linux-dummy
+name: scarthgap-qemuarm64-linux-dummy
 
 on:
   pull_request:
@@ -8,11 +8,11 @@ on:
 
 jobs:
 
-  kirkstone-qemuarm-linux-dummy:
+  scarthgap-qemuarm64-linux-dummy:
 
     env:
-      MACHINE: qemuarm
-      YOCTO_BRANCH: kirkstone
+      MACHINE: qemuarm64
+      YOCTO_BRANCH: scarthgap
 
     runs-on: [self-hosted, linux]
 
@@ -29,7 +29,7 @@ jobs:
         --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
         -v /home/runner/.ssh:/home/dev/.ssh:ro
         -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
-        -v /mnt/raid10/github-ci/sstate/yocto/kirkstone-linux-dummy:/home/dev/sstate:Z
+        -v /mnt/raid10/github-ci/sstate/yocto/scarthgap-linux-dummy:/home/dev/sstate:Z
 
 
     steps:
@@ -40,21 +40,20 @@ jobs:
 
       - name: Fetch poky
         run: |
-          [ -d ../kirkstone-linux-dummy ] || mkdir -p ../kirkstone-linux-dummy
-          cd ../kirkstone-linux-dummy
+          [ -d ../scarthgap-linux-dummy ] || mkdir -p ../scarthgap-linux-dummy
+          cd ../scarthgap-linux-dummy
           pwd
           ls -la
-          rm -rf poky meta-openembedded meta-clang meta-drm meta-vulkan
+          rm -rf poky meta-openembedded meta-drm meta-vulkan
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded &
-          git clone -b kirkstone-clang18       --single-branch https://github.com/kraj/meta-clang.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-drm.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-vulkan.git &
           wait
 
       - name: Configure build
         shell: bash
-        working-directory: ../kirkstone-linux-dummy
+        working-directory: ../scarthgap-linux-dummy
         run: |
           rm -rf build/conf
           . ./poky/oe-init-build-env
@@ -77,25 +76,26 @@ jobs:
           echo 'DISTRO_FEATURES_BACKFILL_CONSIDERED = ""' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += "commercial"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:append:pn-ffmpeg = " openssl"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-flutter-auto = " filament-view"' >> ./conf/local.conf
           echo 'PACKAGECONFIG:append:pn-ivi-homescreen = " filament-view"' >> ./conf/local.conf
+          echo 'PACKAGECONFIG:remove:pn-flutter-engine = " debug profile"' >> ./conf/local.conf
           echo '***************************************'
           echo 'IMAGE_INSTALL:append = " \
               ffmpeg \
+              flatpak \
               "' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
           cat ./conf/local.conf
           echo '***************************************'
           bitbake-layers show-layers
           bitbake-layers add-layer \
-              ../meta-clang \
               ../meta-openembedded/meta-filesystems \
               ../meta-openembedded/meta-gnome \
               ../meta-openembedded/meta-multimedia \
               ../meta-openembedded/meta-networking \
               ../meta-openembedded/meta-oe \
               ../meta-openembedded/meta-python \
-              ../meta-clang \
               ../meta-drm \
               ../meta-vulkan \
               ../../meta-flutter \
@@ -114,22 +114,38 @@ jobs:
 
       - name: Build core-image-minimal
         shell: bash
-        working-directory: ../kirkstone-linux-dummy
+        working-directory: ../scarthgap-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake core-image-minimal
 
       - name: Build dart-sdk
         shell: bash
-        working-directory: ../kirkstone-linux-dummy
+        working-directory: ../scarthgap-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake dart-sdk -c do_cleansstate
           bitbake dart-sdk
 
+      - name: Build pdfium
+        shell: bash
+        working-directory: ../scarthgap-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake pdfium -c do_cleansstate
+          bitbake pdfium
+
+      - name: Build libwebrtc
+        shell: bash
+        working-directory: ../scarthgap-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake libwebrtc -c do_cleansstate
+          bitbake libwebrtc
+
       - name: Build flutter-engine
         shell: bash
-        working-directory: ../kirkstone-linux-dummy
+        working-directory: ../scarthgap-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-engine -c do_cleansstate
@@ -137,7 +153,7 @@ jobs:
 
       - name: Build ivi-homescreen
         shell: bash
-        working-directory: ../kirkstone-linux-dummy
+        working-directory: ../scarthgap-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake ivi-homescreen -c do_cleansstate
@@ -145,7 +161,7 @@ jobs:
 
       - name: Build flutter-auto
         shell: bash
-        working-directory: ../kirkstone-linux-dummy
+        working-directory: ../scarthgap-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-auto -c do_cleansstate
@@ -153,7 +169,7 @@ jobs:
 
       - name: Build flutter-pi
         shell: bash
-        working-directory: ../kirkstone-linux-dummy
+        working-directory: ../scarthgap-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-pi -c do_cleansstate
@@ -161,7 +177,7 @@ jobs:
 
       - name: Build Sony flutter-drm-eglstream-backend
         shell: bash
-        working-directory: ../kirkstone-linux-dummy
+        working-directory: ../scarthgap-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-drm-eglstream-backend -c do_cleansstate
@@ -169,7 +185,7 @@ jobs:
 
       - name: Build Sony drm gbm backend
         shell: bash
-        working-directory: ../kirkstone-linux-dummy
+        working-directory: ../scarthgap-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-drm-gbm-backend -c do_cleansstate
@@ -177,7 +193,7 @@ jobs:
 
       - name: Build Sony external texture plugin
         shell: bash
-        working-directory: ../kirkstone-linux-dummy
+        working-directory: ../scarthgap-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-external-texture-plugin -c do_cleansstate
@@ -185,7 +201,7 @@ jobs:
 
       - name: Build Sony video player plugin
         shell: bash
-        working-directory: ../kirkstone-linux-dummy
+        working-directory: ../scarthgap-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-video-player-plugin -c do_cleansstate
@@ -193,7 +209,7 @@ jobs:
 
       - name: Build Sony Wayland Client
         shell: bash
-        working-directory: ../kirkstone-linux-dummy
+        working-directory: ../scarthgap-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-wayland-client -c do_cleansstate
@@ -201,15 +217,23 @@ jobs:
 
       - name: Build Sony X11 Client
         shell: bash
-        working-directory: ../kirkstone-linux-dummy
+        working-directory: ../scarthgap-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-x11-client -c do_cleansstate
           bitbake flutter-x11-client
 
+      - name: Build Sony Wayland Client .so
+        shell: bash
+        working-directory: ../scarthgap-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake flutter-wayland-so -c do_cleansstate
+          bitbake flutter-wayland-so
+
       - name: Build flutter-samples-material-3-demo
         shell: bash
-        working-directory: ../kirkstone-linux-dummy
+        working-directory: ../scarthgap-linux-dummy
         run: |
           . ./poky/oe-init-build-env
           bitbake flutter-samples-material-3-demo -c do_cleansstate

@@ -72,8 +72,8 @@ jobs:
           echo 'SSTATE_MIRRORS ?= "file://.* https://sstate.yoctoproject.org/all/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
           echo '***************************************'
-          echo 'DISTRO_FEATURES:remove = "sysvinit ptest"' >> ./conf/local.conf
-          echo 'DISTRO_FEATURES:append = " systemd x11 wayland opengl polkit"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:remove = "sysvinit ptest x11 pulseaudio"' >> ./conf/local.conf
+          echo 'DISTRO_FEATURES:append = " systemd wayland opengl polkit pipewire"' >> ./conf/local.conf
           echo 'DISTRO_FEATURES_BACKFILL_CONSIDERED = ""' >> ./conf/local.conf
           echo 'PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"' >> ./conf/local.conf
           echo 'LICENSE_FLAGS_ACCEPTED += "commercial"' >> ./conf/local.conf
@@ -81,12 +81,6 @@ jobs:
           echo 'PACKAGECONFIG:append:pn-ivi-homescreen = " filament-view"' >> ./conf/local.conf
           echo '***************************************'
           echo 'IMAGE_INSTALL:append = " \
-              gstreamer1.0 \
-              gstreamer1.0-libav \
-              gstreamer1.0-plugins-bad \
-              gstreamer1.0-plugins-base \
-              gstreamer1.0-plugins-good \
-              gstreamer1.0-plugins-ugly \
               ffmpeg \
               "' >> ./conf/local.conf
           echo '********** ./conf/local.conf **********'
