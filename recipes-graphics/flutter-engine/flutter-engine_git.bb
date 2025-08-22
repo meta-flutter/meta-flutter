@@ -54,7 +54,17 @@ SRCREV_flutter_sdk = "${@get_flutter_hash(d)}"
 S = "${UNPACKDIR}/gn"
 
 # riscv64 specific patches
-SRC_URI_EXTRA:riscv64 += "\
+SRC_URI_EXTRA:append:riscv64 = "\
+    file://0001-gn-riscv32-and-riscv64.patch \
+    file://0002-fml-build-config-add-riscv.patch \
+    file://0003-swiftshader-riscv-support.patch \
+    file://0004-tonic-riscv-support.patch \
+    file://0001-abseil-clang-compiler-warnings.patch \
+    file://0001-Add-risc-v-32-64-support-to-native-assets.patch \
+"
+
+# riscv32 specific patches
+SRC_URI_EXTRA:append:riscv32 = "\
     file://0001-gn-riscv32-and-riscv64.patch \
     file://0002-fml-build-config-add-riscv.patch \
     file://0003-swiftshader-riscv-support.patch \
@@ -89,6 +99,7 @@ COMPATIBLE_MACHINE:armv7a = "(.*)"
 COMPATIBLE_MACHINE:armv7ve = "(.*)"
 COMPATIBLE_MACHINE:x86 = "(.*)"
 COMPATIBLE_MACHINE:x86-64 = "(.*)"
+COMPATIBLE_MACHINE:riscv32 = "(.*)"
 COMPATIBLE_MACHINE:riscv64 = "(.*)"
 
 PACKAGECONFIG ??= "\
@@ -97,36 +108,48 @@ PACKAGECONFIG ??= "\
     embedder-for-target \
     fontconfig \
     mallinfo2 \
-    impeller-3d \
+    dart-dynamic-modules \
     "
 
-PACKAGECONFIG[asan] = "--asan"
-PACKAGECONFIG[coverage] = "--coverage"
-PACKAGECONFIG[dart-debug] = "--dart-debug"
+PACKAGECONFIG[unoptimized] = "--unoptimized"
+PACKAGECONFIG[unittests] = "--enable-unittests, --no-enable-unittests"
 PACKAGECONFIG[debug] = "--runtime-mode debug"
-PACKAGECONFIG[desktop-embeddings] = ",--disable-desktop-embeddings, glib-2.0 gtk+3"
-PACKAGECONFIG[embedder-examples] = "--build-embedder-examples,--no-build-embedder-examples"
-PACKAGECONFIG[embedder-for-target] = "--embedder-for-target"
-PACKAGECONFIG[fontconfig] = "--enable-fontconfig,,fontconfig"
-PACKAGECONFIG[full-dart-debug] = "--full-dart-debug"
-PACKAGECONFIG[full-dart-sdk] = "--full-dart-sdk"
-PACKAGECONFIG[glfw-shell] = "--build-glfw-shell,--no-build-glfw-shell, glfw"
-PACKAGECONFIG[interpreter] = "--interpreter"
-PACKAGECONFIG[jit_release] = "--runtime-mode jit_release"
-PACKAGECONFIG[lsan] = "--lsan"
-PACKAGECONFIG[mallinfo2] = "--use-mallinfo2"
-PACKAGECONFIG[msan] = "--msan"
-PACKAGECONFIG[prebuilt-dart-sdk] = "--prebuilt-dart-sdk,--no-prebuilt-dart-sdk"
 PACKAGECONFIG[profile] = "--runtime-mode profile"
 PACKAGECONFIG[release] = "--runtime-mode release"
-PACKAGECONFIG[static-analyzer] = "--clang-static-analyzer"
-PACKAGECONFIG[tsan] = "--tsan"
-PACKAGECONFIG[trace-gn] = "--trace-gn"
-PACKAGECONFIG[ubsan] = "--ubsan"
-PACKAGECONFIG[unoptimized] = "--unoptimized"
-PACKAGECONFIG[verbose] = "--verbose"
+PACKAGECONFIG[jit_release] = "--runtime-mode jit_release"
+PACKAGECONFIG[dart-debug] = "--dart-debug"
+PACKAGECONFIG[dart-version-git-info] = ",--no-dart-version-git-info"
+PACKAGECONFIG[full-dart-debug] = "--full-dart-debug"
+PACKAGECONFIG[backtrace] = "--backtrace,--no-backtrace"
+PACKAGECONFIG[engine-artifacts] = "--build-engine-artifacts,--no-build-engine-artifacts"
+PACKAGECONFIG[clang-static-analyzer] = "--clang-static-analyzer,--no-clang-static-analyzer"
 PACKAGECONFIG[vulkan] = "--enable-vulkan"
-PACKAGECONFIG[impeller-3d] = "--enable-impeller-3d"
+PACKAGECONFIG[fontconfig] = "--enable-fontconfig,,fontconfig"
+PACKAGECONFIG[vulkan-validation-layers] = "--enable-vulkan-validation-layers"
+PACKAGECONFIG[embedder-for-target] = "--embedder-for-target"
+PACKAGECONFIG[coverage] = "--coverage"
+PACKAGECONFIG[full-dart-sdk] = "--full-dart-sdk,--no-full-dart-sdk"
+PACKAGECONFIG[desktop-embeddings] = ",--disable-desktop-embeddings, glib-2.0 gtk+3"
+PACKAGECONFIG[glfw-shell] = "--build-glfw-shell,--no-build-glfw-shell, glfw"
+PACKAGECONFIG[embedder-examples] = "--build-embedder-examples,--no-build-embedder-examples"
+PACKAGECONFIG[prebuilt-dart-sdk] = "--prebuilt-dart-sdk,--no-prebuilt-dart-sdk"
+PACKAGECONFIG[mallinfo2] = "--use-mallinfo2"
+PACKAGECONFIG[allow-deprecated-api-calls] = "--allow-deprecated-api-calls"
+PACKAGECONFIG[asan] = "--asan"
+PACKAGECONFIG[lsan] = "--lsan"
+PACKAGECONFIG[msan] = "--msan"
+PACKAGECONFIG[tsan] = "--tsan"
+PACKAGECONFIG[ubsan] = "--ubsan"
+PACKAGECONFIG[fstack-protector] = "--fstack-protector"
+PACKAGECONFIG[verbose] = "--verbose"
+PACKAGECONFIG[glfw-swiftshader] = "--use-glfw-swiftshader"
+PACKAGECONFIG[dart-dynamic-modules] = "--dart-dynamic-modules,--no-dart-dynamic-modules"
+PACKAGECONFIG[no-dart-secure-socket] = "--no-dart-secure-socket"
+PACKAGECONFIG[slimpeller] = "--slimpeller"
+
+RDEPENDS:${PN} = "\
+    ${@bb.utils.contains('PACKAGECONFIG', 'fontconfig', 'fontconfig', '', d)} \
+"
 
 CLANG_BUILD_ARCH = "${@clang_build_arch(d)}"
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
@@ -139,7 +162,6 @@ GN_ARGS = "\
     ${PACKAGECONFIG_CONFARGS} \
     --clang --lto \
     --no-goma --no-rbe \
-    --no-enable-unittests \
     --no-stripped \
     --target-os linux \
     --linux-cpu ${@gn_target_arch_name(d)} \

@@ -2,8 +2,8 @@
 # Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
 #
 
-SUMMARY = "dynamic_theme"
-DESCRIPTION = "Sample app for the google_generative_ai package"
+SUMMARY = "flutter_module_fullscreen"
+DESCRIPTION = "An example Flutter module."
 AUTHOR = "Google"
 HOMEPAGE = "None"
 BUGTRACKER = "None"
@@ -15,9 +15,9 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=b7eeb61b41ae366e94383bca5e113fce"
 SRCREV = "2999d738b8c088a1438f9446331a36fc7094ba65"
 SRC_URI = "git://github.com/flutter/samples.git;lfs=1;branch=main;protocol=https"
 
-PUBSPEC_APPNAME = "dynamic_theme"
-FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-dynamic-theme"
+PUBSPEC_APPNAME = "flutter_module_fullscreen"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-add-to-app-fullscreen-flutter-module-fullscreen"
 PUBSPEC_IGNORE_LOCKFILE = "1"
-FLUTTER_APPLICATION_PATH = "dynamic_theme"
+FLUTTER_APPLICATION_PATH = "add_to_app/fullscreen/flutter_module_fullscreen"
 
 inherit flutter-app
