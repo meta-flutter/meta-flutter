@@ -66,7 +66,6 @@ PACKAGECONFIG ??= "\
     nav_render_view \
     \
     audioplayer_linux \
-    ${@bb.utils.contains('IMAGE_INSTALL', 'flatpak', 'flatpak', '', d)} \
     go_router \
     secure-storage \
     url_launcher \
@@ -135,12 +134,18 @@ PACKAGECONFIG[firebase_storage] = "\
     -DFIREBASE_SDK_LIBDIR=${STAGING_LIBDIR}/firebase-cpp-sdk, \
     -DBUILD_PLUGIN_FIREBASE_STORAGE=OFF"
 PACKAGECONFIG[desktop_window_linux] = "-DBUILD_PLUGIN_DESKTOP_WINDOW_LINUX=ON,-DBUILD_PLUGIN_DESKTOP_WINDOW_LINUX=OFF"
-PACKAGECONFIG[flatpak] = "-DBUILD_PLUGIN_FLATPAK=ON, -DBUILD_PLUGIN_FLATPAK=OFF, flatpak"
 PACKAGECONFIG[go_router] = "-DBUILD_PLUGIN_GO_ROUTER=ON,-DBUILD_PLUGIN_GO_ROUTER=OFF"
 PACKAGECONFIG[google_sign_in] = "-DBUILD_PLUGIN_GOOGLE_SIGN_IN=ON,-DBUILD_PLUGIN_GOOGLE_SIGN_IN=OFF, curl"
 PACKAGECONFIG[pdf] = "-DBUILD_PLUGIN_PDF=ON, -DBUILD_PLUGIN_PDF=OFF, pdfium"
-PACKAGECONFIG[video_player_linux] = "-DBUILD_PLUGIN_VIDEO_PLAYER_LINUX=ON,-DBUILD_PLUGIN_VIDEO_PLAYER_LINUX=OFF, gstreamer1.0 gstreamer1.0-plugins-base ffmpeg"
+PACKAGECONFIG[flatpak] = "-DBUILD_PLUGIN_FLATPAK=ON, -DBUILD_PLUGIN_FLATPAK=OFF, flatpak"
 PACKAGECONFIG[camera] = "-DBUILD_PLUGIN_CAMERA=ON, -DBUILD_PLUGIN_CAMERA=OFF, libcamera"
+PACKAGECONFIG[camera-pipewire] = "-DBUILD_PLUGIN_CAMERA_PIPEWIRE=ON -DBUILD_PLUGIN_CAMERA=OFF, \
+    -DBUILD_PLUGIN_CAMERA_PIPEWIRE=OFF, libcamera pipewire"
+PACKAGECONFIG[video-player] = "-DBUILD_PLUGIN_VIDEO_PLAYER_LINUX=ON,-DBUILD_PLUGIN_VIDEO_PLAYER_LINUX=OFF, \
+    ffmpeg \
+    gstreamer1.0 \
+    gstreamer1.0-libav \
+    gstreamer1.0-plugins-base"
 PACKAGECONFIG[rive-text] = "-DBUILD_PLUGIN_RIVE_TEXT=ON, -DBUILD_PLUGIN_RIVE_TEXT=OFF, rive-text"
 
 PACKAGECONFIG[sentry] = "\
@@ -167,6 +172,7 @@ EXTRA_OECMAKE += "\
 
 RDEPENDS:${PN} += "\
    flutter-engine \
+    ${@bb.utils.contains('PACKAGECONFIG', 'flatpak', 'flatpak', '', d)} \
     ${@bb.utils.contains('PACKAGECONFIG', 'rive-text', 'rive-text', '', d)} \
    "
 
