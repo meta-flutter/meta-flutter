@@ -72,7 +72,6 @@ COMPATIBLE_MACHINE:x86-64 = "(.*)"
 PACKAGECONFIG ??= "\
     desktop-embeddings \
     debug profile release \
-    engine-artifacts \
     embedder-for-target \
     fontconfig \
     mallinfo2 \
@@ -115,6 +114,9 @@ PACKAGECONFIG[dart-dynamic-modules] = "--dart-dynamic-modules,--no-dart-dynamic-
 PACKAGECONFIG[no-dart-secure-socket] = "--no-dart-secure-socket"
 PACKAGECONFIG[slimpeller] = "--slimpeller"
 
+RDEPENDS:${PN} = "\
+    ${@bb.utils.contains('PACKAGECONFIG', 'fontconfig', 'fontconfig', '', d)} \
+"
 
 CLANG_BUILD_ARCH = "${@clang_build_arch(d)}"
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
