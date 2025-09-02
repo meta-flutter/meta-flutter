@@ -26,7 +26,7 @@ DEPENDS += "\
 REQUIRED_DISTRO_FEATURES = "wayland"
 
 HOMESCREEN_COMMIT ??= "0fb27dc420a73b5e82ff8a871edc5166a96b5249"
-PLUGINS_COMMIT ??= "2280d74c04a67edfd1bde44097c8946d12b2b0f5"
+PLUGINS_COMMIT ??= "43da536b67d8103618cb874d8049a35ce82c9a2c"
 
 SRC_URI = "\
     gitsm://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=v2.0;name=homescreen \
