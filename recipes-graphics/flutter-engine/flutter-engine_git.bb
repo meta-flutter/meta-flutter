@@ -54,7 +54,7 @@ SRCREV_flutter_sdk = "${@get_flutter_hash(d)}"
 S = "${UNPACKDIR}/gn"
 
 # riscv64 specific patches
-SRC_URI_EXTRA:append:riscv64 = "\
+SRC_URI:riscv64 += "\
     file://0001-gn-riscv32-and-riscv64.patch \
     file://0002-fml-build-config-add-riscv.patch \
     file://0003-swiftshader-riscv-support.patch \
@@ -64,7 +64,7 @@ SRC_URI_EXTRA:append:riscv64 = "\
 "
 
 # riscv32 specific patches
-SRC_URI_EXTRA:append:riscv32 = "\
+SRC_URI:riscv32 += "\
     file://0001-gn-riscv32-and-riscv64.patch \
     file://0002-fml-build-config-add-riscv.patch \
     file://0003-swiftshader-riscv-support.patch \
@@ -74,7 +74,7 @@ SRC_URI_EXTRA:append:riscv32 = "\
 "
 
 # musl-specific patches.
-SRC_URI:append:libc-musl = "\
+SRC_URI:libc-musl += "\
     file://0002-libcxx-uglify-support-musl.patch;patchdir=engine/src/flutter/third_party \
     file://0003-libcxx-return-type-in-wcstoull_l.patch;patchdir=engine/src/flutter/third_party \
     file://0004-suppres-musl-libc-warning.patch;patchdir=engine/src/flutter/third_party/dart \

@@ -176,4 +176,6 @@ RDEPENDS:${PN} += "\
     ${@bb.utils.contains('PACKAGECONFIG', 'rive-text', 'rive-text', '', d)} \
    "
 
+INSANE_SKIP:${PN}-dbg += " buildpaths"
+
 BBCLASSEXTEND = "verbose-logs"
