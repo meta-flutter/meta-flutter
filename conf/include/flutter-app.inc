@@ -42,7 +42,7 @@ do_install() {
                 ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/config.toml
         fi
 
-        cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/* \
+        cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build_${FLUTTER_RUNTIME_MODE}/flutter_assets/* \
             ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/data/flutter_assets/
 
         if [ "${FLUTTER_RUNTIME_MODE}" = "release" ] || [ "${FLUTTER_RUNTIME_MODE}" = "profile" ]; then
@@ -50,7 +50,7 @@ do_install() {
             bbnote "[${FLUTTER_RUNTIME_MODE}] Flutter AOT: Installing ${FLUTTER_RUNTIME_MODE}"
 
             install -d ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/lib
-            cp ${S}/${FLUTTER_APPLICATION_PATH}/libapp.so \
+            cp ${S}/${FLUTTER_APPLICATION_PATH}/build_${FLUTTER_RUNTIME_MODE}/libapp.so \
                 ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/lib/
         fi
 
