@@ -12,15 +12,13 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=d73cf6ba84211d8b7fd0d2865b678fe8"
 
-SRCREV = "1fdee874f923033c0117dcbe9ae95871186b472f"
-SRC_URI = "git://github.com/toyota-connected/tcna-packages.git;lfs=1;branch=main;protocol=https"
+SRCREV = "c1c7cbebfa6c40634d837ecf38b2921430c45cec"
+SRC_URI = "git://github.com/toyota-connected/tcna-packages.git;branch=v2.0;protocol=https"
 
 PUBSPEC_APPNAME = "fluorite_examples_demo"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo"
 PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = "packages/filament_scene/example"
 FETCHCMD_git = "GIT_LFS_SKIP_SMUDGE=1 git "
-
-do_unpack[network] = "1"
 
 inherit flutter-app
