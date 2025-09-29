@@ -46,6 +46,7 @@ SRC_URI = "\
     file://0001-memcpy-void-cast.patch \
     file://0001-swiftshader-pointer-cast-to-void.patch \
     file://BUILD.gn.in \
+    file://0001-BUILD.gn-Support-LTO-build-on-Linux.patch \
     ${SRC_URI_EXTRA} \
     "
 SRCREV_FORMAT .= "_flutter_sdk"
