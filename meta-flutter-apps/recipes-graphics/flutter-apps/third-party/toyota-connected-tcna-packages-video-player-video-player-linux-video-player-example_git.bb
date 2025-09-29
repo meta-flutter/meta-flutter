@@ -12,7 +12,7 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=d73cf6ba84211d8b7fd0d2865b678fe8"
 
-SRCREV = "9df8b4c4a6ff493c29c1ab554845dbafe0dbd9ef"
+SRCREV = "8a3b7aa32b5c57d678aa1863cd8912aafb96bc53"
 SRC_URI = "git://github.com/toyota-connected/tcna-packages.git;branch=v2.0;protocol=https"
 
 PUBSPEC_APPNAME = "video_player_example"

@@ -67,9 +67,6 @@ jobs:
           echo '***************************************'
           echo 'DL_DIR = "/home/dev/dl"' >> ./conf/local.conf
           echo 'SSTATE_DIR = "/home/dev/sstate"' >> ./conf/local.conf
-          echo 'BB_SIGNATURE_HANDLER = "OEEquivHash"' >> ./conf/local.conf
-          echo 'BB_HASHSERVE = "auto"' >> ./conf/local.conf
-          echo 'SSTATE_MIRRORS ?= "file://.* https://sstate.yoctoproject.org/all/PATH;downloadfilename=PATH"' >> ./conf/local.conf
           echo 'INIT_MANAGER = "systemd"' >> ./conf/local.conf
           echo '***************************************'
           echo 'DISTRO_FEATURES:remove = "sysvinit ptest pulseaudio"' >> ./conf/local.conf
