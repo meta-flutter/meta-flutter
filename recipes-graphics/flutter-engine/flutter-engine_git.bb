@@ -138,7 +138,7 @@ CLANG_PATH:riscv64 = "${STAGING_DIR_NATIVE}/usr"
 
 GN_ARGS = "\
     ${PACKAGECONFIG_CONFARGS} \
-    --clang --lto \
+    --clang \
     --no-goma --no-rbe \
     --no-enable-unittests \
     --no-stripped \
@@ -162,6 +162,8 @@ GN_TUNE_ARGS:append:aarch64 = "arm_tune = \"${@gn_get_tune_features(d)}\""
 GN_TUNE_ARGS:append:armv7 = "arm_tune = \"${@gn_get_tune_features(d)}\""
 GN_TUNE_ARGS:append:armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\""
 GN_TUNE_ARGS:append:armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
+
+GN_ARGS:append = "${@bb.utils.contains('DISTRO_FEATURES', 'lto', ' --lto', ' --no-lto', d)}"
 
 TMP_OUT_DIR = "${@get_gn_tmp_out_dir_relative(d)}"
 
