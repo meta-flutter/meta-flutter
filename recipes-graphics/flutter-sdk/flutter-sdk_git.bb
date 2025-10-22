@@ -173,6 +173,8 @@ ALLOW_EMPTY:${PN} = "1"
 
 FILES:${PN} = "${datadir}/flutter/sdk"
 
-INSANE_SKIP:${PN} += "already-stripped file-rdeps"
+INSANE_SKIP:${PN} += "already-stripped file-rdeps libdir"
+INSANE_SKIP:${PN}-dbg += "libdir"
+INSANE_SKIP:class-nativesdk += "buildpaths"
 
 BBCLASSEXTEND = "native nativesdk"
