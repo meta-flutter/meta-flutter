@@ -148,6 +148,9 @@ GN_ARGS = "\
     --target-triple ${@gn_clang_triple_prefix(d)} \
     "
 
+# Enable ccache when the ccache class is inherited and CCACHE_DISABLE is false
+GN_ARGS += "${@'--gn-args=use_ccache=true' if bb.data.inherits_class('ccache', d) and not bb.utils.to_boolean(d.getVar('CCACHE_DISABLE')) else ''}"
+
 GN_ARGS:append:libc-musl = "\
     --no-backtrace \
     "
