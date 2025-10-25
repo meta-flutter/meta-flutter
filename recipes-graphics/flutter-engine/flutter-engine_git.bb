@@ -82,7 +82,6 @@ PACKAGECONFIG ??= "\
     embedder-for-target \
     fontconfig \
     mallinfo2 \
-    impeller-3d \
     "
 
 
@@ -111,7 +110,6 @@ PACKAGECONFIG[ubsan] = "--ubsan"
 PACKAGECONFIG[unoptimized] = "--unoptimized"
 PACKAGECONFIG[verbose] = "--verbose"
 PACKAGECONFIG[vulkan] = "--enable-vulkan"
-PACKAGECONFIG[impeller-3d] = "--enable-impeller-3d"
 
 RDEPENDS:${PN} = "\
     ${@bb.utils.contains('PACKAGECONFIG', 'fontconfig', 'fontconfig', '', d)} \
