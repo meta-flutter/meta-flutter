@@ -10,9 +10,9 @@ BUGTRACKER = "None"
 SECTION = "graphics"
 
 LICENSE = "BSD-3-Clause"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=a60894397335535eb10b54e2fff9f265"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=2b36ca50262dc615e560c27654badb26"
 
-SRCREV = "58c02e056b9264258b65be0614f1e33697a7e5b8"
+SRCREV = "169d55502eca9ca5d72da960cd23e20bbcb8a20e"
 SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=https"
 
 PUBSPEC_APPNAME = "local_auth_darwin_example"

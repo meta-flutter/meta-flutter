@@ -381,6 +381,7 @@
         "author": "Toyota Connected North America",
         "folder": "third-party",
         "ignore": [
+            "packages/flatpak",
             "packages/webview/webview_flutter_linux/example"
         ]
     }

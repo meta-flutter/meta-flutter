@@ -2,8 +2,8 @@
 # Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
 #
 
-SUMMARY = "native_platform_example"
-DESCRIPTION = "Example project for demoing native ads using platform-specifc code."
+SUMMARY = "gma_mediation_bidmachine_example"
+DESCRIPTION = "Demonstrates how to use the gma_mediation_bidmachine plugin."
 AUTHOR = "Goolge Ads"
 HOMEPAGE = "None"
 BUGTRACKER = "None"
@@ -15,9 +15,9 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57"
 SRCREV = "3d614a282ff33c9ad14fc96506c71da47ae5c49f"
 SRC_URI = "git://github.com/googleads/googleads-mobile-flutter.git;lfs=0;branch=main;protocol=https"
 
-PUBSPEC_APPNAME = "native_platform_example"
-FLUTTER_APPLICATION_INSTALL_SUFFIX = "googleads-flutter-samples-admob-native-platform-example"
+PUBSPEC_APPNAME = "gma_mediation_bidmachine_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "googleads-flutter-packages-mediation-gma-mediation-bidmachine-example"
 PUBSPEC_IGNORE_LOCKFILE = "1"
-FLUTTER_APPLICATION_PATH = "samples/admob/native_platform_example"
+FLUTTER_APPLICATION_PATH = "packages/mediation/gma_mediation_bidmachine/example"
 
 inherit flutter-app
