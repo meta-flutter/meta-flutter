@@ -11,9 +11,8 @@ SECTION = "graphics"
 
 LICENSE = "CLOSED"
 
-SRCREV = "8a7d15bad36a9eeba62044b838b54e00aa355bf4"
+SRCREV = "22fd549dc0bb6d20ae9424e57431e4c44752722f"
 SRC_URI = "git://github.com/flutter/games.git;lfs=1;branch=main;protocol=https"
-
 
 PUBSPEC_APPNAME = "multiplayer"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-games-samples-multiplayer"
