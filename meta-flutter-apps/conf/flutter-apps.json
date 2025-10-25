@@ -407,6 +407,7 @@
             ]
         },
         "ignore": [
+            "packages/flatpak",
             "packages/webview/webview_flutter_linux/example"
         ]
     }
