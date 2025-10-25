@@ -10,10 +10,10 @@ BUGTRACKER = "None"
 SECTION = "graphics"
 
 LICENSE = "BSD-3-Clause"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=a60894397335535eb10b54e2fff9f265"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=2b36ca50262dc615e560c27654badb26"
 
-SRCREV = "fe5b25ea2a2e21ab37bf91c9d4a0c83665bcf988"
-SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=https;destsuffix=git"
+SRCREV = "169d55502eca9ca5d72da960cd23e20bbcb8a20e"
+SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=https"
 
 S = "${WORKDIR}/git"
 

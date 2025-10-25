@@ -50,5 +50,4 @@ RDEPENDS:${PN} += " \
     flutter-samples-platform-design \
     flutter-samples-context-menus \
     flutter-samples-game-template \
-    flutter-samples-veggieseasons \
 "
