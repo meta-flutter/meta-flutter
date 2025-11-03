@@ -12,9 +12,8 @@ SECTION = "graphics"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=5335066555b14d832335aa4660d6c376"
 
-SRCREV = "e0069ecd280df6cefb887f4f40d929b14f1c7231"
+SRCREV = "9bc92b7bd433688faf2615353bcffc53cd31096a"
 SRC_URI = "git://github.com/DavBfr/dart_pdf.git;lfs=0;branch=master;protocol=https"
-
 
 PUBSPEC_APPNAME = "printing_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "davbfr-dart-pdf-printing-example"

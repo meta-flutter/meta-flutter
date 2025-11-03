@@ -54,7 +54,17 @@ SRCREV_flutter_sdk = "${@get_flutter_hash(d)}"
 S = "${UNPACKDIR}/gn"
 
 # riscv64 specific patches
-SRC_URI_EXTRA:riscv64 += "\
+SRC_URI:riscv64 += "\
+    file://0001-gn-riscv32-and-riscv64.patch \
+    file://0002-fml-build-config-add-riscv.patch \
+    file://0003-swiftshader-riscv-support.patch \
+    file://0004-tonic-riscv-support.patch \
+    file://0001-abseil-clang-compiler-warnings.patch \
+    file://0001-Add-risc-v-32-64-support-to-native-assets.patch \
+"
+
+# riscv32 specific patches
+SRC_URI:riscv32 += "\
     file://0001-gn-riscv32-and-riscv64.patch \
     file://0002-fml-build-config-add-riscv.patch \
     file://0003-swiftshader-riscv-support.patch \
@@ -64,7 +74,7 @@ SRC_URI_EXTRA:riscv64 += "\
 "
 
 # musl-specific patches.
-SRC_URI:append:libc-musl = "\
+SRC_URI:libc-musl += "\
     file://0002-libcxx-uglify-support-musl.patch;patchdir=engine/src/flutter/third_party \
     file://0003-libcxx-return-type-in-wcstoull_l.patch;patchdir=engine/src/flutter/third_party \
     file://0004-suppres-musl-libc-warning.patch;patchdir=engine/src/flutter/third_party/dart \
@@ -89,6 +99,7 @@ COMPATIBLE_MACHINE:armv7a = "(.*)"
 COMPATIBLE_MACHINE:armv7ve = "(.*)"
 COMPATIBLE_MACHINE:x86 = "(.*)"
 COMPATIBLE_MACHINE:x86-64 = "(.*)"
+COMPATIBLE_MACHINE:riscv32 = "(.*)"
 COMPATIBLE_MACHINE:riscv64 = "(.*)"
 
 PACKAGECONFIG ??= "\
@@ -97,8 +108,8 @@ PACKAGECONFIG ??= "\
     embedder-for-target \
     fontconfig \
     mallinfo2 \
-    impeller-3d \
     "
+
 
 PACKAGECONFIG[asan] = "--asan"
 PACKAGECONFIG[coverage] = "--coverage"
@@ -115,7 +126,6 @@ PACKAGECONFIG[interpreter] = "--interpreter"
 PACKAGECONFIG[jit_release] = "--runtime-mode jit_release"
 PACKAGECONFIG[lsan] = "--lsan"
 PACKAGECONFIG[mallinfo2] = "--use-mallinfo2"
-PACKAGECONFIG[msan] = "--msan"
 PACKAGECONFIG[prebuilt-dart-sdk] = "--prebuilt-dart-sdk,--no-prebuilt-dart-sdk"
 PACKAGECONFIG[profile] = "--runtime-mode profile"
 PACKAGECONFIG[release] = "--runtime-mode release"
@@ -126,7 +136,10 @@ PACKAGECONFIG[ubsan] = "--ubsan"
 PACKAGECONFIG[unoptimized] = "--unoptimized"
 PACKAGECONFIG[verbose] = "--verbose"
 PACKAGECONFIG[vulkan] = "--enable-vulkan"
-PACKAGECONFIG[impeller-3d] = "--enable-impeller-3d"
+
+RDEPENDS:${PN} = "\
+    ${@bb.utils.contains('PACKAGECONFIG', 'fontconfig', 'fontconfig', '', d)} \
+"
 
 CLANG_BUILD_ARCH = "${@clang_build_arch(d)}"
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"

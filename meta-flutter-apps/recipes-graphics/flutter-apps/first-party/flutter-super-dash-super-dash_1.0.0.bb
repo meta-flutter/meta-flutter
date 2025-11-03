@@ -19,7 +19,6 @@ SRC_URI = " \
     file://super_dash/0001-intl-0.19.0.patch \
 "
 
-
 PUBSPEC_APPNAME = "super_dash"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-super-dash-super-dash"
 PUBSPEC_IGNORE_LOCKFILE = "1"

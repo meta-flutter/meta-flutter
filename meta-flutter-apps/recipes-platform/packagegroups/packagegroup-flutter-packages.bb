@@ -16,6 +16,7 @@ RDEPENDS:${PN} += " \
     flutter-packages-pigeon-platform-tests-alternate-language-test-plugin-alternate-language-test-plugin-example \
     flutter-packages-pigeon-platform-tests-test-plugin-test-plugin-example \
     flutter-packages-camera-example \
+    flutter-packages-google-fonts-google-fonts-tester \
     flutter-packages-xdg-directories-xdg-directories-example \
     flutter-packages-image-picker-image-picker-image-picker-example \
     flutter-packages-image-picker-image-picker-linux-example \
