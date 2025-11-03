@@ -12,7 +12,7 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=2b36ca50262dc615e560c27654badb26"
 
-SRCREV = "169d55502eca9ca5d72da960cd23e20bbcb8a20e"
+SRCREV = "5fc2fd7169cfe841bb46f0f825fc236d2c4c206f"
 SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=https"
 
 PUBSPEC_APPNAME = "google_fonts_tester"
