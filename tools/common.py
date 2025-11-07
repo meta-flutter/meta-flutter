@@ -32,7 +32,7 @@ def handle_ctrl_c(_signal, _frame):
 
 
 def run_command(cmd: str, cwd: str, quiet: bool = False) -> str:
-    cmd = re.sub('\\s{2,}', ' ', cmd)
+    cmd = re.sub(r'\s{2,}', ' ', cmd)
     if not quiet:
         print('Running [%s] in %s' % (cmd, cwd))
     (result, output) = subprocess.getstatusoutput(f'cd {cwd} && {cmd}')
