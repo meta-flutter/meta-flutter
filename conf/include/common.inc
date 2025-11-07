@@ -57,7 +57,7 @@ def run_command(d, cmd, cwd, env):
     import re
 
     # replace all consecutive whitespace characters (tabs, newlines etc.) with a single space
-    cmd = re.sub('\s{2,}', ' ', cmd)
+    cmd = re.sub(r'\s{2,}', ' ', cmd)
 
     bb.note(f'Running [{cmd}] in {cwd}')
     (retval, output) = getstatusoutput(cmd, cwd, env)
