@@ -1,7 +1,9 @@
-From 720523346b0aad773d26f482c5db81c27cd1cf7b Mon Sep 17 00:00:00 2001
+From 08320737783dea5aa976783d6578bda03917165b Mon Sep 17 00:00:00 2001
 From: Joel Winarske <joel.winarske@gmail.com>
-Date: Tue, 8 Jul 2025 11:28:44 -0700
-Subject: [PATCH] abseil clang compiler warnings
+Date: Sun, 9 Nov 2025 09:06:19 -0800
+Subject: [PATCH] [flutter/third_party/abseil-cpp] clang compiler warnings
+
+-rebase patch
 
 Upstream-Status: Inappropriate
 
@@ -33,5 +35,5 @@ index 20183fa..be94560 100644
        n++;
      }
 -- 
-2.50.0
+2.51.1
 
