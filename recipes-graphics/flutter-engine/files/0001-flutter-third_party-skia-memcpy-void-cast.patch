@@ -1,7 +1,7 @@
-From 2a572410979e8f51e959ae993757b1147de74832 Mon Sep 17 00:00:00 2001
+From 868b46298efac71aebacce44711f5fefa93bead0 Mon Sep 17 00:00:00 2001
 From: Joel Winarske <joel.winarske@gmail.com>
-Date: Sat, 14 Jun 2025 05:18:54 -0700
-Subject: [PATCH] memcpy void* cast
+Date: Sun, 9 Nov 2025 08:54:17 -0800
+Subject: [PATCH] [flutter/third_party/skia] memcpy void* cast
 
 Upstream-Status: Inappropriate
 
@@ -24,5 +24,5 @@ index fe93130a5b..36fe1ee9ce 100644
          }
  
 -- 
-2.43.5
+2.51.1
 
