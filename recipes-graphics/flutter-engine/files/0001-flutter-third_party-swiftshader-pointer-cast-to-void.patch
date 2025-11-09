@@ -1,0 +1,42 @@
+From 68828dc53efbf4cd42a748e2a637d36ad2a7da12 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Mon, 10 Nov 2025 10:53:11 -0800
+Subject: [PATCH 1/2] [flutter/third_party/swiftshader] pointer cast to void*
+
+Upstream-Status: Inappropriate
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+  engine/src/flutter/third_party/swiftshader/src/Device/Memset.hpp | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/engine/src/flutter/third_party/swiftshader/src/Device/Memset.hpp b/engine/src/flutter/third_party/swiftshader/src/Device/Memset.hpp
+index 91c7e4d73..5b5e1e6c5 100644
+--- a/engine/src/flutter/third_party/swiftshader/src/Device/Memset.hpp
++++ b/engine/src/flutter/third_party/swiftshader/src/Device/Memset.hpp
+@@ -39,19 +39,19 @@ struct Memset
+ 	{
+ 		static_assert(std::is_base_of<Memset<T>, T>::value, "Memset<T> must only clear the memory of a type of which it is a base class");
+ 		static_assert(!std::is_polymorphic<T>::value, "Memset<T> must not be used with classes that have virtual functions");
+-		::memset(object, 0, sizeof(T));
++		::memset(static_cast<void*>(object), 0, sizeof(T));
+ 	}
+ 
+ 	// Don't rely on the implicitly declared copy constructor and copy assignment operator.
+ 	// They can leave padding bytes uninitialized.
+ 	Memset(const Memset &rhs)
+ 	{
+-		::memcpy(this, &rhs, sizeof(T));
++		::memcpy((void*)this, (void*)&rhs, sizeof(T));
+ 	}
+ 
+ 	Memset &operator=(const Memset &rhs)
+ 	{
+-		::memcpy(this, &rhs, sizeof(T));
++		::memcpy((void*)this, (void*)&rhs, sizeof(T));
+ 		return *this;
+ 	}
+ 
+-- 
+2.51.1
+
