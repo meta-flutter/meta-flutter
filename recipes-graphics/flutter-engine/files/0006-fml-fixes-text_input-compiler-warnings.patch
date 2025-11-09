@@ -1,0 +1,76 @@
+From c7bb26a38b1d5988cc45a60091a70b5e87ac36ba Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Mon, 10 Nov 2025 09:49:09 -0800
+Subject: [PATCH] [fml] fixes text_input compiler warnings
+
+Upstream-Status: Inappropriate
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ .../shell/platform/common/text_input_model.cc      | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/engine/src/flutter/shell/platform/common/text_input_model.cc b/engine/src/flutter/shell/platform/common/text_input_model.cc
+index a21fe1ff3ef..ef807409dc1 100644
+--- a/engine/src/flutter/shell/platform/common/text_input_model.cc
++++ b/engine/src/flutter/shell/platform/common/text_input_model.cc
+@@ -157,7 +157,7 @@ bool TextInputModel::Backspace() {
+   // There is no selection. Delete the preceding codepoint.
+   size_t position = selection_.position();
+   if (position != editable_range().start()) {
+-    int count = IsTrailingSurrogate(text_.at(position - 1)) ? 2 : 1;
++    int count = IsTrailingSurrogate(static_cast<char32_t>(text_.at(position - 1))) ? 2 : 1;
+     text_.erase(position - count, count);
+     selection_ = TextRange(position - count);
+     if (composing_) {
+@@ -175,7 +175,7 @@ bool TextInputModel::Delete() {
+   // There is no selection. Delete the preceding codepoint.
+   size_t position = selection_.position();
+   if (position < editable_range().end()) {
+-    int count = IsLeadingSurrogate(text_.at(position)) ? 2 : 1;
++    int count = IsLeadingSurrogate(static_cast<char32_t>(text_.at(position))) ? 2 : 1;
+     text_.erase(position, count);
+     if (composing_) {
+       composing_range_.set_end(composing_range_.end() - count);
+@@ -196,17 +196,17 @@ bool TextInputModel::DeleteSurrounding(int offset_from_cursor, int count) {
+         count = i;
+         break;
+       }
+-      start -= IsTrailingSurrogate(text_.at(start - 1)) ? 2 : 1;
++      start -= IsTrailingSurrogate(static_cast<char32_t>(text_.at(start - 1))) ? 2 : 1;
+     }
+   } else {
+     for (int i = 0; i < offset_from_cursor && start != max_pos; i++) {
+-      start += IsLeadingSurrogate(text_.at(start)) ? 2 : 1;
++      start += IsLeadingSurrogate(static_cast<char32_t>(text_.at(start))) ? 2 : 1;
+     }
+   }
+ 
+   auto end = start;
+   for (int i = 0; i < count && end != max_pos; i++) {
+-    end += IsLeadingSurrogate(text_.at(start)) ? 2 : 1;
++    end += IsLeadingSurrogate(static_cast<char32_t>(text_.at(start))) ? 2 : 1;
+   }
+ 
+   if (start == end) {
+@@ -271,7 +271,7 @@ bool TextInputModel::MoveCursorForward() {
+   // Otherwise, move the cursor forward.
+   size_t position = selection_.position();
+   if (position != editable_range().end()) {
+-    int count = IsLeadingSurrogate(text_.at(position)) ? 2 : 1;
++    int count = IsLeadingSurrogate(static_cast<char32_t>(text_.at(position))) ? 2 : 1;
+     selection_ = TextRange(position + count);
+     return true;
+   }
+@@ -287,7 +287,7 @@ bool TextInputModel::MoveCursorBack() {
+   // Otherwise, move the cursor backward.
+   size_t position = selection_.position();
+   if (position != editable_range().start()) {
+-    int count = IsTrailingSurrogate(text_.at(position - 1)) ? 2 : 1;
++    int count = IsTrailingSurrogate(static_cast<char32_t>(text_.at(position - 1))) ? 2 : 1;
+     selection_ = TextRange(position - count);
+     return true;
+   }
+-- 
+2.51.1
+

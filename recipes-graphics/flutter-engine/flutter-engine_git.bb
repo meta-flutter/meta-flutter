@@ -34,19 +34,27 @@ SRC_URI = "\
     git://github.com/flutter/flutter.git;protocol=https;nobranch=1;name=flutter_sdk \
     gn://github.com/flutter/flutter.git \
     file://BUILD.gn.in \
-    file://0001-memcpy-void-cast.patch \
+    file://0002-fml-build-config-add-riscv.patch \
+    file://0003-gn-riscv32-and-riscv64.patch \
+    file://0004-Add-risc-v-32-64-support-to-native-assets.patch \
+    file://0005-tonic-riscv-support.patch \
+    file://0006-fml-fixes-text_input-compiler-warnings.patch \
+    file://0007-impeller-unnecessary-virtual-specifier.patch \
+    file://0001-flutter-third_party-abseil-cpp-clang-compiler-warnin.patch \
+    file://0001-flutter-third_party-googletest-fix-implicit-conversi.patch \
+    file://0001-flutter-third_party-skia-memcpy-void-cast.patch \
+    file://0001-flutter-third_party-swiftshader-pointer-cast-to-void.patch \
+    file://0002-flutter-third_party-swiftshader-llvm-16.0-required-f.patch \
     ${SRC_URI_EXTRA} \
     "
 SRCREV_FORMAT .= "_flutter_sdk"
 SRCREV_flutter_sdk = "${@get_flutter_hash(d)}"
 
-S = "${WORKDIR}/gn"
-
 # musl-specific patches.
-SRC_URI:append:libc-musl = "\
-    file://0002-libcxx-uglify-support-musl.patch;patchdir=engine/src/flutter/third_party \
-    file://0003-libcxx-return-type-in-wcstoull_l.patch;patchdir=engine/src/flutter/third_party \
-    file://0004-suppres-musl-libc-warning.patch;patchdir=engine/src/flutter/third_party/dart \
+SRC_URI:libc-musl += "\
+    file://0001-libcxx-uglify-support-musl.patch;patchdir=engine/src/flutter/third_party \
+    file://0002-libcxx-return-type-in-wcstoull_l.patch;patchdir=engine/src/flutter/third_party \
+    file://0003-suppres-musl-libc-warning.patch;patchdir=engine/src/flutter/third_party/dart \
     "
 
 inherit gn-fetcher features_check pkgconfig
@@ -107,6 +115,7 @@ PACKAGECONFIG[static-analyzer] = "--clang-static-analyzer"
 PACKAGECONFIG[tsan] = "--tsan"
 PACKAGECONFIG[trace-gn] = "--trace-gn"
 PACKAGECONFIG[ubsan] = "--ubsan"
+PACKAGECONFIG[unittests] = "--enable-unittests,--no-enable-unittests"
 PACKAGECONFIG[unoptimized] = "--unoptimized"
 PACKAGECONFIG[verbose] = "--verbose"
 PACKAGECONFIG[vulkan] = "--enable-vulkan"
@@ -123,7 +132,6 @@ GN_ARGS = "\
     ${PACKAGECONFIG_CONFARGS} \
     --clang \
     --no-goma --no-rbe \
-    --no-enable-unittests \
     --no-stripped \
     --target-os linux \
     --linux-cpu ${@gn_target_arch_name(d)} \

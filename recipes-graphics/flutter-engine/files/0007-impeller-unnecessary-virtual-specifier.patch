@@ -1,0 +1,28 @@
+From ff6fcf1170b03546fd8c6445ca0ceeab4f66b278 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Mon, 10 Nov 2025 11:54:38 -0800
+Subject: [PATCH] [impeller] unnecessary-virtual-specifier
+
+Upstream-Status: Inappropriate
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ engine/src/flutter/impeller/renderer/vertex_descriptor.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/engine/src/flutter/impeller/renderer/vertex_descriptor.h b/engine/src/flutter/impeller/renderer/vertex_descriptor.h
+index 55c487e0cdf..b344d589da1 100644
+--- a/engine/src/flutter/impeller/renderer/vertex_descriptor.h
++++ b/engine/src/flutter/impeller/renderer/vertex_descriptor.h
+@@ -28,7 +28,7 @@ class VertexDescriptor final : public Comparable<VertexDescriptor> {
+   VertexDescriptor();
+ 
+   // |Comparable<PipelineVertexDescriptor>|
+-  virtual ~VertexDescriptor();
++  ~VertexDescriptor();
+ 
+   template <size_t Size, size_t LayoutSize>
+   void SetStageInputs(
+-- 
+2.51.1
+
