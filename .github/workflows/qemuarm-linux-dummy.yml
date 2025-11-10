@@ -45,8 +45,11 @@ jobs:
           pwd
           ls -la
           rm -rf poky meta-openembedded meta-drm meta-vulkan
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.yoctoproject.org/poky &
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch git://git.openembedded.org/meta-openembedded &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.openembedded.org/bitbake.git &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.openembedded.org/openembedded-core.git &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.yoctoproject.org/meta-yocto.git &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/openembedded/meta-openembedded.git &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.yoctoproject.org/meta-yocto.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-drm.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-vulkan.git &
           wait
@@ -56,7 +59,7 @@ jobs:
         working-directory: ../master-linux-dummy
         run: |
           rm -rf build/conf
-          . ./poky/oe-init-build-env
+          . ./openembedded-core/oe-init-build-env
           echo '***************************************'
           sed -i '/MACHINE ??=/d' ./conf/local.conf
           echo "MACHINE ??= \"${{ env.MACHINE }}\"" >> ./conf/local.conf
@@ -68,11 +71,14 @@ jobs:
           echo '***************************************'
           bitbake-layers show-layers
           bitbake-layers add-layer \
+              ../openembedded-core/meta \
+              ../meta-yocto/meta-yocto-bsp \
+              ../meta-yocto/meta-poky \
+              ../meta-openembedded/meta-oe \
               ../meta-openembedded/meta-filesystems \
               ../meta-openembedded/meta-gnome \
               ../meta-openembedded/meta-multimedia \
               ../meta-openembedded/meta-networking \
-              ../meta-openembedded/meta-oe \
               ../meta-openembedded/meta-python \
               ../meta-drm \
               ../meta-vulkan \
@@ -91,7 +97,7 @@ jobs:
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
-          . ./poky/oe-init-build-env
+          . ./openembedded-core/oe-init-build-env
           bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates
 
@@ -99,7 +105,7 @@ jobs:
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
-          . ./poky/oe-init-build-env
+          . ./openembedded-core/oe-init-build-env
           bitbake ca-certificates-native -c do_cleansstate
           bitbake ca-certificates-native
 
@@ -107,7 +113,7 @@ jobs:
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
-          . ./poky/oe-init-build-env
+          . ./openembedded-core/oe-init-build-env
           bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-sdk-native
 
@@ -115,7 +121,7 @@ jobs:
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
-          . ./poky/oe-init-build-env
+          . ./openembedded-core/oe-init-build-env
           bitbake dart-sdk -c do_cleansstate
           bitbake dart-sdk
 
@@ -123,7 +129,7 @@ jobs:
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
-          . ./poky/oe-init-build-env
+          . ./openembedded-core/oe-init-build-env
           bitbake pdfium -c do_cleansstate
           bitbake pdfium
 
@@ -131,7 +137,7 @@ jobs:
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
-          . ./poky/oe-init-build-env
+          . ./openembedded-core/oe-init-build-env
           bitbake sentry -c do_cleansstate
           bitbake sentry
 
@@ -139,7 +145,7 @@ jobs:
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
-          . ./poky/oe-init-build-env
+          . ./openembedded-core/oe-init-build-env
           bitbake rive-text -c do_cleansstate
           bitbake rive-text
 
@@ -147,7 +153,7 @@ jobs:
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
-          . ./poky/oe-init-build-env
+          . ./openembedded-core/oe-init-build-env
           bitbake flutter-engine -c do_cleansstate
           bitbake flutter-engine
 
@@ -155,7 +161,7 @@ jobs:
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
-          . ./poky/oe-init-build-env
+          . ./openembedded-core/oe-init-build-env
           bitbake ivi-homescreen -c do_cleansstate
           bitbake ivi-homescreen
 
@@ -163,7 +169,7 @@ jobs:
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
-          . ./poky/oe-init-build-env
+          . ./openembedded-core/oe-init-build-env
           bitbake flutter-auto -c do_cleansstate
           bitbake flutter-auto
 
@@ -171,7 +177,7 @@ jobs:
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
-          . ./poky/oe-init-build-env
+          . ./openembedded-core/oe-init-build-env
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
 
@@ -179,7 +185,7 @@ jobs:
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
-          . ./poky/oe-init-build-env
+          . ./openembedded-core/oe-init-build-env
           bitbake toyota-connected-tcna-packages-camera-linux-camera-example -c do_cleansstate
           bitbake toyota-connected-tcna-packages-camera-linux-camera-example
 
@@ -187,7 +193,7 @@ jobs:
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
-          . ./poky/oe-init-build-env
+          . ./openembedded-core/oe-init-build-env
           bitbake toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo -c do_cleansstate
           bitbake toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo
 
@@ -195,7 +201,7 @@ jobs:
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
-          . ./poky/oe-init-build-env
+          . ./openembedded-core/oe-init-build-env
           bitbake toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example -c do_cleansstate
           bitbake toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example
 
@@ -203,6 +209,6 @@ jobs:
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
-          . ./poky/oe-init-build-env
+          . ./openembedded-core/oe-init-build-env
           bitbake toyota-connected-tcna-packages-flatpak-flutter-example -c do_cleansstate
           bitbake toyota-connected-tcna-packages-flatpak-flutter-example
