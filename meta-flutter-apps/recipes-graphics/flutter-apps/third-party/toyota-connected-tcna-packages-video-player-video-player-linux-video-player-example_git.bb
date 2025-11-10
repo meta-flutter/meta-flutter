@@ -12,7 +12,7 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=d73cf6ba84211d8b7fd0d2865b678fe8"
 
-SRCREV = "44de1e21bbe1701a498d8303385f116cb07fd708"
+SRCREV = "2626d1757f18e438f4095e38e413eb40eab40b6d"
 SRC_URI = "git://github.com/toyota-connected/tcna-packages.git;lfs=0;branch=v2.0;protocol=https"
 
 S = "${WORKDIR}/git"
