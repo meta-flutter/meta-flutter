@@ -1,0 +1,34 @@
+From b8817a6a271d1b3738ef275ac1020b4189957716 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Mon, 10 Nov 2025 07:18:28 -0800
+Subject: [PATCH] [flutter/third_party/googletest] fix implicit conversion
+ error
+
+Upstream-Status: Inappropriate
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ engine/src/flutter/third_party/googletest/googletest/include/gtest/gtest-printers.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/engine/src/flutter/third_party/googletest/googletest/include/gtest/gtest-printers.h b/engine/src/flutter/third_party/googletest/googletest/include/gtest/gtest-printers.h
+index 1b12ef68..e56cfd15 100644
+--- a/engine/src/flutter/third_party/googletest/googletest/include/gtest/gtest-printers.h
++++ b/engine/src/flutter/third_party/googletest/googletest/include/gtest/gtest-printers.h
+@@ -517,11 +517,11 @@ GTEST_API_ void PrintTo(wchar_t wc, ::std::ostream* os);
+ 
+ GTEST_API_ void PrintTo(char32_t c, ::std::ostream* os);
+ inline void PrintTo(char16_t c, ::std::ostream* os) {
+-  PrintTo(ImplicitCast_<char32_t>(c), os);
++  PrintTo(static_cast<char32_t>(c), os);
+ }
+ #ifdef __cpp_lib_char8_t
+ inline void PrintTo(char8_t c, ::std::ostream* os) {
+-  PrintTo(ImplicitCast_<char32_t>(c), os);
++  PrintTo(static_cast<char32_t>(c), os);
+ }
+ #endif
+ 
+-- 
+2.51.1
+

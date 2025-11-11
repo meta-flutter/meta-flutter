@@ -1,9 +1,11 @@
-From 5047485921c7499987b7dd0f66902803cc7c3c9b Mon Sep 17 00:00:00 2001
+From 868b46298efac71aebacce44711f5fefa93bead0 Mon Sep 17 00:00:00 2001
 From: Joel Winarske <joel.winarske@gmail.com>
-Date: Tue, 8 Jul 2025 15:48:53 -0700
-Subject: [PATCH] skia memcpy void* cast
+Date: Sun, 9 Nov 2025 08:54:17 -0800
+Subject: [PATCH] [flutter/third_party/skia] memcpy void* cast
 
 Upstream-Status: Inappropriate
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
  engine/src/flutter/third_party/skia/src/gpu/tessellate/MiddleOutPolygonTriangulator.h | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
@@ -22,5 +24,5 @@ index bc7895b3ac..cdff47976c 100644
          }
  
 -- 
-2.50.0
+2.51.1
 
