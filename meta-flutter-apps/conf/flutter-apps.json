@@ -410,5 +410,46 @@
             "packages/flatpak",
             "packages/webview/webview_flutter_linux/example"
         ]
-    }
+    },
+    {
+        "uri": "https://github.com/meta-flutter/flutter-tflite.git",
+        "branch": "toyotaflutter",
+        "license_file": "LICENSE",
+        "license_type": "Apache-2.0",
+        "author": "Amish Garg",
+        "folder": "first-party",
+        "ignore": [
+            "example/audio_classification",
+            "example/bertqa",
+            "example/digit_classification",
+            "example/gesture_classification",
+            "example/image_classification_mobilenet",
+            "example/image_segmentation",
+            "example/object_detection_ssd_mobilenet",
+            "example/object_detection_ssd_mobilenet_v2",
+            "example/pose_estimation",
+            "example/reinforcement_learning",
+            "example/style_transfer",
+            "example/super_resolution_esrgan",
+            "example/text_classification"
+        ],
+        "output_folder": {
+            "example/live_object_detection_ssd_mobilenet": "dynamic-layers/meta-tensorflow/flutter-apps"
+        },
+        "src_files": {
+            "example/live_object_detection_ssd_mobilenet": [
+                "https://storage.googleapis.com/download.tensorflow.org/models/tflite/task_library/object_detection/android/lite-model_ssd_mobilenet_v1_1_metadata_2.tflite;name=model_file;subdir=example/live_object_detection_ssd_mobilenet/assets/models"
+            ]
+        },
+        "rdepends": {
+            "example/live_object_detection_ssd_mobilenet": [
+                "tensorflow-lite"
+            ]
+        },
+        "variables": {
+            "example/live_object_detection_ssd_mobilenet": [
+                "\nSRC_URI[model_file.sha256sum] = \"cbdecd08b44c5dea3821f77c5468e2936ecfbf43cde0795a2729fdb43401e58b\""
+            ]
+        }
+    }   
 ]
