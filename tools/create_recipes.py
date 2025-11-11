@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# SPDX-FileCopyrightText: (C) 2020-2024 Joel Winarske
+# SPDX-FileCopyrightText: (C) 2020-2025 Joel Winarske
 # SPDX-License-Identifier: Apache-2.0
 #
 # Script to create Yocto recipes from a given path.
@@ -291,7 +291,7 @@ def create_recipe(directory,
     print(f'filename: {filename}')
     with open(filename, "w") as f:
         f.write('#\n')
-        f.write('# Copyright (c) 2020-2024 Joel Winarske. All rights reserved.\n')
+        f.write('# Copyright (c) 2020-2025 Joel Winarske. All rights reserved.\n')
         f.write('#\n')
         f.write('\n')
 
@@ -345,7 +345,7 @@ def create_recipe(directory,
                         copy_src_file(file, src_folder, patch_dir, str(output_path))
                         f.write(f'    file://{src_folder}/{file} \\\n')
                     else:
-                        f.write(f'    file://{file} \\\n')
+                        f.write(f'    {file} \\\n')
                 f.write('\"\n')
         else:
             f.write(f'SRC_URI = "{fetcher}://{url};{lfs_option};{branch_option};protocol=https"\n')
@@ -404,7 +404,7 @@ def create_package_group(org, unit, recipes,
 
     with open(filename, "w") as f:
         f.write('#\n')
-        f.write('# Copyright (c) 2020-2024 Joel Winarske. All rights reserved.\n')
+        f.write('# Copyright (c) 2020-2025 Joel Winarske. All rights reserved.\n')
         f.write('#\n')
         f.write('\n')
         f.write(f'SUMMARY = "Package of Flutter {org} {unit} apps"\n')
