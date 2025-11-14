@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2025 Joel Winarske. All rights reserved.
 #
 
 SUMMARY = "flatpak_flutter_example"
@@ -23,3 +23,7 @@ PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = "packages/flatpak/example"
 
 inherit flutter-app
+
+RDEPENDS:${PN} += " \
+    xdg-desktop-portal-gnome \
+"
