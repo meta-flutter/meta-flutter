@@ -409,7 +409,17 @@
         "ignore": [
             "packages/flatpak",
             "packages/webview/webview_flutter_linux/example"
-        ]
+        ],
+        "rdepends": {
+            "packages/flatpak/example": [
+                "flatpak",
+                "xdg-desktop-portal-gnome"
+            ]
+        },
+        "output_folder": {
+            "packages/flatpak/example": "dynamic-layers/gnome-layer/recipes-graphics/flutter-apps"
+        }
+
     },
     {
         "uri": "https://github.com/meta-flutter/flutter-tflite.git",
@@ -434,7 +444,7 @@
             "example/text_classification"
         ],
         "output_folder": {
-            "example/live_object_detection_ssd_mobilenet": "dynamic-layers/meta-tensorflow/flutter-apps"
+            "example/live_object_detection_ssd_mobilenet": "dynamic-layers/meta-tensorflow/recipes-graphics/flutter-apps"
         },
         "src_files": {
             "example/live_object_detection_ssd_mobilenet": [
