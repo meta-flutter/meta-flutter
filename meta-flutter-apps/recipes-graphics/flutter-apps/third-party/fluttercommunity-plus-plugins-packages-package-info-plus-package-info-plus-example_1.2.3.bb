@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2025 Joel Winarske. All rights reserved.
 #
 
 SUMMARY = "package_info_plus_example"

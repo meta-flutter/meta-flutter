@@ -18,6 +18,8 @@ SRC_URI = " \
     https://storage.googleapis.com/download.tensorflow.org/models/tflite/task_library/object_detection/android/lite-model_ssd_mobilenet_v1_1_metadata_2.tflite;name=model_file;subdir=example/live_object_detection_ssd_mobilenet/assets/models \
 "
 
+S = "${WORKDIR}/git"
+
 PUB_CACHE_EXTRA_ARCHIVE_PATH = "${WORKDIR}/pub_cache/bin"
 PUB_CACHE_EXTRA_ARCHIVE_CMD = "flutter pub global activate melos; \
     melos bootstrap"
