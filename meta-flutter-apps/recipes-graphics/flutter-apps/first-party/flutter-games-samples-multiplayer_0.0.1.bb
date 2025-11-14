@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2025 Joel Winarske. All rights reserved.
 #
 
 SUMMARY = "multiplayer"
@@ -11,8 +11,8 @@ SECTION = "graphics"
 
 LICENSE = "CLOSED"
 
-SRCREV = "8a7d15bad36a9eeba62044b838b54e00aa355bf4"
-SRC_URI = "git://github.com/flutter/games.git;lfs=1;branch=main;protocol=https;destsuffix=git"
+SRCREV = "cb9ec75abd98cdf1af7d4b6827e8843839eb54f5"
+SRC_URI = "git://github.com/flutter/games.git;lfs=1;branch=main;protocol=https"
 
 S = "${WORKDIR}/git"
 
