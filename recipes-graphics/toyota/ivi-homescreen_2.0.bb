@@ -29,7 +29,7 @@ DEPENDS += "\
 REQUIRED_DISTRO_FEATURES = "wayland"
 
 HOMESCREEN_COMMIT ??= "dd6d9224de807e24f0f9150e5a2e4ee1b896ac3c"
-PLUGINS_COMMIT ??= "63ae75a907ec1b374db40243b23bda17136c61eb"
+PLUGINS_COMMIT ??= "2163242e9973336153871ed63b34bb5ed8282145"
 
 SRC_URI = "\
     gitsm://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=v2.0;name=homescreen \
@@ -168,6 +168,8 @@ EXTRA_OECMAKE += "\
 
 RDEPENDS:${PN} += "\
    flutter-engine \
+   wayland \
+   libxkbcommon \
     ${@bb.utils.contains('PACKAGECONFIG', 'flatpak', 'flatpak', '', d)} \
     ${@bb.utils.contains('PACKAGECONFIG', 'rive-text', 'rive-text', '', d)} \
    "
