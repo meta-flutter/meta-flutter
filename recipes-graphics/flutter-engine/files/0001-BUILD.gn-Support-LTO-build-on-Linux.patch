@@ -1,0 +1,26 @@
+From e9917111c1d8bb0ca1c9319aaf86b56880bbddee Mon Sep 17 00:00:00 2001
+From: "mark.yang" <mark.yang@lge.com>
+Date: Mon, 29 Sep 2025 14:42:43 +0900
+Subject: [PATCH] BUILD.gn: Support LTO build on Linux
+
+Add support for LTO builds on Linux.
+
+Upstream-Status: Backport [https://github.com/flutter/flutter/pull/176191]
+Signed-off-by: mark.yang <mark.yang@lge.com>
+---
+ engine/src/build/config/compiler/BUILD.gn | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/engine/src/build/config/compiler/BUILD.gn b/engine/src/build/config/compiler/BUILD.gn
+index cb987ddd86..80000f59f2 100644
+--- a/engine/src/build/config/compiler/BUILD.gn
++++ b/engine/src/build/config/compiler/BUILD.gn
+@@ -1019,7 +1019,7 @@ config("optimize") {
+   }
+
+   lto_flags = []
+-  if (enable_lto && (is_ios || is_mac || is_android || is_fuchsia || is_wasm)) {
++  if (enable_lto && (is_linux || is_ios || is_mac || is_android || is_fuchsia || is_wasm)) {
+     lto_flags += [ "-flto" ]
+   }
+

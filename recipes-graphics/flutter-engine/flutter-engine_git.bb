@@ -34,6 +34,7 @@ SRC_URI = "\
     git://github.com/flutter/flutter.git;protocol=https;nobranch=1;name=flutter_sdk \
     gn://github.com/flutter/flutter.git \
     file://BUILD.gn.in \
+    file://0001-BUILD.gn-Support-LTO-build-on-Linux.patch \
     file://0002-fml-build-config-add-riscv.patch \
     file://0003-gn-riscv32-and-riscv64.patch \
     file://0004-Add-risc-v-32-64-support-to-native-assets.patch \
@@ -85,33 +86,43 @@ COMPATIBLE_MACHINE:x86 = "(.*)"
 COMPATIBLE_MACHINE:x86-64 = "(.*)"
 
 PACKAGECONFIG ??= "\
-    desktop-embeddings \
     debug profile release \
+    backtrace \
     embedder-for-target \
     fontconfig \
-    mallinfo2 \
+    fstack-protector \
+    dart-dynamic-modules \
+    dart-secure-socket \
     "
 
 
 PACKAGECONFIG[asan] = "--asan"
+PACKAGECONFIG[backtrace] = "--backtrace,--no-backtrace"
+PACKAGECONFIG[canvaskit] = "--build-canvaskit"
 PACKAGECONFIG[coverage] = "--coverage"
 PACKAGECONFIG[dart-debug] = "--dart-debug"
+PACKAGECONFIG[dart-dynamic-modules] = "--dart-dynamic-modules, --no-dart-dynamic-modules"
+PACKAGECONFIG[dart-secure-socket] = ",--no-dart-secure-socket"
 PACKAGECONFIG[debug] = "--runtime-mode debug"
 PACKAGECONFIG[desktop-embeddings] = ",--disable-desktop-embeddings, glib-2.0 gtk+3"
 PACKAGECONFIG[embedder-examples] = "--build-embedder-examples,--no-build-embedder-examples"
 PACKAGECONFIG[embedder-for-target] = "--embedder-for-target"
 PACKAGECONFIG[fontconfig] = "--enable-fontconfig,,fontconfig"
 PACKAGECONFIG[full-dart-debug] = "--full-dart-debug"
-PACKAGECONFIG[full-dart-sdk] = "--full-dart-sdk"
+PACKAGECONFIG[full-dart-sdk] = "--full-dart-sdk,--no-full-dart-sdk"
+PACKAGECONFIG[fstack-protector] = "--fstack-protector"
 PACKAGECONFIG[glfw-shell] = "--build-glfw-shell,--no-build-glfw-shell, glfw"
+PACKAGECONFIG[glfw-swiftshader] = "--use-glfw-swiftshader"
 PACKAGECONFIG[interpreter] = "--interpreter"
 PACKAGECONFIG[jit_release] = "--runtime-mode jit_release"
 PACKAGECONFIG[lsan] = "--lsan"
+PACKAGECONFIG[lto] = "--lto, --no-lto"
 PACKAGECONFIG[mallinfo2] = "--use-mallinfo2"
 PACKAGECONFIG[prebuilt-dart-sdk] = "--prebuilt-dart-sdk,--no-prebuilt-dart-sdk"
 PACKAGECONFIG[profile] = "--runtime-mode profile"
 PACKAGECONFIG[release] = "--runtime-mode release"
-PACKAGECONFIG[static-analyzer] = "--clang-static-analyzer"
+PACKAGECONFIG[slimpeller] = "--slimpeller"
+PACKAGECONFIG[static-analyzer] = "--clang-static-analyzer,--no-clang-static-analyzer"
 PACKAGECONFIG[tsan] = "--tsan"
 PACKAGECONFIG[trace-gn] = "--trace-gn"
 PACKAGECONFIG[ubsan] = "--ubsan"
@@ -119,6 +130,7 @@ PACKAGECONFIG[unittests] = "--enable-unittests,--no-enable-unittests"
 PACKAGECONFIG[unoptimized] = "--unoptimized"
 PACKAGECONFIG[verbose] = "--verbose"
 PACKAGECONFIG[vulkan] = "--enable-vulkan"
+PACKAGECONFIG[vulkan-validation-layers] = "--enable-vulkan-validation-layers"
 
 RDEPENDS:${PN} = "\
     ${@bb.utils.contains('PACKAGECONFIG', 'fontconfig', 'fontconfig', '', d)} \
@@ -130,6 +142,7 @@ CLANG_PATH = "${S}/engine/src/flutter/buildtools/linux-${CLANG_BUILD_ARCH}/clang
 
 GN_ARGS = "\
     ${PACKAGECONFIG_CONFARGS} \
+    --build-engine-artifacts \
     --clang \
     --no-goma --no-rbe \
     --no-stripped \
