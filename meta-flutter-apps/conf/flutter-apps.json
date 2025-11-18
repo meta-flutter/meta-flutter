@@ -395,17 +395,6 @@
         "license_type": "BSD-3-Clause",
         "author": "Toyota Connected North America",
         "folder": "third-party",
-        "variables": {
-            "packages/camera/camera_linux/example": [
-                "FETCHCMD_git = \"GIT_LFS_SKIP_SMUDGE=1 git \""
-            ],
-            "packages/filament_scene/example": [
-                "FETCHCMD_git = \"GIT_LFS_SKIP_SMUDGE=1 git \""
-            ],
-            "packages/video_player/video_player_linux/example": [
-                "FETCHCMD_git = \"GIT_LFS_SKIP_SMUDGE=1 git \""
-            ]
-        },
         "ignore": [
             "packages/flatpak",
             "packages/webview/webview_flutter_linux/example"

@@ -51,6 +51,8 @@ SRC_URI = "\
 SRCREV_FORMAT .= "_flutter_sdk"
 SRCREV_flutter_sdk = "${@get_flutter_hash(d)}"
 
+S = "${WORKDIR}/gn"
+
 # musl-specific patches.
 SRC_URI:libc-musl += "\
     file://0001-libcxx-uglify-support-musl.patch;patchdir=engine/src/flutter/third_party \
@@ -60,13 +62,8 @@ SRC_URI:libc-musl += "\
 
 inherit gn-fetcher features_check pkgconfig
 
-# GN variables
 
-# enable building on aarch64 host
-GN_PRE_FETCH_CMD = '\
-    sed -i "s|# Always download the JDK since java is required for running the formatter.|'condition': 'download_jdk',|g" ${S}/DEPS \
-'
-
+# For gn.bbclass
 GN_CUSTOM_VARS ?= '\
 {\
     "download_android_deps": False, \
@@ -177,8 +174,8 @@ GN_ARGS_LESS_RUNTIME_MODES = "${@get_gn_args_less_runtime(d)}"
 FLUTTER_ENGINE_INSTALL_PREFIX ??= "${datadir}/flutter/${FLUTTER_SDK_VERSION}"
 
 FLUTTER_ENGINE_DEBUG_PREFIX_MAP ?= " \
-    -fmacro-prefix-map=${S}=${TARGET_DBGSRC_DIR} \
-    -fdebug-prefix-map=${S}=${TARGET_DBGSRC_DIR} \
+    -fmacro-prefix-map=${S}/engine/src=${TARGET_DBGSRC_DIR} \
+    -fdebug-prefix-map=${S}/engine/src=${TARGET_DBGSRC_DIR} \
     -fmacro-prefix-map=${B}=${TARGET_DBGSRC_DIR} \
     -fdebug-prefix-map=${B}=${TARGET_DBGSRC_DIR} \
     -fdebug-prefix-map=${STAGING_DIR_HOST}= \
@@ -226,7 +223,7 @@ do_configure() {
     # fix build with musl libc
     #
     [ "${TCLIBC}" = "musl" ] && sed -i "s|#define HAVE_MALLINFO 1||g" -i flutter/third_party/swiftshader/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h
-    
+
     #
     # Custom Build config
     #
@@ -257,6 +254,17 @@ do_configure() {
 
         bbnote `cat ${ARGS_FILE}`
     done
+
+    # external clang toolchain
+    cd ${STAGING_DIR_TARGET}/usr/lib
+
+    test -e crtbeginS.o && rm crtbeginS.o
+    test -e crtendS.o && rm crtendS.o
+    test -e libgcc.a && rm libgcc.a
+
+    ln -s "$(find -iname crtbeginS.o)" crtbeginS.o
+    ln -s "$(find -iname crtendS.o)" crtendS.o
+    ln -s "$(find -iname libgcc.a)" libgcc.a
 }
 do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 
@@ -279,16 +287,14 @@ do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
 do_install() {
 
-    cd ${S}/engine/src
-    ENGINE_SRC_DIR=$(pwd)
-
     FLUTTER_RUNTIME_MODES="${@bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d)}"
     bbnote "FLUTTER_RUNTIME_MODES=${FLUTTER_RUNTIME_MODES}"
 
 
     for MODE in $FLUTTER_RUNTIME_MODES; do
 
-        cd ${ENGINE_SRC_DIR}
+        cd ${S}/engine/src
+
         BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${MODE}/g")"
 
         #

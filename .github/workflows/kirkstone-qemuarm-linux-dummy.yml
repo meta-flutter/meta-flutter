@@ -50,6 +50,7 @@ jobs:
           git clone -b kirkstone-clang18       --single-branch https://github.com/kraj/meta-clang.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-drm.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-vulkan.git &
+          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git &
           wait
 
       - name: Configure build
@@ -186,7 +187,7 @@ jobs:
           bitbake flutter-drm-gbm-backend -c do_cleansstate
           bitbake flutter-drm-gbm-backend
 
-      - name: Build Sony external texture plugin
+      - name: Build toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example
         shell: bash
         working-directory: ../kirkstone-linux-dummy
         run: |
@@ -194,10 +195,10 @@ jobs:
           bitbake toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example -c do_cleansstate
           bitbake toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example
 
-      - name: Build toyota-connected-tcna-packages-flatpak-flutter-example
+      - name: Build toyota-connected-tcna-packages-camera-linux-camera-example
         shell: bash
         working-directory: ../kirkstone-linux-dummy
         run: |
           . ./poky/oe-init-build-env
-          bitbake toyota-connected-tcna-packages-flatpak-flutter-example -c do_cleansstate
-          bitbake toyota-connected-tcna-packages-flatpak-flutter-example
+          bitbake toyota-connected-tcna-packages-camera-linux-camera-example -c do_cleansstate
+          bitbake toyota-connected-tcna-packages-camera-linux-camera-example
