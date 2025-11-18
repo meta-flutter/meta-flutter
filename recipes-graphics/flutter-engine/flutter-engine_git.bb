@@ -126,7 +126,7 @@ PACKAGECONFIG[static-analyzer] = "--clang-static-analyzer,--no-clang-static-anal
 PACKAGECONFIG[tsan] = "--tsan"
 PACKAGECONFIG[trace-gn] = "--trace-gn"
 PACKAGECONFIG[ubsan] = "--ubsan"
-PACKAGECONFIG[unittests] = "--enable-unittests,--no-enable-unittests"
+PACKAGECONFIG[unittests] = "--enable-unittests,--no-enable-unittests, glib-2.0 gtk+3 xinerama"
 PACKAGECONFIG[unoptimized] = "--unoptimized"
 PACKAGECONFIG[verbose] = "--verbose"
 PACKAGECONFIG[vulkan] = "--enable-vulkan"
@@ -295,6 +295,8 @@ do_install() {
         # Install directories
         #
         install -d ${D}${includedir}
+        install -d ${D}${includedir}/flutter_linux
+        install -d ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/bin
         install -d ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/lib
         install -d ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/data
 
@@ -311,11 +313,30 @@ do_install() {
         # Shared modules
         #
         cwd=$(pwd)
+
         cd ${BUILD_DIR}/so.unstripped
-        for file in *; do
-            cp "$file" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/lib/
-            cp "../$file.TOC" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/lib/
+        for so_file in *; do
+
+            # Copy the .so file to lib directory
+            cp "$so_file" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/lib/
+
+            # Copy the .TOC file to SDK lib directory
+            cp "../${so_file}.TOC" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/lib/
         done
+
+        #
+        # ICD files
+        #
+        cd ..
+        for pat in *_icd.json; do
+            for file in ${pat}; do
+                # Skip if glob didn't match anything
+                [ -e "$file" ] || continue
+                # Move unstripped executable into bin
+                cp  "$file" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/lib/
+            done
+        done
+
         cd $cwd
 
         #
@@ -323,17 +344,43 @@ do_install() {
         #
         install -m 0644 ${BUILD_DIR}/icudtl.dat ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/data/icudtl.dat
 
+        #
+        # Shader libraries
+        #
         test -e ${BUILD_DIR}/shader_lib && \
             cp -r ${BUILD_DIR}/shader_lib \
                   ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/lib/
 
         #
+        # flutter_linux headers
+        #
+        test -e ${BUILD_DIR}/flutter_linux && \
+            cp -r ${BUILD_DIR}/flutter_linux ${D}${includedir}/flutter_linux
+
+        #
         # Executables
         #
         cwd=$(pwd)
-        cd ${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped
+        cd ${BUILD_DIR}/exe.unstripped
+
+        # Conditionally install only selected test executables when present
+        for pat in *_benchmarks *_unittests *_rendertests *_example_gl *_example_vk *_testrunner; do
+            for file in ${pat}; do
+                # Skip if glob didn't match anything
+                [ -e "$file" ] || continue
+                # Move unstripped executable into bin
+                cp "$file" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/bin/
+            done
+        done
+
+        # Copy remaining unstripped executables (exclude tests/examples patterns)
         for file in *; do
-            # copy the unstripped variant one up
+            case "$file" in
+                *_benchmarks|*_unittests|*_rendertests|*_example_gl|*_example_vk|*_testrunner)
+                    continue
+                    ;;
+            esac
+            # copy the stripped counterpart from parent into SDK toolchain dir
             cp "../$file" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/
         done
         cd $cwd
@@ -359,10 +406,18 @@ do_install() {
 }
 do_install[depends] += "zip-native:do_populate_sysroot"
 
-PACKAGES =+ "${PN}-sdk-dev"
+PACKAGES =+ "\
+    ${PN}-desktop-embeddings \
+    ${PN}-impeller \
+    ${PN}-sdk-dev \
+    ${PN}-test \
+    "
 
 INSANE_SKIP:${PN} += " libdir"
 INSANE_SKIP:${PN}-dbg += "libdir"
+INSANE_SKIP:${PN}-desktop-embeddings += "libdir"
+INSANE_SKIP:${PN}-impeller += " libdir"
+INSANE_SKIP:${PN}-test += " buildpaths libdir"
 
 FILES:${PN} = "\
     ${datadir}/flutter \
@@ -372,12 +427,34 @@ FILES:${PN}-dbg += "\
     ${FLUTTER_ENGINE_INSTALL_PREFIX}/*/lib/.debug \
     "
 
-FILES:${PN}-sdk-dev = "\
-    ${datadir}/flutter/${FLUTTER_SDK_TAG}/*/engine_sdk.zip \
+FILES:${PN}-desktop-embeddings = "\
+    ${@bb.utils.contains('PACKAGECONFIG', 'desktop-embeddings', '${datadir}/flutter/${FLUTTER_SDK_TAG}/*/lib/libflutter_linux*.so', '', d)} \
     "
 
 FILES:${PN}-dev = "\
     ${includedir} \
+    "
+
+FILES:${PN}-impeller = "\
+    ${FLUTTER_ENGINE_INSTALL_PREFIX}/*/lib/libimpeller.so \
+    ${FLUTTER_ENGINE_INSTALL_PREFIX}/*/lib/libpath_ops.so \
+    ${FLUTTER_ENGINE_INSTALL_PREFIX}/*/lib/libtessellator.so \
+    "
+
+FILES:${PN}-sdk-dev = "\
+    ${datadir}/flutter/${FLUTTER_SDK_TAG}/*/engine_sdk.zip \
+    "
+
+FILES:${PN}-test = "\
+    ${@bb.utils.contains('PACKAGECONFIG', 'unittests', '${FLUTTER_ENGINE_INSTALL_PREFIX}/*/bin/*_benchmarks', '', d)} \
+    ${@bb.utils.contains('PACKAGECONFIG', 'unittests', '${FLUTTER_ENGINE_INSTALL_PREFIX}/*/bin/*_unittests', '', d)} \
+    ${@bb.utils.contains('PACKAGECONFIG', 'unittests', '${FLUTTER_ENGINE_INSTALL_PREFIX}/*/bin/*_rendertests', '', d)} \
+    ${@bb.utils.contains('PACKAGECONFIG', 'unittests', '${FLUTTER_ENGINE_INSTALL_PREFIX}/*/bin/*_example_*', '', d)} \
+    ${@bb.utils.contains('PACKAGECONFIG', 'unittests', '${FLUTTER_ENGINE_INSTALL_PREFIX}/*/bin/*_testrunner', '', d)} \
+    ${@bb.utils.contains('PACKAGECONFIG', 'unittests', '${FLUTTER_ENGINE_INSTALL_PREFIX}/*/lib/*_icd.so', '', d)} \
+    ${@bb.utils.contains('PACKAGECONFIG', 'unittests', '${FLUTTER_ENGINE_INSTALL_PREFIX}/*/lib/*_icd.json', '', d)} \
+    ${@bb.utils.contains('PACKAGECONFIG', 'unittests', '${FLUTTER_ENGINE_INSTALL_PREFIX}/*/lib/*_swiftshader.so', '', d)} \
+    ${@bb.utils.contains('PACKAGECONFIG', 'unittests', '${FLUTTER_ENGINE_INSTALL_PREFIX}/*/lib/libvulkan.so.1', '', d)} \
     "
 
 python () {
