@@ -10,7 +10,13 @@ BUGTRACKER = "https://github.com/rive-app/rive-flutter"
 SECTION = "devtools"
 
 LICENSE = "MIT & Apache-2.0"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=c52243a14a066c83e50525d9ad046678"
+LIC_FILES_CHKSUM = " \
+    file://LICENSE;md5=c52243a14a066c83e50525d9ad046678 \
+    file://macos/rive-cpp/LICENSE;md5=9a8a5e004196b5614e34130e5558fb6c \
+    file://macos/harfbuzz/COPYING;md5=b98429b8e8e3c2a67cfef01e99e4893d \
+    file://macos/SheenBidi/LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57 \
+    file://macos/yoga/LICENSE;md5=901f6cd9846257b3a9c69dbd0a49caf1 \
+"
 
 DEPENDS += "\
     compiler-rt \
