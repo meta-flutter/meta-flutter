@@ -9,7 +9,6 @@ DEPENDS:riscv64 += "\
 
 RUNTIME = "llvm"
 TOOLCHAIN = "clang"
-PREFERRED_PROVIDER_libgcc = "compiler-rt"
 LIBCPLUSPLUS = "-stdlib=libc++"
 
 #
@@ -17,28 +16,6 @@ LIBCPLUSPLUS = "-stdlib=libc++"
 #
 
 COMPATIBLE_MACHINE:riscv64 = "(.*)"
-
-FILESEXTRAPATHS:prepend := "${THISDIR}/files/:"
-
-# riscv64 specific patches
-SRC_URI_EXTRA:append:riscv64 = "\
-    file://0001-gn-riscv32-and-riscv64.patch \
-    file://0002-fml-build-config-add-riscv.patch \
-    file://0003-swiftshader-riscv-support.patch \
-    file://0004-tonic-riscv-support.patch \
-    file://0001-abseil-clang-compiler-warnings.patch \
-    file://0001-Add-risc-v-32-64-support-to-native-assets.patch \
-"
-
-# riscv32 specific patches
-SRC_URI_EXTRA:append:riscv32 = "\
-    file://0001-gn-riscv32-and-riscv64.patch \
-    file://0002-fml-build-config-add-riscv.patch \
-    file://0003-swiftshader-riscv-support.patch \
-    file://0004-tonic-riscv-support.patch \
-    file://0001-abseil-clang-compiler-warnings.patch \
-    file://0001-Add-risc-v-32-64-support-to-native-assets.patch \
-    "
 
 # Use Yocto clang for riscv64; required for linking
 CLANG_PATH:riscv64 = "${STAGING_DIR_NATIVE}/usr"

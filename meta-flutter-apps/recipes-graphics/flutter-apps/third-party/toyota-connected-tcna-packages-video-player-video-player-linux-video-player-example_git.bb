@@ -21,6 +21,5 @@ PUBSPEC_APPNAME = "video_player_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example"
 PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = "packages/video_player/video_player_linux/example"
-FETCHCMD_git = "GIT_LFS_SKIP_SMUDGE=1 git "
 
 inherit flutter-app

@@ -18,8 +18,8 @@ LIC_FILES_CHKSUM = "\
 DEPENDS += "\
     glib-2.0 \
     gtk+3 \
-    pipewire \
     ninja-native \
+    pulseaudio \
     "
 
 require conf/include/gn-utils.inc
@@ -42,23 +42,32 @@ inherit gn-fetcher pkgconfig
 # For gn.bbclass
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 
+PACKAGECONFIG ??= "\
+    h264 \
+    ${@bb.utils.filter('DISTRO_FEATURES', 'pipewire', d)} \
+    rtti \
+    ${@bb.utils.filter('DISTRO_FEATURES', 'wayland', d)} \
+    "
+
+PACKAGECONFIG[pipewire] = "rtc_use_pipewire=true,rtc_use_pipewire=false,pipewire"
+PACKAGECONFIG[debug] = "is_debug=true,is_debug=false"
+PACKAGECONFIG[tests] = "rtc_include_tests=true,rtc_include_tests=false"
+PACKAGECONFIG[h264] = "rtc_use_h264=true,rtc_use_h264=false"
+PACKAGECONFIG[rtti] = "use_rtti=true,use_rtti=false"
+PACKAGECONFIG[wayland] = "ozone_platform_wayland=true,ozone_platform_wayland=false"
+
 GN_ARGS = '\
+    ${PACKAGECONFIG_CONFARGS} \
     target_os=\"linux\" \
     target_cpu=\"${GN_TARGET_ARCH_NAME}\" \
     target_triple=\"${TARGET_SYS}\" \
     target_sysroot=\"${STAGING_DIR_TARGET}\" \
     use_sysroot=false \
-    rtc_use_pipewire=false \
-    is_debug=false \
-    rtc_include_tests=false \
-    rtc_use_h264=true \
     ffmpeg_branding=\"Chrome\" \
     is_component_build=false \
-    use_rtti=true \
     use_custom_libcxx=true \
     rtc_enable_protobuf=false \
     ozone_auto_platforms=false \
-    ozone_platform_wayland=true \
 '
 
 do_configure() {
