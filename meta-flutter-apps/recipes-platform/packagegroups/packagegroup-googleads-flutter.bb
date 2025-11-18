@@ -33,5 +33,6 @@ RDEPENDS:${PN} += " \
     googleads-flutter-packages-mediation-gma-mediation-chartboost-example \
     googleads-flutter-packages-mediation-gma-mediation-imobile-example \
     googleads-flutter-packages-mediation-gma-mediation-ironsource-example \
+    googleads-flutter-packages-mediation-gma-mediation-pubmatic-example \
     googleads-flutter-packages-google-mobile-ads-example \
 "

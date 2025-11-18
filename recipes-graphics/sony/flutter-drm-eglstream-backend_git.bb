@@ -12,7 +12,7 @@ require sony-flutter.inc
 DEPENDS += "libdrm"
 
 do_install() {
-    install -D -m0755 ${WORKDIR}/build/flutter-drm-eglstream-backend \
+    install -D -m0755 ${B}/flutter-drm-eglstream-backend \
         ${D}${bindir}/flutter-drm-eglstream-backend
 }
 

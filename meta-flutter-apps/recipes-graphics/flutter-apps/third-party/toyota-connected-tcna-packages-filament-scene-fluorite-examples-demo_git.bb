@@ -21,6 +21,5 @@ PUBSPEC_APPNAME = "fluorite_examples_demo"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo"
 PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = "packages/filament_scene/example"
-FETCHCMD_git = "GIT_LFS_SKIP_SMUDGE=1 git "
 
 inherit flutter-app
