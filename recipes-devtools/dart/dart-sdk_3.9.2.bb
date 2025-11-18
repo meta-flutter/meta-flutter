@@ -17,8 +17,6 @@ DEPENDS += "\
     depot-tools-native \
     ninja-native \
     xz-native \
-    compiler-rt \
-    libcxx \
     "
 
 S = "${WORKDIR}/gn"
@@ -51,7 +49,7 @@ PACKAGECONFIG[git-version] = "--git-version"
 PACKAGECONFIG[dynamic-modules] = "--dart-dynamic-modules"
 PACKAGECONFIG[codesigning-identity] = "--codesigning-identity ${CODESIGNING_IDENTITY}"
 
-GN_ARGS = "${PACKAGECONFIG_CONFARGS} --clang --no-rbe"
+GN_ARGS = "${PACKAGECONFIG_CONFARGS} --no-rbe"
 
 # all, debug, release, product
 GN_ARGS:append = " --mode product"

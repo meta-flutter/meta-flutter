@@ -48,6 +48,10 @@ SRC_URI = "\
     file://0002-flutter-third_party-swiftshader-llvm-16.0-required-f.patch \
     ${SRC_URI_EXTRA} \
     "
+SRCREV_FORMAT .= "_flutter_sdk"
+SRCREV_flutter_sdk = "${@get_flutter_hash(d)}"
+
+S = "${WORKDIR}/gn"
 
 # musl-specific patches.
 SRC_URI:libc-musl += "\
@@ -56,12 +60,8 @@ SRC_URI:libc-musl += "\
     file://0003-suppres-musl-libc-warning.patch;patchdir=engine/src/flutter/third_party/dart \
     "
 
-SRCREV_FORMAT .= "_flutter_sdk"
-SRCREV_flutter_sdk = "${@get_flutter_hash(d)}"
-
-S = "${WORKDIR}/gn"
-
 inherit gn-fetcher features_check pkgconfig
+
 
 # For gn.bbclass
 GN_CUSTOM_VARS ?= '\
@@ -79,8 +79,6 @@ COMPATIBLE_MACHINE:armv7a = "(.*)"
 COMPATIBLE_MACHINE:armv7ve = "(.*)"
 COMPATIBLE_MACHINE:x86 = "(.*)"
 COMPATIBLE_MACHINE:x86-64 = "(.*)"
-COMPATIBLE_MACHINE:riscv32 = "(.*)"
-COMPATIBLE_MACHINE:riscv64 = "(.*)"
 
 PACKAGECONFIG ??= "\
     debug profile release \
@@ -135,8 +133,6 @@ RDEPENDS:${PN} = "\
 
 CLANG_BUILD_ARCH = "${@clang_build_arch(d)}"
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
-
-# Use Flutter's clang toolchain
 CLANG_PATH = "${S}/engine/src/flutter/buildtools/linux-${CLANG_BUILD_ARCH}/clang"
 
 # Use system clang for riscv64; required for linking
@@ -179,8 +175,8 @@ GN_ARGS_LESS_RUNTIME_MODES = "${@get_gn_args_less_runtime(d)}"
 FLUTTER_ENGINE_INSTALL_PREFIX ??= "${datadir}/flutter/${FLUTTER_SDK_VERSION}"
 
 FLUTTER_ENGINE_DEBUG_PREFIX_MAP ?= " \
-    -fmacro-prefix-map=${S}=${TARGET_DBGSRC_DIR} \
-    -fdebug-prefix-map=${S}=${TARGET_DBGSRC_DIR} \
+    -fmacro-prefix-map=${S}/engine/src=${TARGET_DBGSRC_DIR} \
+    -fdebug-prefix-map=${S}/engine/src=${TARGET_DBGSRC_DIR} \
     -fmacro-prefix-map=${B}=${TARGET_DBGSRC_DIR} \
     -fdebug-prefix-map=${B}=${TARGET_DBGSRC_DIR} \
     -fdebug-prefix-map=${STAGING_DIR_HOST}= \
@@ -227,7 +223,7 @@ do_configure() {
     # fix build with musl libc
     #
     [ "${TCLIBC}" = "musl" ] && sed -i "s|#define HAVE_MALLINFO 1||g" -i flutter/third_party/swiftshader/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h
-    
+
     #
     # Custom Build config
     #
@@ -258,11 +254,8 @@ do_configure() {
 
         bbnote `cat ${ARGS_FILE}`
     done
-}
-do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 
-do_configure:riscv64:append() {
-    cwd=$(pwd)
+    # external clang toolchain
     cd ${STAGING_DIR_TARGET}/usr/lib
 
     test -e crtbeginS.o && rm crtbeginS.o
@@ -272,9 +265,8 @@ do_configure:riscv64:append() {
     ln -s "$(find -iname crtbeginS.o)" crtbeginS.o
     ln -s "$(find -iname crtendS.o)" crtendS.o
     ln -s "$(find -iname libgcc.a)" libgcc.a
-
-    cd $cwd
 }
+do_configure[depends] += "depot-tools-native:do_populate_sysroot"
 
 do_compile() {
 
@@ -295,16 +287,14 @@ do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
 do_install() {
 
-    cd ${S}/engine/src
-    ENGINE_SRC_DIR=$(pwd)
-
     FLUTTER_RUNTIME_MODES="${@bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d)}"
     bbnote "FLUTTER_RUNTIME_MODES=${FLUTTER_RUNTIME_MODES}"
 
 
     for MODE in $FLUTTER_RUNTIME_MODES; do
 
-        cd ${ENGINE_SRC_DIR}
+        cd ${S}/engine/src
+
         BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${MODE}/g")"
 
         #

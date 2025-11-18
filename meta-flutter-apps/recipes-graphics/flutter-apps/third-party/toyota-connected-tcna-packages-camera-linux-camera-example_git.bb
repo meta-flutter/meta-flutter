@@ -21,6 +21,5 @@ PUBSPEC_APPNAME = "camera_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "toyota-connected-tcna-packages-camera-linux-camera-example"
 PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = "packages/camera/camera_linux/example"
-FETCHCMD_git = "GIT_LFS_SKIP_SMUDGE=1 git "
 
 inherit flutter-app

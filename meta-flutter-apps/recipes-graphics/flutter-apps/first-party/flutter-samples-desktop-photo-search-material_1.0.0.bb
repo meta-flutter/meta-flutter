@@ -2,7 +2,7 @@
 # Copyright (c) 2020-2025 Joel Winarske. All rights reserved.
 #
 
-SUMMARY = "desktop_photo_search"
+SUMMARY = "desktop_photo_search_material"
 DESCRIPTION = "Search for Photos, using the Unsplash API."
 AUTHOR = "Google"
 HOMEPAGE = "None"
@@ -17,7 +17,7 @@ SRC_URI = "git://github.com/flutter/samples.git;lfs=1;branch=main;protocol=https
 
 S = "${WORKDIR}/git"
 
-PUBSPEC_APPNAME = "desktop_photo_search"
+PUBSPEC_APPNAME = "desktop_photo_search_material"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-samples-desktop-photo-search-material"
 PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = "desktop_photo_search/material"
