@@ -167,7 +167,23 @@ jobs:
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
 
-      - name: Build Sony external texture plugin
+      - name: Build Sony flutter-drm-eglstream-backend
+        shell: bash
+        working-directory: ../dunfell-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake flutter-drm-eglstream-backend -c do_cleansstate
+          bitbake flutter-drm-eglstream-backend
+
+      - name: Build Sony drm gbm backend
+        shell: bash
+        working-directory: ../dunfell-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake flutter-drm-gbm-backend -c do_cleansstate
+          bitbake flutter-drm-gbm-backend
+
+      - name: Build toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example
         shell: bash
         working-directory: ../dunfell-linux-dummy
         run: |
@@ -175,10 +191,10 @@ jobs:
           bitbake toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example -c do_cleansstate
           bitbake toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example
 
-      - name: Build toyota-connected-tcna-packages-flatpak-flutter-example
+      - name: Build toyota-connected-tcna-packages-camera-linux-camera-example
         shell: bash
         working-directory: ../dunfell-linux-dummy
         run: |
           . ./poky/oe-init-build-env
-          bitbake toyota-connected-tcna-packages-flatpak-flutter-example -c do_cleansstate
-          bitbake toyota-connected-tcna-packages-flatpak-flutter-example
+          bitbake toyota-connected-tcna-packages-camera-linux-camera-example -c do_cleansstate
+          bitbake toyota-connected-tcna-packages-camera-linux-camera-example
