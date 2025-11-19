@@ -366,28 +366,24 @@ do_install() {
         #
         # Executables
         #
-        cwd=$(pwd)
-        cd ${BUILD_DIR}/exe.unstripped
-
-        # Conditionally install only selected test executables when present
-        for pat in *_benchmarks *_unittests *_rendertests *_example_gl *_example_vk *_testrunner; do
-            for file in ${pat}; do
-                # Skip if glob didn't match anything
-                [ -e "$file" ] || continue
-                # Move unstripped executable into bin
-                cp "$file" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/bin/
+        test -e ${BUILD_DIR}/exe.unstripped && \
+            cd ${BUILD_DIR}/exe.unstripped && \
+            # Conditionally install only selected test executables when present
+            for pat in *_benchmarks *_unittests *_rendertests *_example_gl *_example_vk *_testrunner; do
+                for file in ${pat}; do
+                    # Skip if glob didn't match anything
+                    [ -e "$file" ] || continue
+                    # Move unstripped executable into bin
+                    cp "$file" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/bin/
+                done
             done
-        done
+        cd $cwd
 
-        # Copy remaining unstripped executables (exclude tests/examples patterns)
+        # cross canadian artifacts
+        cd ${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped
         for file in *; do
-            case "$file" in
-                *_benchmarks|*_unittests|*_rendertests|*_example_gl|*_example_vk|*_testrunner)
-                    continue
-                    ;;
-            esac
-            # copy the stripped counterpart from parent into SDK toolchain dir
-            cp "../$file" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/
+            # copy the unstripped variant one up
+             cp "../$file" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/
         done
         cd $cwd
 
