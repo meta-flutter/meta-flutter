@@ -22,13 +22,17 @@ DEPENDS += "\
     ninja-native \
     "
 
+DEPENDS:append:x86-64 = " nasm-native"
+
 SRCREV = "4e4d7a14a4d9d484feb4a4770a892cd964cfd968"
 SRC_URI = "\
     gn://pdfium.googlesource.com/pdfium.git \
-    file://public_headers.patch \
-    file://shared_library.patch \
-    file://v8_init.patch \
-    file://sysroot-fix-path.patch \
+    \
+    file://0001-public-headers.patch \
+    file://0002-shared-library.patch \
+    file://0003-sysroot-fix-path.patch \
+    file://0004-v8-init.patch \
+    \
     file://toolchain.gn.in \
     "
 
@@ -93,12 +97,11 @@ do_configure() {
     #
     # configure toolchain file
     #
-    cp ${WORKDIR}/toolchain.gn.in ${S}/build/toolchain/linux/BUILD.gn
+    cp ${S}/../../toolchain.gn.in ${S}/build/toolchain/linux/BUILD.gn
     sed -i "s|@GN_TARGET_ARCH_NAME@|${GN_TARGET_ARCH_NAME}|g" ${S}/build/toolchain/linux/BUILD.gn
     sed -i "s|@TARGET_SYS@|${TARGET_SYS}|g"                   ${S}/build/toolchain/linux/BUILD.gn
     sed -i "s|@LDFLAGS@|${LDFLAGS}|g"                         ${S}/build/toolchain/linux/BUILD.gn
     sed -i "s|@EXTRA_CXXFLAGS@|${EXTRA_CXXFLAGS}|g"           ${S}/build/toolchain/linux/BUILD.gn
-
 
     gn gen --args='${GN_ARGS}' "${B}"
 }

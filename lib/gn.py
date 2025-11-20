@@ -44,18 +44,19 @@ class GN(FetchMethod):
         deps_file = d.getVar("GN_DEPS_FILE")
         custom_vars = d.getVar("GN_CUSTOM_VARS")
         custom_deps = d.getVar("GN_CUSTOM_DEPS")
-        srcrev = d.getVar("SRCREV")
 
         gclient_config = f'''solutions = [
   {{
     "name": "{name}",
-    "url": "{uri}@{srcrev}",
+    "url": "{uri}",
     "deps_file": "{deps_file}",
     "managed": False,
     "custom_deps": {custom_deps},
     "custom_vars": {custom_vars},
   }},
 ]'''
+
+        srcrev = d.getVar("SRCREV")
 
         ud.syncpath = ud.parm.get("gclientdir", d.getVar("S"))
 
@@ -75,31 +76,17 @@ class GN(FetchMethod):
 
         srcdir = d.getVar("S")
 
-        gn_pre_fetch_cmd = d.getVar("GN_PRE_FETCH_CMD")
-        if gn_pre_fetch_cmd:
-            logger.debug2(f'Running GN_PRE_FETCH_CMD: "{gn_pre_fetch_cmd}"')
-            try:
-                result = subprocess.run(
-                    gn_pre_fetch_cmd,
-                    shell=True,
-                    check=False,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    universal_newlines=True
-                )
-            except subprocess.CalledProcessError as e:
-                raise UnpackError(f'GN_PRE_FETCH_CMD {gn_pre_fetch_cmd} failed with return value {e.returncode}\n{e.output}')
-
-
         ud.basecmd = f'export DEPOT_TOOLS_UPDATE=0; \
             export XDG_CONFIG_HOME={depot_tools_xdg_config_home}; \
             export CURL_CA_BUNDLE={curl_ca_bundle}; \
             export PATH="{depot_tools_path}:{python3_folder}:$PATH"; \
+            rm -rf {vpython_virtualenv_root} ||true; \
+            mkdir -p {vpython_virtualenv_root}; \
             export VPYTHON_VIRTUALENV_ROOT="{vpython_virtualenv_root}"; \
-            rm -rf $VPYTHON_VIRTUALENV_ROOT ||true; \
-            mkdir -p $VPYTHON_VIRTUALENV_ROOT; \
+            cd "{ud.syncpath}"; \
             gclient config --spec \'{gclient_config}\'; \
-            gclient sync {sync_opt} -j {bb_number_threads} -v'
+            gclient sync --force {sync_opt} --revision {srcrev} -j {bb_number_threads} -v'
+
 
         dl_dir = d.getVar("DL_DIR")
         # pack the source code into a tarball

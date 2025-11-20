@@ -106,7 +106,7 @@ def get_archive_pub_cache_environment(d, pub_cache, flutter_sdk):
     Returns environment to use with archive pub caching
     """
     PUB_CACHE_EXPORT_VARS = [
-        'PATH',
+        'HOME', 'PATH',
         'HTTP_PROXY', 'http_proxy',
         'HTTPS_PROXY', 'https_proxy',
         'FTP_PROXY', 'ftp_proxy',

@@ -76,6 +76,8 @@ def run_command(d, cmd, cwd, env):
         bb.error("failed %s (cmd was %s)%s" % (retval, cmd, ":\n%s" % output if output else ""))
         return
 
+    bb.note(f'{output}')
+
 
 do_unpack[network] = "1"
 do_unpack[depends] += " \
