@@ -167,7 +167,7 @@ GN_TUNE_ARGS:append:armv7 = "arm_tune = \"${@gn_get_tune_features(d)}\""
 GN_TUNE_ARGS:append:armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\""
 GN_TUNE_ARGS:append:armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
 
-TMP_OUT_DIR = "${@get_gn_tmp_out_dir(d)}"
+TMP_OUT_DIR = "${@get_gn_tmp_out_dir_relative(d)}"
 
 GN_ARGS_LESS_RUNTIME_MODES = "${@get_gn_args_less_runtime(d)}"
 
