@@ -26,7 +26,7 @@ do_install() {
     
     # App artifacts
     install -d ${D}${FLUTTER_INSTALL_DIR}/
-    cp -r ${S}/${FLUTTER_APPLICATION_PATH}build/web/* ${D}${FLUTTER_INSTALL_DIR}/
+    cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/web/* ${D}${FLUTTER_INSTALL_DIR}/
 }
 
 FILES:${PN} = "\
