@@ -21,7 +21,7 @@ DISTRO_FEATURES_BACKFILL_CONSIDERED = ""
 PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"
 
 # ***************************************
-LICENSE_FLAGS_ACCEPTED += "commercial"
+LICENSE_FLAGS_WHITELIST += "commercial"
 
 # ***************************************
 PACKAGECONFIG:remove:pn-flutter-engine = " debug profile"
