@@ -7,13 +7,13 @@ Upstream-Status: Inappropriate
 
 Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
- flutter/third_party/skia/src/gpu/tessellate/MiddleOutPolygonTriangulator.h | 2 +-
+ engine/src/flutter/third_party/skia/src/gpu/tessellate/MiddleOutPolygonTriangulator.h | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/flutter/third_party/skia/src/gpu/tessellate/MiddleOutPolygonTriangulator.h b/flutter/third_party/skia/src/gpu/tessellate/MiddleOutPolygonTriangulator.h
-index fe93130a5b..36fe1ee9ce 100644
---- a/flutter/third_party/skia/src/gpu/tessellate/MiddleOutPolygonTriangulator.h
-+++ b/flutter/third_party/skia/src/gpu/tessellate/MiddleOutPolygonTriangulator.h
+diff --git a/engine/src/flutter/third_party/skia/src/gpu/tessellate/MiddleOutPolygonTriangulator.h b/engine/src/flutter/third_party/skia/src/gpu/tessellate/MiddleOutPolygonTriangulator.h
+index bc7895b3ac..cdff47976c 100644
+--- a/engine/src/flutter/third_party/skia/src/gpu/tessellate/MiddleOutPolygonTriangulator.h
++++ b/engine/src/flutter/third_party/skia/src/gpu/tessellate/MiddleOutPolygonTriangulator.h
 @@ -90,7 +90,7 @@ public:
          }
  
@@ -25,4 +25,3 @@ index fe93130a5b..36fe1ee9ce 100644
  
 -- 
 2.51.1
-

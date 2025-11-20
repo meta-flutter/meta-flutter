@@ -23,4 +23,3 @@ index cb987ddd86..80000f59f2 100644
 +  if (enable_lto && (is_linux || is_ios || is_mac || is_android || is_fuchsia || is_wasm)) {
      lto_flags += [ "-flto" ]
    }
-
