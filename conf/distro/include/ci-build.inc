@@ -29,7 +29,6 @@ PACKAGECONFIG:remove:pn-flutter-engine = " debug profile"
 # ***************************************
 IMAGE_INSTALL:append = " \
               ffmpeg \
-              flatpak \
               "
 
 # ***************************************
