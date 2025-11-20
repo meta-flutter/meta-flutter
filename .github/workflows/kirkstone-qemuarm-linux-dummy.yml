@@ -129,14 +129,6 @@ jobs:
           bitbake sentry -c do_cleansstate
           bitbake sentry
 
-      - name: Build libwebrtc
-        shell: bash
-        working-directory: ../kirkstone-linux-dummy
-        run: |
-          . ./poky/oe-init-build-env
-          bitbake libwebrtc -c do_cleansstate
-          bitbake libwebrtc
-
       - name: Build flutter-engine
         shell: bash
         working-directory: ../kirkstone-linux-dummy

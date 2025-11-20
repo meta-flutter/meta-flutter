@@ -128,6 +128,14 @@ jobs:
           bitbake dart-sdk -c do_cleansstate
           bitbake dart-sdk
 
+      - name: Build pdfium
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          bitbake sentry -c do_cleansstate
+          bitbake sentry
+
       - name: Build flutter-engine
         shell: bash
         working-directory: ../kirkstone-linux-dummy
