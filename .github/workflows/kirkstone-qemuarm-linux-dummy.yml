@@ -50,7 +50,6 @@ jobs:
           git clone -b kirkstone-clang18       --single-branch https://github.com/kraj/meta-clang.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-drm.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-vulkan.git &
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/kraj/meta-clang.git &
           wait
 
       - name: Configure build
@@ -70,7 +69,6 @@ jobs:
           echo '***************************************'
           bitbake-layers show-layers
           bitbake-layers add-layer \
-              ../meta-clang \
               ../meta-openembedded/meta-filesystems \
               ../meta-openembedded/meta-gnome \
               ../meta-openembedded/meta-multimedia \
