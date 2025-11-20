@@ -20,8 +20,8 @@ DEPENDS += "\
     libdrm \
     libinput \
     libxkbcommon \
-    systemd \
     virtual/egl \
+    systemd \
    "
 
 RDEPENDS:${PN} += "\

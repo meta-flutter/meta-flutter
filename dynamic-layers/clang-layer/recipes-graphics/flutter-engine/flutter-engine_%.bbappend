@@ -15,7 +15,9 @@ LIBCPLUSPLUS = "-stdlib=libc++"
 # RISC-V specific
 #
 
+COMPATIBLE_MACHINE:riscv32 = "(.*)"
 COMPATIBLE_MACHINE:riscv64 = "(.*)"
+
 
 # Use Yocto clang for riscv64; required for linking
 CLANG_PATH:riscv64 = "${STAGING_DIR_NATIVE}/usr"

@@ -135,6 +135,9 @@ CLANG_BUILD_ARCH = "${@clang_build_arch(d)}"
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
 CLANG_PATH = "${S}/engine/src/flutter/buildtools/linux-${CLANG_BUILD_ARCH}/clang"
 
+# Use system clang for riscv64; required for linking
+CLANG_PATH:riscv64 = "${STAGING_DIR_NATIVE}/usr"
+
 GN_ARGS = "\
     ${PACKAGECONFIG_CONFARGS} \
     --build-engine-artifacts \
@@ -186,7 +189,6 @@ FLUTTER_ENGINE_CXX_LIBC_FLAGS:append:libc-musl = "-D_LIBCPP_HAS_MUSL_LIBC"
 
 WAYLAND_IS_PRESENT = "${@bb.utils.filter('DISTRO_FEATURES', 'wayland', d)}"
 X11_IS_PRESENT = "${@bb.utils.filter('DISTRO_FEATURES', 'x11', d)}"
-VULKAN_HEADER_GNI = "${S}/flutter/build_overrides/vulkan_headers.gni"
 
 
 do_configure() {
@@ -228,7 +230,7 @@ do_configure() {
     cp ${WORKDIR}/BUILD.gn.in build/toolchain/custom/BUILD.gn
     sed -i "s|@DEBUG_FLAGS@|${FLUTTER_ENGINE_DEBUG_FLAGS}|g" build/toolchain/custom/BUILD.gn
     sed -i "s|@CXX_LIBC_FLAGS@|${FLUTTER_ENGINE_CXX_LIBC_FLAGS}|g" build/toolchain/custom/BUILD.gn
-    
+
     #
     # Configure each mode defined in PACKAGECONFIG
     #
