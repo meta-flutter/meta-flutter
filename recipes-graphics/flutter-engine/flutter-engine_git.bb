@@ -34,16 +34,11 @@ SRC_URI = "\
     git://github.com/flutter/flutter.git;protocol=https;nobranch=1;name=flutter_sdk \
     gn://github.com/flutter/flutter.git \
     file://BUILD.gn.in \
-    file://0001-BUILD.gn-Support-LTO-build-on-Linux.patch \
-    file://0002-fml-build-config-add-riscv.patch \
     file://0003-gn-riscv32-and-riscv64.patch \
-    file://0004-Add-risc-v-32-64-support-to-native-assets.patch \
-    file://0005-tonic-riscv-support.patch \
     file://0006-fml-fixes-text_input-compiler-warnings.patch \
     file://0007-impeller-unnecessary-virtual-specifier.patch \
     file://0001-flutter-third_party-abseil-cpp-clang-compiler-warnin.patch \
     file://0001-flutter-third_party-googletest-fix-implicit-conversi.patch \
-    file://0001-flutter-third_party-skia-memcpy-void-cast.patch \
     file://0001-flutter-third_party-swiftshader-pointer-cast-to-void.patch \
     file://0002-flutter-third_party-swiftshader-llvm-16.0-required-f.patch \
     ${SRC_URI_EXTRA} \

@@ -13,8 +13,8 @@ SSTATE_DIR = "/home/dev/sstate"
 INIT_MANAGER = "systemd"
 
 # ***************************************
-DISTRO_FEATURES:remove = "sysvinit ptest x11 pulseaudio"
-DISTRO_FEATURES:append = " systemd wayland opengl polkit pipewire"
+DISTRO_FEATURES:remove = "sysvinit usbgadget ptest xen"
+DISTRO_FEATURES:append = " systemd x11 wayland opengl pam polkit pipewire pulseaudio"
 
 DISTRO_FEATURES_BACKFILL_CONSIDERED = ""
 
