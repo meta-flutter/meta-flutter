@@ -1,7 +1,7 @@
-From 36bfca20380bd5e092744208beea91d476e75e78 Mon Sep 17 00:00:00 2001
+From d4ce6b54e3009ef96f55358e367a4a114a503b7f Mon Sep 17 00:00:00 2001
 From: Joel Winarske <joel.winarske@gmail.com>
-Date: Mon, 10 Nov 2025 10:53:48 -0800
-Subject: [PATCH 2/2] [flutter/third_party/swiftshader] llvm-16.0 required for
+Date: Mon, 24 Nov 2025 16:34:21 -0800
+Subject: [PATCH] [flutter/third_party/swiftshader] llvm-16.0 required for
 
 Upstream-Status: Inappropriate
 
@@ -24,5 +24,5 @@ index 67dfeb0ec..dcb13614a 100644
      deps = [
        ":swiftshader_reactor_base",
 -- 
-2.51.1
+2.52.0
 
