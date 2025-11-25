@@ -1,0 +1,78 @@
+From f20c934adc4771a6b4a87c1c03652de8fe39b1bb Mon Sep 17 00:00:00 2001
+From: Jaeyoon Jung <jaeyoon.jung@lge.com>
+Date: Tue, 25 Nov 2025 15:04:22 +0900
+Subject: [PATCH] Fix error when building with musl
+
+Make sure HAVE_BACKTRACE, HAVE_EXECINFO_H and HAVE_MALLINFO to be
+defined as 1 only if __GLIBC__ is defined.
+
+Upstream-Status: Inappropriate [musl libc specific]
+Signed-off-by: Jaeyoon Jung <jaeyoon.jung@lge.com>
+---
+ .../llvm-10.0/configs/linux/include/llvm/Config/config.h    | 2 ++
+ .../llvm-16.0/configs/linux/include/llvm/Config/config.h    | 2 ++
+ .../llvm-subzero/build/Linux/include/llvm/Config/config.h   | 6 ++++++
+ 3 files changed, 10 insertions(+)
+
+diff --git a/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h b/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h
+index 7392898..0bf7c4a 100644
+--- a/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h
++++ b/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h
+@@ -125,7 +125,9 @@
+ /* #undef HAVE_MALLCTL */
+ 
+ /* Define to 1 if you have the `mallinfo' function. */
++#if defined(__GLIBC__)
+ #define HAVE_MALLINFO 1
++#endif
+ 
+ /* Define to 1 if you have the <malloc/malloc.h> header file. */
+ /* #undef HAVE_MALLOC_MALLOC_H */
+diff --git a/third_party/llvm-16.0/configs/linux/include/llvm/Config/config.h b/third_party/llvm-16.0/configs/linux/include/llvm/Config/config.h
+index 5e169c0..e303996 100644
+--- a/third_party/llvm-16.0/configs/linux/include/llvm/Config/config.h
++++ b/third_party/llvm-16.0/configs/linux/include/llvm/Config/config.h
+@@ -135,7 +135,9 @@
+ /* #undef HAVE_MALLCTL */
+ 
+ /* Define to 1 if you have the `mallinfo' function. */
++#if defined(__GLIBC__)
+ #define HAVE_MALLINFO 1
++#endif
+ 
+ /* Define to 1 if you have the `mallinfo2' function. */
+ /* #undef HAVE_MALLINFO2 */
+diff --git a/third_party/llvm-subzero/build/Linux/include/llvm/Config/config.h b/third_party/llvm-subzero/build/Linux/include/llvm/Config/config.h
+index 0ffd1bf..d210742 100644
+--- a/third_party/llvm-subzero/build/Linux/include/llvm/Config/config.h
++++ b/third_party/llvm-subzero/build/Linux/include/llvm/Config/config.h
+@@ -17,7 +17,9 @@
+ #define ENABLE_CRASH_OVERRIDES 0
+ 
+ /* Define to 1 if you have the `backtrace' function. */
++#if defined(__GLIBC__)
+ #define HAVE_BACKTRACE 1
++#endif
+ 
+ /* Define to 1 if you have the <CrashReporterClient.h> header file. */
+ /* #undef HAVE_CRASHREPORTERCLIENT_H */
+@@ -58,7 +60,9 @@
+ #define HAVE_ERRNO_H 1
+ 
+ /* Define to 1 if you have the <execinfo.h> header file. */
++#if defined(__GLIBC__)
+ #define HAVE_EXECINFO_H 1
++#endif
+ 
+ /* Define to 1 if you have the <fcntl.h> header file. */
+ #define HAVE_FCNTL_H 1
+@@ -133,7 +137,9 @@
+ /* #undef HAVE_MALLCTL */
+ 
+ /* Define to 1 if you have the `mallinfo' function. */
++#if defined(__GLIBC__)
+ #define HAVE_MALLINFO 1
++#endif
+ 
+ /* Some projects using SwiftShader bypass cmake (eg Chromium via gn) */
+ /* so we need to check glibc version for the new API to be safe */

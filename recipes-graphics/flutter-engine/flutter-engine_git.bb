@@ -58,6 +58,7 @@ SRC_URI:libc-musl += "\
     file://0001-libcxx-uglify-support-musl.patch;patchdir=engine/src/flutter/third_party \
     file://0002-libcxx-return-type-in-wcstoull_l.patch;patchdir=engine/src/flutter/third_party \
     file://0003-suppres-musl-libc-warning.patch;patchdir=engine/src/flutter/third_party/dart \
+    file://0004-Fix-error-when-building-with-musl.patch;patchdir=flutter/third_party/swiftshader \
     "
 
 inherit gn-fetcher features_check pkgconfig
@@ -218,11 +219,6 @@ do_configure() {
     #
     test -z $WAYLAND_IS_PRESENT && sed -i "s|ozone_platform_wayland = true|ozone_platform_wayland = false|g" build/config/BUILDCONFIG.gn
     test -z $X11_IS_PRESENT && sed -i "s|ozone_platform_x11 = true|ozone_platform_x11 = false|g" build/config/BUILDCONFIG.gn 
-
-    #
-    # fix build with musl libc
-    #
-    [ "${TCLIBC}" = "musl" ] && sed -i "s|#define HAVE_MALLINFO 1||g" -i flutter/third_party/swiftshader/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h
 
     #
     # Custom Build config
