@@ -1,0 +1,40 @@
+From 25f6dbd32650561a65886dc87f7a040c880dc992 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Tue, 25 Nov 2025 16:39:50 -0800
+Subject: [PATCH] resolve `unknown warning option`
+
+- switch `-Wno-nontrivial-memcall` to `-Wno-nontrivial-memaccess`
+  for older LLVM compatibility.
+
+Upstream-Status: Inappropriate
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ engine/src/build/config/compiler/BUILD.gn | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/engine/src/build/config/compiler/BUILD.gn b/engine/src/build/config/compiler/BUILD.gn
+index 50f1b60eab1..40d7c8e577f 100644
+--- a/engine/src/build/config/compiler/BUILD.gn
++++ b/engine/src/build/config/compiler/BUILD.gn
+@@ -726,7 +726,7 @@ if (is_win) {
+       "-Wno-deprecated-literal-operator",
+ 
+       # Needed by skia, imgui, swiftshader, and angle
+-      "-Wno-nontrivial-memcall",
++      "-Wno-nontrivial-memaccess",
+     ]
+   }
+ } else {
+@@ -787,7 +787,7 @@ if (is_win) {
+       "-Wno-unqualified-std-cast-call",
+ 
+       # Needed by skia, imgui, swiftshader, and angle
+-      "-Wno-nontrivial-memcall",
++      "-Wno-nontrivial-memaccess",
+     ]
+   }
+   if (!is_fuchsia && is_clang) {
+-- 
+2.52.0
+

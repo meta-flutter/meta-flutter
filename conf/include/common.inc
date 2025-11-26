@@ -495,7 +495,6 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
                 dep_path = glob.glob(f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/kernel_snapshot_program.d')
 
             cmd = f'{dart_runtime} \
-                --disable-analytics \
                 --disable-dart-dev \
                 {frontend_snapshot} \
                 --sdk-root {flutter_app_sdk_root} \
