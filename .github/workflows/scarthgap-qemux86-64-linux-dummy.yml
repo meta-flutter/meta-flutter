@@ -105,6 +105,66 @@ jobs:
           bitbake ca-certificates-native -c do_cleansstate
           bitbake ca-certificates-native
 
+      - name: Build ivi-homescreen with musl
+        shell: bash
+        working-directory: ../scarthgap-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          echo "TCLIBC:pn-ivi-homescreen = \"musl\"" >> ./conf/local.conf
+          bitbake ivi-homescreen -c do_cleansstate
+          bitbake ivi-homescreen
+          sed -i '/TCLIBC:pn-ivi-homescreen/d' ./conf/local.conf
+
+      - name: Build flutter-auto with musl
+        shell: bash
+        working-directory: ../scarthgap-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          echo "TCLIBC:pn-flutter-auto = \"musl\"" >> ./conf/local.conf
+          bitbake flutter-auto -c do_cleansstate
+          bitbake flutter-auto
+          sed -i '/TCLIBC:pn-flutter-auto/d' ./conf/local.conf
+          
+      - name: Build dart-sdk with musl
+        shell: bash
+        working-directory: ../scarthgap-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          echo "TCLIBC:pn-dart-sdk = \"musl\"" >> ./conf/local.conf
+          bitbake dart-sdk -c do_cleansstate
+          bitbake dart-sdk
+          sed -i '/TCLIBC:pn-dart-sdk/d' ./conf/local.conf
+
+      - name: Build flutter-engine with musl
+        shell: bash
+        working-directory: ../scarthgap-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          echo "TCLIBC:pn-flutter-engine = \"musl\"" >> ./conf/local.conf
+          bitbake flutter-engine -c do_cleansstate
+          bitbake flutter-engine
+          sed -i '/TCLIBC:pn-flutter-engine/d' ./conf/local.conf
+
+      - name: Build sentry with musl
+        shell: bash
+        working-directory: ../scarthgap-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          echo "TCLIBC:pn-sentry = \"musl\"" >> ./conf/local.conf
+          bitbake sentry -c do_cleansstate
+          bitbake sentry
+          sed -i '/TCLIBC:pn-sentry/d' ./conf/local.conf
+
+      - name: Build libwebrtc with musl
+        shell: bash
+        working-directory: ../scarthgap-linux-dummy
+        run: |
+          . ./poky/oe-init-build-env
+          echo "TCLIBC:pn-libwebrtc = \"musl\"" >> ./conf/local.conf
+          bitbake libwebrtc -c do_cleansstate
+          bitbake libwebrtc
+          sed -i '/TCLIBC:pn-libwebrtc/d' ./conf/local.conf
+
       - name: Build flutter-sdk-native
         shell: bash
         working-directory: ../scarthgap-linux-dummy

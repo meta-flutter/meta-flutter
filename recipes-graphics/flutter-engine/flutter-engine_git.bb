@@ -218,7 +218,11 @@ do_configure() {
     #
     # fix build with musl libc
     #
-    [ "${TCLIBC}" = "musl" ] && sed -i "s|#define HAVE_MALLINFO 1||g" -i flutter/third_party/swiftshader/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h
+    if [ "${TCLIBC}" = "musl" ]; then
+        sed -i '/HAVE_MALLINFO 1/d' flutter/third_party/swiftshader/third_party/llvm-16.0/configs/linux/include/llvm/Config/config.h
+        sed -i '/HAVE_BACKTRACE 1/d' flutter/third_party/swiftshader/third_party/llvm-16.0/configs/linux/include/llvm/Config/config.h
+        sed -i '/HAVE_EXECINFO_H 1/d' flutter/third_party/swiftshader/third_party/llvm-16.0/configs/linux/include/llvm/Config/config.h
+    fi
 
     #
     # Custom Build config
