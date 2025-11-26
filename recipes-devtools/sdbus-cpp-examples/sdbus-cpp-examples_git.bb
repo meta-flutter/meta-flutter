@@ -16,7 +16,7 @@ DEPENDS += "\
     systemd \
     "
 
-SRCREV = "7f04a089014e21dff3dfd5acd05c2599ff2b7f86"
+SRCREV = "a828f92df36d51e382a51b721da7314500baa1e7"
 SRC_URI = " \
     gitsm://github.com/jwinarske/sdbus-cpp-examples.git;protocol=https;branch=main \
 "
