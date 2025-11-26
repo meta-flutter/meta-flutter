@@ -7,13 +7,13 @@ Upstream-Status: Inappropriate
 
 Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
- engine/src/flutter/third_party/swiftshader/src/Reactor/BUILD.gn | 2 +-
+ src/Reactor/BUILD.gn | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/engine/src/flutter/third_party/swiftshader/src/Reactor/BUILD.gn b/engine/src/flutter/third_party/swiftshader/src/Reactor/BUILD.gn
+diff --git a/src/Reactor/BUILD.gn b/src/Reactor/BUILD.gn
 index 67dfeb0ec..dcb13614a 100644
---- a/engine/src/flutter/third_party/swiftshader/src/Reactor/BUILD.gn
-+++ b/engine/src/flutter/third_party/swiftshader/src/Reactor/BUILD.gn
+--- a/src/Reactor/BUILD.gn
++++ b/src/Reactor/BUILD.gn
 @@ -307,7 +307,7 @@ if (supports_subzero) {
  
  if (supports_llvm) {
