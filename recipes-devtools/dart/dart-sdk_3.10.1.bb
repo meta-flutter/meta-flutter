@@ -19,6 +19,10 @@ DEPENDS += "\
     xz-native \
     "
 
+RDEPENDS:dart-sdk:libc-musl = "\
+    musl \
+    "
+
 S = "${WORKDIR}/gn"
 
 SRCREV = "13d929085afa86e5902ed7293cca8509f099ee97"

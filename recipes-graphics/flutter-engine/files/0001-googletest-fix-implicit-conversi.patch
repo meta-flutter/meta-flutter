@@ -8,13 +8,13 @@ Upstream-Status: Inappropriate
 
 Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
- engine/src/flutter/third_party/googletest/googletest/include/gtest/gtest-printers.h | 4 ++--
+ googletest/include/gtest/gtest-printers.h | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/engine/src/flutter/third_party/googletest/googletest/include/gtest/gtest-printers.h b/engine/src/flutter/third_party/googletest/googletest/include/gtest/gtest-printers.h
+diff --git a/googletest/include/gtest/gtest-printers.h b/googletest/include/gtest/gtest-printers.h
 index 1b12ef68..e56cfd15 100644
---- a/engine/src/flutter/third_party/googletest/googletest/include/gtest/gtest-printers.h
-+++ b/engine/src/flutter/third_party/googletest/googletest/include/gtest/gtest-printers.h
+--- a/googletest/include/gtest/gtest-printers.h
++++ b/googletest/include/gtest/gtest-printers.h
 @@ -517,11 +517,11 @@ GTEST_API_ void PrintTo(wchar_t wc, ::std::ostream* os);
  
  GTEST_API_ void PrintTo(char32_t c, ::std::ostream* os);

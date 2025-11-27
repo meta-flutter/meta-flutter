@@ -34,13 +34,13 @@ SRC_URI = "\
     git://github.com/flutter/flutter.git;protocol=https;nobranch=1;name=flutter_sdk \
     gn://github.com/flutter/flutter.git \
     file://BUILD.gn.in \
-    file://0003-gn-riscv32-and-riscv64.patch \
-    file://0006-fml-fixes-text_input-compiler-warnings.patch \
-    file://0007-impeller-unnecessary-virtual-specifier.patch \
-    file://0001-flutter-third_party-abseil-cpp-clang-compiler-warnin.patch \
-    file://0001-flutter-third_party-googletest-fix-implicit-conversi.patch \
-    file://0001-flutter-third_party-swiftshader-pointer-cast-to-void.patch \
-    file://0002-flutter-third_party-swiftshader-llvm-16.0-required-f.patch \
+    file://0001-gn-riscv32-and-riscv64.patch \
+    file://0002-fml-fixes-text_input-compiler-warnings.patch \
+    file://0003-impeller-unnecessary-virtual-specifier.patch \
+    file://0001-abseil-cpp-clang-compiler-warnin.patch;patchdir=engine/src/flutter/third_party/abseil-cpp \
+    file://0001-googletest-fix-implicit-conversi.patch;patchdir=engine/src/flutter/third_party/googletest \
+    file://0001-swiftshader-pointer-cast-to-void.patch;patchdir=engine/src/flutter/third_party/swiftshader \
+    file://0002-swiftshader-llvm-16.0-required-f.patch;patchdir=engine/src/flutter/third_party/swiftshader \
     ${SRC_URI_EXTRA} \
     "
 SRCREV_FORMAT .= "_flutter_sdk"
@@ -49,11 +49,9 @@ SRCREV_flutter_sdk = "${@get_flutter_hash(d)}"
 S = "${WORKDIR}/gn"
 
 # musl-specific patches.
-SRC_URI:libc-musl += "\
-    file://0001-libcxx-uglify-support-musl.patch;patchdir=engine/src/flutter/third_party \
-    file://0002-libcxx-return-type-in-wcstoull_l.patch;patchdir=engine/src/flutter/third_party \
-    file://0003-suppres-musl-libc-warning.patch;patchdir=engine/src/flutter/third_party/dart \
-    "
+SRC_URI:append:libc-musl = "\
+   file://0001-suppres-musl-libc-warning.patch;patchdir=engine/src/flutter/third_party/dart \
+   "
 
 inherit gn-fetcher features_check pkgconfig
 
@@ -215,9 +213,23 @@ do_configure() {
     test -z $X11_IS_PRESENT && sed -i "s|ozone_platform_x11 = true|ozone_platform_x11 = false|g" build/config/BUILDCONFIG.gn 
 
     #
-    # fix build with musl libc
+    # musl
     #
-    [ "${TCLIBC}" = "musl" ] && sed -i "s|#define HAVE_MALLINFO 1||g" -i flutter/third_party/swiftshader/third_party/llvm-10.0/configs/linux/include/llvm/Config/config.h
+    if [ "${TCLIBC}" = "musl" ]; then
+        # Update swiftshader config defines
+        sed -i '/HAVE_MALLINFO 1/d' flutter/third_party/swiftshader/third_party/llvm-16.0/configs/linux/include/llvm/Config/config.h
+        sed -i '/HAVE_BACKTRACE 1/d' flutter/third_party/swiftshader/third_party/llvm-16.0/configs/linux/include/llvm/Config/config.h
+        sed -i '/HAVE_EXECINFO_H 1/d' flutter/third_party/swiftshader/third_party/llvm-16.0/configs/linux/include/llvm/Config/config.h
+
+        # flatbuffers on some revisions uses *_l locale variants which musl doesn't provide.
+        # Replace them with the non-locale variants for musl builds.
+        if [ -f flutter/third_party/flatbuffers/include/flatbuffers/util.h ]; then
+            sed -i 's|#define __strtoll_impl(s, pe, b) strtoll_l(s, pe, b, ClassicLocale::Get())|#define __strtoll_impl(s, pe, b) strtoll(s, pe, b)|' \
+                flutter/third_party/flatbuffers/include/flatbuffers/util.h || true
+            sed -i 's|#define __strtoull_impl(s, pe, b) strtoull_l(s, pe, b, ClassicLocale::Get())|#define __strtoull_impl(s, pe, b) strtoull(s, pe, b)|' \
+                flutter/third_party/flatbuffers/include/flatbuffers/util.h || true
+        fi
+    fi
 
     #
     # Custom Build config
