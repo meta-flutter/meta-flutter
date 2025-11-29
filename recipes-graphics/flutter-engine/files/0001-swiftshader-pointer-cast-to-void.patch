@@ -7,13 +7,13 @@ Upstream-Status: Inappropriate
 
 Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
 ---
-  engine/src/flutter/third_party/swiftshader/src/Device/Memset.hpp | 6 +++---
+  src/Device/Memset.hpp | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/engine/src/flutter/third_party/swiftshader/src/Device/Memset.hpp b/engine/src/flutter/third_party/swiftshader/src/Device/Memset.hpp
+diff --git a/src/Device/Memset.hpp b/src/Device/Memset.hpp
 index 91c7e4d73..5b5e1e6c5 100644
---- a/engine/src/flutter/third_party/swiftshader/src/Device/Memset.hpp
-+++ b/engine/src/flutter/third_party/swiftshader/src/Device/Memset.hpp
+--- a/src/Device/Memset.hpp
++++ b/src/Device/Memset.hpp
 @@ -39,19 +39,19 @@ struct Memset
  	{
  		static_assert(std::is_base_of<Memset<T>, T>::value, "Memset<T> must only clear the memory of a type of which it is a base class");
