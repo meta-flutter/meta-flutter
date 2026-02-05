@@ -29,7 +29,7 @@ SRC_REPO ??= "github.com/flutter-elinux/flutter-embedded-linux.git"
 SRC_REPO_BRANCH ??= "master"
 
 SRC_URI = "git://${SRC_REPO};protocol=https;branch=${SRC_REPO_BRANCH}"
-SRCREV ??= "1653fa656bf9fe9fa5f84789a59b0c07671a8fc8"
+SRCREV ??= "6d123979d1f99b7d6d35cd33cd1efb9b3ecf651c"
 
 inherit pkgconfig cmake features_check
 
