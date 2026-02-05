@@ -1,0 +1,27 @@
+From d55ded3a6705cb7a834cbe0250aeabf9d82a24c1 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Thu, 17 Oct 2024 09:17:00 -0700
+Subject: [PATCH] Add missing stdint header
+
+Upstream-Status: Inappropriate
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ .../common/client_wrapper/include/flutter/binary_messenger.h     | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/flutter/shell/platform/common/client_wrapper/include/flutter/binary_messenger.h b/src/flutter/shell/platform/common/client_wrapper/include/flutter/binary_messenger.h
+index d552b49..553ba0b 100644
+--- a/src/flutter/shell/platform/common/client_wrapper/include/flutter/binary_messenger.h
++++ b/src/flutter/shell/platform/common/client_wrapper/include/flutter/binary_messenger.h
+@@ -5,6 +5,7 @@
+ #ifndef FLUTTER_SHELL_PLATFORM_COMMON_CLIENT_WRAPPER_INCLUDE_FLUTTER_BINARY_MESSENGER_H_
+ #define FLUTTER_SHELL_PLATFORM_COMMON_CLIENT_WRAPPER_INCLUDE_FLUTTER_BINARY_MESSENGER_H_
+ 
++#include <cstdint>
+ #include <functional>
+ #include <string>
+ 
+-- 
+2.47.0
+

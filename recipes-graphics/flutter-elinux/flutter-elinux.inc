@@ -2,10 +2,17 @@
 # Copyright (c) 2020-2025 Joel Winarske. All rights reserved.
 #
 
+python __anonymous() {
+    if d.getVar('FLUTTER_ELINUX_USE_SONY') is None:
+        bb.warnonce("FLUTTER_ELINUX_USE_SONY is unset. Defaulting to flutter-elinux recipes. "
+                "Set FLUTTER_ELINUX_USE_SONY = \"0\" to silence this warning, "
+                "or FLUTTER_ELINUX_USE_SONY = \"1\" to use the deprecated sony recipes.")
+}
+
 SUMMARY = "Embedded Linux embedding for Flutter"
 AUTHOR = "Sony Group Corporation"
-HOMEPAGE = "https://github.com/sony/flutter-embedded-linux"
-BUGTRACKER = "https://github.com/sony/flutter-embedded-linux/issues"
+HOMEPAGE = "https://github.com/flutter-elinux/flutter-embedded-linux"
+BUGTRACKER = "https://github.com/flutter-elinux/flutter-embedded-linux/issues"
 SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=d45359c88eb146940e4bede4f08c821a"
@@ -25,7 +32,7 @@ RDEPENDS:${PN} += " \
 
 REQUIRED_DISTRO_FEATURES += "opengl"
 
-SRC_REPO ??= "github.com/sony/flutter-embedded-linux.git"
+SRC_REPO ??= "github.com/flutter-elinux/flutter-embedded-linux.git"
 SRC_REPO_BRANCH ??= "master"
 
 SRC_URI = "git://${SRC_REPO};protocol=https;branch=${SRC_REPO_BRANCH}"
@@ -67,17 +74,11 @@ do_configure:prepend() {
     ln -sf ${FLUTTER_ENGINE_PATH}/lib/libflutter_engine.so ${S}/build/libflutter_engine.so
 }
 
-PRIVATE_LIBS:${PN} = "libflutter_engine.so"
+do_package_qa[noexec] = "1"
+EXCLUDE_FROM_SHLIBS = "1"
 
 RDEPENDS:${PN} += "flutter-engine"
 
 python () {
     d.setVar('FLUTTER_SDK_VERSION', get_flutter_sdk_version(d))
 }
-
-python __anonymous() {
-    bb.warnonce("sony flutter-embedded-linux recipes are deprecated. "
-            "Use recipes-graphics/flutter-elinux/ instead. "
-            "FLUTTER_ELINUX_USE_SONY=1 currently set - remove to silence this warning.")
-}
-
