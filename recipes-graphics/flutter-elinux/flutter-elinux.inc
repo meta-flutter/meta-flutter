@@ -4,8 +4,8 @@
 
 SUMMARY = "Embedded Linux embedding for Flutter"
 AUTHOR = "Sony Group Corporation"
-HOMEPAGE = "https://github.com/sony/flutter-embedded-linux"
-BUGTRACKER = "https://github.com/sony/flutter-embedded-linux/issues"
+HOMEPAGE = "https://github.com/flutter-elinux/flutter-embedded-linux"
+BUGTRACKER = "https://github.com/flutter-elinux/flutter-embedded-linux/issues"
 SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=d45359c88eb146940e4bede4f08c821a"
@@ -25,7 +25,7 @@ RDEPENDS:${PN} += " \
 
 REQUIRED_DISTRO_FEATURES += "opengl"
 
-SRC_REPO ??= "github.com/sony/flutter-embedded-linux.git"
+SRC_REPO ??= "github.com/flutter-elinux/flutter-embedded-linux.git"
 SRC_REPO_BRANCH ??= "master"
 
 SRC_URI = "git://${SRC_REPO};protocol=https;branch=${SRC_REPO_BRANCH}"
