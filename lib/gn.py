@@ -32,10 +32,10 @@ class GN(FetchMethod):
         return False
 
     def urldata_init(self, ud, d):
-        # syntax: gn://<URL>;gn_name=<NAME>;destdir=<D>;proto=<PROTO>
+        # syntax: gn://<URL>;gn_name=<NAME>;destdir=<D>;protocol=<PROTO>
         name = ud.parm.get("gn_name", ".")
         ud.destdir = ud.parm.get("destdir", d.getVar("S"))
-        proto = ud.parm.get("proto", "https")
+        proto = ud.parm.get("protocol", "https")
 
         ud.basename = "*"
 
