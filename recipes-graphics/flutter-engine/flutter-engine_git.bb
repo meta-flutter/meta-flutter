@@ -270,7 +270,7 @@ do_configure() {
     done
 
     # external clang toolchain
-    cd ${STAGING_DIR_TARGET}/usr/lib
+    cd ${STAGING_DIR_TARGET}${libdir}
 
     test -e crtbeginS.o && rm crtbeginS.o
     test -e crtendS.o && rm crtendS.o
