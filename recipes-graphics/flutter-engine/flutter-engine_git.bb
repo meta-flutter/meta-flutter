@@ -66,7 +66,7 @@ SRC_URI:libc-musl += "\
 
 inherit gn-fetcher features_check pkgconfig
 
-GN_DEPS_SED_PATCHES:pn-flutter-engine: = "# Always download the JDK since java is required for running the formatter.|'condition': 'download_android_deps',"
+GN_DEPS_SED_PATCHES:pn-flutter-engine:aarch64 = "# Always download the JDK since java is required for running the formatter.|'condition': 'download_android_deps',"
 
 # For gn.bbclass
 GN_CUSTOM_VARS ?= '\
