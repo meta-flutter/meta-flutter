@@ -66,6 +66,7 @@ SRC_URI:libc-musl += "\
 
 inherit gn-fetcher features_check pkgconfig
 
+GN_DEPS_SED_PATCHES:pn-flutter-engine:aarch64 = "# Always download the JDK since java is required for running the formatter.|'condition': 'download_android_deps',"
 
 # For gn.bbclass
 GN_CUSTOM_VARS ?= '\
@@ -73,6 +74,13 @@ GN_CUSTOM_VARS ?= '\
     "download_android_deps": False, \
     "download_windows_deps": False, \
     "download_linux_deps": False,   \
+}'
+GN_CUSTOM_VARS:aarch64 ?= '\
+{
+    "download_android_deps": False, \
+    "download_windows_deps": False, \
+    "download_linux_deps": False,   \
+    "download_fuchsia_deps": False, \
 }'
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 

@@ -490,10 +490,11 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
                 frontend_snapshot = f'{flutter_sdk}/bin/cache/artifacts/engine/linux-{clang_build_arch(d)}/frontend_server.dart.snapshot'
                 dep_path = glob.glob(f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/kernel_snapshot.d')
             else:
-                dart_runtime = f'{flutter_sdk}/bin/cache/dart-sdk/bin/dartaotruntime'
-                frontend_snapshot = f'{flutter_sdk}/bin/cache/artifacts/engine/linux-{clang_build_arch(d)}/frontend_server_aot.dart.snapshot'
+                dart_runtime    = f'{flutter_sdk}/bin/cache/dart-sdk/bin/dartaotruntime'
+                sdk_snapshot    = f'{flutter_sdk}/bin/cache/dart-sdk/bin/snapshots/frontend_server_aot.dart.snapshot'
+                engine_snapshot = f'{flutter_sdk}/bin/cache/artifacts/engine/linux-{clang_build_arch(d)}/frontend_server_aot.dart.snapshot'
+                frontend_snapshot = sdk_snapshot if os.path.exists(sdk_snapshot) else engine_snapshot
                 dep_path = glob.glob(f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/kernel_snapshot_program.d')
-
             cmd = f'{dart_runtime} \
                 --disable-dart-dev \
                 {frontend_snapshot} \
