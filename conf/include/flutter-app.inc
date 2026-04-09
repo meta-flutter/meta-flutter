@@ -17,7 +17,8 @@ DEPENDS += " \
 
 BUILD_TYPE = "app"
 
-FLUTTER_BUILD_ARGS ??= "bundle"
+FLUTTER_BUILD_ARGS ??= "bundle "
+FLUTTER_BUILD_ARGS += " --target-platform linux-${@clang_build_arch(d)}"
 
 do_install() {
 
