@@ -20,6 +20,8 @@ FLUTTER_APPLICATION_INSTALL_SUFFIX = "gskinnerteam-flutter-wonderous-app-wonders
 PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = ""
 
+S = "${WORKDIR}/git"
+
 inherit flutter-app
 
 do_compile[network] = "1"
