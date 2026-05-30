@@ -60,15 +60,19 @@ export SKIP_NATIVE_BUILD = "1"
 # prebuilt libsqlite3 from GitHub during `flutter build`, which fails in the
 # network-isolated do_compile. Tell its build hook to resolve sqlite3 from the
 # system library instead (DynamicLoadingSystem -> dlopen libsqlite3.so at
-# runtime). user_defines are read from the app being built, so write them into
-# the example app's pubspec_overrides.yaml.
+# runtime). user_defines are read from the app being built and must live in its
+# pubspec.yaml -- pubspec_overrides.yaml only accepts dependency_overrides /
+# resolution / workspace, so append the hooks section to pubspec.yaml itself.
 do_configure:prepend() {
-    cat > ${S}/${FLUTTER_APPLICATION_PATH}/pubspec_overrides.yaml <<'EOF'
+    if ! grep -q '^hooks:' ${S}/${FLUTTER_APPLICATION_PATH}/pubspec.yaml; then
+        cat >> ${S}/${FLUTTER_APPLICATION_PATH}/pubspec.yaml <<'EOF'
+
 hooks:
   user_defines:
     sqlite3:
       source: system
 EOF
+    fi
 }
 
 # libsqlite3.so is resolved from the system at runtime (sqlite3 source: system
