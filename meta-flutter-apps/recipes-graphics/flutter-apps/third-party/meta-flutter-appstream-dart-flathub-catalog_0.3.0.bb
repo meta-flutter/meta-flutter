@@ -110,10 +110,14 @@ do_install:append() {
     install -d ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/lib
     cp ${B}/libappstream.so \
         ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/lib/
+
+    # Dart looks for libsqite3.so
+    ln -sf /usr/lib/libsqlite3.so.0 \
+        ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/lib/libsqlite3.so
 }
 
 FILES:${PN} += "\
-    ${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/lib/libappstream.so \
+    ${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/lib/ \
 "
 
 FILES:${PN}-dbg += "\
