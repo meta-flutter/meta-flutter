@@ -64,6 +64,10 @@ export SKIP_NATIVE_BUILD = "1"
 # pubspec.yaml -- pubspec_overrides.yaml only accepts dependency_overrides /
 # resolution / workspace, so append the hooks section to pubspec.yaml itself.
 do_configure:prepend() {
+    # Remove any pubspec_overrides.yaml a prior build of this recipe may have
+    # left behind: pub rejects a `hooks:` section there, and a stale one breaks
+    # `flutter pub get` even after the source is otherwise unchanged.
+    rm -f ${S}/${FLUTTER_APPLICATION_PATH}/pubspec_overrides.yaml
     if ! grep -q '^hooks:' ${S}/${FLUTTER_APPLICATION_PATH}/pubspec.yaml; then
         cat >> ${S}/${FLUTTER_APPLICATION_PATH}/pubspec.yaml <<'EOF'
 
