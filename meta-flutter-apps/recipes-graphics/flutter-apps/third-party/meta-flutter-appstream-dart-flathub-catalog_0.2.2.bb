@@ -56,6 +56,25 @@ EXTRA_OECMAKE += "\
 # libappstream.so for the target.
 export SKIP_NATIVE_BUILD = "1"
 
+# The sqlite3 Dart package (pulled in via drift) defaults to downloading a
+# prebuilt libsqlite3 from GitHub during `flutter build`, which fails in the
+# network-isolated do_compile. Tell its build hook to resolve sqlite3 from the
+# system library instead (DynamicLoadingSystem -> dlopen libsqlite3.so at
+# runtime). user_defines are read from the app being built, so write them into
+# the example app's pubspec_overrides.yaml.
+do_configure:prepend() {
+    cat > ${S}/${FLUTTER_APPLICATION_PATH}/pubspec_overrides.yaml <<'EOF'
+hooks:
+  user_defines:
+    sqlite3:
+      source: system
+EOF
+}
+
+# libsqlite3.so is resolved from the system at runtime (sqlite3 source: system
+# above, and libappstream.so links it), so it must be present on the image.
+RDEPENDS:${PN} += "libsqlite3"
+
 #
 # avoid conflict with flutter-app's do_compile
 #
