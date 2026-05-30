@@ -10,9 +10,9 @@ BUGTRACKER = "https://github.com/meta-flutter/appstream_dart/issues"
 SECTION = "graphics"
 
 LICENSE = "Apache-2.0"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=2bd45dcb3c7d3bd3ad977ef0ea094f47"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=641bdc36389b26ea9787acb6844e4b22"
 
-SRCREV = "b132c053826a156fd1b05b9d4a90865c088a1d9a"
+SRCREV = "c53d5c8a9ba048cdca572ba41fb517a830a3b9aa"
 SRC_URI = "gitsm://github.com/meta-flutter/appstream_dart.git;branch=main;protocol=https"
 
 DEPENDS += " \
