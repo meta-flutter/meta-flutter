@@ -35,7 +35,12 @@ PREFERRED_PROVIDER_llvm-native = "clang-native"
 PREFERRED_PROVIDER_libgcc = "compiler-rt"
 LIBCPLUSPLUS = "-stdlib=libc++"
 
-inherit flutter-app cmake pkgconfig
+# Order matters: cmake must be inherited before flutter-app so that
+# flutter-app's do_compile (flutter build) and do_install (bundle install)
+# win over cmake's EXPORT_FUNCTIONS versions. cmake still provides
+# do_configure (its sole definer) and cmake_do_compile, used by the
+# do_cmake_compile task below to build libappstream.so for the target.
+inherit cmake flutter-app pkgconfig
 
 EXTRA_OECMAKE += "\
     -D APPSTREAM_BUILD_TESTS=OFF \
