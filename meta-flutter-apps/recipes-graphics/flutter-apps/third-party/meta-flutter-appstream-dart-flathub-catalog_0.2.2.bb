@@ -64,13 +64,14 @@ export SKIP_NATIVE_BUILD = "1"
 # pubspec.yaml -- pubspec_overrides.yaml only accepts dependency_overrides /
 # resolution / workspace, so append the hooks section to pubspec.yaml itself.
 #
-# Done in do_patch (not do_configure) so the edit is in place before
-# do_archive_pub_cache performs the first, network-enabled dependency
-# resolution. Editing pubspec.yaml after that point makes the offline pub get
-# in do_compile re-resolve, which tries to fetch security advisories from
-# pub.dev and fails with no network. The added hooks section carries no
-# dependency change, so the lockfile is unaffected.
-do_patch:append() {
+# Run as a dedicated task between do_patch and do_archive_pub_cache so the edit
+# is in place before do_archive_pub_cache performs the first, network-enabled
+# dependency resolution. (do_patch itself is a python task, so it cannot take a
+# shell :append.) Editing pubspec.yaml after that first resolution makes the
+# offline pub get in do_compile re-resolve, which tries to fetch security
+# advisories from pub.dev and fails with no network. The added hooks section
+# carries no dependency change, so the lockfile is unaffected.
+do_inject_user_defines() {
     # Remove any pubspec_overrides.yaml a prior build of this recipe may have
     # left behind: pub rejects a `hooks:` section there, and a stale one breaks
     # `flutter pub get` even after the source is otherwise unchanged.
@@ -85,6 +86,8 @@ hooks:
 EOF
     fi
 }
+addtask inject_user_defines after do_patch before do_archive_pub_cache
+do_inject_user_defines[dirs] = "${S}"
 
 # libsqlite3.so is resolved from the system at runtime (sqlite3 source: system
 # above, and libappstream.so links it), so it must be present on the image.
