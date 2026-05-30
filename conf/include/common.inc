@@ -418,6 +418,12 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
         bb.note(f'Using new build scheme')
         new_build_scheme = True
 
+    # Check if network is enabled for build. "flutter build" runs "dart pub get" which on default configuration requires network.
+    # If network is not enabled for build, pass the "--no-pub" argument to "flutter build"
+    compile_network = d.getVarFlag('do_compile', 'network')
+    if not compile_network:
+        flutter_build_args += " --no-pub"
+
     for runtime_mode in flutter_runtime_modes:
         if runtime_mode not in flutter_app_runtime_modes:
             bb.note(f'Skipping build for: {runtime_mode}')
