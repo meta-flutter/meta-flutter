@@ -38,9 +38,23 @@ LIBCPLUSPLUS = "-stdlib=libc++"
 inherit flutter-app cmake pkgconfig
 
 EXTRA_OECMAKE += "\
-    -D BUILD_TESTING=OFF \
-    -D APPSTREAM_HOOK_BUILD=ON \
+    -D APPSTREAM_BUILD_TESTS=OFF \
+    -D APPSTREAM_LIB_OUTPUT_DIR=${B} \
 "
+
+#
+# Make the Dart native-assets build hook a no-op during flutter-app's
+# `flutter build`; do_cmake_compile (cmake.bbclass) is what builds
+# libappstream.so for the target. Keyed by the pubspec name (appstream_dart).
+#
+do_configure:prepend() {
+    cat > ${S}/${FLUTTER_APPLICATION_PATH}/pubspec_overrides.yaml <<'EOF'
+hooks:
+  user_defines:
+    appstream_dart:
+      skip_native_build: "1"
+EOF
+}
 
 #
 # avoid conflict with flutter-app's do_compile
