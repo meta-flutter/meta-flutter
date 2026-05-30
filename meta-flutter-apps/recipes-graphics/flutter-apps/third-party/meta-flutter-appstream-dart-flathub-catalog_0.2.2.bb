@@ -63,7 +63,14 @@ export SKIP_NATIVE_BUILD = "1"
 # runtime). user_defines are read from the app being built and must live in its
 # pubspec.yaml -- pubspec_overrides.yaml only accepts dependency_overrides /
 # resolution / workspace, so append the hooks section to pubspec.yaml itself.
-do_configure:prepend() {
+#
+# Done in do_patch (not do_configure) so the edit is in place before
+# do_archive_pub_cache performs the first, network-enabled dependency
+# resolution. Editing pubspec.yaml after that point makes the offline pub get
+# in do_compile re-resolve, which tries to fetch security advisories from
+# pub.dev and fails with no network. The added hooks section carries no
+# dependency change, so the lockfile is unaffected.
+do_patch:append() {
     # Remove any pubspec_overrides.yaml a prior build of this recipe may have
     # left behind: pub rejects a `hooks:` section there, and a stale one breaks
     # `flutter pub get` even after the source is otherwise unchanged.
