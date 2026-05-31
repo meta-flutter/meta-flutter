@@ -233,11 +233,10 @@ python do_archive_pub_cache() {
     # if no pubspec.lock, create it
     pubspec_lock = os.path.join(app_root, 'pubspec.lock')
     if not os.path.exists(pubspec_lock):
-        run_command(d, 'dart pub --suppress-analytics --directory . get --example', app_root, env)
         run_command(d, 'dart pub --suppress-analytics --directory . get', app_root, env)
 
     run_command(d, 'flutter pub get --enforce-lockfile', app_root, env)
-    run_command(d, 'flutter pub get --enforce-lockfile --offline', app_root, env)
+    run_command(d, 'flutter pub get --enforce-lockfile --no-example --offline', app_root, env)
 
     cp_cmd = f'mkdir -p {pub_cache}/.project | true; cp -rT . {pub_cache}/.project/ | true;'
     run_command(d, cp_cmd, app_root, env)
@@ -374,7 +373,7 @@ python do_compile() {
 
     run_command(d, 'flutter config --no-analytics', source_root, env)
     run_command(d, 'flutter config --no-cli-animations', source_root, env)
-    run_command(d, 'flutter pub get --enforce-lockfile --offline -v', source_root, env)
+    run_command(d, 'flutter pub get --enforce-lockfile --no-example --offline -v', source_root, env)
 
     build_type = d.getVar('BUILD_TYPE')
 

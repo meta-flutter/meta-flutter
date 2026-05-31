@@ -10,6 +10,7 @@
 require conf/include/flutter-version.inc
 require conf/include/app-utils.inc
 require conf/include/common.inc
+require conf/include/gn-utils.inc
 
 DEPENDS += " \
     flutter-engine \
@@ -17,7 +18,12 @@ DEPENDS += " \
 
 BUILD_TYPE = "app"
 
+# Force the Flutter build to target the cross-compile machine architecture
+# rather than the build host (flutter defaults to `uname -m`). Use the
+# target-arch mapping (aarch64 -> arm64, x86-64 -> x64), not clang_build_arch()
+# which reports BUILD_ARCH. Use :append (not +=) so the ??= default survives.
 FLUTTER_BUILD_ARGS ??= "bundle"
+FLUTTER_BUILD_ARGS:append = " --target-platform linux-${@gn_target_arch_name(d)}"
 
 do_install() {
 
