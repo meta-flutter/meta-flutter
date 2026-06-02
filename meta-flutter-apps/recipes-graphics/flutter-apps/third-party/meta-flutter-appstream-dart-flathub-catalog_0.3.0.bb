@@ -89,13 +89,9 @@ EOF
 addtask inject_user_defines after do_patch before do_archive_pub_cache
 do_inject_user_defines[dirs] = "${S}"
 
-# The sqlite3 Dart package (source: system) resolves libsqlite3 via
-# dlopen("libsqlite3.so") at runtime; the do_install:append below provides
-# that unversioned name in the bundle lib dir, pointing at the system
-# libsqlite3.so.0. Depend on the runtime shared-library package that ships it.
-# Use libsqlite3-0, not the bare "libsqlite3" name, which resolves to
-# libsqlite3-dev and trips the dev-deps QA check.
-RDEPENDS:${PN} += "libsqlite3-0"
+# libsqlite3.so is resolved from the system at runtime (sqlite3 source: system
+# above, and libappstream.so links it), so it must be present on the image.
+RDEPENDS:${PN} += "libsqlite3"
 
 #
 # avoid conflict with flutter-app's do_compile
