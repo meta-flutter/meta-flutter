@@ -43,16 +43,6 @@ LIBCPLUSPLUS = "-stdlib=libc++"
 # do_cmake_compile task below to build libappstream.so for the target.
 inherit cmake flutter-app pkgconfig
 
-# scarthgap's flutter-app.inc defaults FLUTTER_BUILD_ARGS to "bundle" with no
-# --target-platform, so `flutter build` resolves native assets for the default
-# (android) target: the bundled NativeAssetsManifest.json lists the sqlite3
-# system asset under android_arm instead of linux_arm64, and the app fails at
-# runtime with "No available native assets" when drift opens the DB. Force the
-# Linux target arch (aarch64 -> arm64) so the asset lands under linux_arm64.
-# Newer meta-flutter does this in the class; backport it here via gn-utils.
-require conf/include/gn-utils.inc
-FLUTTER_BUILD_ARGS:append = " --target-platform linux-${@gn_target_arch_name(d)}"
-
 # APPSTREAM_HOOK_BUILD=ON keeps libappstream.so in the CMake build dir (${B}),
 # where do_install picks it up, instead of staging it into the source tree.
 # BUILD_TESTING=OFF avoids building the C++ test suite for the target.
