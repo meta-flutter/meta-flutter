@@ -12,7 +12,7 @@ SECTION = "graphics"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=641bdc36389b26ea9787acb6844e4b22"
 
-SRCREV = "c53d5c8a9ba048cdca572ba41fb517a830a3b9aa"
+SRCREV = "ff1840cf8139af72c45f8ff5e1c85182bb2c5ad9"
 SRC_URI = "gitsm://github.com/meta-flutter/appstream_dart.git;branch=main;protocol=https"
 
 DEPENDS += " \
@@ -50,11 +50,13 @@ EXTRA_OECMAKE += "\
     -D APPSTREAM_HOOK_BUILD=ON \
 "
 
-# The appstream_dart build hook runs its own CMake build during `flutter
-# build`. SKIP_NATIVE_BUILD makes it stand down so do_cmake_compile
-# (cmake.bbclass, with the OE cross toolchain) is the single producer of
-# libappstream.so for the target.
-export SKIP_NATIVE_BUILD = "1"
+# appstream_dart's native-asset hook runs its own CMake build during `flutter
+# build`; we want it to stand down so do_cmake_compile (cmake.bbclass, with the
+# OE cross toolchain) is the single producer of libappstream.so. Dart runs
+# native-asset hooks in a hermetic environment, so an env var would never reach
+# the hook; instead the hook (>= SRCREV ff1840c, PR #10) reads a 'skip_native_build'
+# hooks user-define, which do_inject_user_defines adds to pubspec.yaml below (the
+# same channel used for sqlite3).
 
 # The sqlite3 Dart package (pulled in via drift) defaults to downloading a
 # prebuilt libsqlite3 from GitHub during `flutter build`, which fails in the
@@ -83,6 +85,8 @@ hooks:
   user_defines:
     sqlite3:
       source: system
+    appstream_dart:
+      skip_native_build: true
 EOF
     fi
 }
