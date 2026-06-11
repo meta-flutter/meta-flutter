@@ -10,6 +10,7 @@
 require conf/include/flutter-version.inc
 require conf/include/app-utils.inc
 require conf/include/common.inc
+require conf/include/gn-utils.inc
 
 DEPENDS += " \
     flutter-engine \
@@ -18,6 +19,14 @@ DEPENDS += " \
 BUILD_TYPE = "app"
 
 FLUTTER_BUILD_ARGS ??= "bundle"
+# We always build for Linux, but flutter defaults the target arch to the build
+# host's, so a cross-build resolves native assets for the wrong arch: the
+# bundled NativeAssetsManifest.json lists system assets (e.g. sqlite3, pulled in
+# via drift) under the host arch, and the app fails at runtime with "No
+# available native assets". Pin the target arch (aarch64 -> arm64, x86-64 ->
+# x64) via the target-arch mapping -- not clang_build_arch(), which reports
+# BUILD_ARCH. Use :append (not +=) so the ??= default survives.
+FLUTTER_BUILD_ARGS:append = " --target-platform linux-${@gn_target_arch_name(d)}"
 
 do_install() {
 
