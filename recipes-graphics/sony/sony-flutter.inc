@@ -67,7 +67,6 @@ do_configure:prepend() {
     ln -sf ${FLUTTER_ENGINE_PATH}/lib/libflutter_engine.so ${S}/build/libflutter_engine.so
 }
 
-do_package_qa[noexec] = "1"
 PRIVATE_LIBS:${PN} = "libflutter_engine.so"
 
 RDEPENDS:${PN} += "flutter-engine"
