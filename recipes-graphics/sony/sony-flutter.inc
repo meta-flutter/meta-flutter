@@ -68,7 +68,7 @@ do_configure:prepend() {
 }
 
 do_package_qa[noexec] = "1"
-EXCLUDE_FROM_SHLIBS = "1"
+PRIVATE_LIBS:${PN} = "libflutter_engine.so"
 
 RDEPENDS:${PN} += "flutter-engine"
 
