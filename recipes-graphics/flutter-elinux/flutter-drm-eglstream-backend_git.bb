@@ -5,7 +5,9 @@
 DESCRIPTION = "Flutter Embedder with EGLStream Backend."
 CVE_PRODUCT = "flutter-drm-eglstream"
 
-require sony-flutter.inc
+REQUIRED_DISTRO_FEATURES += "wayland"
+
+require flutter-elinux.inc
 
 DEPENDS += "libdrm"
 

@@ -1,0 +1,17 @@
+#
+# Copyright (c) 2020-2025 Joel Winarske. All rights reserved.
+#
+
+DESCRIPTION = "Flutter Embedder with X11 Backend."
+CVE_PRODUCT = "flutter-x11-client"
+
+REQUIRED_DISTRO_FEATURES += "x11"
+
+require flutter-elinux.inc
+
+do_install() {
+    install -D -m0755 ${B}/flutter-x11-client \
+        ${D}${bindir}/flutter-x11-client
+}
+
+FILES:${PN} = "${bindir}"
