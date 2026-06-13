@@ -7,15 +7,11 @@ CVE_PRODUCT = "libexternal_texture_test_plugin.so"
 
 REQUIRED_DISTRO_FEATURES += "wayland"
 
-require sony-flutter.inc
+require flutter-elinux.inc
 
 DEPENDS += "\
     wayland \
     wayland-native \
-    "
-
-SRC_URI += "\
-    file://0001-Add-missing-stdint-header.patch \
     "
 
 INSANE_SKIP:${PN} += " ldflags"

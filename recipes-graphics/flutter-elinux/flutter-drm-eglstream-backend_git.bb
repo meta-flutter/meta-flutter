@@ -7,7 +7,7 @@ CVE_PRODUCT = "flutter-drm-eglstream"
 
 REQUIRED_DISTRO_FEATURES += "wayland"
 
-require sony-flutter.inc
+require flutter-elinux.inc
 
 DEPENDS += "libdrm"
 

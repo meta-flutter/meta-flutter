@@ -7,7 +7,7 @@ CVE_PRODUCT = "libvideo_player_plugin.so"
 
 REQUIRED_DISTRO_FEATURES += "wayland"
 
-require sony-flutter.inc
+require flutter-elinux.inc
 
 DEPENDS += "\
     gstreamer1.0 \

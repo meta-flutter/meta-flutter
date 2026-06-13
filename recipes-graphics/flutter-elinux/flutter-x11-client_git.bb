@@ -7,7 +7,7 @@ CVE_PRODUCT = "flutter-x11-client"
 
 REQUIRED_DISTRO_FEATURES += "x11"
 
-require sony-flutter.inc
+require flutter-elinux.inc
 
 do_install() {
     install -D -m0755 ${B}/flutter-x11-client \
