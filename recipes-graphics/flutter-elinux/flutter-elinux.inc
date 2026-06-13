@@ -2,13 +2,6 @@
 # Copyright (c) 2020-2025 Joel Winarske. All rights reserved.
 #
 
-python __anonymous() {
-    if d.getVar('FLUTTER_ELINUX_USE_SONY') is None:
-        bb.warnonce("FLUTTER_ELINUX_USE_SONY is unset. Defaulting to flutter-elinux recipes. "
-                "Set FLUTTER_ELINUX_USE_SONY = \"0\" to silence this warning, "
-                "or FLUTTER_ELINUX_USE_SONY = \"1\" to use the deprecated sony recipes.")
-}
-
 SUMMARY = "Embedded Linux embedding for Flutter"
 AUTHOR = "Sony Group Corporation"
 HOMEPAGE = "https://github.com/flutter-elinux/flutter-embedded-linux"
@@ -74,8 +67,7 @@ do_configure:prepend() {
     ln -sf ${FLUTTER_ENGINE_PATH}/lib/libflutter_engine.so ${S}/build/libflutter_engine.so
 }
 
-do_package_qa[noexec] = "1"
-EXCLUDE_FROM_SHLIBS = "1"
+PRIVATE_LIBS:${PN} = "libflutter_engine.so"
 
 RDEPENDS:${PN} += "flutter-engine"
 
