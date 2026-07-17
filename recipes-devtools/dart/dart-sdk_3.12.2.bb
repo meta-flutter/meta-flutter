@@ -25,7 +25,7 @@ RDEPENDS:dart-sdk:libc-musl = "\
 
 S = "${WORKDIR}/gn"
 
-SRCREV = "13d929085afa86e5902ed7293cca8509f099ee97"
+SRCREV = "d684a576a6aa954ae107a03b2b4e1d61c3bebe93"
 SRC_URI = " \
     gn://github.com/dart-lang/sdk.git;gn_name=sdk \
     file://gcc_toolchain.gni.in \

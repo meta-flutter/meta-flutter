@@ -36,10 +36,7 @@ SRC_URI = "\
     file://BUILD.gn.in \
     file://0001-gn-riscv32-and-riscv64.patch \
     file://0002-fml-fixes-text_input-compiler-warnings.patch \
-    file://0003-impeller-unnecessary-virtual-specifier.patch \
     file://0004-resolve-unknown-warning-option.patch \
-    file://0001-abseil-cpp-clang-compiler-warnin.patch;patchdir=engine/src/flutter/third_party/abseil-cpp \
-    file://0001-googletest-fix-implicit-conversi.patch;patchdir=engine/src/flutter/third_party/googletest \
     file://0001-swiftshader-pointer-cast-to-void.patch;patchdir=engine/src/flutter/third_party/swiftshader \
     file://0002-swiftshader-llvm-16.0-required-f.patch;patchdir=engine/src/flutter/third_party/swiftshader \
     ${SRC_URI_EXTRA} \
