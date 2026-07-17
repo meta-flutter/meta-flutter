@@ -140,6 +140,7 @@ GN_ARGS = "\
     --target-sysroot ${STAGING_DIR_TARGET} \
     --target-toolchain ${CLANG_PATH} \
     --target-triple ${@gn_clang_triple_prefix(d)} \
+    --no-default-linux-sysroot \
     "
 
 # Enable ccache when the ccache class is inherited and CCACHE_DISABLE is false
@@ -185,12 +186,6 @@ X11_IS_PRESENT = "${@bb.utils.filter('DISTRO_FEATURES', 'x11', d)}"
 do_configure() {
 
     cd ${S}/engine/src
-
-    #
-    # disable default sysroot
-    #
-
-    sed -i "s|use_default_linux_sysroot = true|use_default_linux_sysroot = false|g" build/config/sysroot.gni
 
     #
     # vulkan_headers override: enables DRM case
