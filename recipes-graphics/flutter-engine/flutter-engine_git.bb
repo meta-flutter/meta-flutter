@@ -191,8 +191,8 @@ do_configure() {
     # vulkan_headers override: enables DRM case
     #
 
-    test -z $WAYLAND_IS_PRESENT && sed -i "s|vulkan_use_wayland = true|vulkan_use_wayland = false|g" build_overrides/vulkan_headers.gni
-    test -z $X11_IS_PRESENT     && sed -i "s|vulkan_use_x11 = true|vulkan_use_x11 = false|g" build_overrides/vulkan_headers.gni
+    test -z $WAYLAND_IS_PRESENT && sed -i "s|vulkan_use_wayland = .*|vulkan_use_wayland = false|g" build_overrides/vulkan_headers.gni
+    test -z $X11_IS_PRESENT     && sed -i "s|vulkan_use_x11 = .*|vulkan_use_x11 = false|g" build_overrides/vulkan_headers.gni
 
     #
     # remove x11 package check if x11 is not available
