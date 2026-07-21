@@ -34,6 +34,14 @@ do_fetch[depends] += " \
     pbzip2-native:do_populate_sysroot \
 "
 
+# refetch if any of these change
+do_fetch[vardeps] += " \
+    GN_CUSTOM_VARS \
+    GN_CUSTOM_DEPS \
+    GN_DEPS_FILE \
+    EXTRA_GN_SYNC \
+"
+
 do_configure[network] = "1"
 do_configure:prepend() {
     export http_proxy=${http_proxy}
