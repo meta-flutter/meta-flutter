@@ -54,12 +54,21 @@ SRC_URI:append:libc-musl = "\
 inherit gn-fetcher features_check pkgconfig
 
 
+# download_linux_deps downloads flutters pre-canned x64, arm64 and riscv64 sysroots.
+# We use them for native artifacts, because otherwise the engine build would look at our build machines /usr/include
+# for intermediate native artifacts, and fail if we don't have libfontconfig-dev installed on our host, for example.
+#
+# They are NOT used for target artifacts because we specify our own sysroot using --target-sysroot there.
+#
+# Proper fix is probably to use yocto's STAGING_DIR_NATIVE as the sysroot for native artifacts, but that
+# requires a bit more gn magic
+#
 # For gn.bbclass
 GN_CUSTOM_VARS ?= '\
 {\
     "download_android_deps": False, \
     "download_windows_deps": False, \
-    "download_linux_deps": False,   \
+    "download_linux_deps": True,   \
 }'
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 
@@ -140,7 +149,6 @@ GN_ARGS = "\
     --target-sysroot ${STAGING_DIR_TARGET} \
     --target-toolchain ${CLANG_PATH} \
     --target-triple ${@gn_clang_triple_prefix(d)} \
-    --no-default-linux-sysroot \
     "
 
 # Enable ccache when the ccache class is inherited and CCACHE_DISABLE is false
