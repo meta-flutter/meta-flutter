@@ -191,3 +191,8 @@ If you need a more recent Rust toolchain for Kirkstone, you can use
     https://git.yoctoproject.org/git/meta-lts-mixins
 
 The takeaway should be that Cargo.lock and toolchain versions are tightly coupled in Yocto.  If you don't follow this in theory you could set network enable for compile, and set the cargo bbclass to auto-vend.  This would break all LTS scenarios.
+
+
+## arm unittests
+
+Documentation reference and guidelines for #721.
