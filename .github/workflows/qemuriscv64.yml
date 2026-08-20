@@ -44,12 +44,18 @@ jobs:
           cd ../master-linux-dummy
           pwd
           ls -la
-          rm -rf poky meta-openembedded meta-drm meta-vulkan
+          # every layer cloned below must be listed here: this is a
+          # persistent self-hosted runner, and 'git clone' into an
+          # existing directory fails. Those failures are swallowed by
+          # the backgrounded clones and bare 'wait', so an omitted
+          # layer silently freezes at whatever revision it was first
+          # cloned at. poky is kept to clear any legacy checkout.
+          rm -rf poky bitbake openembedded-core meta-yocto \
+                 meta-openembedded meta-drm meta-vulkan
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.openembedded.org/bitbake.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.openembedded.org/openembedded-core.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.yoctoproject.org/meta-yocto.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/openembedded/meta-openembedded.git &
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.yoctoproject.org/meta-yocto.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-drm.git &
           git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-vulkan.git &
           wait
