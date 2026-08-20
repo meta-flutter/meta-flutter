@@ -16,11 +16,21 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 DEPENDS += "\
     zip-native \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'libx11 libxcb', '', d)} \
+    libcxx \
+    lld-native \
     "
 
 DEPENDS:aarch64 += "\
     freetype \
     "
+
+TOOLCHAIN = "clang"
+TOOLCHAIN_NATIVE = "clang"
+TC_CXX_RUNTIME = "llvm"
+PREFERRED_PROVIDER_llvm = "clang"
+PREFERRED_PROVIDER_llvm-native = "clang-native"
+LIBCPLUSPLUS = "-stdlib=libc++"
 
 require conf/include/gn-utils.inc
 require conf/include/clang-utils.inc
@@ -34,27 +44,31 @@ SRC_URI = "\
     git://github.com/flutter/flutter.git;protocol=https;nobranch=1;name=flutter_sdk \
     gn://github.com/flutter/flutter.git \
     file://BUILD.gn.in \
-    file://0001-gn-riscv32-and-riscv64.patch \
-    file://0002-fml-fixes-text_input-compiler-warnings.patch \
-    file://0003-impeller-unnecessary-virtual-specifier.patch \
-    file://0001-abseil-cpp-clang-compiler-warnin.patch;patchdir=engine/src/flutter/third_party/abseil-cpp \
-    file://0001-googletest-fix-implicit-conversi.patch;patchdir=engine/src/flutter/third_party/googletest \
-    file://0001-swiftshader-pointer-cast-to-void.patch;patchdir=engine/src/flutter/third_party/swiftshader \
-    file://0002-swiftshader-llvm-16.0-required-f.patch;patchdir=engine/src/flutter/third_party/swiftshader \
+    file://0003-gn-riscv32-and-riscv64.patch \
+    file://0006-fml-fixes-text_input-compiler-warnings.patch \
+    file://0001-flutter-third_party-swiftshader-pointer-cast-to-void.patch \
+    file://0002-flutter-third_party-swiftshader-llvm-16.0-required-f.patch \
     ${SRC_URI_EXTRA} \
     "
 SRCREV_FORMAT .= "_flutter_sdk"
 SRCREV_flutter_sdk = "${@get_flutter_hash(d)}"
 
-S = "${WORKDIR}/gn"
+S = "${UNPACKDIR}/gn"
 
 # musl-specific patches.
-SRC_URI:append:libc-musl = "\
-   file://0001-suppres-musl-libc-warning.patch;patchdir=engine/src/flutter/third_party/dart \
-   "
+#
+# The libc++ musl patches (0001-libcxx-uglify-support-musl,
+# 0002-libcxx-return-type-in-wcstoull_l) were dropped: upstream libc++ selects
+# its native musl locale path when told it is on musl, which
+# FLUTTER_ENGINE_CXX_LIBC_FLAGS already does via -D_LIBCPP_HAS_MUSL_LIBC. They
+# stopped applying at 3.47.1 and are redundant with that define.
+SRC_URI:libc-musl += "\
+    file://0003-suppres-musl-libc-warning.patch;patchdir=engine/src/flutter/third_party/dart \
+    "
 
 inherit gn-fetcher features_check pkgconfig
 
+GN_DEPS_SED_PATCHES:pn-flutter-engine:aarch64 = "# Always download the JDK since java is required for running the formatter.|'condition': 'download_android_deps',"
 
 # For gn.bbclass
 GN_CUSTOM_VARS ?= '\
@@ -62,6 +76,13 @@ GN_CUSTOM_VARS ?= '\
     "download_android_deps": False, \
     "download_windows_deps": False, \
     "download_linux_deps": False,   \
+}'
+GN_CUSTOM_VARS:aarch64 ?= '\
+{ \
+    "download_android_deps": False, \
+    "download_windows_deps": False, \
+    "download_linux_deps": False,   \
+    "download_fuchsia_deps": False, \
 }'
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 
@@ -72,6 +93,8 @@ COMPATIBLE_MACHINE:armv7a = "(.*)"
 COMPATIBLE_MACHINE:armv7ve = "(.*)"
 COMPATIBLE_MACHINE:x86 = "(.*)"
 COMPATIBLE_MACHINE:x86-64 = "(.*)"
+COMPATIBLE_MACHINE:riscv32 = "(.*)"
+COMPATIBLE_MACHINE:riscv64 = "(.*)"
 
 PACKAGECONFIG ??= "\
     debug profile release \
@@ -137,12 +160,21 @@ GN_ARGS = "\
     --clang \
     --no-goma --no-rbe \
     --no-stripped \
+    --no-default-linux-sysroot \
+    --gn-args=dart_include_wasm_opt=false \
     --target-os linux \
     --linux-cpu ${@gn_target_arch_name(d)} \
     --target-sysroot ${STAGING_DIR_TARGET} \
     --target-toolchain ${CLANG_PATH} \
     --target-triple ${@gn_clang_triple_prefix(d)} \
     "
+
+# dart_include_wasm_opt: upstream's flutter/tools/gn already sets this false for
+# host builds, with the comment "it doesn't build properly with our gn
+# configuration" -- but only in the is_host_build() branch, which a cross build
+# with --no-prebuilt-dart-sdk never reaches. Without it, linking the wasm-opt
+# host tool fails with duplicate __cxxabiv1/__cxa_* symbols (libc++abi pulled in
+# twice). Nothing in the embedder needs wasm-opt; it is dart2wasm tooling.
 
 # Enable ccache when the ccache class is inherited and CCACHE_DISABLE is false
 GN_ARGS += "${@'--gn-args=use_ccache=true' if bb.data.inherits_class('ccache', d) and not bb.utils.to_boolean(d.getVar('CCACHE_DISABLE')) else ''}"
@@ -178,7 +210,9 @@ FLUTTER_ENGINE_DEBUG_PREFIX_MAP ?= " \
     "
 FLUTTER_ENGINE_DEBUG_FLAGS ?= "-g -feliminate-unused-debug-types ${FLUTTER_ENGINE_DEBUG_PREFIX_MAP}"
 FLUTTER_ENGINE_CXX_LIBC_FLAGS ?= ""
-FLUTTER_ENGINE_CXX_LIBC_FLAGS:append:libc-musl = "-D_LIBCPP_HAS_MUSL_LIBC"
+# flatbuffers keys its locale-independent path on _XOPEN_VERSION >= 700, which
+# musl advertises without providing strtoll_l/strtoull_l; force it off.
+FLUTTER_ENGINE_CXX_LIBC_FLAGS:append:libc-musl = "-D_LIBCPP_HAS_MUSL_LIBC -DFLATBUFFERS_LOCALE_INDEPENDENT=0"
 
 WAYLAND_IS_PRESENT = "${@bb.utils.filter('DISTRO_FEATURES', 'wayland', d)}"
 X11_IS_PRESENT = "${@bb.utils.filter('DISTRO_FEATURES', 'x11', d)}"
@@ -191,15 +225,25 @@ do_configure() {
     #
     # disable default sysroot
     #
-
+    # Historically done by editing build/config/sysroot.gni, but that no longer
+    # works: flutter/tools/gn does parser.set_defaults(default_linux_sysroot=True)
+    # and passes use_default_linux_sysroot=true into gn_args, overriding whatever
+    # the .gni declares (which itself now defaults to false). Without the
+    # --no-default-linux-sysroot flag in GN_ARGS, gn asserts on the missing
+    # bundled debian_bullseye sysroot instead of using --target-sysroot.
+    # The sed is kept for older engines where the .gni default was true.
     sed -i "s|use_default_linux_sysroot = true|use_default_linux_sysroot = false|g" build/config/sysroot.gni
 
     #
     # vulkan_headers override: enables DRM case
     #
 
-    test -z $WAYLAND_IS_PRESENT && sed -i "s|vulkan_use_wayland = true|vulkan_use_wayland = false|g" build_overrides/vulkan_headers.gni
-    test -z $X11_IS_PRESENT     && sed -i "s|vulkan_use_x11 = true|vulkan_use_x11 = false|g" build_overrides/vulkan_headers.gni
+    # Match the assignment however it is spelled: 3.47.1 writes
+    # "vulkan_use_x11 = !is_minimal_linux" (and hardcodes wayland false), so the
+    # old "= true" patterns silently matched nothing and vulkan.h then pulled in
+    # xcb/xcb.h on a distro without x11.
+    test -z "$WAYLAND_IS_PRESENT" && sed -i -E "s|^([[:space:]]*)vulkan_use_wayland = .*|\1vulkan_use_wayland = false|" build_overrides/vulkan_headers.gni
+    test -z "$X11_IS_PRESENT"     && sed -i -E "s|^([[:space:]]*)vulkan_use_x11 = .*|\1vulkan_use_x11 = false|" build_overrides/vulkan_headers.gni
 
     #
     # remove x11 package check if x11 is not available
@@ -213,28 +257,25 @@ do_configure() {
     test -z $X11_IS_PRESENT && sed -i "s|ozone_platform_x11 = true|ozone_platform_x11 = false|g" build/config/BUILDCONFIG.gn 
 
     #
-    # musl
+    # fix build with musl libc
     #
+    # swiftshader vendors an LLVM whose Linux config.h assumes glibc. Which copy
+    # ships varies by engine version (llvm-subzero and/or llvm-<ver>), so cover
+    # both, and all the glibc-only symbols musl lacks -- not just HAVE_MALLINFO.
     if [ "${TCLIBC}" = "musl" ]; then
-        # Update swiftshader config defines
-        sed -i '/HAVE_MALLINFO 1/d' flutter/third_party/swiftshader/third_party/llvm-16.0/configs/linux/include/llvm/Config/config.h
-        sed -i '/HAVE_BACKTRACE 1/d' flutter/third_party/swiftshader/third_party/llvm-16.0/configs/linux/include/llvm/Config/config.h
-        sed -i '/HAVE_EXECINFO_H 1/d' flutter/third_party/swiftshader/third_party/llvm-16.0/configs/linux/include/llvm/Config/config.h
-
-        # flatbuffers on some revisions uses *_l locale variants which musl doesn't provide.
-        # Replace them with the non-locale variants for musl builds.
-        if [ -f flutter/third_party/flatbuffers/include/flatbuffers/util.h ]; then
-            sed -i 's|#define __strtoll_impl(s, pe, b) strtoll_l(s, pe, b, ClassicLocale::Get())|#define __strtoll_impl(s, pe, b) strtoll(s, pe, b)|' \
-                flutter/third_party/flatbuffers/include/flatbuffers/util.h || true
-            sed -i 's|#define __strtoull_impl(s, pe, b) strtoull_l(s, pe, b, ClassicLocale::Get())|#define __strtoull_impl(s, pe, b) strtoull(s, pe, b)|' \
-                flutter/third_party/flatbuffers/include/flatbuffers/util.h || true
-        fi
+        for scfg in \
+            flutter/third_party/swiftshader/third_party/llvm-subzero/build/Linux/include/llvm/Config/config.h \
+            flutter/third_party/swiftshader/third_party/llvm-*/configs/linux/include/llvm/Config/config.h; do
+            [ -f "$scfg" ] && sed -i -E \
+                's@^#define (HAVE_MALLINFO2?|HAVE_BACKTRACE|HAVE_EXECINFO_H) 1$@/* #undef \1 */@' \
+                "$scfg"
+        done
     fi
 
     #
     # Custom Build config
     #
-    cp ${WORKDIR}/BUILD.gn.in build/toolchain/custom/BUILD.gn
+    cp ${UNPACKDIR}/BUILD.gn.in build/toolchain/custom/BUILD.gn
     sed -i "s|@DEBUG_FLAGS@|${FLUTTER_ENGINE_DEBUG_FLAGS}|g" build/toolchain/custom/BUILD.gn
     sed -i "s|@CXX_LIBC_FLAGS@|${FLUTTER_ENGINE_CXX_LIBC_FLAGS}|g" build/toolchain/custom/BUILD.gn
 
@@ -263,7 +304,7 @@ do_configure() {
     done
 
     # external clang toolchain
-    cd ${STAGING_DIR_TARGET}/usr/lib
+    cd ${STAGING_DIR_TARGET}${libdir}
 
     test -e crtbeginS.o && rm crtbeginS.o
     test -e crtendS.o && rm crtendS.o
@@ -428,9 +469,56 @@ INSANE_SKIP:${PN}-desktop-embeddings += "libdir"
 INSANE_SKIP:${PN}-impeller += " libdir"
 INSANE_SKIP:${PN}-test += " buildpaths libdir"
 
+#
+# Per-runtime-mode packaging
+#
+# The engine installs debug/, profile/ and release/ side by side under
+# ${datadir}/flutter/<ver>/. Shipping them in one package forces an image that
+# only runs release to carry the debug and profile engines too (the debug one is
+# by far the largest). Split them so a consumer can depend on exactly the mode it
+# runs -- flutter-engine-release, etc.
+#
+# These go in PACKAGE_BEFORE_PN, not PACKAGES =+, so they are matched AFTER the
+# specific packages (-dbg, -dev, -impeller, -desktop-embeddings, -sdk-dev, -test)
+# and do not swallow the files those claim, while still winning over ${PN}.
+PACKAGE_BEFORE_PN += "\
+    ${PN}-debug \
+    ${PN}-profile \
+    ${PN}-release \
+    ${PN}-jit-release \
+    "
+
+FILES:${PN}-debug       = "${datadir}/flutter/${FLUTTER_SDK_TAG}/debug"
+FILES:${PN}-profile     = "${datadir}/flutter/${FLUTTER_SDK_TAG}/profile"
+FILES:${PN}-release     = "${datadir}/flutter/${FLUTTER_SDK_TAG}/release"
+FILES:${PN}-jit-release = "${datadir}/flutter/${FLUTTER_SDK_TAG}/jit_release"
+
+# The engine libraries live under ${datadir}/flutter/<ver>/<mode>/lib/, not
+# ${libdir}, so every package carrying them needs the libdir QA check skipped --
+# the same exemption ${PN} already had before the split.
+INSANE_SKIP:${PN}-debug       += " libdir"
+INSANE_SKIP:${PN}-profile     += " libdir"
+INSANE_SKIP:${PN}-release     += " libdir"
+INSANE_SKIP:${PN}-jit-release += " libdir"
+
+SUMMARY:${PN}-debug       = "Flutter engine - debug runtime mode"
+SUMMARY:${PN}-profile     = "Flutter engine - profile runtime mode"
+SUMMARY:${PN}-release     = "Flutter engine - release runtime mode"
+SUMMARY:${PN}-jit-release = "Flutter engine - jit_release runtime mode"
+
+# ${PN} becomes a pure metapackage: the per-mode packages above claim every
+# directory under ${datadir}/flutter, so nothing is left for it to own. It must
+# still be PRODUCED -- every consumer RDEPENDs on "flutter-engine" by name, and
+# an empty package is skipped by default, which makes those dependencies
+# unresolvable at do_rootfs ("nothing provides flutter-engine"). ALLOW_EMPTY
+# keeps it, and its RDEPENDS pull in whichever modes were built, so existing
+# consumers behave exactly as they did before the split.
 FILES:${PN} = "\
     ${datadir}/flutter \
     "
+
+ALLOW_EMPTY:${PN} = "1"
+RDEPENDS:${PN} += "${@' '.join('${PN}-' + m.replace('_', '-') for m in bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d).split())}"
 
 FILES:${PN}-dbg = "\
     ${FLUTTER_ENGINE_INSTALL_PREFIX}/*/lib/.debug \
@@ -471,3 +559,98 @@ python () {
 
     d.setVar('FLUTTER_SDK_VERSION', get_flutter_sdk_version(d))
 }
+
+#
+# libflutter_engine.so ABI interop gate
+#
+# The engine is built with clang and an in-tree libc++, but it is dropped into
+# userlands built with GCC (OE-musl and Alpine both default to GCC). That only
+# works because the engine exposes a pure C embedder ABI over the target libc --
+# nothing else is a shared contract. These rules prove that self-containment
+# instead of assuming it. Ported from emb_cli's engine_abi_gate.dart; fail-closed.
+#
+#   2  no C++ runtime in DT_NEEDED  -- libstdc++/libc++ must not be dynamic
+#   3  DT_NEEDED libc matches TCLIBC -- catches a glibc engine on a musl image
+#   4  no dynamic libgcc_s          -- unwinder must be static
+#   5  no exported _Z* symbols      -- the internal libc++ must not leak
+#   6  no undefined C++-runtime syms -- would pull libstdc++/libc++abi at runtime
+#
+# Rule 1 (ELF machine) is omitted: OE's own arch QA already covers it.
+#
+# Symbols versioned @GLIBC_ are provided by libc.so.6, an allowed NEEDED, so
+# they are excluded from rule 6. That matters for the __cxa_atexit / __cxa_finalize
+# / __cxa_thread_atexit_impl family, which shares the __cxa_ prefix but is C
+# runtime, not C++ ABI -- musl carries no symbol version, so it is excluded by
+# name rather than by version.
+#
+FLUTTER_ENGINE_ABI_GATE ??= "1"
+
+python do_flutter_engine_abi_gate() {
+    import glob, re, subprocess
+
+    if d.getVar('FLUTTER_ENGINE_ABI_GATE') != '1':
+        bb.note('flutter-engine ABI gate disabled')
+        return
+
+    dest = d.getVar('D')
+    # The engine installs per runtime mode under ${datadir}/flutter/<ver>/<mode>/lib/,
+    # not ${libdir} -- search the whole image so the gate cannot pass vacuously.
+    sos = glob.glob(f'{dest}/**/libflutter_engine.so', recursive=True)
+    if not sos:
+        bb.fatal('ABI gate: no libflutter_engine.so found under ${D} -- '
+                 'the gate would otherwise pass without checking anything')
+
+    readelf = d.getVar('READELF') or (d.getVar('TARGET_PREFIX') + 'readelf')
+    nm = d.getVar('NM') or (d.getVar('TARGET_PREFIX') + 'nm')
+    tclibc = d.getVar('TCLIBC')
+
+    cxx_runtime = re.compile(r'libstdc\+\+|libc\+\+')
+    musl_libc = re.compile(r'ld-musl-|libc\.musl-')
+    glibc_libc = re.compile(r'libc\.so\.6')
+    exported_cxx = re.compile(r'^_Z')
+    extern_cxx = re.compile(
+        r'^(?:__cxa_(?!atexit|finalize|thread_atexit)'
+        r'|__cxxabiv1|__gxx_personality|_ZSt|_ZNSt|_Zna|_Znw|_ZdlPv)')
+
+    def run(cmd):
+        try:
+            return subprocess.run(cmd, capture_output=True, text=True,
+                                  check=False).stdout
+        except FileNotFoundError:
+            bb.fatal(f'ABI gate: {cmd[0]} not found')
+
+    violations = []
+    for so in sos:
+        dyn = run([readelf, '-d', so])
+        needed = re.findall(r'NEEDED.*\[(.+?)\]', dyn)
+
+        cxx = [n for n in needed if cxx_runtime.search(n)]
+        if cxx:
+            violations.append(f'[rule 2] {so}: links a C++ runtime: {", ".join(cxx)}')
+
+        has_musl = any(musl_libc.search(n) for n in needed)
+        has_glibc = any(glibc_libc.search(n) for n in needed)
+        if tclibc == 'musl' and not has_musl:
+            violations.append(f'[rule 3] {so}: expected musl libc, NEEDED={needed}')
+        elif tclibc == 'glibc' and not has_glibc:
+            violations.append(f'[rule 3] {so}: expected glibc libc, NEEDED={needed}')
+
+        if any('libgcc_s' in n for n in needed):
+            violations.append(f'[rule 4] {so}: dynamic libgcc_s -- unwinder not static')
+
+        defined = [l.split()[-1] for l in run([nm, '-D', '--defined-only', so]).splitlines() if l.split()]
+        leaked = [x for x in defined if exported_cxx.match(x)][:5]
+        if leaked:
+            violations.append(f'[rule 5] {so}: exported C++ symbols leak libc++: {", ".join(leaked)}')
+
+        undef = [l.split()[-1] for l in run([nm, '-D', '-u', so]).splitlines() if l.split()]
+        ext = [x for x in undef if '@GLIBC_' not in x and extern_cxx.match(x)][:5]
+        if ext:
+            violations.append(f'[rule 6] {so}: undefined C++-runtime deps require '
+                              f'libstdc++/libc++abi: {", ".join(ext)}')
+
+    if violations:
+        bb.fatal('flutter-engine ABI interop gate failed:\n  ' + '\n  '.join(violations))
+    bb.note(f'flutter-engine ABI interop gate passed for {len(sos)} library(ies)')
+}
+addtask flutter_engine_abi_gate after do_install before do_package_qa
