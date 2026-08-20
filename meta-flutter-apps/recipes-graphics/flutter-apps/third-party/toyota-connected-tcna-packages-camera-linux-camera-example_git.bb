@@ -12,7 +12,7 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=d73cf6ba84211d8b7fd0d2865b678fe8"
 
-SRCREV = "2626d1757f18e438f4095e38e413eb40eab40b6d"
+SRCREV = "57b1b51c2cf48cb61760f5ea976bccfe5f75ccbb"
 SRC_URI = "git://github.com/toyota-connected/tcna-packages.git;lfs=0;branch=v2.0;protocol=https"
 
 PUBSPEC_APPNAME = "camera_example"

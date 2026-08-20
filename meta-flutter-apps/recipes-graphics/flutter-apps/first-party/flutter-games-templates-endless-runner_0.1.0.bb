@@ -11,7 +11,7 @@ SECTION = "graphics"
 
 LICENSE = "CLOSED"
 
-SRCREV = "ef23d7318a7499781811584bd300053561d62c77"
+SRCREV = "ae636d23deae83fd0e7fec9b862a7fcdf2bcfdd8"
 SRC_URI = "git://github.com/flutter/games.git;lfs=1;branch=main;protocol=https"
 
 PUBSPEC_APPNAME = "endless_runner"

@@ -18,6 +18,7 @@ RDEPENDS:${PN} += " \
     flutter-packages-camera-example \
     flutter-packages-google-fonts-google-fonts-tester \
     flutter-packages-xdg-directories-xdg-directories-example \
+    flutter-packages-cross-file-cross-file-example \
     flutter-packages-image-picker-image-picker-image-picker-example \
     flutter-packages-image-picker-image-picker-linux-example \
     flutter-packages-two-dimensional-scrollables-two-dimensional-examples \
@@ -34,14 +35,20 @@ RDEPENDS:${PN} += " \
     flutter-packages-flutter-lints-example \
     flutter-packages-webview-flutter-webview-flutter-webview-flutter-example \
     flutter-packages-webview-flutter-webview-flutter-android-webview-flutter-android-example \
+    flutter-packages-google-maps-flutter-google-maps-flutter-web-example-google-maps-flutter-web-integration-tests \
+    flutter-packages-google-maps-flutter-google-maps-flutter-web-example-3-google-maps-flutter-web-integration-tests \
+    flutter-packages-google-maps-flutter-google-maps-flutter-ios-sdk10-google-maps-flutter-example \
     flutter-packages-google-maps-flutter-google-maps-flutter-google-maps-flutter-example \
-    flutter-packages-google-maps-flutter-google-maps-flutter-ios-example-google-maps-flutter-example \
+    flutter-packages-google-maps-flutter-google-maps-flutter-ios-sdk9-google-maps-flutter-example \
+    flutter-packages-google-maps-flutter-google-maps-flutter-ios-google-maps-flutter-example \
     flutter-packages-animations-example \
     flutter-packages-shared-preferences-shared-preferences-linux-shared-preferences-linux-example \
     flutter-packages-shared-preferences-shared-preferences-shared-preferences-tool \
+    flutter-packages-cupertino-ui-cupertino-ui-examples \
     flutter-packages-path-provider-path-provider-linux-pathproviderexample \
     flutter-packages-extension-google-sign-in-as-googleapis-auth-extension-google-sign-in-example \
     flutter-packages-espresso-example \
     flutter-packages-in-app-purchase-in-app-purchase-in-app-purchase-example \
+    flutter-packages-material-ui-material-ui-examples \
     flutter-packages-interactive-media-ads-interactive-media-ads-example \
 "
