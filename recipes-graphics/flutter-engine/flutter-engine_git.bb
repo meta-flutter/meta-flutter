@@ -701,8 +701,24 @@ python do_flutter_engine_abi_gate() {
         elif tclibc == 'glibc' and not has_glibc:
             violations.append(f'[rule 3] {so}: expected glibc libc, NEEDED={needed}')
 
+        # Rule 4 asserts the compiler-rt contract that TC_CXX_RUNTIME=llvm and
+        # PREFERRED_PROVIDER_libgcc=compiler-rt are meant to establish: the
+        # unwinder is compiler-rt's, linked statically, so libgcc_s never
+        # appears. That only holds where the engine links with its own bundled
+        # clang. riscv64 overrides CLANG_PATH to the native clang because the
+        # bundled one cannot link there, and the native clang defaults to
+        # --rtlib=libgcc. Applying the rule to that configuration would report a
+        # deviation the recipe deliberately chose, so it is scoped out by the
+        # same condition that causes it, rather than dropped.
+        native_clang = (d.getVar('CLANG_PATH') or '').startswith(
+            d.getVar('STAGING_DIR_NATIVE') or '\0')
         if any('libgcc_s' in n for n in needed):
-            violations.append(f'[rule 4] {so}: dynamic libgcc_s -- unwinder not static')
+            if native_clang:
+                bb.note(f'ABI gate: {so} links libgcc_s; expected, this target '
+                        f'builds with the native clang (CLANG_PATH is under '
+                        f'STAGING_DIR_NATIVE), which defaults to --rtlib=libgcc')
+            else:
+                violations.append(f'[rule 4] {so}: dynamic libgcc_s -- unwinder not static')
 
         defined = [l.split()[-1] for l in run([nm, '-D', '--defined-only', so]).splitlines() if l.split()]
         leaked = [x for x in defined if exported_cxx.match(x)][:5]
