@@ -36,10 +36,7 @@ SRC_URI = "\
     file://BUILD.gn.in \
     file://0001-gn-riscv32-and-riscv64.patch \
     file://0002-fml-fixes-text_input-compiler-warnings.patch \
-    file://0003-impeller-unnecessary-virtual-specifier.patch \
     file://0004-resolve-unknown-warning-option.patch \
-    file://0001-abseil-cpp-clang-compiler-warnin.patch;patchdir=engine/src/flutter/third_party/abseil-cpp \
-    file://0001-googletest-fix-implicit-conversi.patch;patchdir=engine/src/flutter/third_party/googletest \
     file://0001-swiftshader-pointer-cast-to-void.patch;patchdir=engine/src/flutter/third_party/swiftshader \
     file://0002-swiftshader-llvm-16.0-required-f.patch;patchdir=engine/src/flutter/third_party/swiftshader \
     ${SRC_URI_EXTRA} \
@@ -57,12 +54,21 @@ SRC_URI:append:libc-musl = "\
 inherit gn-fetcher features_check pkgconfig
 
 
+# download_linux_deps downloads flutters pre-canned x64, arm64 and riscv64 sysroots.
+# We use them for native artifacts, because otherwise the engine build would look at our build machines /usr/include
+# for intermediate native artifacts, and fail if we don't have libfontconfig-dev installed on our host, for example.
+#
+# They are NOT used for target artifacts because we specify our own sysroot using --target-sysroot there.
+#
+# Proper fix is probably to use yocto's STAGING_DIR_NATIVE as the sysroot for native artifacts, but that
+# requires a bit more gn magic
+#
 # For gn.bbclass
 GN_CUSTOM_VARS ?= '\
 {\
     "download_android_deps": False, \
     "download_windows_deps": False, \
-    "download_linux_deps": False,   \
+    "download_linux_deps": True,   \
 }'
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 
@@ -190,17 +196,11 @@ do_configure() {
     cd ${S}/engine/src
 
     #
-    # disable default sysroot
-    #
-
-    sed -i "s|use_default_linux_sysroot = true|use_default_linux_sysroot = false|g" build/config/sysroot.gni
-
-    #
     # vulkan_headers override: enables DRM case
     #
 
-    test -z $WAYLAND_IS_PRESENT && sed -i "s|vulkan_use_wayland = true|vulkan_use_wayland = false|g" build_overrides/vulkan_headers.gni
-    test -z $X11_IS_PRESENT     && sed -i "s|vulkan_use_x11 = true|vulkan_use_x11 = false|g" build_overrides/vulkan_headers.gni
+    test -z $WAYLAND_IS_PRESENT && sed -i "s|vulkan_use_wayland = .*|vulkan_use_wayland = false|g" build_overrides/vulkan_headers.gni
+    test -z $X11_IS_PRESENT     && sed -i "s|vulkan_use_x11 = .*|vulkan_use_x11 = false|g" build_overrides/vulkan_headers.gni
 
     #
     # remove x11 package check if x11 is not available
