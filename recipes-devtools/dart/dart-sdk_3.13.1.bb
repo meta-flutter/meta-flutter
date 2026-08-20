@@ -45,11 +45,13 @@ require conf/include/gn-utils.inc
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 
 
-PACKAGECONFIG ??= "platform-sdk verify-sdk-hash mallinfo2 dynamic-modules"
+# Dart 3.13.1's tools/gn.py dropped --platform-sdk and --use-mallinfo2. argparse
+# exits 2 on an unrecognized option, so leaving them here fails do_configure
+# immediately. The PACKAGECONFIG entries are removed rather than defaulted off,
+# since enabling them could only ever break the build.
+PACKAGECONFIG ??= "verify-sdk-hash dynamic-modules"
 
 PACKAGECONFIG[verify-sdk-hash] = "--verify-sdk-hash"
-PACKAGECONFIG[mallinfo2] = "--use-mallinfo2"
-PACKAGECONFIG[platform-sdk] = "--platform-sdk"
 PACKAGECONFIG[use-crashpad] = "--use-crashpad"
 PACKAGECONFIG[use-qemu] = "--use-qemu"
 PACKAGECONFIG[exclude-kernel-service] = "--exclude-kernel-service"
