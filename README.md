@@ -191,3 +191,35 @@ If you need a more recent Rust toolchain for Kirkstone, you can use
     https://git.yoctoproject.org/git/meta-lts-mixins
 
 The takeaway should be that Cargo.lock and toolchain versions are tightly coupled in Yocto.  If you don't follow this in theory you could set network enable for compile, and set the cargo bbclass to auto-vend.  This would break all LTS scenarios.
+
+## Mirroring gn-fetched sources
+
+Recipes that fetch with `gn://` (`flutter-engine`, `dart-sdk`, `pdfium`,
+`libwebrtc`) pack their gclient tree into a single tarball in `DL_DIR`. That
+tarball is an ordinary download as far as bitbake is concerned, so `PREMIRRORS`,
+`MIRRORS` and `BB_FETCH_PREMIRRORONLY` work without anything special in the
+fetcher. Two details are not obvious:
+
+Match the scheme generically rather than naming `gn`:
+
+    PREMIRRORS:prepend = ".*://.*  file:///path/to/mirror/ \n"
+
+oe-core's mirror sanity check carries a hardcoded protocol list that predates
+out-of-tree fetchers and does not include `gn`, so an explicit `gn://` pattern
+produces an "Invalid protocol" warning.
+
+Place the tarball under the url's own path, not at the mirror root. For
+`gn://github.com/dart-lang/sdk.git` that means:
+
+    <mirror>/dart-lang/dart-sdk-<pv>-<srcrev>-<confighash>.tar.bz2
+
+The `<confighash>` covers the gclient config, `EXTRA_GN_SYNC` and
+`GN_DEPS_SED_PATCHES`, so a recipe that changes any of them uses a different
+tarball. Take the exact filename from a failed fetch log rather than
+constructing it by hand.
+
+To populate a mirror, build once with network access and copy the tarball out of
+`DL_DIR`. An offline build then needs:
+
+    BB_FETCH_PREMIRRORONLY = "1"
+    BB_NO_NETWORK = "1"
