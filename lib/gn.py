@@ -18,6 +18,7 @@ import urllib
 from   bb.fetch2 import FetchMethod
 from   bb.fetch2 import FetchError
 from   bb.fetch2 import UnpackError
+from   bb.fetch2 import trusted_network
 from   bb.fetch2 import logger
 from   bb.fetch2 import runfetchcmd
 from   bb.fetch2 import subprocess_setup
@@ -97,6 +98,17 @@ class GN(FetchMethod):
 
         ud.localfile = d.getVar("PN") + '-' + d.getVar("PV") + "-" + srcrev + "-" + config_hash + ".tar.bz2"
         ud.localpath = os.path.join(d.getVar("WORKDIR"), ud.localfile)
+
+        # The packed tree is the only artifact this fetcher produces, so it is
+        # also the thing worth mirroring. Naming it here lets bitbake build
+        # mirror URIs against the tarball filename rather than against the gn://
+        # url, which is what makes PREMIRRORS/MIRRORS usable -- and with it
+        # BB_FETCH_PREMIRRORONLY, so a build with no access to the upstream
+        # repositories can still fetch. Unlike the git fetcher there is no
+        # separate clone directory to mirror alongside it, so there is nothing
+        # for BB_GENERATE_MIRROR_TARBALLS to gate: the tarball is always written.
+        ud.fullmirror = os.path.join(d.getVar("DL_DIR"), ud.localfile)
+        ud.mirrortarballs = [ud.localfile]
 
         ud.trying_to_fetch_with_gclient = False
 
@@ -182,6 +194,24 @@ class GN(FetchMethod):
         runfetchcmd(ud.packcmd, d, quiet, workdir=None)
 
         ud.trying_to_fetch_with_gclient = False
+
+    def supports_checksum(self, urldata):
+        # The tarball is repacked from a gclient sync and is not bit-identical
+        # between runs -- the tree keeps its .git directories, which the flutter
+        # build needs for git rev-parse. Like the other VCS fetchers, this one
+        # cannot offer a stable SRC_URI checksum.
+        return False
+
+    def try_premirror(self, ud, d):
+        # Without this, a premirror-only build cannot fetch at all.
+        if bb.utils.to_boolean(d.getVar("BB_FETCH_PREMIRRORONLY")):
+            return True
+        # Going upstream is destined to fail when the network is untrusted, so
+        # consult premirrors first.
+        if not trusted_network(d, ud.url):
+            return True
+        # Otherwise only bother when we do not already have the tarball.
+        return not os.path.exists(ud.localpath)
 
     def localpath(self, ud, d):
         """
