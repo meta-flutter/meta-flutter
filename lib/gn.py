@@ -10,6 +10,7 @@ Copyright (c) 2023-2025 Joel Winarske. All rights reserved.
 
 import os
 import bb
+import hashlib
 import json
 import multiprocessing
 import subprocess
@@ -85,12 +86,19 @@ class GN(FetchMethod):
 
         ud.syncpath = ud.parm.get("gclientdir", d.getVar("S"))
 
-        ud.localfile = d.getVar("PN") + '-' + d.getVar("PV") + "-" + srcrev + ".tar.bz2"
+        sync_opt = d.getVar("EXTRA_GN_SYNC")
+
+        # The gclient config and sync args change what ends up in the tree, so
+        # they have to be part of the cache key -- otherwise two recipes (or one
+        # recipe before and after a config change) collide on the same tarball.
+        config_key = f"{gclient_config}\n{sync_opt}"
+        config_hash = hashlib.sha256(config_key.encode("utf-8")).hexdigest()[:12]
+
+        ud.localfile = d.getVar("PN") + '-' + d.getVar("PV") + "-" + srcrev + "-" + config_hash + ".tar.bz2"
         ud.localpath = os.path.join(d.getVar("WORKDIR"), ud.localfile)
 
         ud.trying_to_fetch_with_gclient = False
 
-        sync_opt = d.getVar("EXTRA_GN_SYNC")
         curl_ca_bundle = d.getVar('CURL_CA_BUNDLE')
         bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
 
