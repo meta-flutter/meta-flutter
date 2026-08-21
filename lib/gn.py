@@ -152,7 +152,7 @@ class GN(FetchMethod):
             export VPYTHON_VIRTUALENV_ROOT="{vpython_virtualenv_root}"; \
             cd "{ud.syncpath}"; \
             git init . \
-            && git remote add origin {uri} \
+            && (git remote add origin {uri} || git remote set-url origin {uri}) \
             && git fetch origin {srcrev} --depth=1 --no-tags \
             && git checkout FETCH_HEAD \
             {patch_and_commit}\
