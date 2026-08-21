@@ -52,13 +52,32 @@ jobs:
           # cloned at. poky is kept to clear any legacy checkout.
           rm -rf poky bitbake openembedded-core meta-yocto \
                  meta-openembedded meta-drm meta-vulkan
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.openembedded.org/bitbake.git &
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.openembedded.org/openembedded-core.git &
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://git.yoctoproject.org/meta-yocto.git &
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/openembedded/meta-openembedded.git &
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-drm.git &
-          git clone -b ${{ env.YOCTO_BRANCH }} --single-branch https://github.com/jwinarske/meta-vulkan.git &
-          wait
+          # 'wait' with no operands always returns 0, so a failed clone used to
+          # leave the step green and the build ran against a missing or stale
+          # layer. Collect the pids and wait on each one so the exit status is
+          # actually observed.
+          pids=""
+          for repo in \
+              https://git.openembedded.org/bitbake.git \
+              https://git.openembedded.org/openembedded-core.git \
+              https://git.yoctoproject.org/meta-yocto.git \
+              https://github.com/openembedded/meta-openembedded.git \
+              https://github.com/jwinarske/meta-drm.git \
+              https://github.com/jwinarske/meta-vulkan.git ; do
+              git clone -b ${{ env.YOCTO_BRANCH }} --single-branch "$repo" &
+              pids="$pids $!:$repo"
+          done
+
+          rc=0
+          for entry in $pids; do
+              pid=${entry%%:*}
+              repo=${entry#*:}
+              if ! wait "$pid"; then
+                  echo "::error::clone failed: $repo"
+                  rc=1
+              fi
+          done
+          exit $rc
 
       - name: Configure build
         shell: bash
