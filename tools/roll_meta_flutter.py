@@ -243,7 +243,6 @@ def update_dart_recipe(root_path: str, flutter_sdk_version: str):
     cmd = ['git', 'clone', 'https://github.com/dart-lang/sdk', '.dart']
     subprocess.check_call(cmd, cwd=root_path)
     commit_hash = get_git_commit_hash_for_tag(tmp_path, dart_sdk_version)
-    clear_folder(tmp_path)
 
     # create new recipe updating SRCREV
 
@@ -255,6 +254,59 @@ def update_dart_recipe(root_path: str, flutter_sdk_version: str):
 
     os.remove(dart_recipe_path[0])
 
+    report_removed_gn_options(root_path, new_dart_recipe_path, tmp_path, commit_hash)
+
+    clear_folder(tmp_path)
+
+
+def report_removed_gn_options(root_path: str, recipe_path: str, sdk_clone: str, commit_hash: str):
+    """Warn about PACKAGECONFIG options the new Dart SDK's tools/gn.py dropped.
+
+    The recipe is copied forward verbatim apart from SRCREV, so PACKAGECONFIG
+    entries survive a version bump even when the option they pass no longer
+    exists. gn.py uses argparse, which exits 2 on an unrecognised option, so the
+    result is a do_configure failure well after the roll, with nothing pointing
+    back at the cause.
+    """
+    import re
+
+    try:
+        gn_py = subprocess.check_output(
+            ['git', 'show', f'{commit_hash}:tools/gn.py'],
+            cwd=sdk_clone, text=True, stderr=subprocess.DEVNULL)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        print('Could not read tools/gn.py from the Dart SDK; '
+              'skipping PACKAGECONFIG option check')
+        return
+
+    # Every long option mentioned anywhere in gn.py, including help text. This
+    # deliberately over-approximates: it is only ever used to decide that an
+    # option is *absent*, so a loose match means fewer false alarms.
+    known = set(re.findall(r'--[a-z0-9][a-z0-9-]*', gn_py))
+
+    removed = []
+    with open(recipe_path, 'r') as f:
+        for line in f:
+            m = re.match(r'\s*PACKAGECONFIG\[([^\]]+)\]\s*=\s*(.+)', line)
+            if not m:
+                continue
+            name, value = m.group(1), m.group(2)
+            for opt in re.findall(r'--[a-z0-9][a-z0-9-]*', value):
+                if opt not in known:
+                    removed.append((name, opt))
+
+    if not removed:
+        return
+
+    print_banner('PACKAGECONFIG options no longer accepted by tools/gn.py')
+    for name, opt in removed:
+        print(f'  PACKAGECONFIG[{name}] passes {opt}, which this Dart SDK '
+              f'does not accept')
+    print('')
+    print(f'Remove these from {os.path.relpath(recipe_path, root_path)} before '
+          f'building; gn.py exits 2 on an unrecognised option, so do_configure '
+          f'will fail otherwise.')
+
 
 def main():
     import argparse
@@ -263,10 +315,23 @@ def main():
     parser.add_argument('--channel', default='stable', type=str, help='Flutter Channel - beta, dev, stable')
     parser.add_argument('--version', default=None, type=str, help='Flutter SDK version')
     parser.add_argument('--path', default='.', type=str, help='meta-flutter root path')
-    parser.add_argument('--json', default='./meta-flutter-apps/conf/flutter-apps.json', type=str,
-                        help='JSON file of flutter apps')
-    parser.add_argument('--patch-dir', default='./tools/patches', type=str, help='Path to patch folder')
+    parser.add_argument('--json', default=None, type=str,
+                        help='JSON file of flutter apps '
+                             '(default: <path>/meta-flutter-apps/conf/flutter-apps.json)')
+    parser.add_argument('--patch-dir', default=None, type=str,
+                        help='Path to patch folder (default: <path>/tools/patches)')
     args = parser.parse_args()
+
+    #
+    # These defaults describe files inside the meta-flutter tree, so resolve
+    # them against --path. As literal './...' defaults they were relative to the
+    # working directory instead, and running the script from anywhere other than
+    # the layer root silently looked for them in the wrong place.
+    #
+    if args.json is None:
+        args.json = os.path.join(args.path, 'meta-flutter-apps', 'conf', 'flutter-apps.json')
+    if args.patch_dir is None:
+        args.patch_dir = os.path.join(args.path, 'tools', 'patches')
 
     #
     # Control+C handler
@@ -278,6 +343,22 @@ def main():
         make_sure_path_exists(args.path)
 
     include_path = os.path.join(args.path, 'conf', 'include')
+
+    print_banner(f'Rolling meta-flutter')
+
+    #
+    # Refresh the release data before choosing a version. get_current_release()
+    # and get_release() read conf/include/releases_linux.json, so running this
+    # afterwards -- as it used to -- selected the channel version from whatever
+    # was last committed to the repo rather than what the channel currently
+    # points at, and the roll silently targeted a stale release.
+    # get_version_files() downloads releases_linux.json itself and does not
+    # depend on the selected version, so it is safe to run first.
+    #
+    print_banner('Updating version files')
+    from update_version_files import get_version_files
+    get_version_files(include_path)
+    print_banner('Done updating version files')
 
     #
     # if version is not specified use channel version
@@ -300,20 +381,15 @@ def main():
 
     update_flutter_version_inc(include_path, flutter_sdk_version)
 
-    print_banner(f'Rolling meta-flutter')
-    print_banner('Updating version files')
-    from update_version_files import get_version_files
-    get_version_files(include_path)
-
-    print_banner('Done updating version files')
-
     print_banner(f'Updating dart-sdk recipe')
     update_dart_recipe(args.path, flutter_sdk_version)
 
     print_banner(f'Updating meta-flutter-apps from {args.json}')
     repos = get_flutter_apps(args.json)
 
-    repo_path = os.path.join(os.getcwd(), '.flutter-apps')
+    # scratch dir belongs beside the tree being rolled, matching .dart in
+    # update_dart_recipe(), rather than wherever the script happened to be run
+    repo_path = os.path.join(args.path, '.flutter-apps')
     clear_folder(repo_path)
     make_sure_path_exists(repo_path)
 
