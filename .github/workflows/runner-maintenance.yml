@@ -35,28 +35,18 @@ jobs:
 
   maintenance:
 
+    # Deliberately no container: this needs no build image, and a container
+    # job bind-mounts _work/_actions, which only exists once a workflow has
+    # used an action. Running natively on the runner avoids that entirely and
+    # is already the uid that owns the tree.
     runs-on: [self-hosted, linux]
-
-    container:
-      image: ghcr.io/meta-flutter/meta-flutter/ubuntu-24-dev:main
-      options:
-        --read-only
-        --log-driver=none
-        --user 1001:1001
-        --userns keep-id:uid=1001,gid=1001
-        --security-opt label=disable
-        --pids-limit=-1
-        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
-        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
-        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
-        -v /mnt/raid10/github-ci/sstate:/home/dev/sstate:Z
 
     steps:
 
       - name: Report
         shell: bash
         run: |
-          BUILD=../master-linux-dummy/build
+          BUILD="${GITHUB_WORKSPACE}/../master-linux-dummy/build"
           echo "runner user: $(id -un) ($(id -u))"
           if [ ! -d "$BUILD" ]; then
             echo "::notice::$BUILD does not exist, nothing to do"
@@ -81,7 +71,7 @@ jobs:
             echo "::error::action=wipe-tmp requires confirm=wipe; nothing removed"
             exit 1
           fi
-          BUILD=../master-linux-dummy/build
+          BUILD="${GITHUB_WORKSPACE}/../master-linux-dummy/build"
           if [ ! -d "$BUILD/tmp" ]; then
             echo "::notice::build/tmp already absent"
             exit 0
