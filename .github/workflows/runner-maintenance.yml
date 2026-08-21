@@ -1,0 +1,95 @@
+name: runner-maintenance
+
+# Manual maintenance for the persistent self-hosted runner.
+#
+# The build tree at ../master-linux-dummy survives between jobs, so state can
+# drift out of step with the layers -- orphaned entries in
+# build/tmp/sysroots-components ("trying to install files into a shared area
+# when those files already exist ... not matched to any task"), or a partially
+# written sstate manifest left by an interrupted build.
+#
+# Removing build/tmp clears that. It is regenerable: the shared sstate mount is
+# untouched, so anything whose signature is still valid is re-extracted rather
+# than rebuilt. The first build afterwards is slow.
+#
+# Defaults to report so the workflow is safe to run for a look at the state.
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'report sizes, or remove build/tmp'
+        required: true
+        default: 'report'
+        type: choice
+        options:
+          - report
+          - wipe-tmp
+      confirm:
+        description: 'type "wipe" to allow wipe-tmp (ignored for report)'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+
+  maintenance:
+
+    runs-on: [self-hosted, linux]
+
+    container:
+      image: ghcr.io/meta-flutter/meta-flutter/ubuntu-24-dev:main
+      options:
+        --read-only
+        --log-driver=none
+        --user 1001:1001
+        --userns keep-id:uid=1001,gid=1001
+        --security-opt label=disable
+        --pids-limit=-1
+        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
+        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
+        -v /mnt/raid10/github-ci/sstate:/home/dev/sstate:Z
+
+    steps:
+
+      - name: Report
+        shell: bash
+        run: |
+          BUILD=../master-linux-dummy/build
+          echo "runner user: $(id -un) ($(id -u))"
+          if [ ! -d "$BUILD" ]; then
+            echo "::notice::$BUILD does not exist, nothing to do"
+            exit 0
+          fi
+          echo "--- sizes"
+          du -sh "$BUILD/tmp" 2>/dev/null || echo "  build/tmp absent"
+          du -sh /home/dev/sstate 2>/dev/null || true
+          du -sh /home/dev/dl 2>/dev/null || true
+          echo "--- sysroots-components age spread"
+          C="$BUILD/tmp/sysroots-components"
+          if [ -d "$C" ]; then
+            echo "  total component dirs: $(find "$C" -maxdepth 2 -mindepth 2 | wc -l)"
+            echo "  untouched in 30d:     $(find "$C" -maxdepth 2 -mindepth 2 -mtime +30 | wc -l)"
+          fi
+
+      - name: Wipe build/tmp
+        if: ${{ inputs.action == 'wipe-tmp' }}
+        shell: bash
+        run: |
+          if [ "${{ inputs.confirm }}" != "wipe" ]; then
+            echo "::error::action=wipe-tmp requires confirm=wipe; nothing removed"
+            exit 1
+          fi
+          BUILD=../master-linux-dummy/build
+          if [ ! -d "$BUILD/tmp" ]; then
+            echo "::notice::build/tmp already absent"
+            exit 0
+          fi
+          echo "removing $(du -sh "$BUILD/tmp" | cut -f1) from $BUILD/tmp"
+          rm -rf "$BUILD/tmp"
+          if [ -e "$BUILD/tmp" ]; then
+            echo "::error::build/tmp still present after removal"
+            exit 1
+          fi
+          echo "::notice::build/tmp removed; the shared sstate mount was not touched"
