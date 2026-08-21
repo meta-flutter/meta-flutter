@@ -39,7 +39,9 @@ do_fetch[depends] += " \
 do_fetch[vardeps] += " \
     GN_CUSTOM_VARS \
     GN_CUSTOM_DEPS \
+    GN_EXTRA_CUSTOM_DEPS \
     GN_DEPS_FILE \
+    GN_DEPS_SED_PATCHES \
     EXTRA_GN_SYNC \
 "
 

@@ -87,11 +87,12 @@ class GN(FetchMethod):
         ud.syncpath = ud.parm.get("gclientdir", d.getVar("S"))
 
         sync_opt = d.getVar("EXTRA_GN_SYNC")
+        deps_sed_patches = d.getVar("GN_DEPS_SED_PATCHES") or ""
 
         # The gclient config and sync args change what ends up in the tree, so
         # they have to be part of the cache key -- otherwise two recipes (or one
         # recipe before and after a config change) collide on the same tarball.
-        config_key = f"{gclient_config}\n{sync_opt}"
+        config_key = f"{gclient_config}\n{sync_opt}\n{deps_sed_patches}"
         config_hash = hashlib.sha256(config_key.encode("utf-8")).hexdigest()[:12]
 
         ud.localfile = d.getVar("PN") + '-' + d.getVar("PV") + "-" + srcrev + "-" + config_hash + ".tar.bz2"
@@ -108,8 +109,6 @@ class GN(FetchMethod):
         depot_tools_xdg_config_home = d.getVar("DEPOT_TOOLS_XDG_CONFIG_HOME")
 
         srcdir = d.getVar("S")
-
-        deps_sed_patches = d.getVar("GN_DEPS_SED_PATCHES") or ""
 
         if deps_sed_patches.strip():
             heredoc_cmds = []
