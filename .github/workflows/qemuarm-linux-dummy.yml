@@ -3,6 +3,17 @@ name: master-qemuarm-linux-dummy
 on:
   pull_request:
     types: [ opened, synchronize, reopened, closed ]
+    # Each job is a 45-60 minute build and the runner is sequential, so one
+    # pull request costs several hours of runner time. Skip that for changes
+    # that cannot affect a build. Anything under conf/, classes/, lib/,
+    # recipes-*/ or the build workflows themselves still triggers a full run.
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - 'tools/**'
+      - '.github/workflows/runner-maintenance.yml'
+      - '.gitignore'
+      - 'LICENSE'
   release:
     types: [ published, created, edited ]
 
