@@ -68,7 +68,16 @@ SRC_URI:libc-musl += "\
 
 inherit gn-fetcher features_check pkgconfig
 
-GN_DEPS_SED_PATCHES:pn-flutter-engine:aarch64 = "# Always download the JDK since java is required for running the formatter.|'condition': 'download_android_deps',"
+# 3.47.1 gives the openjdk cipd entry its own condition and keeps the comment
+# the old rewrite targeted, so injecting a second 'condition' key made gclient
+# reject DEPS outright ("duplicate key in dictionary: condition"). Fold the gate
+# into the upstream expression instead: the JDK stays unfetched when android
+# deps are off, and upstream's arm64-host guard is preserved rather than
+# replaced. Dropping the rewrite would also parse, but then x86-64 hosts fetch a
+# JDK nothing opens and it ships inside the cached source tarball.
+# The anchors are deliberately quote-free -- this is a plain bitbake "..."
+# variable and bitbake does not unescape \".
+GN_DEPS_SED_PATCHES:pn-flutter-engine:aarch64 = "not (host_os|download_android_deps and not (host_os"
 
 # For gn.bbclass
 GN_CUSTOM_VARS ?= '\
