@@ -23,7 +23,7 @@ DEPENDS += "\
     unzip-native \
     "
 
-RDEPENDS:${PN} += "\
+RDEPENDS_${PN} += "\
     atk \
     ca-certificates \
     curl \
@@ -85,7 +85,7 @@ do_unpack[depends] += " \
     ninja-native:do_populate_sysroot \
     unzip-native:do_populate_sysroot \
 "
-python do_unpack:append() {
+python do_unpack_append() {
     import shutil
 
     # clean cache folder if it exists
@@ -160,7 +160,7 @@ do_install() {
     cp -rTv ${S}/. ${D}${datadir}/flutter/sdk
 }
 
-do_install:append:class-target () {
+do_install_append_class-target () {
     rm -rf ${D}${datadir}/flutter/sdk/bin/cache/artifacts/engine
     rm -rf ${D}${datadir}/flutter/sdk/bin/cache/dart-sdk/bin
 }
@@ -169,12 +169,12 @@ python () {
     d.setVar('FLUTTER_SDK_VERSION', get_flutter_sdk_version(d))
 }
 
-ALLOW_EMPTY:${PN} = "1"
+ALLOW_EMPTY_${PN} = "1"
 
-FILES:${PN} = "${datadir}/flutter/sdk"
+FILES_${PN} = "${datadir}/flutter/sdk"
 
-INSANE_SKIP:${PN} += "already-stripped file-rdeps libdir"
-INSANE_SKIP:${PN}-dbg += "libdir"
-INSANE_SKIP:class-nativesdk += "buildpaths"
+INSANE_SKIP_${PN} += "already-stripped file-rdeps libdir"
+INSANE_SKIP_${PN}-dbg += "libdir"
+INSANE_SKIP_class-nativesdk += "buildpaths"
 
 BBCLASSEXTEND = "native nativesdk"

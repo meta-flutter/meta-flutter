@@ -10,6 +10,8 @@ Copyright (c) 2023-2025 Joel Winarske. All rights reserved.
 
 import os
 import bb
+import hashlib
+import json
 import multiprocessing
 import subprocess
 import urllib
@@ -19,6 +21,13 @@ from   bb.fetch2 import UnpackError
 from   bb.fetch2 import logger
 from   bb.fetch2 import runfetchcmd
 from   bb.fetch2 import subprocess_setup
+
+
+def _to_gclient_dict(d):
+    """
+    Serialize a Python dict to a gclient-spec-safe string.
+    """
+    return json.dumps(d).replace("null", "None")
 
 class GN(FetchMethod):
     """Class to fetch urls via 'wget'"""
@@ -32,18 +41,35 @@ class GN(FetchMethod):
         return False
 
     def urldata_init(self, ud, d):
-        # syntax: gn://<URL>;gn_name=<NAME>;destdir=<D>;proto=<PROTO>
+        # syntax: gn://<URL>;gn_name=<NAME>;destdir=<D>;protocol=<PROTO>
         name = ud.parm.get("gn_name", ".")
         ud.destdir = ud.parm.get("destdir", d.getVar("S"))
-        proto = ud.parm.get("proto", "https")
+        proto = ud.parm.get("protocol", "https")
 
         ud.basename = "*"
 
-        uri = ud.url.split(';')[0].replace('gn://', proto + '://')
+        uri = ud.url.split(';')[0].replace('gn://', f'{proto}://')
 
         deps_file = d.getVar("GN_DEPS_FILE")
         custom_vars = d.getVar("GN_CUSTOM_VARS")
         custom_deps = d.getVar("GN_CUSTOM_DEPS")
+
+        extra_custom_deps_str = d.getVar("GN_EXTRA_CUSTOM_DEPS") or "{}"
+        try:
+            import ast
+            extra_custom_deps = ast.literal_eval(extra_custom_deps_str)
+        except Exception:
+            bb.warn(f"GN_EXTRA_CUSTOM_DEPS could not be parsed, ignoring: {extra_custom_deps_str}")
+            extra_custom_deps = {}
+
+        try:
+            import ast as _ast
+            base_custom_deps = _ast.literal_eval(custom_deps) if custom_deps.strip() != "{}" else {}
+        except Exception:
+            base_custom_deps = {}
+
+        merged_custom_deps = {**base_custom_deps, **extra_custom_deps}
+        merged_custom_deps_str = _to_gclient_dict(merged_custom_deps)
 
         gclient_config = f'''solutions = [
   {{
@@ -51,7 +77,7 @@ class GN(FetchMethod):
     "url": "{uri}",
     "deps_file": "{deps_file}",
     "managed": False,
-    "custom_deps": {custom_deps},
+    "custom_deps": {merged_custom_deps_str},
     "custom_vars": {custom_vars},
   }},
 ]'''
@@ -60,12 +86,20 @@ class GN(FetchMethod):
 
         ud.syncpath = ud.parm.get("gclientdir", d.getVar("S"))
 
-        ud.localfile = d.getVar("PN") + '-' + d.getVar("PV") + "-" + srcrev + ".tar.bz2"
+        sync_opt = d.getVar("EXTRA_GN_SYNC")
+        deps_sed_patches = d.getVar("GN_DEPS_SED_PATCHES") or ""
+
+        # The gclient config and sync args change what ends up in the tree, so
+        # they have to be part of the cache key -- otherwise two recipes (or one
+        # recipe before and after a config change) collide on the same tarball.
+        config_key = f"{gclient_config}\n{sync_opt}\n{deps_sed_patches}"
+        config_hash = hashlib.sha256(config_key.encode("utf-8")).hexdigest()[:12]
+
+        ud.localfile = d.getVar("PN") + '-' + d.getVar("PV") + "-" + srcrev + "-" + config_hash + ".tar.bz2"
         ud.localpath = os.path.join(d.getVar("WORKDIR"), ud.localfile)
 
         ud.trying_to_fetch_with_gclient = False
 
-        sync_opt = d.getVar("EXTRA_GN_SYNC")
         curl_ca_bundle = d.getVar('CURL_CA_BUNDLE')
         bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
 
@@ -76,6 +110,39 @@ class GN(FetchMethod):
 
         srcdir = d.getVar("S")
 
+        if deps_sed_patches.strip():
+            heredoc_cmds = []
+            for expr in deps_sed_patches.strip().splitlines():
+                expr = expr.strip()
+                if not expr:
+                    continue
+                if "|" not in expr:
+                    bb.warn(f"GN_DEPS_SED_PATCHES entry missing '|' separator, skipping: {expr}")
+                    continue
+                old_str, new_str = expr.split("|", 1)
+                # Escape any double quotes in old/new (rare but safe).
+                old_dq = old_str.replace('"', '\\\"'  )
+                new_dq = new_str.replace('"', '\\\"'  )
+                heredoc_cmds.append(
+                    f"(python3 << 'PATCHEOF'\n"
+                    f'c = open("DEPS").read()\n'
+                    f'c = c.replace("{old_dq}", "{new_dq}")\n'
+                    f'open("DEPS", "w").write(c)\n'
+                    f"PATCHEOF\n)"
+                )
+            patch_cmds = " && ".join(heredoc_cmds)
+            patch_and_commit = (
+                f" && {patch_cmds} "
+                f"&& git add DEPS "
+                f"&& git -c user.email=\"yocto@build\" -c user.name=\"yocto\" "
+                f"commit -m \"fix: restore DEPS condition for cross-compile host\" "
+            )
+            # Use HEAD as the gclient revision so it doesn't reset the change.
+            gclient_revision = "$(git rev-parse HEAD)"
+        else:
+            patch_and_commit = ""
+            gclient_revision = srcrev
+
         ud.basecmd = f'export DEPOT_TOOLS_UPDATE=0; \
             export XDG_CONFIG_HOME={depot_tools_xdg_config_home}; \
             export CURL_CA_BUNDLE={curl_ca_bundle}; \
@@ -84,8 +151,13 @@ class GN(FetchMethod):
             mkdir -p {vpython_virtualenv_root}; \
             export VPYTHON_VIRTUALENV_ROOT="{vpython_virtualenv_root}"; \
             cd "{ud.syncpath}"; \
-            gclient config --spec \'{gclient_config}\'; \
-            gclient sync --force {sync_opt} --revision {srcrev} -j {bb_number_threads} -v'
+            git init . \
+            && (git remote add origin {uri} || git remote set-url origin {uri}) \
+            && git fetch origin {srcrev} --depth=1 --no-tags \
+            && git checkout FETCH_HEAD \
+            {patch_and_commit}\
+            && gclient config --spec \'{gclient_config}\' \
+            && gclient sync --force {sync_opt} --revision {gclient_revision} -j {bb_number_threads} -v'
 
 
         dl_dir = d.getVar("DL_DIR")
@@ -101,9 +173,11 @@ class GN(FetchMethod):
         os.chdir(ud.syncpath)
 
         ud.trying_to_fetch_with_gclient = True
+
         logger.debug(1, f'Fetching {ud.url} using command "{ud.basecmd}"')
         bb.fetch2.check_network_access(d, ud.basecmd, ud.url)
         runfetchcmd(ud.basecmd, d, quiet, workdir=None)
+
         logger.debug(1, f'Packing {ud.url} using command "{ud.packcmd}"')
         runfetchcmd(ud.packcmd, d, quiet, workdir=None)
 
@@ -175,4 +249,3 @@ class GN(FetchMethod):
         sanity check to ensure same name and type.
         """
         return ("", '')
-

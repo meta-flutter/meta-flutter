@@ -19,13 +19,13 @@ DEPENDS += "\
     xz-native \
     "
 
-RDEPENDS:dart-sdk:libc-musl = "\
+RDEPENDS_dart-sdk_libc-musl = "\
     musl \
     "
 
 S = "${WORKDIR}/gn"
 
-SRCREV = "13d929085afa86e5902ed7293cca8509f099ee97"
+SRCREV = "852b3e3608906afbe6102573cfd4407aeedd1b78"
 SRC_URI = " \
     gn://github.com/dart-lang/sdk.git;gn_name=sdk \
     file://gcc_toolchain.gni.in \
@@ -39,11 +39,13 @@ require conf/include/gn-utils.inc
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 
 
-PACKAGECONFIG ??= "platform-sdk verify-sdk-hash mallinfo2 dynamic-modules"
+# Dart 3.13.1's tools/gn.py dropped --platform-sdk and --use-mallinfo2. argparse
+# exits 2 on an unrecognized option, so leaving them here fails do_configure
+# immediately. The PACKAGECONFIG entries are removed rather than defaulted off,
+# since enabling them could only ever break the build.
+PACKAGECONFIG ??= "verify-sdk-hash dynamic-modules"
 
 PACKAGECONFIG[verify-sdk-hash] = "--verify-sdk-hash"
-PACKAGECONFIG[mallinfo2] = "--use-mallinfo2"
-PACKAGECONFIG[platform-sdk] = "--platform-sdk"
 PACKAGECONFIG[use-crashpad] = "--use-crashpad"
 PACKAGECONFIG[use-qemu] = "--use-qemu"
 PACKAGECONFIG[exclude-kernel-service] = "--exclude-kernel-service"
@@ -56,7 +58,7 @@ PACKAGECONFIG[codesigning-identity] = "--codesigning-identity ${CODESIGNING_IDEN
 GN_ARGS = "${PACKAGECONFIG_CONFARGS} --no-rbe"
 
 # all, debug, release, product
-GN_ARGS:append = " --mode product"
+GN_ARGS_append = " --mode product"
 
 GN_HOST_ARCH = "${@gn_host_arch_name(d)}"
 
@@ -68,13 +70,13 @@ GN_HOST_ARCH = "${@gn_host_arch_name(d)}"
 
 # --arm-float-abi [soft,softfp,hard]
 
-GN_ARGS:append:armv7 = " -a arm_${GN_HOST_ARCH} --arm-float-abi ${TARGET_FPU}"
-GN_ARGS:append:armv7a = " -a arm_${GN_HOST_ARCH} --arm-float-abi ${TARGET_FPU}"
-GN_ARGS:append:armv7ve = " -a arm_${GN_HOST_ARCH} --arm-float-abi ${TARGET_FPU}"
-GN_ARGS:append:aarch64 = " -a arm64_${GN_HOST_ARCH}"
-GN_ARGS:append:x86-64 = " -a x64_${GN_HOST_ARCH}"
-GN_ARGS:append:riscv32 = " -a riscv32_${GN_HOST_ARCH}"
-GN_ARGS:append:riscv64 = " -a riscv64_${GN_HOST_ARCH}"
+GN_ARGS_append_armv7 = " -a arm_${GN_HOST_ARCH} --arm-float-abi ${TARGET_FPU}"
+GN_ARGS_append_armv7a = " -a arm_${GN_HOST_ARCH} --arm-float-abi ${TARGET_FPU}"
+GN_ARGS_append_armv7ve = " -a arm_${GN_HOST_ARCH} --arm-float-abi ${TARGET_FPU}"
+GN_ARGS_append_aarch64 = " -a arm64_${GN_HOST_ARCH}"
+GN_ARGS_append_x86-64 = " -a x64_${GN_HOST_ARCH}"
+GN_ARGS_append_riscv32 = " -a riscv32_${GN_HOST_ARCH}"
+GN_ARGS_append_riscv64 = " -a riscv64_${GN_HOST_ARCH}"
 
 OUT_DIR = "${S}/sdk/out"
 
@@ -132,8 +134,8 @@ do_install() {
     cp -R ${BUILD_DIR}/dart-sdk/* ${D}${datadir}/dart-sdk/
 }
 
-INSANE_SKIP:${PN} = "already-stripped ldflags"
+INSANE_SKIP_${PN} = "already-stripped ldflags"
 
-FILES:${PN} += "${datadir}"
+FILES_${PN} += "${datadir}"
 
 BBCLASSEXTEND = "native nativesdk"

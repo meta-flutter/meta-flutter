@@ -24,13 +24,13 @@ DEPENDS += "\
     systemd \
    "
 
-RDEPENDS:${PN} += "\
+RDEPENDS_${PN} += "\
     flutter-engine \
     fontconfig \
     xkeyboard-config \
     "
 
-RRECOMMENDS:${PN} += "\
+RRECOMMENDS_${PN} += "\
     liberation-fonts \
     "
 
@@ -66,4 +66,4 @@ EXTRA_OECMAKE += "\
     -D FILESYSTEM_LAYOUT=meta-flutter \
     "
 
-FILES:${PN} = "${bindir}"
+FILES_${PN} = "${bindir}"

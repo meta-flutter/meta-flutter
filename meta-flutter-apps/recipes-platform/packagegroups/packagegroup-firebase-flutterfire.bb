@@ -8,7 +8,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit packagegroup
 
-RDEPENDS:${PN} += " \
+RDEPENDS_${PN} += " \
     firebase-flutterfire-packages-cloud-firestore-cloud-firestore-example \
     firebase-flutterfire-packages-firebase-app-check-firebase-app-check-example \
     firebase-flutterfire-packages-firebase-core-firebase-core-example \

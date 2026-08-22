@@ -19,6 +19,31 @@ BUILD_TYPE = "app"
 
 FLUTTER_BUILD_ARGS ??= "bundle"
 
+# flutter build bundle only accepts 64-bit Linux target platforms. As of 3.47.1
+# TargetPlatform carries linux_x64, linux_arm64 and linux_riscv64 and nothing
+# 32-bit, so linux-arm and linux-x86 are rejected outright:
+#
+#   "linux-arm" is not an allowed value for option "--target-platform".
+#
+# This is a tooling limit, not an engine one. flutter-engine still builds for
+# armv7 and ships a working 32-bit libflutter_engine.so, and the embedders link
+# against it, so a 32-bit target remains usable -- it just cannot have its app
+# bundle produced by the flutter tool. Skip the app recipes there rather than
+# fail in do_compile after a full fetch and pub get.
+FLUTTER_APP_SUPPORTED_ARCHS ?= "x64 arm64 riscv64"
+
+python () {
+    arch = d.getVar('GN_TARGET_ARCH_NAME')
+    if not arch:
+        return
+    supported = (d.getVar('FLUTTER_APP_SUPPORTED_ARCHS') or '').split()
+    if arch not in supported:
+        raise bb.parse.SkipRecipe(
+            "flutter build bundle has no linux-%s target platform; "
+            "Flutter supports only %s for Linux app bundles" %
+            (arch, ', '.join(supported)))
+}
+
 do_install() {
 
     # determine build type based on what flutter-engine installed
@@ -65,12 +90,12 @@ do_install() {
     done
 }
 
-INSANE_SKIP:${PN} += " ldflags libdir dev-so"
+INSANE_SKIP_${PN} += " ldflags libdir dev-so"
 
-FILES:${PN} = "\
+FILES_${PN} = "\
     ${bindir} \
     ${libdir} \
     ${FLUTTER_INSTALL_DIR} \
     "
 
-RDEPENDS:${PN} = "flutter-engine"
+RDEPENDS_${PN} = "flutter-engine"

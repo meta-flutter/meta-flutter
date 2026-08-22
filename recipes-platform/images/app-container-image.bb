@@ -33,6 +33,6 @@ CONTAINER_SHELL ?= "${@bb.utils.contains('PACKAGE_EXTRA_ARCHS', 'container-dummy
 SERIAL_CONSOLES = ""
 
 # We assume rngd is running on the host
-VIRTUAL-RUNTIME:rngd = ""
+VIRTUAL-RUNTIME_rngd = ""
 
-EXTRA_IMAGEDEPENDS:remove = "arm-trusted-firmware optee-os u-boot"
+EXTRA_IMAGEDEPENDS_remove = "arm-trusted-firmware optee-os u-boot"

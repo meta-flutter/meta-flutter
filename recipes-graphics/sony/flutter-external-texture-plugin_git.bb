@@ -18,7 +18,7 @@ SRC_URI += "\
     file://0001-Add-missing-stdint-header.patch \
     "
 
-INSANE_SKIP:${PN} += " ldflags"
+INSANE_SKIP_${PN} += " ldflags"
 SOLIBS = ".so"
 FILES_SOLIBSDEV = ""
 
@@ -29,7 +29,7 @@ do_install() {
         ${D}${libdir}/libexternal_texture_test_plugin.so
 }
 
-FILES:${PN} = "\
+FILES_${PN} = "\
    ${bindir} \
    ${libdir} \
    "
