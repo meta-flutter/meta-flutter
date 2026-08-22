@@ -16,7 +16,7 @@ INIT_MANAGER = "systemd"
 DISTRO_FEATURES:remove = "sysvinit usbgadget ptest xen"
 DISTRO_FEATURES:append = " systemd x11 wayland opengl pam polkit pipewire pulseaudio"
 
-DISTRO_FEATURES_BACKFILL_CONSIDERED = ""
+DISTRO_FEATURES_OPTED_OUT = ""
 
 # ***************************************
 # CI clones every layer at master. oe-core master tightened the license-format
