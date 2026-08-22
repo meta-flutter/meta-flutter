@@ -1,0 +1,278 @@
+name: kirkstone-build
+
+# Release-branch builds are dispatch-only, but cover every machine master
+# covers. The runner is sequential, so the matrix queues and runs one machine
+# at a time against a single tree, which is how master's tmp comes to hold all
+# four already.
+#
+# Dispatch rather than per-pull-request is a disk constraint, not a coverage
+# one: a populated tmp is around 106G against 264G free, so master and the four
+# release branches cannot all keep one. The tree here is this branch's own, so
+# master's is never disturbed, and any other release branch's tmp is removed
+# first, which holds the release branches to one populated tree between them.
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  kirkstone-build:
+
+    strategy:
+      # Every machine master covers. The runner is sequential, so these queue
+      # and run one at a time against the same tree, exactly as master's four
+      # per-machine workflows do.
+      fail-fast: false
+      matrix:
+        machine: [qemux86-64, qemuarm64, qemuriscv64, qemuarm]
+
+    name: kirkstone-${{ matrix.machine }}
+
+    env:
+      MACHINE: ${{ matrix.machine }}
+      # openembedded-core, meta-yocto and meta-openembedded carry kirkstone.
+      YOCTO_BRANCH: kirkstone
+      # bitbake is versioned rather than named after the release. kirkstone's
+      # openembedded-core declares BB_MIN_VERSION 1.53.0, which is a floor;
+      # 2.0 is the branch that shipped with kirkstone.
+      BITBAKE_BRANCH: '2.0'
+      # meta-drm and meta-vulkan both carry kirkstone, unlike wrynose where
+      # they only have master.
+      DRM_BRANCH: kirkstone
+      VULKAN_BRANCH: kirkstone
+
+    runs-on: [self-hosted, linux]
+
+    container:
+      image: ghcr.io/meta-flutter/meta-flutter/ubuntu-24-dev:main
+      options:
+        --read-only
+        --log-driver=none
+        --user 1001:1001
+        --userns keep-id:uid=1001,gid=1001
+        --security-opt label=disable
+        --pids-limit=-1
+        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
+        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        -v /home/runner/.ssh:/home/dev/.ssh:ro
+        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
+        -v /mnt/raid10/github-ci/sstate/yocto/kirkstone-linux-dummy:/home/dev/sstate:Z
+
+    steps:
+
+      - uses: actions/checkout@v4
+        with:
+          path: ''
+
+      - name: Free other release-branch trees
+        run: |
+          # Only one release branch keeps a populated tmp at a time. master's
+          # tree is deliberately left alone so its per-pull-request builds stay
+          # fast.
+          for d in ../*-linux-dummy; do
+            case "$(basename "$d")" in
+              master-linux-dummy|kirkstone-linux-dummy) continue ;;
+            esac
+            [ -d "$d/build/tmp" ] || continue
+            echo "removing $(du -sh "$d/build/tmp" | cut -f1) from $d/build/tmp"
+            rm -rf "$d/build/tmp"
+          done
+
+      - name: Fetch poky
+        run: |
+          [ -d ../kirkstone-linux-dummy ] || mkdir -p ../kirkstone-linux-dummy
+          cd ../kirkstone-linux-dummy
+          pwd
+          # every layer cloned below must be listed here: this is a persistent
+          # self-hosted runner and 'git clone' into an existing directory fails.
+          rm -rf poky bitbake openembedded-core meta-yocto \
+                 meta-openembedded meta-drm meta-vulkan
+          # 'wait' with no operands always returns 0, so collect the pids and
+          # wait on each to see a failed clone.
+          pids=""
+          for spec in \
+              "${{ env.BITBAKE_BRANCH }}|https://github.com/openembedded/bitbake.git" \
+              "${{ env.YOCTO_BRANCH }}|https://github.com/openembedded/openembedded-core.git" \
+              "${{ env.YOCTO_BRANCH }}|https://github.com/yoctoproject/meta-yocto.git" \
+              "${{ env.YOCTO_BRANCH }}|https://github.com/openembedded/meta-openembedded.git" \
+              "${{ env.DRM_BRANCH }}|https://github.com/jwinarske/meta-drm.git" \
+              "${{ env.VULKAN_BRANCH }}|https://github.com/jwinarske/meta-vulkan.git" ; do
+              branch=${spec%%|*}
+              repo=${spec#*|}
+              git clone -b "$branch" --single-branch "$repo" &
+              pids="$pids $!:$repo@$branch"
+          done
+
+          rc=0
+          for entry in $pids; do
+              pid=${entry%%:*}
+              repo=${entry#*:}
+              if ! wait "$pid"; then
+                  echo "::error::clone failed: $repo"
+                  rc=1
+              fi
+          done
+          exit $rc
+
+      - name: Configure build
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          rm -rf build/conf
+          . ./openembedded-core/oe-init-build-env
+          echo '***************************************'
+          sed -i '/MACHINE ??=/d' ./conf/local.conf
+          echo "MACHINE ??= \"${{ env.MACHINE }}\"" >> ./conf/local.conf
+          echo '***************************************'
+          # Include CI build configuration to disable SPDX
+          echo 'require ../../meta-flutter/conf/distro/include/ci-build.inc' >> ./conf/local.conf
+          echo '********** ./conf/local.conf **********'
+          cat ./conf/local.conf
+          echo '***************************************'
+          bitbake-layers show-layers
+          bitbake-layers add-layer \
+              ../openembedded-core/meta \
+              ../meta-yocto/meta-yocto-bsp \
+              ../meta-yocto/meta-poky \
+              ../meta-openembedded/meta-oe \
+              ../meta-openembedded/meta-filesystems \
+              ../meta-openembedded/meta-gnome \
+              ../meta-openembedded/meta-multimedia \
+              ../meta-openembedded/meta-networking \
+              ../meta-openembedded/meta-python \
+              ../meta-drm \
+              ../meta-vulkan \
+              ../../meta-flutter \
+              ../../meta-flutter/meta-flutter-apps
+          bitbake-layers show-layers
+          echo '***************************************'
+          bitbake -e virtual/kernel | grep "^PV"
+          bitbake -e virtual/kernel | grep "^PN"
+          echo '***************************************'
+          bitbake -e core-image-minimal | grep "^DISTRO_FEATURES"
+          echo '***************************************'
+          bitbake -e > bb.environment
+
+      - name: Build ca-certificates
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake ca-certificates -c do_cleansstate
+          bitbake ca-certificates
+
+      - name: Build ca-certificates-native
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake ca-certificates-native -c do_cleansstate
+          bitbake ca-certificates-native
+
+      - name: Build flutter-sdk-native
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake flutter-sdk-native -c do_cleansstate
+          bitbake flutter-sdk-native
+
+      - name: Build dart-sdk
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake dart-sdk -c do_cleansstate
+          bitbake dart-sdk
+
+      - name: Build sentry
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake sentry -c do_cleansstate
+          bitbake sentry
+
+      - name: Build rive-text
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake rive-text -c do_cleansstate
+          bitbake rive-text
+
+      - name: Build flutter-engine
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake flutter-engine -c do_cleansstate
+          bitbake flutter-engine
+
+      - name: Build ivi-homescreen
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake ivi-homescreen -c do_cleansstate
+          bitbake ivi-homescreen
+
+      - name: Build flutter-auto
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake flutter-auto -c do_cleansstate
+          bitbake flutter-auto
+
+      - name: Build flutter-pi
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake flutter-pi -c do_cleansstate
+          bitbake flutter-pi
+
+      - name: Build toyota-connected-tcna-packages-camera-linux-camera-example
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: matrix.machine != 'qemuarm'
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake toyota-connected-tcna-packages-camera-linux-camera-example -c do_cleansstate
+          bitbake toyota-connected-tcna-packages-camera-linux-camera-example
+
+      - name: Build toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: matrix.machine != 'qemuarm'
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo -c do_cleansstate
+          bitbake toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo
+
+      - name: Build toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: matrix.machine != 'qemuarm'
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example -c do_cleansstate
+          bitbake toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example
+
+      - name: Build toyota-connected-tcna-packages-flatpak-flutter-example
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: matrix.machine != 'qemuarm'
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake toyota-connected-tcna-packages-flatpak-flutter-example -c do_cleansstate
+          bitbake toyota-connected-tcna-packages-flatpak-flutter-example

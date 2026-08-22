@@ -11,10 +11,8 @@ SECTION = "graphics"
 
 LICENSE = "CLOSED"
 
-SRCREV = "690ccb793dade39c8082c2606b407a949d56cb8c"
-SRC_URI = "git://github.com/knopp/layer_playground.git;lfs=0;branch=main;protocol=https;destsuffix=git"
-
-S = "${WORKDIR}/git"
+SRCREV = "b68b8b98e66cba14286fc39f18ae928a6c0cda1a"
+SRC_URI = "git://github.com/knopp/layer_playground.git;lfs=0;branch=main;protocol=https"
 
 PUBSPEC_APPNAME = "layer_playground"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "knopp-layer-playground-layer-playground"
