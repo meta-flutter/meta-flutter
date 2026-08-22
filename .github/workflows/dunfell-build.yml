@@ -91,9 +91,9 @@ jobs:
           # wait on each to see a failed clone.
           pids=""
           for spec in \
-              "${{ env.BITBAKE_BRANCH }}|https://git.openembedded.org/bitbake.git" \
-              "${{ env.YOCTO_BRANCH }}|https://git.openembedded.org/openembedded-core.git" \
-              "${{ env.YOCTO_BRANCH }}|https://git.yoctoproject.org/meta-yocto.git" \
+              "${{ env.BITBAKE_BRANCH }}|https://github.com/openembedded/bitbake.git" \
+              "${{ env.YOCTO_BRANCH }}|https://github.com/openembedded/openembedded-core.git" \
+              "${{ env.YOCTO_BRANCH }}|https://github.com/yoctoproject/meta-yocto.git" \
               "${{ env.YOCTO_BRANCH }}|https://github.com/openembedded/meta-openembedded.git" \
               "${{ env.VULKAN_BRANCH }}|https://github.com/jwinarske/meta-vulkan.git" ; do
               branch=${spec%%|*}
