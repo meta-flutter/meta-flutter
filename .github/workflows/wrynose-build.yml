@@ -30,7 +30,15 @@ jobs:
 
     env:
       MACHINE: ${{ matrix.machine }}
+      # openembedded-core, meta-yocto and meta-openembedded carry wrynose.
       YOCTO_BRANCH: wrynose
+      # bitbake is versioned, not named after the release: wrynose's
+      # openembedded-core declares BB_MIN_VERSION 2.18.0.
+      BITBAKE_BRANCH: '2.18'
+      # meta-drm and meta-vulkan have no wrynose branch; master is the only
+      # thing to track there.
+      DRM_BRANCH: master
+      VULKAN_BRANCH: master
 
     runs-on: [self-hosted, linux]
 
@@ -81,15 +89,17 @@ jobs:
           # 'wait' with no operands always returns 0, so collect the pids and
           # wait on each to see a failed clone.
           pids=""
-          for repo in \
-              https://git.openembedded.org/bitbake.git \
-              https://git.openembedded.org/openembedded-core.git \
-              https://git.yoctoproject.org/meta-yocto.git \
-              https://github.com/openembedded/meta-openembedded.git \
-              https://github.com/jwinarske/meta-drm.git \
-              https://github.com/jwinarske/meta-vulkan.git ; do
-              git clone -b ${{ env.YOCTO_BRANCH }} --single-branch "$repo" &
-              pids="$pids $!:$repo"
+          for spec in \
+              "${{ env.BITBAKE_BRANCH }}|https://git.openembedded.org/bitbake.git" \
+              "${{ env.YOCTO_BRANCH }}|https://git.openembedded.org/openembedded-core.git" \
+              "${{ env.YOCTO_BRANCH }}|https://git.yoctoproject.org/meta-yocto.git" \
+              "${{ env.YOCTO_BRANCH }}|https://github.com/openembedded/meta-openembedded.git" \
+              "${{ env.DRM_BRANCH }}|https://github.com/jwinarske/meta-drm.git" \
+              "${{ env.VULKAN_BRANCH }}|https://github.com/jwinarske/meta-vulkan.git" ; do
+              branch=${spec%%|*}
+              repo=${spec#*|}
+              git clone -b "$branch" --single-branch "$repo" &
+              pids="$pids $!:$repo@$branch"
           done
 
           rc=0
