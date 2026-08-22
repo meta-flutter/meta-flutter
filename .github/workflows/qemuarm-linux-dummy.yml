@@ -217,34 +217,6 @@ jobs:
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
 
-      - name: Build toyota-connected-tcna-packages-camera-linux-camera-example
-        shell: bash
-        working-directory: ../master-linux-dummy
-        run: |
-          . ./openembedded-core/oe-init-build-env
-          bitbake toyota-connected-tcna-packages-camera-linux-camera-example -c do_cleansstate
-          bitbake toyota-connected-tcna-packages-camera-linux-camera-example
-
-      - name: Build toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo
-        shell: bash
-        working-directory: ../master-linux-dummy
-        run: |
-          . ./openembedded-core/oe-init-build-env
-          bitbake toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo -c do_cleansstate
-          bitbake toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo
-
-      - name: Build toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example
-        shell: bash
-        working-directory: ../master-linux-dummy
-        run: |
-          . ./openembedded-core/oe-init-build-env
-          bitbake toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example -c do_cleansstate
-          bitbake toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example
-
-      - name: Build toyota-connected-tcna-packages-flatpak-flutter-example
-        shell: bash
-        working-directory: ../master-linux-dummy
-        run: |
-          . ./openembedded-core/oe-init-build-env
-          bitbake toyota-connected-tcna-packages-flatpak-flutter-example -c do_cleansstate
-          bitbake toyota-connected-tcna-packages-flatpak-flutter-example
+      # The Flutter app recipes do not parse for 32-bit targets: flutter build
+      # bundle has no linux-arm target platform (see conf/include/flutter-app.inc).
+      # The engine and the embedders above are built and exercised as normal.
