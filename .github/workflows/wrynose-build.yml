@@ -1,17 +1,30 @@
 name: wrynose-build
 
-# Release-branch builds are dispatch-only, but cover every machine master
-# covers. The runner is sequential, so the matrix queues and runs one machine
-# at a time against a single tree, which is how master's tmp comes to hold all
-# four already.
+# wrynose builds per pull request, like master, and covers every machine master
+# covers. The runner is sequential, so the matrix queues and runs one machine at
+# a time against a single tree, which is how master's tmp comes to hold all four
+# already.
 #
-# Dispatch rather than per-pull-request is a disk constraint, not a coverage
-# one: a populated tmp is around 106G against 264G free, so master and the four
-# release branches cannot all keep one. The tree here is this branch's own, so
-# master's is never disturbed, and any other release branch's tmp is removed
-# first, which holds the release branches to one populated tree between them.
+# This branch gets per-pull-request builds because it is the release branch
+# under active use, and because two populated trees fit: one measures around
+# 106G. The older release branches stay dispatch-only, since a third and fourth
+# tree would not. The tree here is this branch's own, so master's is never
+# disturbed, and any other release branch's tmp is removed first, which holds
+# the remaining release branches to one populated tree between them -- a
+# dispatch of one of those will evict this branch's tree, which then rebuilds
+# from sstate on the next pull request.
 
 on:
+  pull_request:
+    types: [ opened, synchronize, reopened, closed ]
+    # Same exclusions master uses: a change that cannot affect a build should
+    # not cost four of them.
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - 'tools/**'
+      - '.gitignore'
+      - 'LICENSE'
   workflow_dispatch:
 
 jobs:
