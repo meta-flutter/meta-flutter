@@ -90,6 +90,10 @@ B = "${S}/out/Linux-${GN_TARGET_ARCH_NAME}"
 
 inherit gn-fetcher pkgconfig
 
+# gn writes its output inside the sync directory; keep it out of the
+# cached tarball, which is also what a mirror would serve.
+GN_PACK_EXCLUDES = "./src/out"
+
 require conf/include/gn-utils.inc
 
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"

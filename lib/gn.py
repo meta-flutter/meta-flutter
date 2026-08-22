@@ -89,10 +89,14 @@ class GN(FetchMethod):
         sync_opt = d.getVar("EXTRA_GN_SYNC")
         deps_sed_patches = d.getVar("GN_DEPS_SED_PATCHES") or ""
 
+        # Paths, relative to the sync directory, that must never enter the
+        # tarball. See packcmd below for why.
+        pack_excludes = (d.getVar("GN_PACK_EXCLUDES") or "").split()
+
         # The gclient config and sync args change what ends up in the tree, so
         # they have to be part of the cache key -- otherwise two recipes (or one
         # recipe before and after a config change) collide on the same tarball.
-        config_key = f"{gclient_config}\n{sync_opt}\n{deps_sed_patches}"
+        config_key = f"{gclient_config}\n{sync_opt}\n{deps_sed_patches}\n{' '.join(pack_excludes)}"
         config_hash = hashlib.sha256(config_key.encode("utf-8")).hexdigest()[:12]
 
         ud.localfile = d.getVar("PN") + '-' + d.getVar("PV") + "-" + srcrev + "-" + config_hash + ".tar.bz2"
@@ -161,16 +165,37 @@ class GN(FetchMethod):
 
 
         dl_dir = d.getVar("DL_DIR")
+
+        # The sync directory is also the build directory, so after a build it
+        # holds the gn output tree alongside the sources. A refetch syncs into
+        # that populated tree and, without this, tars the lot: an engine
+        # tarball measured 5.2GB against 2.2GB clean, 4.8GB of it
+        # engine/src/out. The artifact is then wrong rather than absent, and
+        # unpacking one hands ninja prebuilt targets, so do_compile can no-op
+        # and ship output from an earlier build. It can also reach a shared
+        # mirror, since the tarball is what PREMIRRORS serve.
+        ud.excludecmd = " ".join(f"--exclude={e}" for e in pack_excludes)
+        # Clearing the same paths before the sync keeps a retained partial tree
+        # clean, rather than relying on the pack step to filter it afterwards.
+        ud.precleancmd = " ".join(f"rm -rf {e};" for e in pack_excludes)
+
         # pack the source code into a tarball
         # remove the source directory after packing
         # move the tarball to the download directory
-        ud.packcmd = f'tar -I "pbzip2 -p{bb_number_threads}" -cf {ud.localpath} ./; \
+        ud.packcmd = f'tar -I "pbzip2 -p{bb_number_threads}" {ud.excludecmd} -cf {ud.localpath} ./; \
             rm -rf {srcdir}; \
             mv {ud.localpath} {dl_dir}/'
 
     def _rungnclient(self, ud, d, quiet):
         bb.utils.mkdirhier(ud.syncpath)
         os.chdir(ud.syncpath)
+
+        # A retained tree from a failed sync, or one left by a build, still has
+        # its output directory. Remove it before syncing so the tree that gets
+        # packed is sources only.
+        if ud.precleancmd:
+            logger.debug2(f'Clearing build output using command "{ud.precleancmd}"')
+            runfetchcmd(ud.precleancmd, d, quiet, workdir=ud.syncpath)
 
         ud.trying_to_fetch_with_gclient = True
 
