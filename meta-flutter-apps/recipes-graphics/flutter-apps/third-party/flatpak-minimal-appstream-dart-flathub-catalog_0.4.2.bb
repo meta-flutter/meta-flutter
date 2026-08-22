@@ -56,9 +56,9 @@ do_inject_user_defines[dirs] = "${S}"
 
 # libsqlite3.so is resolved from the system at runtime, so it must be on the
 # image, and Dart looks for the unversioned name.
-RDEPENDS:${PN} += "libsqlite3"
+RDEPENDS_${PN} += "libsqlite3"
 
-do_install:append() {
+do_install_append() {
     ln -sf ${libdir}/libsqlite3.so.0 \
         ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/lib/libsqlite3.so
 }

@@ -16,12 +16,12 @@ DEPENDS += "\
     wayland-native \
     "
 
-RDEPENDS:${PN} += "\
+RDEPENDS_${PN} += "\
     gstreamer1.0-plugins-good \
     gstreamer1.0-plugins-bad \
     "
 
-INSANE_SKIP:${PN} += " ldflags"
+INSANE_SKIP_${PN} += " ldflags"
 SOLIBS = ".so"
 FILES_SOLIBSDEV = ""
 
@@ -32,7 +32,7 @@ do_install() {
         ${D}${libdir}/libvideo_player_plugin.so
 }
 
-FILES:${PN} = "\
+FILES_${PN} = "\
    ${bindir} \
    ${libdir} \
    "

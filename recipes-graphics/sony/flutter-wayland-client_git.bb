@@ -19,4 +19,4 @@ do_install() {
         ${D}${bindir}/flutter-client
 }
 
-FILES:${PN} = "${bindir}"
+FILES_${PN} = "${bindir}"

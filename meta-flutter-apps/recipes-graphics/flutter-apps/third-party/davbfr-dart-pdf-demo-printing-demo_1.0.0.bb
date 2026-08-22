@@ -24,6 +24,6 @@ FLUTTER_APPLICATION_PATH = "demo"
 
 inherit flutter-app
 
-RDEPENDS:${PN} += " \
+RDEPENDS_${PN} += " \
     pdfium \
 "

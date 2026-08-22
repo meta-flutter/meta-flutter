@@ -319,7 +319,7 @@ python do_restore_pub_cache() {
 #
 # clean pub cache archive
 #
-python do_cleanall:append() {
+python do_cleanall_append() {
 
     workspace = d.getVar('WORKDIR')
     file = os.path.join(workspace, 'PUB_CACHE_ARCHIVE')

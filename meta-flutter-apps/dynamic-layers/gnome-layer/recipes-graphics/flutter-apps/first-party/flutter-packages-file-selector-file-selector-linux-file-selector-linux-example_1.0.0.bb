@@ -24,6 +24,6 @@ FLUTTER_APPLICATION_PATH = "packages/file_selector/file_selector_linux/example"
 
 inherit flutter-app
 
-RDEPENDS:${PN} += " \
+RDEPENDS_${PN} += " \
     zenity \
 "

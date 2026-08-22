@@ -8,6 +8,6 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit packagegroup
 
-RDEPENDS:${PN} += " \
+RDEPENDS_${PN} += " \
     mogol-flutter-secure-storage-flutter-secure-storage-example \
 "

@@ -26,5 +26,5 @@ S = "${WORKDIR}/git"
 inherit cmake
 
 FILES_SOLIBSDEV = ""
-INSANE_SKIP:${PN} += "dev-so"
-FILES:${PN} = "${libdir}"
+INSANE_SKIP_${PN} += "dev-so"
+FILES_${PN} = "${libdir}"

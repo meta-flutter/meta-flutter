@@ -24,7 +24,7 @@ FLUTTER_APPLICATION_PATH = "packages/flatpak/example"
 
 inherit flutter-app
 
-RDEPENDS:${PN} += " \
+RDEPENDS_${PN} += " \
     flatpak \
     xdg-desktop-portal-gnome \
 "

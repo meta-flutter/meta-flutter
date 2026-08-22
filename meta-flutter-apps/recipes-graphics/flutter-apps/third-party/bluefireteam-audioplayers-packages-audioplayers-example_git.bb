@@ -24,7 +24,7 @@ FLUTTER_APPLICATION_PATH = "packages/audioplayers/example"
 
 inherit flutter-app
 
-RDEPENDS:${PN} += " \
+RDEPENDS_${PN} += " \
     gstreamer1.0 \
     gstreamer1.0-plugins-base \
     gstreamer1.0-plugins-good \

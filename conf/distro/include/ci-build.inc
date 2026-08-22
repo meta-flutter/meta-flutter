@@ -13,8 +13,8 @@ SSTATE_DIR = "/home/dev/sstate"
 INIT_MANAGER = "systemd"
 
 # ***************************************
-DISTRO_FEATURES:remove = "sysvinit usbgadget ptest xen"
-DISTRO_FEATURES:append = " systemd x11 wayland opengl pam polkit pipewire pulseaudio"
+DISTRO_FEATURES_remove = "sysvinit usbgadget ptest xen"
+DISTRO_FEATURES_append = " systemd x11 wayland opengl pam polkit pipewire pulseaudio"
 
 DISTRO_FEATURES_BACKFILL_CONSIDERED = ""
 
@@ -26,8 +26,8 @@ DISTRO_FEATURES_BACKFILL_CONSIDERED = ""
 # recipe. None of those recipes are built here, so demote the check to a warning
 # rather than let third-party layer skew block CI entirely. This file is CI-only
 # and does not affect QA for meta-flutter's own recipes in a real build.
-ERROR_QA:remove = "license-format"
-WARN_QA:append = " license-format"
+ERROR_QA_remove = "license-format"
+WARN_QA_append = " license-format"
 
 # meta-openembedded master is currently out of step with oe-core master in ways
 # that halt parsing before any meta-flutter recipe is reached, and meta-oe has no
@@ -55,14 +55,14 @@ PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"
 LICENSE_FLAGS_WHITELIST += "commercial"
 
 # ***************************************
-PACKAGECONFIG:remove:pn-flutter-engine = " debug profile"
+PACKAGECONFIG_remove_pn-flutter-engine = " debug profile"
 
 # ***************************************
-IMAGE_INSTALL:append = " \
+IMAGE_INSTALL_append = " \
               ffmpeg \
               "
 
 # ***************************************
 # Disable SPDX generation to avoid do_create_spdx task failures
 # when using shared sstate and allarch packages
-INHERIT:remove = "create-spdx"
+INHERIT_remove = "create-spdx"

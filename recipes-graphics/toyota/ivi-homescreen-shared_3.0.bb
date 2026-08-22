@@ -81,7 +81,7 @@ python () {
 
 # The debian bbclass would republish this as libihs-shared1; consumers depend on
 # it by the recipe name.
-DEBIAN_NOAUTONAME:${PN} = "1"
-DEBIAN_NOAUTONAME:${PN}-dev = "1"
+DEBIAN_NOAUTONAME_${PN} = "1"
+DEBIAN_NOAUTONAME_${PN}-dev = "1"
 
-INSANE_SKIP:${PN}-dbg += " buildpaths"
+INSANE_SKIP_${PN}-dbg += " buildpaths"

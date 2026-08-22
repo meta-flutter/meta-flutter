@@ -50,21 +50,21 @@ PACKAGECONFIG[tool] = "-DWAYLAND_CXX_SCANNER_BUILD_TOOL=ON,-DWAYLAND_CXX_SCANNER
 PACKAGECONFIG[tests] = "-DWAYLAND_CXX_SCANNER_BUILD_TESTS=ON,-DWAYLAND_CXX_SCANNER_BUILD_TESTS=OFF,googletest"
 
 # Header-only framework + its CMake package and pkg-config file.
-FILES:${PN}-dev += "\
+FILES_${PN}-dev += "\
     ${includedir}/wl \
     ${libdir}/cmake/wayland-cxx-scanner \
     ${libdir}/pkgconfig/wayland-cxx.pc \
 "
 
-ALLOW_EMPTY:${PN} = "1"
+ALLOW_EMPTY_${PN} = "1"
 
 BBCLASSEXTEND = "native nativesdk"
 
-DEPENDS:class-native = "pugixml-native"
-DEPENDS:class-nativesdk = "pugixml-nativesdk"
+DEPENDS_class-native = "pugixml-native"
+DEPENDS_class-nativesdk = "pugixml-nativesdk"
 
 # The host code generator is the whole point of these variants, so they must
 # build and install the executable. (A native build forces BUILD_TOOL on
 # regardless; nativesdk cross-compiles and would not without this.)
-PACKAGECONFIG:class-native = "tool"
-PACKAGECONFIG:class-nativesdk = "tool"
+PACKAGECONFIG_class-native = "tool"
+PACKAGECONFIG_class-nativesdk = "tool"

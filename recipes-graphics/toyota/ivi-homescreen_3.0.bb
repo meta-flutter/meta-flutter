@@ -29,6 +29,6 @@ PACKAGECONFIG ??= "\
 
 EXTRA_OECMAKE += "-D EXE_OUTPUT_NAME=homescreen"
 
-RDEPENDS:${PN} += "\
+RDEPENDS_${PN} += "\
     wayland \
     "

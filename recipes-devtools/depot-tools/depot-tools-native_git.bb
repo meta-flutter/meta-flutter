@@ -37,6 +37,6 @@ do_install() {
     cp -rTv ${S}/. ${D}${datadir}/depot_tools
 }
 
-INSANE_SKIP:${PN} = "already-stripped"
+INSANE_SKIP_${PN} = "already-stripped"
 
 # vim:set ts=4 sw=4 sts=4 expandtab:

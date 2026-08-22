@@ -2,7 +2,7 @@
 # Copyright (c) 2020-2025 Joel Winarske. All rights reserved.
 #
 
-DEPENDS:riscv64 += "\
+DEPENDS_riscv64 += "\
     compiler-rt \
     libcxx \
     "
@@ -15,14 +15,14 @@ LIBCPLUSPLUS = "-stdlib=libc++"
 # RISC-V specific
 #
 
-COMPATIBLE_MACHINE:riscv32 = "(.*)"
-COMPATIBLE_MACHINE:riscv64 = "(.*)"
+COMPATIBLE_MACHINE_riscv32 = "(.*)"
+COMPATIBLE_MACHINE_riscv64 = "(.*)"
 
 
 # Use Yocto clang for riscv64; required for linking
-CLANG_PATH:riscv64 = "${STAGING_DIR_NATIVE}/usr"
+CLANG_PATH_riscv64 = "${STAGING_DIR_NATIVE}/usr"
 
-do_configure:append() {
+do_configure_append() {
     cd ${STAGING_DIR_TARGET}/usr/lib
 
     test -e crtbeginS.o && rm crtbeginS.o

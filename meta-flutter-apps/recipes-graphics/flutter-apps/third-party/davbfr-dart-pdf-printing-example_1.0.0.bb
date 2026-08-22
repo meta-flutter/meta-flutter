@@ -24,6 +24,6 @@ FLUTTER_APPLICATION_PATH = "printing/example"
 
 inherit flutter-app
 
-RDEPENDS:${PN} += " \
+RDEPENDS_${PN} += " \
     pdfium \
 "

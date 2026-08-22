@@ -46,7 +46,7 @@ do_fetch[vardeps] += " \
 "
 
 do_configure[network] = "1"
-do_configure:prepend() {
+do_configure_prepend() {
     export http_proxy=${http_proxy}
     export https_proxy=${https_proxy}
     export HTTP_PROXY=${HTTP_PROXY}
@@ -58,7 +58,7 @@ do_configure:prepend() {
 }
 
 do_compile[network] = "1"
-do_compile:prepend() {
+do_compile_prepend() {
     export http_proxy=${http_proxy}
     export https_proxy=${https_proxy}
     export HTTP_PROXY=${HTTP_PROXY}

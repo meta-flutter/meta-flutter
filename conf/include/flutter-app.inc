@@ -90,12 +90,12 @@ do_install() {
     done
 }
 
-INSANE_SKIP:${PN} += " ldflags libdir dev-so"
+INSANE_SKIP_${PN} += " ldflags libdir dev-so"
 
-FILES:${PN} = "\
+FILES_${PN} = "\
     ${bindir} \
     ${libdir} \
     ${FLUTTER_INSTALL_DIR} \
     "
 
-RDEPENDS:${PN} = "flutter-engine"
+RDEPENDS_${PN} = "flutter-engine"

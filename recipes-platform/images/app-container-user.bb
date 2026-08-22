@@ -24,7 +24,7 @@ inherit useradd
 # creation code.
 USERADD_PACKAGES = "${PN}"
 
-USERADD_PARAM:${PN} = "-c '' -p '' -u ${APP_CONTAINER_USER_ID} -m ${APP_CONTAINER_USER_NAME}"
+USERADD_PARAM_${PN} = "-c '' -p '' -u ${APP_CONTAINER_USER_ID} -m ${APP_CONTAINER_USER_NAME}"
 
 do_install () {
 
@@ -35,7 +35,7 @@ do_install () {
 	chown -R ${APP_CONTAINER_USER_NAME}:${APP_CONTAINER_USER_NAME} ${D}/home/${APP_CONTAINER_USER_NAME}
 }
 
-FILES:${PN} = "\
+FILES_${PN} = "\
     /home/${APP_CONTAINER_USER_NAME} \
 	"
 

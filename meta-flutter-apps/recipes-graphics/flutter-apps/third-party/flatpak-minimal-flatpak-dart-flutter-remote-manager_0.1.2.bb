@@ -31,4 +31,4 @@ REQUIRED_DISTRO_FEATURES = "polkit"
 
 inherit features_check flutter-app-native
 
-RDEPENDS:${PN} += "flatpak"
+RDEPENDS_${PN} += "flatpak"

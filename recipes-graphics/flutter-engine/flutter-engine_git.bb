@@ -21,7 +21,7 @@ DEPENDS += "\
     lld-native \
     "
 
-DEPENDS:aarch64 += "\
+DEPENDS_aarch64 += "\
     freetype \
     "
 
@@ -62,7 +62,7 @@ S = "${UNPACKDIR}/gn"
 # its native musl locale path when told it is on musl, which
 # FLUTTER_ENGINE_CXX_LIBC_FLAGS already does via -D_LIBCPP_HAS_MUSL_LIBC. They
 # stopped applying at 3.47.1 and are redundant with that define.
-SRC_URI:libc-musl += "\
+SRC_URI_libc-musl += "\
     file://0003-suppres-musl-libc-warning.patch;patchdir=engine/src/flutter/third_party/dart \
     "
 
@@ -77,7 +77,7 @@ inherit gn-fetcher features_check pkgconfig
 # JDK nothing opens and it ships inside the cached source tarball.
 # The anchors are deliberately quote-free -- this is a plain bitbake "..."
 # variable and bitbake does not unescape \".
-GN_DEPS_SED_PATCHES:pn-flutter-engine:aarch64 = "not (host_os|download_android_deps and not (host_os"
+GN_DEPS_SED_PATCHES_pn-flutter-engine_aarch64 = "not (host_os|download_android_deps and not (host_os"
 
 # For gn.bbclass
 GN_CUSTOM_VARS ?= '\
@@ -86,7 +86,7 @@ GN_CUSTOM_VARS ?= '\
     "download_windows_deps": False, \
     "download_linux_deps": False,   \
 }'
-GN_CUSTOM_VARS:aarch64 ?= '\
+GN_CUSTOM_VARS_aarch64 ?= '\
 { \
     "download_android_deps": False, \
     "download_windows_deps": False, \
@@ -96,14 +96,14 @@ GN_CUSTOM_VARS:aarch64 ?= '\
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 
 COMPATIBLE_MACHINE = "(-)"
-COMPATIBLE_MACHINE:aarch64 = "(.*)"
-COMPATIBLE_MACHINE:armv7 = "(.*)"
-COMPATIBLE_MACHINE:armv7a = "(.*)"
-COMPATIBLE_MACHINE:armv7ve = "(.*)"
-COMPATIBLE_MACHINE:x86 = "(.*)"
-COMPATIBLE_MACHINE:x86-64 = "(.*)"
-COMPATIBLE_MACHINE:riscv32 = "(.*)"
-COMPATIBLE_MACHINE:riscv64 = "(.*)"
+COMPATIBLE_MACHINE_aarch64 = "(.*)"
+COMPATIBLE_MACHINE_armv7 = "(.*)"
+COMPATIBLE_MACHINE_armv7a = "(.*)"
+COMPATIBLE_MACHINE_armv7ve = "(.*)"
+COMPATIBLE_MACHINE_x86 = "(.*)"
+COMPATIBLE_MACHINE_x86-64 = "(.*)"
+COMPATIBLE_MACHINE_riscv32 = "(.*)"
+COMPATIBLE_MACHINE_riscv64 = "(.*)"
 
 PACKAGECONFIG ??= "\
     debug profile release \
@@ -152,7 +152,7 @@ PACKAGECONFIG[verbose] = "--verbose"
 PACKAGECONFIG[vulkan] = "--enable-vulkan"
 PACKAGECONFIG[vulkan-validation-layers] = "--enable-vulkan-validation-layers"
 
-RDEPENDS:${PN} = "\
+RDEPENDS_${PN} = "\
     ${@bb.utils.contains('PACKAGECONFIG', 'fontconfig', 'fontconfig', '', d)} \
 "
 
@@ -161,7 +161,7 @@ CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
 CLANG_PATH = "${S}/engine/src/flutter/buildtools/linux-${CLANG_BUILD_ARCH}/clang"
 
 # Use system clang for riscv64; required for linking
-CLANG_PATH:riscv64 = "${STAGING_DIR_NATIVE}/usr"
+CLANG_PATH_riscv64 = "${STAGING_DIR_NATIVE}/usr"
 
 GN_ARGS = "\
     ${PACKAGECONFIG_CONFARGS} \
@@ -188,19 +188,19 @@ GN_ARGS = "\
 # Enable ccache when the ccache class is inherited and CCACHE_DISABLE is false
 GN_ARGS += "${@'--gn-args=use_ccache=true' if bb.data.inherits_class('ccache', d) and not bb.utils.to_boolean(d.getVar('CCACHE_DISABLE')) else ''}"
 
-GN_ARGS:append:libc-musl = "\
+GN_ARGS_append_libc-musl = "\
     --no-backtrace \
     "
 
-GN_ARGS:append:armv7 = " --arm-float-abi ${TARGET_FPU}"
-GN_ARGS:append:armv7a = " --arm-float-abi ${TARGET_FPU}"
-GN_ARGS:append:armv7ve = " --arm-float-abi ${TARGET_FPU}"
+GN_ARGS_append_armv7 = " --arm-float-abi ${TARGET_FPU}"
+GN_ARGS_append_armv7a = " --arm-float-abi ${TARGET_FPU}"
+GN_ARGS_append_armv7ve = " --arm-float-abi ${TARGET_FPU}"
 
 GN_TUNE_ARGS = ""
-GN_TUNE_ARGS:append:aarch64 = "arm_tune = \"${@gn_get_tune_features(d)}\""
-GN_TUNE_ARGS:append:armv7 = "arm_tune = \"${@gn_get_tune_features(d)}\""
-GN_TUNE_ARGS:append:armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\""
-GN_TUNE_ARGS:append:armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
+GN_TUNE_ARGS_append_aarch64 = "arm_tune = \"${@gn_get_tune_features(d)}\""
+GN_TUNE_ARGS_append_armv7 = "arm_tune = \"${@gn_get_tune_features(d)}\""
+GN_TUNE_ARGS_append_armv7a = "arm_tune = \"${@gn_get_tune_features(d)}\""
+GN_TUNE_ARGS_append_armv7ve = "arm_tune = \"${@gn_get_tune_features(d)}\""
 
 TMP_OUT_DIR = "${@get_gn_tmp_out_dir_relative(d)}"
 
@@ -221,7 +221,7 @@ FLUTTER_ENGINE_DEBUG_FLAGS ?= "-g -feliminate-unused-debug-types ${FLUTTER_ENGIN
 FLUTTER_ENGINE_CXX_LIBC_FLAGS ?= ""
 # flatbuffers keys its locale-independent path on _XOPEN_VERSION >= 700, which
 # musl advertises without providing strtoll_l/strtoull_l; force it off.
-FLUTTER_ENGINE_CXX_LIBC_FLAGS:append:libc-musl = "-D_LIBCPP_HAS_MUSL_LIBC -DFLATBUFFERS_LOCALE_INDEPENDENT=0"
+FLUTTER_ENGINE_CXX_LIBC_FLAGS_append_libc-musl = "-D_LIBCPP_HAS_MUSL_LIBC -DFLATBUFFERS_LOCALE_INDEPENDENT=0"
 
 WAYLAND_IS_PRESENT = "${@bb.utils.filter('DISTRO_FEATURES', 'wayland', d)}"
 X11_IS_PRESENT = "${@bb.utils.filter('DISTRO_FEATURES', 'x11', d)}"
@@ -538,11 +538,11 @@ PACKAGES =+ "\
     ${PN}-test \
     "
 
-INSANE_SKIP:${PN} += " libdir"
-INSANE_SKIP:${PN}-dbg += "libdir"
-INSANE_SKIP:${PN}-desktop-embeddings += "libdir"
-INSANE_SKIP:${PN}-impeller += " libdir"
-INSANE_SKIP:${PN}-test += " buildpaths libdir"
+INSANE_SKIP_${PN} += " libdir"
+INSANE_SKIP_${PN}-dbg += "libdir"
+INSANE_SKIP_${PN}-desktop-embeddings += "libdir"
+INSANE_SKIP_${PN}-impeller += " libdir"
+INSANE_SKIP_${PN}-test += " buildpaths libdir"
 
 #
 # Per-runtime-mode packaging
@@ -563,23 +563,23 @@ PACKAGE_BEFORE_PN += "\
     ${PN}-jit-release \
     "
 
-FILES:${PN}-debug       = "${datadir}/flutter/${FLUTTER_SDK_TAG}/debug"
-FILES:${PN}-profile     = "${datadir}/flutter/${FLUTTER_SDK_TAG}/profile"
-FILES:${PN}-release     = "${datadir}/flutter/${FLUTTER_SDK_TAG}/release"
-FILES:${PN}-jit-release = "${datadir}/flutter/${FLUTTER_SDK_TAG}/jit_release"
+FILES_${PN}-debug       = "${datadir}/flutter/${FLUTTER_SDK_TAG}/debug"
+FILES_${PN}-profile     = "${datadir}/flutter/${FLUTTER_SDK_TAG}/profile"
+FILES_${PN}-release     = "${datadir}/flutter/${FLUTTER_SDK_TAG}/release"
+FILES_${PN}-jit-release = "${datadir}/flutter/${FLUTTER_SDK_TAG}/jit_release"
 
 # The engine libraries live under ${datadir}/flutter/<ver>/<mode>/lib/, not
 # ${libdir}, so every package carrying them needs the libdir QA check skipped --
 # the same exemption ${PN} already had before the split.
-INSANE_SKIP:${PN}-debug       += " libdir"
-INSANE_SKIP:${PN}-profile     += " libdir"
-INSANE_SKIP:${PN}-release     += " libdir"
-INSANE_SKIP:${PN}-jit-release += " libdir"
+INSANE_SKIP_${PN}-debug       += " libdir"
+INSANE_SKIP_${PN}-profile     += " libdir"
+INSANE_SKIP_${PN}-release     += " libdir"
+INSANE_SKIP_${PN}-jit-release += " libdir"
 
-SUMMARY:${PN}-debug       = "Flutter engine - debug runtime mode"
-SUMMARY:${PN}-profile     = "Flutter engine - profile runtime mode"
-SUMMARY:${PN}-release     = "Flutter engine - release runtime mode"
-SUMMARY:${PN}-jit-release = "Flutter engine - jit_release runtime mode"
+SUMMARY_${PN}-debug       = "Flutter engine - debug runtime mode"
+SUMMARY_${PN}-profile     = "Flutter engine - profile runtime mode"
+SUMMARY_${PN}-release     = "Flutter engine - release runtime mode"
+SUMMARY_${PN}-jit-release = "Flutter engine - jit_release runtime mode"
 
 # ${PN} becomes a pure metapackage: the per-mode packages above claim every
 # directory under ${datadir}/flutter, so nothing is left for it to own. It must
@@ -588,36 +588,36 @@ SUMMARY:${PN}-jit-release = "Flutter engine - jit_release runtime mode"
 # unresolvable at do_rootfs ("nothing provides flutter-engine"). ALLOW_EMPTY
 # keeps it, and its RDEPENDS pull in whichever modes were built, so existing
 # consumers behave exactly as they did before the split.
-FILES:${PN} = "\
+FILES_${PN} = "\
     ${datadir}/flutter \
     "
 
-ALLOW_EMPTY:${PN} = "1"
-RDEPENDS:${PN} += "${@' '.join('${PN}-' + m.replace('_', '-') for m in bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d).split())}"
+ALLOW_EMPTY_${PN} = "1"
+RDEPENDS_${PN} += "${@' '.join('${PN}-' + m.replace('_', '-') for m in bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d).split())}"
 
-FILES:${PN}-dbg = "\
+FILES_${PN}-dbg = "\
     ${FLUTTER_ENGINE_INSTALL_PREFIX}/*/lib/.debug \
     "
 
-FILES:${PN}-desktop-embeddings = "\
+FILES_${PN}-desktop-embeddings = "\
     ${@bb.utils.contains('PACKAGECONFIG', 'desktop-embeddings', '${datadir}/flutter/${FLUTTER_SDK_TAG}/*/lib/libflutter_linux*.so', '', d)} \
     "
 
-FILES:${PN}-dev = "\
+FILES_${PN}-dev = "\
     ${includedir} \
     "
 
-FILES:${PN}-impeller = "\
+FILES_${PN}-impeller = "\
     ${FLUTTER_ENGINE_INSTALL_PREFIX}/*/lib/libimpeller.so \
     ${FLUTTER_ENGINE_INSTALL_PREFIX}/*/lib/libpath_ops.so \
     ${FLUTTER_ENGINE_INSTALL_PREFIX}/*/lib/libtessellator.so \
     "
 
-FILES:${PN}-sdk-dev = "\
+FILES_${PN}-sdk-dev = "\
     ${datadir}/flutter/${FLUTTER_SDK_TAG}/*/engine_sdk.zip \
     "
 
-FILES:${PN}-test = "\
+FILES_${PN}-test = "\
     ${@bb.utils.contains('PACKAGECONFIG', 'unittests', '${FLUTTER_ENGINE_INSTALL_PREFIX}/*/bin/*_benchmarks', '', d)} \
     ${@bb.utils.contains('PACKAGECONFIG', 'unittests', '${FLUTTER_ENGINE_INSTALL_PREFIX}/*/bin/*_unittests', '', d)} \
     ${@bb.utils.contains('PACKAGECONFIG', 'unittests', '${FLUTTER_ENGINE_INSTALL_PREFIX}/*/bin/*_rendertests', '', d)} \

@@ -8,7 +8,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit packagegroup
 
-RDEPENDS:${PN} += " \
+RDEPENDS_${PN} += " \
     flutter-packages-third-party-packages-flutter-svg-example \
     flutter-packages-vector-graphics-example \
     flutter-packages-pointer-interceptor-pointer-interceptor-pointer-interceptor-example \
