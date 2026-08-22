@@ -1,5 +1,88 @@
 # Changelog
 
+August 19, 2026
+1. roll Flutter SDK to 3.47.1 (Dart 3.13.1)
+   - dart-sdk recipe 3.10.1 -> 3.13.1
+   - unblocks packages requiring hooks ^2.1.0, which needs meta >= 1.19.0 and
+     could not resolve against 3.38.3
+2. add ivi-homescreen v3.0 and flutter-auto v3.0, sharing ivi-homescreen-v3.inc
+   (plugins track the plugins repo v2.0 branch, which has no v3.0)
+   - backends are no longer mutually exclusive: wayland-egl, wayland-vulkan,
+     wayland-leased-drm, drm-kms-egl, drm-kms-vulkan, software, headless-egl,
+     headless-vulkan may all be built in and are selected at runtime
+   - new options: compositor, hud, compositor-dmabuf-export, vulkan-validation,
+     drm-kms-vulkan-probe, software sinks and input seat, client-simple-shell,
+     accessibility, mcp, accesskit, osgi, fuzzers, sanitize-thread/-memory/
+     -undefined, unit-tests, integration-tests, docs, lto, static-link,
+     plugin-common, firebase_core, video-player-pigeon-regen, camera-pipewire
+   - Wayland dependencies moved onto the Wayland backends; a DRM/KMS, software
+     or headless build no longer requires the wayland distro feature. The
+     leased-DRM backend deliberately omits wayland-protocols: it has no
+     wl_surface and reads nothing from the package
+   - parse-time consistency matrix rejects the option combinations upstream
+     CMake rejects, and warns on options that would otherwise silently do
+     nothing
+   - the plugins tree and the v4l2-webrtc-codec encoder sources are fetched only
+     when built, so disable-plugins means no plugins clone and no sd-bus
+     dependency
+   - the always-on common plugin vendors sdbus-c++, which needs an sd-bus
+     implementation at configure time: systemd where the distro has it, else
+     basu
+   - crash handler DSN now comes from the SENTRY_DSN environment variable;
+     CRASH_HANDLER_DSN removed, CRASHPAD_RUNTIME_PATH added
+   - filament-view dropped; the plugins repo no longer carries it
+   - plugins/webrtc is deliberately not exposed: it links libwebrtc's C++ API
+     into the embedder and its vendored flutter-webrtc copy has drifted
+3. add ivi-homescreen-shared recipe
+   - builds the shared/ subtree standalone, so libihs_shared has a single owner
+     and ivi-homescreen and flutter-auto can be installed side by side
+   - consumers can depend on the C-ABI library alone instead of pulling in a
+     whole embedder
+4. add wayland-cxx-scanner recipe; ivi-homescreen v3 generates its Wayland
+   bindings with a build-host run of the scanner (wayland-cxx-scanner-native)
+5. add flutter-app-native.bbclass for Flutter apps whose Dart packages carry a
+   native-assets build hook driving CMake. The hook runs inside flutter build
+   and cannot see the OE cross environment, so the class puts a cmake wrapper on
+   PATH that injects the toolchain file and pkg-config settings, then installs
+   the resulting libraries into the app bundle. FLUTTER_NATIVE_VERBOSE surfaces
+   the hook output, which the native-assets builder otherwise swallows
+6. add app recipes: bluez_native flutter_ble_scanner, flatpak_dart
+   flutter_remote_manager, packagekit_dart packagekit_catalog. Repoint
+   appstream_dart flathub_catalog at flatpak-minimal and move it onto the new
+   class, replacing its hand-rolled cmake and flutter-app hybrid
+7. restore and update the libwebrtc recipe
+   - webrtc pinned to the revision the local build tree uses, libwebrtc to main
+   - absorbs the v4l2-webrtc-codec hardware decoder as a gn source_set
+   - audio backends and X11 follow DISTRO_FEATURES rather than being hardcoded;
+     when both wayland and x11 are present, the pipewire path wins and the libX*
+     dependencies are dropped
+   - desktop capture is optional but requires pipewire: it adds virtual methods
+     to the public interfaces, so a consumer built without RTC_DESKTOP_DEVICE
+     gets a mismatched vtable
+   - stamp a versioned DT_SONAME so consumers record libwebrtc.so.144 and are
+     satisfied by the runtime package alone
+8. flutter-engine updates for 3.47.1
+   - drop patches upstream absorbed or superseded: impeller virtual specifier,
+     abseil-cpp and googletest warning fixes, and the two libc++ musl patches
+     now covered by -D_LIBCPP_HAS_MUSL_LIBC
+   - musl: add -DFLATBUFFERS_LOCALE_INDEPENDENT=0, and widen the swiftshader
+     config fix to cover llvm-subzero and HAVE_MALLINFO2/HAVE_BACKTRACE/
+     HAVE_EXECINFO_H
+   - pass --no-default-linux-sysroot: flutter/tools/gn now forces
+     use_default_linux_sysroot true, so editing sysroot.gni no longer works
+   - pass dart_include_wasm_opt=false, which upstream applies only to host
+     builds; without it the wasm-opt link fails on duplicate libc++abi symbols
+   - depend on libx11 and libxcb where the distro has x11, and match the
+     vulkan_headers.gni assignment however it is spelled
+   - split the runtime modes into their own packages so an image carries only
+     the mode it runs; flutter-engine stays as a metapackage that pulls the
+     modes that were built
+   - add an ABI interop gate over libflutter_engine.so: no dynamically linked
+     C++ runtime, libc matching the target, a static unwinder, no exported or
+     undefined C++ symbols. This is what makes a clang-built engine safe to drop
+     into a GCC or musl userland
+9. layer compatibility updated to blacksail
+
 March 14, 2025
 1. roll ivi-homescreen/flutter-auto
    -Remove FPS overlay

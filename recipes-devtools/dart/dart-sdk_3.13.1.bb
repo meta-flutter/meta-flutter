@@ -23,7 +23,7 @@ DEPENDS += "\
 
 S = "${UNPACKDIR}/gn"
 
-SRCREV = "13d929085afa86e5902ed7293cca8509f099ee97"
+SRCREV = "852b3e3608906afbe6102573cfd4407aeedd1b78"
 SRC_URI = " \
     gn://github.com/dart-lang/sdk.git;gn_name=sdk \
     file://gcc_toolchain.gni.in \
@@ -39,17 +39,23 @@ LIBCPLUSPLUS = "-stdlib=libc++"
 
 inherit gn-fetcher pkgconfig
 
+# gn writes its output inside the sync directory; keep it out of the
+# cached tarball, which is also what a mirror would serve.
+GN_PACK_EXCLUDES = "./sdk/out"
+
 require conf/include/gn-utils.inc
 
 # For gn.bbclass
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 
 
-PACKAGECONFIG ??= "platform-sdk verify-sdk-hash mallinfo2 dynamic-modules"
+# Dart 3.13.1's tools/gn.py dropped --platform-sdk and --use-mallinfo2. argparse
+# exits 2 on an unrecognized option, so leaving them here fails do_configure
+# immediately. The PACKAGECONFIG entries are removed rather than defaulted off,
+# since enabling them could only ever break the build.
+PACKAGECONFIG ??= "verify-sdk-hash dynamic-modules"
 
 PACKAGECONFIG[verify-sdk-hash] = "--verify-sdk-hash"
-PACKAGECONFIG[mallinfo2] = "--use-mallinfo2"
-PACKAGECONFIG[platform-sdk] = "--platform-sdk"
 PACKAGECONFIG[use-crashpad] = "--use-crashpad"
 PACKAGECONFIG[use-qemu] = "--use-qemu"
 PACKAGECONFIG[exclude-kernel-service] = "--exclude-kernel-service"
