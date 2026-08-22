@@ -13,7 +13,7 @@
 
 TOOLCHAIN = "clang"
 # Required to make dart happy
-DEPENDS:append = " lld-native"
+DEPENDS_append = " lld-native"
 
 # NOTE: conf/include/flutter-app.inc already requires gn-utils.inc and appends
 # "--target-platform linux-${@gn_target_arch_name(d)}" to FLUTTER_BUILD_ARGS.
@@ -32,7 +32,7 @@ DEPENDS:append = " lld-native"
 # ${S}/${FLUTTER_APPLICATION_PATH}/.dart_tool/native_assets_builder/; those are
 # dumped into the task log by the do_dump_hook_logs task below when verbose is on.
 FLUTTER_NATIVE_VERBOSE ??= "0"
-FLUTTER_BUILD_ARGS:append = "${@' --verbose' if d.getVar('FLUTTER_NATIVE_VERBOSE') == '1' else ''}"
+FLUTTER_BUILD_ARGS_append = "${@' --verbose' if d.getVar('FLUTTER_NATIVE_VERBOSE') == '1' else ''}"
 
 # flutter-app's do_compile is a PYTHON task, so a shell do_compile:append()
 # would be parsed as python and fail. Use a separate task instead.
@@ -97,7 +97,7 @@ python flutter_native_path_setup() {
     d.setVar('PATH', workdir + ':' + path)
 }
 
-do_install:append() {
+do_install_append() {
     if [ -d ${S}/${FLUTTER_APPLICATION_PATH}/build/native_assets/linux ]; then
         cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/native_assets/linux/* \
             ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/lib/
@@ -108,6 +108,6 @@ do_install:append() {
 do_compile[cleandirs] = "${S}/.dart_tool"
 
 # Quiet QA warnings about debug libraries under /usr/share/flutter/.../lib/.debug
-INSANE_SKIP:${PN}-dbg += " libdir"
+INSANE_SKIP_${PN}-dbg += " libdir"
 
 inherit flutter-app

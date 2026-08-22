@@ -520,7 +520,7 @@ EXTRA_OECMAKE += "\
 # Both recipes default HOMESCREEN_COMMIT to the same revision, so the library
 # linked here and the one installed are the same build of the same source.
 #
-do_install:append() {
+do_install_append() {
     rm -f  ${D}${libdir}/libihs_shared.so*
     rm -f  ${D}${libdir}/pkgconfig/ivi-homescreen-shared.pc
     rm -rf ${D}${libdir}/cmake/ivi-homescreen-shared
@@ -534,12 +534,12 @@ do_install:append() {
         ${D}${libdir} 2>/dev/null || true
 }
 
-RDEPENDS:${PN} += "\
+RDEPENDS_${PN} += "\
     flutter-engine \
     libxkbcommon \
     ivi-homescreen-shared \
     "
 
-INSANE_SKIP:${PN}-dbg += " buildpaths"
+INSANE_SKIP_${PN}-dbg += " buildpaths"
 
 BBCLASSEXTEND = "verbose-logs"

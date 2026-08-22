@@ -16,4 +16,4 @@ do_install() {
         ${D}${bindir}/flutter-drm-eglstream-backend
 }
 
-FILES:${PN} = "${bindir}"
+FILES_${PN} = "${bindir}"

@@ -14,4 +14,4 @@ do_install() {
         ${D}${bindir}/flutter-x11-client
 }
 
-FILES:${PN} = "${bindir}"
+FILES_${PN} = "${bindir}"

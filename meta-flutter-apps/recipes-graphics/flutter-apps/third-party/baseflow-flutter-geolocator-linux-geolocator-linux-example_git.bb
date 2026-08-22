@@ -22,6 +22,6 @@ FLUTTER_APPLICATION_PATH = "geolocator_linux/example"
 
 inherit flutter-app
 
-RDEPENDS:${PN} += " \
+RDEPENDS_${PN} += " \
     geoclue \
 "

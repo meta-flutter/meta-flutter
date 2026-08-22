@@ -22,7 +22,7 @@ DEPENDS += "\
     ninja-native \
     "
 
-DEPENDS:append:x86-64 = " nasm-native"
+DEPENDS_append_x86-64 = " nasm-native"
 
 SRCREV = "4e4d7a14a4d9d484feb4a4770a892cd964cfd968"
 SRC_URI = "\
@@ -48,7 +48,7 @@ GN_CUSTOM_VARS ?= '{"checkout_configuration": "small"}'
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 
 EXTRA_CXXFLAGS = ""
-EXTRA_CXXFLAGS:append:libc-musl = "\
+EXTRA_CXXFLAGS_append_libc-musl = "\
     -flax-vector-conversions \
     "
 
@@ -114,7 +114,7 @@ do_install() {
     cp -R ${S}/public/* ${D}${includedir}
 }
 
-FILES:${PN}-dev += "\
+FILES_${PN}-dev += "\
     ${libdir}/pdfium/LICENSE \
     ${includedir}/PRESUBMIT.py \
 "

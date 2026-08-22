@@ -159,12 +159,12 @@ EXTRA_OECMAKE += "\
     -D BUILD_DOCS=OFF \
 "
 
-RDEPENDS:${PN} += "\
+RDEPENDS_${PN} += "\
    flutter-engine \
     ${@bb.utils.contains('PACKAGECONFIG', 'flatpak', 'flatpak', '', d)} \
     ${@bb.utils.contains('PACKAGECONFIG', 'rive-text', 'rive-text', '', d)} \
    "
 
-INSANE_SKIP:${PN}-dbg += " buildpaths"
+INSANE_SKIP_${PN}-dbg += " buildpaths"
 
 BBCLASSEXTEND = "verbose-logs"

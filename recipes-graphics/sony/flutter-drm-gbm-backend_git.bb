@@ -14,4 +14,4 @@ do_install() {
         ${D}${bindir}/flutter-drm-gbm-backend
 }
 
-FILES:${PN} = "${bindir}"
+FILES_${PN} = "${bindir}"

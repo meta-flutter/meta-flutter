@@ -29,4 +29,4 @@ FLUTTER_APPLICATION_INSTALL_SUFFIX = "bluez-native-example-flutter-ble-scanner"
 inherit flutter-app-native
 
 # bluez_nc talks to BlueZ over D-Bus; the daemon must be on the image.
-RDEPENDS:${PN} += "bluez5"
+RDEPENDS_${PN} += "bluez5"

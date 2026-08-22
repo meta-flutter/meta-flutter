@@ -1,1 +1,1 @@
-PACKAGECONFIG:append = " verbose"
+PACKAGECONFIG_append = " verbose"

@@ -8,7 +8,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit packagegroup
 
-RDEPENDS:${PN} += " \
+RDEPENDS_${PN} += " \
     flutter-games-templates-basic \
     flutter-games-templates-endless-runner \
     flutter-games-templates-card \
