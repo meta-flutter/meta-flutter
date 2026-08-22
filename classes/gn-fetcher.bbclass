@@ -34,6 +34,17 @@ do_fetch[depends] += " \
     pbzip2-native:do_populate_sysroot \
 "
 
+# The fetch is otherwise keyed only on srcrev, so changing any of these silently
+# reuses the previously fetched tree. Refetch when they change.
+do_fetch[vardeps] += " \
+    GN_CUSTOM_VARS \
+    GN_CUSTOM_DEPS \
+    GN_EXTRA_CUSTOM_DEPS \
+    GN_DEPS_FILE \
+    GN_DEPS_SED_PATCHES \
+    EXTRA_GN_SYNC \
+"
+
 do_configure[network] = "1"
 do_configure:prepend() {
     export http_proxy=${http_proxy}
