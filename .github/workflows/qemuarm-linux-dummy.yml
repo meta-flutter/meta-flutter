@@ -69,9 +69,9 @@ jobs:
           # actually observed.
           pids=""
           for repo in \
-              https://git.openembedded.org/bitbake.git \
-              https://git.openembedded.org/openembedded-core.git \
-              https://git.yoctoproject.org/meta-yocto.git \
+              https://github.com/openembedded/bitbake.git \
+              https://github.com/openembedded/openembedded-core.git \
+              https://github.com/yoctoproject/meta-yocto.git \
               https://github.com/openembedded/meta-openembedded.git \
               https://github.com/jwinarske/meta-drm.git \
               https://github.com/jwinarske/meta-vulkan.git ; do
