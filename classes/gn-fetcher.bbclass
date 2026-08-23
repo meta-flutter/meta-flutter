@@ -42,8 +42,16 @@ do_fetch[vardeps] += " \
     GN_EXTRA_CUSTOM_DEPS \
     GN_DEPS_FILE \
     GN_DEPS_SED_PATCHES \
+    GN_PACK_EXCLUDES \
     EXTRA_GN_SYNC \
 "
+
+# Paths, relative to the sync directory, kept out of the cached tarball and
+# cleared before a sync. The sync directory doubles as the build directory, so
+# a refetch after a build would otherwise cache the gn output tree as if it
+# were source. Recipes whose output sits elsewhere under the sync directory
+# override this; recipes that build outside it can set it empty.
+GN_PACK_EXCLUDES ??= "./out"
 
 do_configure[network] = "1"
 do_configure_prepend() {

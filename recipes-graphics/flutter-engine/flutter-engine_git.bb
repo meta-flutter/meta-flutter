@@ -68,6 +68,10 @@ SRC_URI_libc-musl += "\
 
 inherit gn-fetcher features_check pkgconfig
 
+# gn writes its output inside the sync directory; keep it out of the
+# cached tarball, which is also what a mirror would serve.
+GN_PACK_EXCLUDES = "./engine/src/out"
+
 # 3.47.1 gives the openjdk cipd entry its own condition and keeps the comment
 # the old rewrite targeted, so injecting a second 'condition' key made gclient
 # reject DEPS outright ("duplicate key in dictionary: condition"). Fold the gate
