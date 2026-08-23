@@ -9,7 +9,7 @@ HOMEPAGE = "https://github.com/bernardpumped/ped/tree/agl"
 BUGTRACKER = "https://github.com/bernardpumped/ped/issues"
 SECTION = "graphics"
 
-LICENSE = "GPL-3.0"
+LICENSE = "GPL-3.0-or-later"
 LIC_FILES_CHKSUM = "file://COPYING;md5=e49f4652534af377a713df3d9dec60cb"
 
 SRCREV = "de1c4cf92bf629a0fff0d5462e2ba9575b77de67"
