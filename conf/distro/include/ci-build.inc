@@ -82,6 +82,23 @@ INHERIT:remove = "create-spdx"
 # a populated sstate restores these instead of building them, which is why it
 # surfaces on first builds and hides afterwards.
 #
-# Only these two recipes are capped; everything else keeps full parallelism.
+# Capping only the two recipes with evidence against them was too narrow: with
+# LLVM held back, highway became the peak and was killed the same way, its
+# assembler input truncated mid-write:
+#
+#   {standard input}: Error: open CFI at the end of file
+#   x86_64-oe-linux-g++: fatal error: Killed signal terminated program cc1plus
+#
+# highway instantiates the same templates across many instruction sets, so its
+# translation units rival LLVM's. Chasing recipes one at a time just moves the
+# peak, so cap globally and keep the tighter LLVM limit as an exception.
+#
+# 32 cores against 60G is roughly 1.9G per job at full width, which is under
+# what these translation units want. 16 doubles that headroom and still uses
+# the machine.
+BB_NUMBER_THREADS = "16"
+PARALLEL_MAKE = "-j 16"
+
 PARALLEL_MAKE:pn-clang-native = "-j 8"
 PARALLEL_MAKE:pn-llvm-native = "-j 8"
+PARALLEL_MAKE:pn-highway = "-j 8"
