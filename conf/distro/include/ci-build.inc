@@ -67,3 +67,21 @@ IMAGE_INSTALL:append = " \
 # Disable SPDX generation to avoid do_create_spdx task failures
 # when using shared sstate and allarch packages
 INHERIT:remove = "create-spdx"
+
+# ***************************************
+# Cap the LLVM builds' parallelism.
+#
+# clang-native and llvm-native are the memory peak of a cold build. At the
+# runner's default of one job per core they get far enough to be expensive and
+# then die:
+#
+#   g++: fatal error: Killed signal terminated program cc1plus
+#
+# That is the OOM killer, not a compiler fault. It cost three of four jobs on a
+# release branch whose sstate was nearly empty, and one on master. Anything with
+# a populated sstate restores these instead of building them, which is why it
+# surfaces on first builds and hides afterwards.
+#
+# Only these two recipes are capped; everything else keeps full parallelism.
+PARALLEL_MAKE:pn-clang-native = "-j 8"
+PARALLEL_MAKE:pn-llvm-native = "-j 8"
