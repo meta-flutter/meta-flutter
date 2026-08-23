@@ -36,3 +36,54 @@ IMAGE_INSTALL:append = " \
 # Disable SPDX generation to avoid do_create_spdx task failures
 # when using shared sstate and allarch packages
 INHERIT:remove = "create-spdx"
+
+# ***************************************
+# Cap parallelism by memory, not by core count.
+#
+# clang-native and llvm-native are the memory peak of a cold build. At one job
+# per core they get far enough to be expensive and then die:
+#
+#   g++: fatal error: Killed signal terminated program cc1plus
+#
+# That is the OOM killer, not a compiler fault. It cost three of four jobs on a
+# release branch whose sstate was nearly empty, and one on master. Anything with
+# a populated sstate restores these instead of building them, which is why it
+# surfaces on first builds and hides afterwards.
+#
+# Capping only the two recipes with evidence against them was too narrow: with
+# LLVM held back, highway became the peak and was killed the same way, its
+# assembler input truncated mid-write:
+#
+#   {standard input}: Error: open CFI at the end of file
+#   x86_64-oe-linux-g++: fatal error: Killed signal terminated program cc1plus
+#
+# highway instantiates the same templates across many instruction sets, so its
+# translation units rival LLVM's. Chasing recipes one at a time just moves the
+# peak, so cap globally and keep the tighter LLVM limit as an exception.
+#
+# The limit that matters is memory per job, not cores. A 32-core/60G runner is
+# 1.9G per job at full width, which is under what these translation units want;
+# a 48-core/128G runner is 2.7G, still short of it. Deriving the cap from RAM
+# gives both machines a working figure from one setting, and any future runner
+# the same, where a fixed number would either waste the larger host or keep
+# OOM-ing the smaller one. It also survives the workflows' "rm -rf build/conf",
+# which is why this is not per-host tuning in local.conf.
+#
+#   32 cores /  60G -> 15 general, 7 LLVM
+#   48 cores / 128G -> 32 general, 16 LLVM
+#
+# Both are read from the host rather than the cgroup, which is correct here:
+# the CI containers are started without --memory or --cpus, so they see all of
+# it. Override CI_BUILD_JOBS or CI_BUILD_JOBS_LLVM to pin a runner by hand.
+CI_BUILD_CPUS ??= "${@len(os.sched_getaffinity(0))}"
+CI_BUILD_MEM_GB ??= "${@os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES') // 1024 ** 3}"
+
+CI_BUILD_JOBS ??= "${@max(1, min(int(d.getVar('CI_BUILD_CPUS')), int(d.getVar('CI_BUILD_MEM_GB')) // 4))}"
+CI_BUILD_JOBS_LLVM ??= "${@max(1, min(int(d.getVar('CI_BUILD_CPUS')), int(d.getVar('CI_BUILD_MEM_GB')) // 8))}"
+
+BB_NUMBER_THREADS = "${CI_BUILD_JOBS}"
+PARALLEL_MAKE = "-j ${CI_BUILD_JOBS}"
+
+PARALLEL_MAKE:pn-clang-native = "-j ${CI_BUILD_JOBS_LLVM}"
+PARALLEL_MAKE:pn-llvm-native = "-j ${CI_BUILD_JOBS_LLVM}"
+PARALLEL_MAKE:pn-highway = "-j ${CI_BUILD_JOBS_LLVM}"
