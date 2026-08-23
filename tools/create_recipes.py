@@ -315,6 +315,13 @@ def create_recipe(directory,
         f.write('SECTION = "graphics"\n')
         f.write('\n')
 
+        # oe-core warns that a bare CLOSED is deprecated and suggests
+        # LicenseRef-<pn>-CLOSED. Do not take that suggestion here: a license
+        # ref has to resolve, either to a file in COMMON_LICENSE_DIR or through
+        # NO_GENERIC_LICENSE, and an app with no license file upstream has
+        # neither. The ref would then fail license-format, which is an error by
+        # default, so following the advice trades a warning for a broken build.
+        # CLOSED stays until such an app grows a license worth pointing at.
         f.write(f'LICENSE = "{license_type}"\n')
         if license_type != 'CLOSED':
             f.write(f'LIC_FILES_CHKSUM = "file://{license_file};md5={license_md5}"\n')

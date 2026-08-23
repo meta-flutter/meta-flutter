@@ -12,6 +12,8 @@ import signal
 import subprocess
 import sys
 
+from common import detect_licenses
+from common import license_agrees_with_source
 from common import make_sure_path_exists
 from common import print_banner
 
@@ -34,6 +36,7 @@ def clear_folder(dir_):
 
 def get_repo(repo_path: str, output_path: str,
              uri: str, branch: str, rev: str, license_file: str, license_type: str,
+             validate_license: bool,
              author: str,
              recipe_folder: str,
              package_output_path: str,
@@ -117,9 +120,35 @@ def get_repo(repo_path: str, output_path: str,
             print_banner(f'ERROR: {license_path} is not present')
             exit(1)
 
+        # Check the declared license against the text the recipe will ship.
+        # flutter-apps.json states a license for someone else's repository and
+        # nothing re-checked it once written, which is how depot-tools carried
+        # LICENSE = "GPLv3" over BSD-3-Clause text. Upstreams also relicense and
+        # add licenses between rolls -- flutter/games grew an Apache-2.0 section
+        # and a bundled font's OFL-1.1 -- and a roll is when that surfaces.
+        if validate_license:
+            detected = detect_licenses(license_path)
+            if not detected:
+                print(f'NOTE: {repo_name}: license text not recognized, '
+                      f'leaving "{license_type}" unchecked')
+            elif not license_agrees_with_source(license_type, detected):
+                print_banner(
+                    f'ERROR: {repo_name}: declared license does not match its source\n'
+                    f'  declared: {license_type}\n'
+                    f'  {license_file} contains: {" AND ".join(detected)}\n'
+                    f'Fix license_type in flutter-apps.json, or set '
+                    f'"license_validate": false for a license this check reads wrong.')
+                exit(1)
+
         if license_type != 'CLOSED':
             from create_recipes import get_file_md5
             license_md5 = get_file_md5(license_path)
+
+    elif license_type != 'CLOSED':
+        # A license type with no file to back it cannot produce LIC_FILES_CHKSUM.
+        print_banner(f'ERROR: {repo_name}: license_type "{license_type}" declared '
+                     f'without a license_file')
+        exit(1)
 
     repo_path = os.path.join(repo_path, repo_name)
 
@@ -158,6 +187,7 @@ def get_workspace_repos(repo_path, repos, output_path, package_output_path, patc
                                            rev=r.get('rev'),
                                            license_file=r.get('license_file'),
                                            license_type=r.get('license_type'),
+                                           validate_license=r.get('license_validate', True),
                                            author=r.get('author'),
                                            recipe_folder=r.get('folder'),
                                            ignore_list=r.get('ignore'),
