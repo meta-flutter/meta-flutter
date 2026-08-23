@@ -28,11 +28,12 @@ SECTION = "graphics"
 CVE_PRODUCT = "homescreen"
 
 # The plugins tree (Apache-2.0) and the v4l2-webrtc-codec encoder sources (MIT)
-# are only fetched when they are actually built, so both the licence list and its
-# checksums follow the PACKAGECONFIG.
+# are only fetched when they are actually built, so the checksums follow the
+# PACKAGECONFIG. The license list only has to follow it for the encoder: the
+# plugins tree is Apache-2.0 like the base, and naming it twice is not a second
+# license, just a duplicate operand for oe-core to flag.
 LICENSE = "Apache-2.0\
-${@bb.utils.contains('PACKAGECONFIG', 'disable-plugins', '', ' & Apache-2.0', d)}\
-${@bb.utils.contains_any('PACKAGECONFIG', 'software-sink-encoder backend-headless-egl', ' & MIT', '', d)}"
+${@bb.utils.contains_any('PACKAGECONFIG', 'software-sink-encoder backend-headless-egl', ' AND MIT', '', d)}"
 
 LIC_FILES_CHKSUM = "\
     file://LICENSE;md5=39ae29158ce710399736340c60147314 \

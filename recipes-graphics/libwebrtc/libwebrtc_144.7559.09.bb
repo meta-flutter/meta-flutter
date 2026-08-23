@@ -10,7 +10,7 @@ HOMEPAGE = "https://github.com/jwinarske/libwebrtc"
 BUGTRACKER = "https://github.com/jwinarske/libwebrtc/issues"
 SECTION = "graphics"
 
-LICENSE = "BSD-3-Clause & MIT"
+LICENSE = "BSD-3-Clause AND MIT"
 LIC_FILES_CHKSUM = "\
     file://LICENSE;md5=ad296492125bc71530d06234d9bfebe0 \
     file://libwebrtc/LICENSE;md5=166d54ea842ed1a582dabbd844fa4c80 \
