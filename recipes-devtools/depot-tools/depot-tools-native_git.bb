@@ -2,7 +2,7 @@
 # Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
 #
 
-LICENSE = "GPLv3"
+LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=c2c05f9bdd5fc0b458037c2d1fb8d95e"
 
 SRC_URI = "git://chromium.googlesource.com/chromium/tools/depot_tools;protocol=https;branch=main"
