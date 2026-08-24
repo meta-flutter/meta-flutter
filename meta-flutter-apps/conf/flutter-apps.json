@@ -178,7 +178,7 @@
         "uri": "https://github.com/bernardpumped/ped.git",
         "branch": "next_main",
         "license_file": "COPYING",
-        "license_type": "GPL-3.0-or-later",
+        "license_type": "GPL-3.0",
         "author": "Bernard Craddock",
         "folder": "third-party"
     },
