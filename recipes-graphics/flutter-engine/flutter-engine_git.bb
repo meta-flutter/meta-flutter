@@ -165,8 +165,12 @@ CLANG_BUILD_ARCH = "${@clang_build_arch(d)}"
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
 CLANG_PATH = "${S}/engine/src/flutter/buildtools/linux-${CLANG_BUILD_ARCH}/clang"
 
-# Use system clang for riscv64; required for linking
-CLANG_PATH:riscv64 = "${STAGING_DIR_NATIVE}/usr"
+# riscv64 used to point CLANG_PATH at the native clang, because an older
+# engine's bundled clang could not link there. 3.47.1 passes
+# -Wno-nontrivial-memcall, which arrived in clang 20; meta-clang carries
+# 18.1.8 (kirkstone-clang18) here, so an external clang fails the build outright under -Werror.
+# The engine's toolchain is versioned with the engine and always understands
+# the engine's own flags, so every target now uses it.
 
 GN_ARGS = "\
     ${PACKAGECONFIG_CONFARGS} \
