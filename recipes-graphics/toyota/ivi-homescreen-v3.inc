@@ -131,6 +131,11 @@ PREFERRED_PROVIDER_llvm-native = "clang-native"
 PREFERRED_PROVIDER_libgcc = "compiler-rt"
 LIBCPLUSPLUS = "-stdlib=libc++"
 
+# The git fetcher unpacks to ${WORKDIR}/git on this release, while the default
+# S is ${WORKDIR}/${BP}. Newer oe-core lines them up with
+# BB_GIT_DEFAULT_DESTSUFFIX, which bitbake does not have here, so S is explicit.
+S = "${WORKDIR}/git"
+
 inherit cmake features_check pkgconfig
 
 #
