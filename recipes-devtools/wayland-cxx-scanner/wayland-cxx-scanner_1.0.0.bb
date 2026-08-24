@@ -25,6 +25,11 @@ SRC_URI = "git://github.com/jwinarske/wayland-cxx-scanner.git;protocol=https;bra
 
 DEPENDS = "pugixml"
 
+# The git fetcher unpacks to ${WORKDIR}/git on this release, while the default
+# S is ${WORKDIR}/${BP}. Newer oe-core lines them up with
+# BB_GIT_DEFAULT_DESTSUFFIX, which bitbake does not have here, so S is explicit.
+S = "${WORKDIR}/git"
+
 inherit cmake pkgconfig
 
 # The IME backend is a compositor capability, not a project default: GNOME/Mutter
