@@ -382,8 +382,12 @@ def detect_licenses(license_path: str) -> list:
 
 
 def detect_license(license_path: str) -> str:
-    """detect_licenses() as an SPDX expression, e.g. "BSD-3-Clause AND MIT"."""
-    return ' AND '.join(sorted(detect_licenses(license_path)))
+    """detect_licenses() as a license expression, e.g. "BSD-3-Clause & MIT".
+
+    Joined with '&' rather than 'AND': this release's license-format QA accepts
+    only &, | and parentheses as separators, and reads AND as a license name.
+    """
+    return ' & '.join(sorted(detect_licenses(license_path)))
 
 
 def license_agrees_with_source(declared: str, detected_list: list) -> bool:

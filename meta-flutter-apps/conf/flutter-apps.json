@@ -127,7 +127,7 @@
         "uri": "https://github.com/flutter/games.git",
         "branch": "main",
         "license_file": "LICENSE",
-        "license_type": "Apache-2.0 AND BSD-3-Clause AND OFL-1.1",
+        "license_type": "Apache-2.0 & BSD-3-Clause & OFL-1.1",
         "folder": "first-party",
         "author": "Google"
     },

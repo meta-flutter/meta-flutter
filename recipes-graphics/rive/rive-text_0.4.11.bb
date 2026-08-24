@@ -9,7 +9,7 @@ HOMEPAGE = "https://github.com/rive-app/rive-flutter"
 BUGTRACKER = "https://github.com/rive-app/rive-flutter"
 SECTION = "devtools"
 
-LICENSE = "Apache-2.0 AND MIT"
+LICENSE = "Apache-2.0 & MIT"
 LIC_FILES_CHKSUM = " \
     file://LICENSE;md5=c52243a14a066c83e50525d9ad046678 \
     file://macos/rive-cpp/LICENSE;md5=9a8a5e004196b5614e34130e5558fb6c \
