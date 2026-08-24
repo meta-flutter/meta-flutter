@@ -32,6 +32,11 @@ SRCREV = "${HOMESCREEN_COMMIT}"
 # the submodules contribute to a bundle, so cloning them would only cost time.
 SRC_URI = "git://github.com/toyota-connected/ivi-homescreen.git;protocol=https;branch=v3.0"
 
+# The git fetcher unpacks to ${WORKDIR}/git on this release, while the default
+# S is ${WORKDIR}/${BP}. Newer oe-core lines them up with
+# BB_GIT_DEFAULT_DESTSUFFIX, which bitbake does not have here, so S is explicit.
+S = "${WORKDIR}/git"
+
 FLUTTER_APPLICATION_PATH = "test/integration/${PUBSPEC_APPNAME}"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "${PN}"
 
