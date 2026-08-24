@@ -17,8 +17,6 @@ DEPENDS += "\
     zip-native \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'libx11 libxcb', '', d)} \
-    libcxx \
-    lld-native \
     "
 
 DEPENDS:aarch64 += "\
