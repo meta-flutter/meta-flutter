@@ -26,6 +26,11 @@ FLUTTER_APPLICATION_PATH = "example/flutter_ble_scanner"
 PUBSPEC_APPNAME = "flutter_ble_scanner"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "bluez-native-example-flutter-ble-scanner"
 
+# The git fetcher unpacks to ${WORKDIR}/git on this release, while the default
+# S is ${WORKDIR}/${BP}. Newer oe-core lines them up with
+# BB_GIT_DEFAULT_DESTSUFFIX, which bitbake does not have here, so S is explicit.
+S = "${WORKDIR}/git"
+
 inherit flutter-app-native
 
 # bluez_nc talks to BlueZ over D-Bus; the daemon must be on the image.

@@ -22,6 +22,11 @@ FLUTTER_APPLICATION_PATH = "example/packagekit_catalog"
 PUBSPEC_APPNAME = "packagekit_catalog"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "packagekit-dart-example-packagekit-catalog"
 
+# The git fetcher unpacks to ${WORKDIR}/git on this release, while the default
+# S is ${WORKDIR}/${BP}. Newer oe-core lines them up with
+# BB_GIT_DEFAULT_DESTSUFFIX, which bitbake does not have here, so S is explicit.
+S = "${WORKDIR}/git"
+
 inherit flutter-app-native
 
 # packagekit_nc drives the PackageKit D-Bus service. There is no packagekit
