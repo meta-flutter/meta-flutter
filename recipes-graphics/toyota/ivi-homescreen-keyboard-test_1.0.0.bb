@@ -28,10 +28,12 @@ SRC_URI[dejavu.sha256sum] = "7576310b219e04159d35ff61dd4a4ec4cdba4f35c00e002a136
 SRC_URI[notoemoji.sha256sum] = "23549f29b5ad741fcb4c025b8dc44652ff0f459892467ebcccec1e6bbe839b44"
 SRC_URI[notolicense.sha256sum] = "500bb1ccf43df7bbb522112f9133a52b16e1c35e809632f5d8609b179152de5b"
 
+# BitstreamVera, not Bitstream-Vera: this release's common-licenses uses the
+# unhyphenated name, and a license with no generic file fails license-no-generic.
 # Bundling the fonts puts their licenses in the image, so both join the
 # embedder's Apache-2.0: DejaVu is Bitstream-Vera plus public-domain additions,
 # and Noto Color Emoji is OFL-1.1.
-LICENSE = "Apache-2.0 & Bitstream-Vera & OFL-1.1"
+LICENSE = "Apache-2.0 & BitstreamVera & OFL-1.1"
 LIC_FILES_CHKSUM = "\
     file://LICENSE;md5=39ae29158ce710399736340c60147314 \
     file://${WORKDIR}/ihs-fonts/dejavu-fonts-ttf-2.37/LICENSE;md5=449b2c30bfe5fa897fe87b8b70b16cfa \
