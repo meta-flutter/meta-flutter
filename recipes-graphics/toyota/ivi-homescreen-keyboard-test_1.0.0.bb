@@ -34,18 +34,19 @@ SRC_URI[notolicense.sha256sum] = "500bb1ccf43df7bbb522112f9133a52b16e1c35e809632
 LICENSE = "Apache-2.0 AND Bitstream-Vera AND OFL-1.1"
 LIC_FILES_CHKSUM = "\
     file://LICENSE;md5=39ae29158ce710399736340c60147314 \
-    file://${UNPACKDIR}/ihs-fonts/dejavu-fonts-ttf-2.37/LICENSE;md5=449b2c30bfe5fa897fe87b8b70b16cfa \
-    file://${UNPACKDIR}/ihs-fonts/LICENSE.noto-emoji;md5=cdc5040ed1e8cf5d3516f5285fd7b636 \
+    file://${WORKDIR}/ihs-fonts/dejavu-fonts-ttf-2.37/LICENSE;md5=449b2c30bfe5fa897fe87b8b70b16cfa \
+    file://${WORKDIR}/ihs-fonts/LICENSE.noto-emoji;md5=cdc5040ed1e8cf5d3516f5285fd7b636 \
     "
 
+# WORKDIR rather than UNPACKDIR: that variable arrived after this release.
 # fetch_fonts.sh lands these in the app's fonts/ under the names the pubspec
 # asks for; Noto ships as Noto-COLRv1.ttf and is renamed on download.
 do_configure:prepend() {
     install -d ${S}/${FLUTTER_APPLICATION_PATH}/fonts
-    install -m 0644 ${UNPACKDIR}/ihs-fonts/dejavu-fonts-ttf-2.37/ttf/DejaVuSans.ttf \
+    install -m 0644 ${WORKDIR}/ihs-fonts/dejavu-fonts-ttf-2.37/ttf/DejaVuSans.ttf \
         ${S}/${FLUTTER_APPLICATION_PATH}/fonts/DejaVuSans.ttf
-    install -m 0644 ${UNPACKDIR}/ihs-fonts/dejavu-fonts-ttf-2.37/ttf/DejaVuSansMono.ttf \
+    install -m 0644 ${WORKDIR}/ihs-fonts/dejavu-fonts-ttf-2.37/ttf/DejaVuSansMono.ttf \
         ${S}/${FLUTTER_APPLICATION_PATH}/fonts/DejaVuSansMono.ttf
-    install -m 0644 ${UNPACKDIR}/ihs-fonts/NotoColorEmoji.ttf \
+    install -m 0644 ${WORKDIR}/ihs-fonts/NotoColorEmoji.ttf \
         ${S}/${FLUTTER_APPLICATION_PATH}/fonts/NotoColorEmoji.ttf
 }

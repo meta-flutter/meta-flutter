@@ -38,6 +38,9 @@ jobs:
       BITBAKE_BRANCH: '2.0'
       # meta-drm and meta-vulkan both carry kirkstone, unlike wrynose where
       # they only have master.
+      # this release's openembedded-core predates clang moving into oe-core, so
+      # the clang toolchain has to come from meta-clang here. Master needs none.
+      CLANG_BRANCH: kirkstone-clang18
       DRM_BRANCH: kirkstone
       VULKAN_BRANCH: kirkstone
 
@@ -86,7 +89,7 @@ jobs:
           # every layer cloned below must be listed here: this is a persistent
           # self-hosted runner and 'git clone' into an existing directory fails.
           rm -rf poky bitbake openembedded-core meta-yocto \
-                 meta-openembedded meta-drm meta-vulkan
+                 meta-openembedded meta-clang meta-drm meta-vulkan
           # 'wait' with no operands always returns 0, so collect the pids and
           # wait on each to see a failed clone.
           pids=""
@@ -95,6 +98,7 @@ jobs:
               "${{ env.YOCTO_BRANCH }}|https://github.com/openembedded/openembedded-core.git" \
               "${{ env.YOCTO_BRANCH }}|https://github.com/yoctoproject/meta-yocto.git" \
               "${{ env.YOCTO_BRANCH }}|https://github.com/openembedded/meta-openembedded.git" \
+              "${{ env.CLANG_BRANCH }}|https://github.com/kraj/meta-clang.git" \
               "${{ env.DRM_BRANCH }}|https://github.com/jwinarske/meta-drm.git" \
               "${{ env.VULKAN_BRANCH }}|https://github.com/jwinarske/meta-vulkan.git" ; do
               branch=${spec%%|*}
@@ -140,6 +144,7 @@ jobs:
               ../meta-openembedded/meta-multimedia \
               ../meta-openembedded/meta-networking \
               ../meta-openembedded/meta-python \
+              ../meta-clang \
               ../meta-drm \
               ../meta-vulkan \
               ../../meta-flutter \

@@ -17,8 +17,6 @@ DEPENDS += "\
     zip-native \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'libx11 libxcb', '', d)} \
-    libcxx \
-    lld-native \
     "
 
 DEPENDS:aarch64 += "\
@@ -53,7 +51,10 @@ SRC_URI = "\
 SRCREV_FORMAT .= "_flutter_sdk"
 SRCREV_flutter_sdk = "${@get_flutter_hash(d)}"
 
-S = "${UNPACKDIR}/gn"
+# UNPACKDIR arrived after this release, where fetches still land directly in
+# WORKDIR rather than in a sources/ subdirectory of it. Master's
+# "${UNPACKDIR}/gn" expands to nothing here, and do_unpack rejects the result.
+S = "${WORKDIR}/gn"
 
 # musl-specific patches.
 #
@@ -354,7 +355,7 @@ do_configure() {
     #
     # Custom Build config
     #
-    cp ${UNPACKDIR}/BUILD.gn.in build/toolchain/custom/BUILD.gn
+    cp ${WORKDIR}/BUILD.gn.in build/toolchain/custom/BUILD.gn
     sed -i "s|@DEBUG_FLAGS@|${FLUTTER_ENGINE_DEBUG_FLAGS}|g" build/toolchain/custom/BUILD.gn
     sed -i "s|@CXX_LIBC_FLAGS@|${FLUTTER_ENGINE_CXX_LIBC_FLAGS}|g" build/toolchain/custom/BUILD.gn
 
