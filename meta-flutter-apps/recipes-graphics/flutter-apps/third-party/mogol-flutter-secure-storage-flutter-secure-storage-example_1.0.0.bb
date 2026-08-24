@@ -20,4 +20,9 @@ FLUTTER_APPLICATION_INSTALL_SUFFIX = "mogol-flutter-secure-storage-flutter-secur
 PUBSPEC_IGNORE_LOCKFILE = "1"
 FLUTTER_APPLICATION_PATH = "flutter_secure_storage/example"
 
+# The git fetcher unpacks to ${WORKDIR}/git on this release, while the default
+# S is ${WORKDIR}/${BP}. Newer oe-core lines them up with
+# BB_GIT_DEFAULT_DESTSUFFIX, which bitbake does not have here, so S is explicit.
+S = "${WORKDIR}/git"
+
 inherit flutter-app
