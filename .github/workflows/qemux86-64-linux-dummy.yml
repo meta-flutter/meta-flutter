@@ -12,6 +12,11 @@ on:
       - 'docs/**'
       - 'tools/**'
       - '.github/workflows/runner-maintenance.yml'
+      # Release-branch builds are registered here so they can be
+      # dispatched, but they never affect a master build.
+      - '.github/workflows/scarthgap-build.yml'
+      - '.github/workflows/kirkstone-build.yml'
+      - '.github/workflows/dunfell-build.yml'
       - '.gitignore'
       - 'LICENSE'
   release:
