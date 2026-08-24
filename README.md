@@ -223,3 +223,83 @@ To populate a mirror, build once with network access and copy the tarball out of
 
     BB_FETCH_PREMIRRORONLY = "1"
     BB_NO_NETWORK = "1"
+
+## Flutter FFI plugins that load a system library
+
+A Dart FFI plugin whose build hook emits a code asset resolved from the system
+ends up in `NativeAssetsManifest.json` as `["system", "lib<name>.so"]`, and the
+engine `dlopen`s that name at runtime. Plugins are written against desktop
+Linux, where the unversioned `.so` is always present. On a Yocto image it is
+not: oe-core ships `lib<name>.so.0.X.Y` and the SONAME symlink `lib<name>.so.0`
+in the runtime package, and the unversioned symlink only in `-dev`, which
+production images exclude. The plugin then fails at first use with
+
+    ArgumentError: Failed to load dynamic library 'libsqlite3.so'
+
+Two things have to be true, and fixing one without the other still fails.
+
+**The asset has to resolve to the system library rather than a vendored copy.**
+That is an app-side choice, expressed in the app's own `pubspec.yaml` -- a
+`hooks:` section is rejected in `pubspec_overrides.yaml`, so a recipe that does
+not own the source has to append it:
+
+    hooks:
+      user_defines:
+        sqlite3:
+          source: system
+
+Do that in a task between `do_patch` and `do_archive_pub_cache`. Editing
+`pubspec.yaml` after the first dependency resolution makes the offline
+`pub get` in `do_compile` re-resolve, which reaches for security advisories and
+fails with no network. A `hooks:` section changes no dependency, so the lockfile
+is unaffected.
+
+**The unversioned name has to exist on the image.** Depend on the runtime
+package and symlink the unversioned name into the bundle's own `lib` directory:
+
+    RDEPENDS:${PN} += "libsqlite3"
+
+    do_install:append() {
+        ln -sf ${libdir}/libsqlite3.so.0 \
+            ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/lib/libsqlite3.so
+    }
+
+The bundle's `lib` directory, not `${libdir}`. An unversioned `.so` under
+`${libdir}` belongs to `-dev` by oe-core convention and trips the `dev-so` QA
+check, so putting it there means suppressing a QA rule that is right. The bundle
+directory is already where the embedder finds `libflutter_engine.so`, and
+keeping the symlink there also avoids pulling `-dev` -- headers, static
+libraries and all -- into a production image.
+
+`flatpak-minimal-appstream-dart-flathub-catalog` carries both halves and is
+worth reading before writing a new one.
+
+This is per-app by necessity: only the recipe knows which FFI plugins its app
+uses and which libraries they name. There is no layer-wide hook.
+
+### 32-bit targets
+
+Flutter app recipes do not build on 32-bit. `flutter build bundle` accepts only
+64-bit Linux target platforms -- as of 3.47.1 `TargetPlatform` carries
+`linux_x64`, `linux_arm64` and `linux_riscv64` and nothing 32-bit -- so
+`FLUTTER_APP_SUPPORTED_ARCHS` skips app recipes on other architectures at parse
+time rather than failing in `do_compile` after a full fetch and `pub get`.
+
+The restriction is narrower than it looks. Only the bundle step is gated, and
+what it produces is largely architecture-neutral: assets, fonts and `app.dill`,
+which is Dart kernel. The architecture-specific artifact, `libapp.so`, comes
+from `gen_snapshot` out of this layer's own `engine_sdk.zip`, built per
+`MACHINE` -- and Dart has emitted arm32 for years. The engine and the embedders
+still build for armv7 and link against a working 32-bit `libflutter_engine.so`.
+
+So building the bundle as `linux-arm64` purely to satisfy the tool's allowlist,
+and letting `gen_snapshot` emit the real arm32 code, looks feasible on paper.
+Be aware of what it costs before trying: `--target-platform` is also what keys
+`NativeAssetsManifest.json`, so an app with any FFI plugin would get a manifest
+keyed `linux_arm64` while the engine looks up `linux_arm`. That turns a build
+failure into a silent runtime one -- the key miss described above, with no
+`["system", ...]` entry found and the fallback `dlopen` left to fail. For an app
+with no native assets the question does not arise.
+
+Closing the gap properly is upstream Flutter work: a `linux_arm` value in
+`TargetPlatform`.
