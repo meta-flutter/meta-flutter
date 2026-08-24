@@ -184,21 +184,44 @@ python do_archive_pub_cache() {
     import shutil
     from bb.fetch2 import FetchError
 
-    workspace = d.getVar('WORKDIR')
-    pub_cache_archive_file = os.path.join(workspace, 'PUB_CACHE_ARCHIVE')
-    if os.path.exists(pub_cache_archive_file):
-        with open(pub_cache_archive_file, 'r') as f:
-            localfile = f.read()
-            if os.path.exists(localfile):
-                return
-
     app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
     # pub runs here; for a workspace member this is the workspace root rather
     # than the application. The cache is still keyed on the application, since
     # that identifies what is being built -- one pub root can host several.
     pub_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_PUB_ROOT"))
+
+    # Skipping needs two things to be true, and the original code checked only
+    # the first: the marker has to name what this WORKDIR already built, and
+    # that archive has to still be there.
+    #
+    # Trusting the marker alone was the bug in #653. It records a name from an
+    # earlier build, so a bumped SRCREV returned here before the md5 of the new
+    # source was ever computed, and the app then built against the previous
+    # run's pub cache. Recomputing the name first is what detects that.
+    #
+    # Trusting the archive alone is wrong the other way. DL_DIR outlives
+    # WORKDIR -- it is a shared, persistent mount in CI, while rm_work and
+    # cleansstate wipe WORKDIR every build -- so the archive is routinely
+    # present when this recipe has done no work at all. Returning there skips
+    # the pub cache population below, and do_compile then fails on
+    # "flutter config --no-analytics". The name carries PN, the source md5 and
+    # the SDK tag but no architecture, so one machine populating DL_DIR was
+    # enough to break the rest.
+    marker = os.path.join(d.getVar('WORKDIR'), 'PUB_CACHE_ARCHIVE')
+    previous = None
+    if os.path.exists(marker):
+        with open(marker, 'r') as f:
+            previous = f.read().strip()
+
+    # Writes the marker as a side effect, so it has to come after the read.
     localfile = get_pub_cache_archive_name(d, app_root)
     localpath = os.path.join(d.getVar("DL_DIR"), localfile)
+
+    # localpath, not the bare name: the original resolved against the cwd and
+    # only worked because do_archive_pub_cache[dirs] leaves bitbake in DL_DIR.
+    if previous == localfile and os.path.exists(localpath):
+        bb.note(f'pub cache already archived for this source: {localfile}')
+        return
 
     pub_cache = d.getVar("PUB_CACHE")
     flutter_sdk = os.path.join(d.getVar("STAGING_DATADIR_NATIVE"), 'flutter/sdk')
