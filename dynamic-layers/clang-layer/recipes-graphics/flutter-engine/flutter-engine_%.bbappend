@@ -2,9 +2,22 @@
 # Copyright (c) 2020-2025 Joel Winarske. All rights reserved.
 #
 
+# The engine links with lld and builds against libc++. On master both come from
+# openembedded-core, which now carries clang; dunfell long predates that, so
+# they are meta-clang's to provide and belong here rather than in the recipe --
+# a dependency the recipe cannot satisfy without this layer stops it parsing.
+#
+# meta-clang has no separate lld recipe. lld is built inside clang, so ld.lld
+# arrives with clang-native rather than an lld-native of its own:
+#
+#   ERROR: Nothing PROVIDES 'lld-native' ... Close matches: llvm-native
+DEPENDS += "\
+    libcxx \
+    clang-native \
+    "
+
 DEPENDS_riscv64 += "\
     compiler-rt \
-    libcxx \
     "
 
 RUNTIME = "llvm"

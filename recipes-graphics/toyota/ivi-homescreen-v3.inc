@@ -48,9 +48,6 @@ LIC_FILES_CHKSUM = "\
 DEPENDS += "\
     glib-2.0 \
     libxkbcommon \
-    compiler-rt \
-    libcxx \
-    lld-native \
 "
 
 # The always-on 'common' plugin vendors sdbus-c++, which requires an sd-bus

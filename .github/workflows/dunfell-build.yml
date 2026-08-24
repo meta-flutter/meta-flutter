@@ -39,6 +39,10 @@ jobs:
       # meta-vulkan carries dunfell. meta-drm has no dunfell branch at all --
       # only kirkstone, master and scarthgap -- so the layer is dropped here
       # rather than pinned to something it was never tested against.
+      # dunfell's openembedded-core long predates clang moving into oe-core, so
+      # the clang toolchain has to come from meta-clang here. The old
+      # per-machine workflow pinned dunfell-clang14; keep that.
+      CLANG_BRANCH: dunfell-clang14
       VULKAN_BRANCH: dunfell
 
     runs-on: [self-hosted, linux]
@@ -86,7 +90,7 @@ jobs:
           # every layer cloned below must be listed here: this is a persistent
           # self-hosted runner and 'git clone' into an existing directory fails.
           rm -rf poky bitbake openembedded-core meta-yocto \
-                 meta-openembedded meta-vulkan
+                 meta-openembedded meta-clang meta-vulkan
           # 'wait' with no operands always returns 0, so collect the pids and
           # wait on each to see a failed clone.
           pids=""
@@ -95,6 +99,7 @@ jobs:
               "${{ env.YOCTO_BRANCH }}|https://github.com/openembedded/openembedded-core.git" \
               "${{ env.YOCTO_BRANCH }}|https://github.com/yoctoproject/meta-yocto.git" \
               "${{ env.YOCTO_BRANCH }}|https://github.com/openembedded/meta-openembedded.git" \
+              "${{ env.CLANG_BRANCH }}|https://github.com/kraj/meta-clang.git" \
               "${{ env.VULKAN_BRANCH }}|https://github.com/jwinarske/meta-vulkan.git" ; do
               branch=${spec%%|*}
               repo=${spec#*|}
@@ -139,6 +144,7 @@ jobs:
               ../meta-openembedded/meta-multimedia \
               ../meta-openembedded/meta-networking \
               ../meta-openembedded/meta-python \
+              ../meta-clang \
               ../meta-vulkan \
               ../../meta-flutter \
               ../../meta-flutter/meta-flutter-apps
