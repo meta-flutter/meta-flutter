@@ -165,8 +165,18 @@ CLANG_BUILD_ARCH = "${@clang_build_arch(d)}"
 CLANG_TOOLCHAIN_TRIPLE = "${@gn_clang_triple_prefix(d)}"
 CLANG_PATH = "${S}/engine/src/flutter/buildtools/linux-${CLANG_BUILD_ARCH}/clang"
 
-# Use system clang for riscv64; required for linking
-CLANG_PATH:riscv64 = "${STAGING_DIR_NATIVE}/usr"
+# riscv64 used to point CLANG_PATH at the native clang, because an older
+# engine's bundled clang could not link there. That is no longer worth the
+# trade on this branch: the engine builds itself with flags its own clang
+# knows, and 3.47.1 passes -Wno-nontrivial-memcall, which arrived in clang 20.
+# meta-clang carries 18.1.8 for scarthgap, so an external clang fails the build
+# outright under -Werror:
+#
+#   error: unknown warning option '-Wno-nontrivial-memcall'; did you mean
+#          '-Wno-nontrivial-memaccess'? [-Werror,-Wunknown-warning-option]
+#
+# The engine's toolchain is versioned with the engine, so it always understands
+# the engine's own flags. Every target now uses it.
 
 GN_ARGS = "\
     ${PACKAGECONFIG_CONFARGS} \
@@ -719,11 +729,10 @@ python do_flutter_engine_abi_gate() {
         # PREFERRED_PROVIDER_libgcc=compiler-rt are meant to establish: the
         # unwinder is compiler-rt's, linked statically, so libgcc_s never
         # appears. That only holds where the engine links with its own bundled
-        # clang. riscv64 overrides CLANG_PATH to the native clang because the
-        # bundled one cannot link there, and the native clang defaults to
-        # --rtlib=libgcc. Applying the rule to that configuration would report a
-        # deviation the recipe deliberately chose, so it is scoped out by the
-        # same condition that causes it, rather than dropped.
+        # clang, which every target now does. The condition is kept rather than
+        # dropped because it is scoped to its cause: point CLANG_PATH at a
+        # native clang again, for any target, and that clang's default of
+        # --rtlib=libgcc stops being reported as a deviation.
         native_clang = (d.getVar('CLANG_PATH') or '').startswith(
             d.getVar('STAGING_DIR_NATIVE') or '\0')
         if any('libgcc_s' in n for n in needed):
