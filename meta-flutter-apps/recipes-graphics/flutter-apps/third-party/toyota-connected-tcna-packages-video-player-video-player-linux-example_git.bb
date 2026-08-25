@@ -1,0 +1,28 @@
+#
+# Copyright (c) 2020-2025 Joel Winarske. All rights reserved.
+#
+
+SUMMARY = "player"
+DESCRIPTION = "A modern video player example demonstrating the full video_player API."
+AUTHOR = "Toyota Connected North America"
+HOMEPAGE = "None"
+BUGTRACKER = "None"
+SECTION = "graphics"
+
+LICENSE = "BSD-3-Clause"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=d73cf6ba84211d8b7fd0d2865b678fe8"
+
+SRCREV = "57b1b51c2cf48cb61760f5ea976bccfe5f75ccbb"
+SRC_URI = "git://github.com/toyota-connected/tcna-packages.git;lfs=0;branch=v2.0;protocol=https"
+
+PUBSPEC_APPNAME = "player"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "toyota-connected-tcna-packages-video-player-video-player-linux-example"
+PUBSPEC_IGNORE_LOCKFILE = "1"
+FLUTTER_APPLICATION_PATH = "packages/video_player/video_player_linux/example/player"
+
+# The git fetcher unpacks to ${WORKDIR}/git on this release, while the default
+# S is ${WORKDIR}/${BP}. Newer oe-core lines them up with
+# BB_GIT_DEFAULT_DESTSUFFIX, which bitbake does not have here, so S is explicit.
+S = "${WORKDIR}/git"
+
+inherit flutter-app

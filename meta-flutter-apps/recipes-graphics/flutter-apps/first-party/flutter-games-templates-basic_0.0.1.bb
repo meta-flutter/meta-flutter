@@ -9,9 +9,10 @@ HOMEPAGE = "None"
 BUGTRACKER = "None"
 SECTION = "graphics"
 
-LICENSE = "CLOSED"
+LICENSE = "Apache-2.0 & BSD-3-Clause & OFL-1.1"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=b7eeb61b41ae366e94383bca5e113fce"
 
-SRCREV = "ef23d7318a7499781811584bd300053561d62c77"
+SRCREV = "ae636d23deae83fd0e7fec9b862a7fcdf2bcfdd8"
 SRC_URI = "git://github.com/flutter/games.git;lfs=1;branch=main;protocol=https"
 
 S = "${WORKDIR}/git"
