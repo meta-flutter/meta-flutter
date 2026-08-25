@@ -237,8 +237,13 @@ jobs:
           . ./openembedded-core/oe-init-build-env
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
-
-      - name: Build toyota-connected-tcna-packages-camera-linux-camera-example
+      # The ivi-homescreen v3 integration tests. All ten come from one upstream
+      # tree at HOMESCREEN_COMMIT through ivi-homescreen-test.inc, so they share
+      # a source revision and stand or fall together far more often than not.
+      # One bitbake invocation rather than ten steps: the recipes fetch and
+      # build in parallel instead of serializing, and a failure still names the
+      # recipe it came from, so nothing is lost for diagnosis.
+      - name: Build ivi-homescreen integration tests
         # flutter build bundle has no linux-arm target platform,
         # so the app recipes do not parse for a 32-bit machine
         if: matrix.machine != 'qemuarm'
@@ -246,10 +251,25 @@ jobs:
         working-directory: ../kirkstone-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake toyota-connected-tcna-packages-camera-linux-camera-example -c do_cleansstate
-          bitbake toyota-connected-tcna-packages-camera-linux-camera-example
+          apps="ivi-homescreen-gesture-playground \
+            ivi-homescreen-hardware-keyboard-test \
+            ivi-homescreen-keyboard-test \
+            ivi-homescreen-mcp-drive-test \
+            ivi-homescreen-multi-touch-test \
+            ivi-homescreen-multi-view-test \
+            ivi-homescreen-osgi-activator-test \
+            ivi-homescreen-scroll-bench \
+            ivi-homescreen-stopwatch-stress-test \
+            ivi-homescreen-watchdog-test"
+          bitbake $apps -c do_cleansstate
+          bitbake $apps
 
-      - name: Build toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo
+      # One FFI application, to cover the path where a Flutter app reaches a
+      # system library through dart:ffi rather than through an embedder plugin.
+      # flathub-catalog is the cheapest of the four to satisfy: sqlite3 out of
+      # oe-core and no distro feature, where the bluez and packagekit examples
+      # want an sd-bus provider and flutter-remote-manager wants polkit.
+      - name: Build appstream-dart flathub-catalog
         # flutter build bundle has no linux-arm target platform,
         # so the app recipes do not parse for a 32-bit machine
         if: matrix.machine != 'qemuarm'
@@ -257,27 +277,5 @@ jobs:
         working-directory: ../kirkstone-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo -c do_cleansstate
-          bitbake toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo
-
-      - name: Build toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: matrix.machine != 'qemuarm'
-        shell: bash
-        working-directory: ../kirkstone-linux-dummy
-        run: |
-          . ./openembedded-core/oe-init-build-env
-          bitbake toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example -c do_cleansstate
-          bitbake toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example
-
-      - name: Build toyota-connected-tcna-packages-flatpak-flutter-example
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: matrix.machine != 'qemuarm'
-        shell: bash
-        working-directory: ../kirkstone-linux-dummy
-        run: |
-          . ./openembedded-core/oe-init-build-env
-          bitbake toyota-connected-tcna-packages-flatpak-flutter-example -c do_cleansstate
-          bitbake toyota-connected-tcna-packages-flatpak-flutter-example
+          bitbake flatpak-minimal-appstream-dart-flathub-catalog -c do_cleansstate
+          bitbake flatpak-minimal-appstream-dart-flathub-catalog
