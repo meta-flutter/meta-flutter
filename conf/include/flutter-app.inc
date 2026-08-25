@@ -10,6 +10,10 @@
 require conf/include/flutter-version.inc
 require conf/include/app-utils.inc
 require conf/include/common.inc
+# gn_target_arch_name() and GN_TARGET_ARCH_NAME. Needed for the
+# --target-platform append below, and by the supported-arch guard further
+# down, which silently no-ops while GN_TARGET_ARCH_NAME is unset.
+require conf/include/gn-utils.inc
 
 DEPENDS += " \
     flutter-engine \
