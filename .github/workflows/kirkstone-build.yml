@@ -266,16 +266,10 @@ jobs:
 
       # One FFI application, to cover the path where a Flutter app reaches a
       # system library through dart:ffi rather than through an embedder plugin.
-      #
-      # ble-scanner rather than the other three examples. Its pubspec is the
-      # flutter SDK plus the FFI package itself, so nothing transitive drags in
-      # a build hook for another platform -- flathub-catalog does, through
-      # cached_network_image -> flutter_cache_manager -> sqflite ->
-      # sqflite_android -> jni, whose hook fails the whole bundle with "Android
-      # SDK could not be found" on a Linux target. It also builds a vendored
-      # sdbus-c++ from its own hook, so it exercises the native-assets path for
-      # real instead of pointing a user_define at a system library.
-      - name: Build bluez-native ble-scanner
+      # flathub-catalog is the cheapest of the four to satisfy: sqlite3 out of
+      # oe-core and no distro feature, where the bluez and packagekit examples
+      # want an sd-bus provider and flutter-remote-manager wants polkit.
+      - name: Build appstream-dart flathub-catalog
         # flutter build bundle has no linux-arm target platform,
         # so the app recipes do not parse for a 32-bit machine
         if: matrix.machine != 'qemuarm'
@@ -283,5 +277,5 @@ jobs:
         working-directory: ../kirkstone-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake jwinarske-bluez-native-flutter-ble-scanner -c do_cleansstate
-          bitbake jwinarske-bluez-native-flutter-ble-scanner
+          bitbake flatpak-minimal-appstream-dart-flathub-catalog -c do_cleansstate
+          bitbake flatpak-minimal-appstream-dart-flathub-catalog

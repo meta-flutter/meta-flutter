@@ -18,6 +18,16 @@ DEPENDS += " \
 BUILD_TYPE = "app"
 
 FLUTTER_BUILD_ARGS ??= "bundle"
+# Without an explicit target platform the flutter tool defaults to Android
+# (see meta-flutter#760), so a Linux bundle builds an AndroidAssetTarget and
+# any package carrying a native-assets build hook fails the whole bundle on
+# an SDK it will never use:
+#
+#   Target build_hooks failed: Error: Android SDK could not be found.
+#
+# Apps with no build hook never reach that code path, which is why this went
+# unnoticed until an FFI app was added to CI.
+FLUTTER_BUILD_ARGS:append = " --target-platform linux-${@gn_target_arch_name(d)}"
 
 # flutter build bundle only accepts 64-bit Linux target platforms. As of 3.47.1
 # TargetPlatform carries linux_x64, linux_arm64 and linux_riscv64 and nothing
