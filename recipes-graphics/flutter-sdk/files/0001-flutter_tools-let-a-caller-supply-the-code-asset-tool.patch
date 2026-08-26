@@ -26,6 +26,13 @@ partial config.
 Nothing changes when the variables are unset, so app builds that do have
 a CMake project keep reading it exactly as before.
 
+Upstream-Status: Pending
+
+Not yet submitted. The mechanism it adds -- a caller-supplied
+CCompilerConfig for builds with no CMake app project -- is the shape
+upstream would need for cross-compiled bundle builds, and is worth
+proposing once it has run in anger here. See meta-flutter#801.
+
 Signed-off-by: Joel Winarske <joel.winarske@linux.com>
 ---
 --- a/packages/flutter_tools/lib/src/isolated/native_assets/linux/native_assets.dart
