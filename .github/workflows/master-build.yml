@@ -1,4 +1,4 @@
-name: master-qemuarm64-linux-dummy
+name: master-build
 
 on:
   pull_request:
@@ -21,13 +21,27 @@ on:
       - 'LICENSE'
   release:
     types: [ published, created, edited ]
+  workflow_dispatch:
 
 jobs:
 
-  qemuarm64-linux-dummy:
+  master-build:
+
+    strategy:
+      # One workflow per machine had drifted: riscv64 had lost sentry and
+      # rive-text, arm had lost the app builds, and pdfium was building on two
+      # of the four. A matrix keeps the shared steps in one place, so the next
+      # step added to a build lands on every machine that should have it.
+      # The runner is sequential, so these queue and run one at a time against
+      # the same tree, exactly as the four separate workflows did.
+      fail-fast: false
+      matrix:
+        machine: [qemux86-64, qemuarm64, qemuriscv64, qemuarm]
+
+    name: master-${{ matrix.machine }}
 
     env:
-      MACHINE: qemuarm64
+      MACHINE: ${{ matrix.machine }}
       YOCTO_BRANCH: master
 
     runs-on: [self-hosted, linux]
@@ -125,6 +139,10 @@ jobs:
               ../meta-vulkan \
               ../../meta-flutter \
               ../../meta-flutter/meta-flutter-apps
+          # Only qemuriscv64 ever added this layer.
+          if [ "${{ matrix.machine }}" = "qemuriscv64" ]; then
+            bitbake-layers add-layer ../meta-riscv
+          fi
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
@@ -133,10 +151,14 @@ jobs:
           bitbake -e core-image-minimal | grep "^DISTRO_FEATURES"
           echo '***************************************'
           bitbake -e > bb.environment
-          bitbake openssl -c do_cleansstate
-          bitbake util-linux-libuuid -c do_cleansstate
-          bitbake libxcrypt -c do_cleansstate
-          bitbake libffi -c do_cleansstate
+          # These four were only ever cleaned on arm64; keep that as it was
+          # rather than widen or drop it as part of a file reshuffle.
+          if [ "${{ matrix.machine }}" = "qemuarm64" ]; then
+            bitbake openssl -c do_cleansstate
+            bitbake util-linux-libuuid -c do_cleansstate
+            bitbake libxcrypt -c do_cleansstate
+            bitbake libffi -c do_cleansstate
+          fi
 
       - name: Build ca-certificates
         shell: bash
@@ -171,6 +193,9 @@ jobs:
           bitbake dart-sdk
 
       - name: Build pdfium
+        # pdfium was only ever built on arm64 and arm. Preserved as it was:
+        # widening it is a build-coverage decision, not part of this reshuffle.
+        if: matrix.machine == 'qemuarm64' || matrix.machine == 'qemuarm'
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
@@ -179,6 +204,9 @@ jobs:
           bitbake pdfium
 
       - name: Build sentry
+        # sentry asserts a backend that needs a working unwinder, which this
+        # release's GCC does not give riscv64, so riscv64 never built it.
+        if: matrix.machine != 'qemuriscv64'
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
@@ -187,6 +215,8 @@ jobs:
           bitbake sentry
 
       - name: Build rive-text
+        # Not built on riscv64, as before.
+        if: matrix.machine != 'qemuriscv64'
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
@@ -219,6 +249,7 @@ jobs:
           bitbake flutter-auto
 
       - name: Build flutter-pi
+        id: base
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
@@ -226,34 +257,94 @@ jobs:
           bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
 
-      - name: Build toyota-connected-tcna-packages-camera-linux-camera-example
+      # The ivi-homescreen v3 integration tests. All ten come from one upstream
+      # tree at HOMESCREEN_COMMIT through ivi-homescreen-test.inc, so they share
+      # a source revision and stand or fall together far more often than not.
+      #
+      # One workflow step, but bitbake is called once per recipe so they build
+      # one at a time. A single 'bitbake app1 app2 ...' call lets bitbake run
+      # all ten do_compile tasks at once, and they race: each drives the flutter
+      # tool against its own recipe-sysroot-native, whose SDK files are
+      # hardlinked from the shared native sysroot, so concurrent writes under
+      # bin/cache are visible to the others. A recipe reading that directory
+      # mid-write decides the tool snapshot is stale and re-resolves
+      # packages/flutter_tools -- which does not inherit our --offline, so in a
+      # network-isolated do_compile it can only fail.
+      - name: Build ivi-homescreen integration tests
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake toyota-connected-tcna-packages-camera-linux-camera-example -c do_cleansstate
-          bitbake toyota-connected-tcna-packages-camera-linux-camera-example
+          apps="ivi-homescreen-gesture-playground \
+            ivi-homescreen-hardware-keyboard-test \
+            ivi-homescreen-keyboard-test \
+            ivi-homescreen-mcp-drive-test \
+            ivi-homescreen-multi-touch-test \
+            ivi-homescreen-multi-view-test \
+            ivi-homescreen-osgi-activator-test \
+            ivi-homescreen-scroll-bench \
+            ivi-homescreen-stopwatch-stress-test \
+            ivi-homescreen-watchdog-test"
+          # Report every failing test, not just the first. A round costs
+          # over an hour, so learning about one broken recipe at a time
+          # turns a single bad commit into a week of rebuilds.
+          failed=""
+          for a in $apps; do
+            if bitbake $a -c do_cleansstate && bitbake $a; then
+              continue
+            fi
+            failed="$failed $a"
+          done
+          if [ -n "$failed" ]; then
+            echo "::error::integration tests failed:$failed"
+            exit 1
+          fi
 
-      - name: Build toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo
+      # The FFI applications. All three inherit flutter-app-native, so their
+      # Dart packages carry hook/build.dart and compile native code during
+      # `flutter build bundle` -- the path the integration tests above never
+      # reach. They need the flutter_tools patch and the FLUTTER_HOOK_* wrappers
+      # to build for the target rather than the build host; without those the
+      # hook resolves a host compiler and emits a host-architecture library into
+      # a target package (meta-flutter#801).
+      #
+      # flatpak_dart: talks to the flatpak system libraries.
+      - name: Build flatpak-minimal-flatpak-dart-flutter-remote-manager
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo -c do_cleansstate
-          bitbake toyota-connected-tcna-packages-filament-scene-fluorite-examples-demo
+          bitbake flatpak-minimal-flatpak-dart-flutter-remote-manager -c do_cleansstate
+          bitbake flatpak-minimal-flatpak-dart-flutter-remote-manager
 
-      - name: Build toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example
+      #
+      # appstream_dart: resolves a system sqlite3 through a hook user_define.
+      - name: Build flatpak-minimal-appstream-dart-flathub-catalog
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example -c do_cleansstate
-          bitbake toyota-connected-tcna-packages-video-player-video-player-linux-video-player-example
+          bitbake flatpak-minimal-appstream-dart-flathub-catalog -c do_cleansstate
+          bitbake flatpak-minimal-appstream-dart-flathub-catalog
 
-      - name: Build toyota-connected-tcna-packages-flatpak-flutter-example
+      #
+      # bluez_native: compiles a vendored sdbus-c++ from its own hook.
+      - name: Build jwinarske-bluez-native-flutter-ble-scanner
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake toyota-connected-tcna-packages-flatpak-flutter-example -c do_cleansstate
-          bitbake toyota-connected-tcna-packages-flatpak-flutter-example
+          bitbake jwinarske-bluez-native-flutter-ble-scanner -c do_cleansstate
+          bitbake jwinarske-bluez-native-flutter-ble-scanner
