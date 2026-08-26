@@ -18,6 +18,41 @@ DISTRO_FEATURES:append = " systemd x11 wayland opengl pam polkit pipewire pulsea
 
 DISTRO_FEATURES_BACKFILL_CONSIDERED = ""
 
+# ***************************************
+# CI clones every layer at master. oe-core master's license-format QA resolves
+# every LicenseRef- in a LICENSE expression, either to a file in
+# COMMON_LICENSE_DIR or through NO_GENERIC_LICENSE, and errors when it cannot.
+# meta-openembedded master has not caught up: coremark and coremark-pro declare
+# LicenseRef-EEMBC-AUA, glmark2 LicenseRef-SGI-1 and lmbench
+# LicenseRef-GPL-2.0-with-lmbench-restriction, none of which oe-core ships and
+# none of which those recipes map with NO_GENERIC_LICENSE. That is a fatal QA
+# error at parse time, so bitbake halts before reaching any meta-flutter recipe.
+# None of those recipes are built here, so demote the check to a warning rather
+# than let third-party layer skew block CI entirely. This file is CI-only and
+# does not affect QA for meta-flutter's own recipes in a real build.
+ERROR_QA:remove = "license-format"
+WARN_QA:append = " license-format"
+
+# meta-openembedded master is currently out of step with oe-core master in ways
+# that halt parsing before any meta-flutter recipe is reached, and meta-oe has no
+# blacksail branch to pin to instead. None of these recipes are used here, so
+# mask them rather than let unrelated layer skew block CI:
+#
+#   recipes-benchmark    coremark, coremark-pro, glmark2, lmbench -- LICENSE
+#                        names a LicenseRef- that oe-core cannot resolve
+#   zabbix, turbostat,   reference oe.kernel.*, which oe-core no longer makes
+#   vboxguestdrivers     available to recipes (ExpansionError on KERNEL_VERSION).
+#                        These are the only three users in meta-openembedded, so
+#                        this list is complete rather than incremental. All are
+#                        kernel-dependent and meaningless against linux-dummy.
+#
+# Revisit once meta-oe catches up; this is upstream breakage, not a meta-flutter
+# issue, and the mask should shrink rather than grow.
+BBMASK += "meta-openembedded/meta-oe/recipes-benchmark/"
+BBMASK += "meta-openembedded/meta-oe/recipes-connectivity/zabbix/"
+BBMASK += "meta-openembedded/meta-oe/recipes-kernel/turbostat/"
+BBMASK += "meta-openembedded/meta-oe/recipes-support/vboxguestdrivers/"
+
 PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"
 
 # ***************************************

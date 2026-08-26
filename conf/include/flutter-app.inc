@@ -10,6 +10,10 @@
 require conf/include/flutter-version.inc
 require conf/include/app-utils.inc
 require conf/include/common.inc
+# gn_target_arch_name() and GN_TARGET_ARCH_NAME. Needed for the
+# --target-platform append below, and by the supported-arch guard further
+# down, which silently no-ops while GN_TARGET_ARCH_NAME is unset.
+require conf/include/gn-utils.inc
 
 DEPENDS += " \
     flutter-engine \
@@ -18,6 +22,41 @@ DEPENDS += " \
 BUILD_TYPE = "app"
 
 FLUTTER_BUILD_ARGS ??= "bundle"
+# Without an explicit target platform the flutter tool defaults to Android
+# (see meta-flutter#760), so a Linux bundle builds an AndroidAssetTarget and
+# any package carrying a native-assets build hook fails the whole bundle on
+# an SDK it will never use:
+#
+#   Target build_hooks failed: Error: Android SDK could not be found.
+#
+# Apps with no build hook never reach that code path, which is why this went
+# unnoticed until an FFI app was added to CI.
+FLUTTER_BUILD_ARGS:append = " --target-platform linux-${@gn_target_arch_name(d)}"
+
+# flutter build bundle only accepts 64-bit Linux target platforms. As of 3.47.1
+# TargetPlatform carries linux_x64, linux_arm64 and linux_riscv64 and nothing
+# 32-bit, so linux-arm and linux-x86 are rejected outright:
+#
+#   "linux-arm" is not an allowed value for option "--target-platform".
+#
+# This is a tooling limit, not an engine one. flutter-engine still builds for
+# armv7 and ships a working 32-bit libflutter_engine.so, and the embedders link
+# against it, so a 32-bit target remains usable -- it just cannot have its app
+# bundle produced by the flutter tool. Skip the app recipes there rather than
+# fail in do_compile after a full fetch and pub get.
+FLUTTER_APP_SUPPORTED_ARCHS ?= "x64 arm64 riscv64"
+
+python () {
+    arch = d.getVar('GN_TARGET_ARCH_NAME')
+    if not arch:
+        return
+    supported = (d.getVar('FLUTTER_APP_SUPPORTED_ARCHS') or '').split()
+    if arch not in supported:
+        raise bb.parse.SkipRecipe(
+            "flutter build bundle has no linux-%s target platform; "
+            "Flutter supports only %s for Linux app bundles" %
+            (arch, ', '.join(supported)))
+}
 
 do_install() {
 
