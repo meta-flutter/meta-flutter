@@ -62,7 +62,70 @@ inherit cmake pkgconfig
 
 # Skip cmake do_configure
 do_configure[noexec] = "1"
-do_compile[prefuncs] += "flutter_native_cmake_setup flutter_native_path_setup"
+do_compile[prefuncs] += "flutter_native_cmake_setup flutter_native_toolchain_setup flutter_native_toolchain_env flutter_native_path_setup"
+
+# Tell the code-asset hooks which toolchain to use.
+#
+# A hook built through `flutter build bundle` gets no compiler config: on Linux
+# the flutter tool reads one only from the app's CMake cache, and a bundle build
+# has no CMake app project. The hook then falls back to whatever
+# native_toolchain_c finds on the build host, which cross-compiles to the wrong
+# machine entirely -- an x86-64 library inside an aarch64 package. See
+# meta-flutter#801.
+#
+# The patched SDK reads FLUTTER_HOOK_CC / _AR / _LD, but CCompilerConfig carries
+# only paths, with nowhere to put --target, --sysroot or the rest of OE's flags.
+# So point it at wrappers, the same trick the cmake wrapper above uses.
+flutter_native_toolchain_setup() {
+
+    # native_toolchain_c drives both compiling and linking through the compiler;
+    # it never execs the linker itself. Link flags on a compile-only invocation
+    # make clang warn "linker input unused", which is fatal for a hook built
+    # with -Werror -- so only add LDFLAGS when this is not a -c call.
+    cat > ${WORKDIR}/flutter-hook-cc <<HOOK_CC_EOF
+#!/bin/sh
+for arg in "\$@"; do
+    if [ "\${arg}" = "-c" ]; then
+        exec ${CC} ${CFLAGS} "\$@"
+    fi
+done
+exec ${CC} ${CFLAGS} ${LDFLAGS} "\$@"
+HOOK_CC_EOF
+
+    # Invoked directly as `ar rc <lib> <objects>`.
+    cat > ${WORKDIR}/flutter-hook-ar <<HOOK_AR_EOF
+#!/bin/sh
+exec ${AR} "\$@"
+HOOK_AR_EOF
+
+    # CCompilerConfig requires a linker even though the C builder links through
+    # the compiler driver. Give it the real one rather than a stub.
+    cat > ${WORKDIR}/flutter-hook-ld <<HOOK_LD_EOF
+#!/bin/sh
+exec ${LD} "\$@"
+HOOK_LD_EOF
+
+    chmod +x ${WORKDIR}/flutter-hook-cc ${WORKDIR}/flutter-hook-ar ${WORKDIR}/flutter-hook-ld
+}
+
+FLUTTER_HOOK_CC = "${WORKDIR}/flutter-hook-cc"
+FLUTTER_HOOK_AR = "${WORKDIR}/flutter-hook-ar"
+FLUTTER_HOOK_LD = "${WORKDIR}/flutter-hook-ld"
+
+# Put them where the flutter invocation will actually see them.
+#
+# common.inc's do_compile is a python task that seeds its subprocess
+# environment from os.environ. bitbake's `export` only populates the
+# environment of *shell* tasks, so exporting these would set them for nothing
+# and the hook would go on resolving a host compiler. Prefuncs run in the same
+# interpreter as the python task body, so mutating os.environ here reaches it.
+python flutter_native_toolchain_env() {
+    import os
+    for var in ('FLUTTER_HOOK_CC', 'FLUTTER_HOOK_AR', 'FLUTTER_HOOK_LD'):
+        value = d.getVar(var)
+        if value:
+            os.environ[var] = value
+}
 
 flutter_native_cmake_setup() {
     # Create cmake wrapper to insert OE environment options

@@ -66,6 +66,22 @@ def run_command(d, cmd, cwd, env):
     bb.note(f'Output:{formatted_output}')
 
     if retval:
+        # bb.note() reaches only the task's log.do_* file on the builder. CI does
+        # not collect those, so a failure here has been arriving as a bare exit
+        # code with the diagnosis left behind on the machine -- 'flutter pub get
+        # --enforce-lockfile failed: 65' says nothing about which constraint pub
+        # objected to. Repeat the tail at error level so the reason travels with
+        # the failure. Tail rather than the whole capture because these commands
+        # are run with -v and the full output is thousands of lines; the failure
+        # is at the end, and the complete text is still in the task log for
+        # anyone on the builder. Raise FLUTTER_CMD_FAIL_LOG_LINES if the tail
+        # cuts something off.
+        limit = int(d.getVar('FLUTTER_CMD_FAIL_LOG_LINES') or 100)
+        tail = output.splitlines()[-limit:] if output else []
+        if tail:
+            elided = '' if len(tail) == len(output.splitlines()) else \
+                f' (last {len(tail)}; see log.do_* for the rest)'
+            bb.error(f'Output of failed command{elided}:\n  ' + '\n  '.join(tail))
         bb.fatal(f'{cmd} failed: {retval}')
 
 def md5_update_from_dir(directory, hash):
