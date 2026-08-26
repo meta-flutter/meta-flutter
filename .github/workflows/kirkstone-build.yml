@@ -263,7 +263,7 @@ jobs:
       - name: Build ivi-homescreen integration tests
         # flutter build bundle has no linux-arm target platform,
         # so the app recipes do not parse for a 32-bit machine
-        if: ${{ steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
         shell: bash
         working-directory: ../kirkstone-linux-dummy
         run: |
@@ -309,7 +309,7 @@ jobs:
       - name: Build jwinarske-packagekit-dart-packagekit-catalog
         # flutter build bundle has no linux-arm target platform,
         # so the app recipes do not parse for a 32-bit machine
-        if: ${{ steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
         shell: bash
         working-directory: ../kirkstone-linux-dummy
         run: |
@@ -322,7 +322,7 @@ jobs:
       - name: Build flatpak-minimal-appstream-dart-flathub-catalog
         # flutter build bundle has no linux-arm target platform,
         # so the app recipes do not parse for a 32-bit machine
-        if: ${{ steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
         shell: bash
         working-directory: ../kirkstone-linux-dummy
         run: |
@@ -335,7 +335,7 @@ jobs:
       - name: Build jwinarske-bluez-native-flutter-ble-scanner
         # flutter build bundle has no linux-arm target platform,
         # so the app recipes do not parse for a 32-bit machine
-        if: ${{ steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
         shell: bash
         working-directory: ../kirkstone-linux-dummy
         run: |
