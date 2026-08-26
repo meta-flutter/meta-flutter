@@ -240,9 +240,25 @@ jobs:
       # The ivi-homescreen v3 integration tests. All ten come from one upstream
       # tree at HOMESCREEN_COMMIT through ivi-homescreen-test.inc, so they share
       # a source revision and stand or fall together far more often than not.
-      # One bitbake invocation rather than ten steps: the recipes fetch and
-      # build in parallel instead of serializing, and a failure still names the
-      # recipe it came from, so nothing is lost for diagnosis.
+      # One workflow step rather than ten, but bitbake is called once per recipe
+      # so they build one at a time.
+      #
+      # They were briefly built in a single `bitbake app1 app2 ...` call, which
+      # let bitbake run all ten do_compile tasks at once. That is faster and it
+      # breaks: every one of them drives the flutter tool against its own
+      # recipe-sysroot-native, whose SDK files are hardlinked from the shared
+      # native sysroot, so concurrent writes under bin/cache are visible to the
+      # others. A recipe that reads that directory mid-write decides the tool
+      # snapshot is stale and re-resolves packages/flutter_tools -- and that
+      # internal bootstrap does not inherit our --offline, so in a
+      # network-isolated do_compile it can only fail:
+      #
+      #   Failed host lookup: 'pub.dev' ... /api/packages/archive/advisories
+      #   flutter pub get --enforce-lockfile --offline -v failed: 69
+      #
+      # It hit one recipe of ten on qemuarm64 and none on qemux86-64 in the same
+      # run, which is what a race looks like. Serializing costs a couple of
+      # minutes and removes the window.
       - name: Build ivi-homescreen integration tests
         # flutter build bundle has no linux-arm target platform,
         # so the app recipes do not parse for a 32-bit machine
@@ -261,8 +277,10 @@ jobs:
             ivi-homescreen-scroll-bench \
             ivi-homescreen-stopwatch-stress-test \
             ivi-homescreen-watchdog-test"
-          bitbake $apps -c do_cleansstate
-          bitbake $apps
+          for a in $apps; do
+            bitbake $a -c do_cleansstate
+            bitbake $a
+          done
 
       # One FFI application, to cover the path where a Flutter app reaches a
       # system library through dart:ffi rather than through an embedder plugin.
