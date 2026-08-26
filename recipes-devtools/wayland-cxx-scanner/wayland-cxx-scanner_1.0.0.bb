@@ -18,9 +18,19 @@ SECTION = "devel"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=8992d37861cd7e48b171be43673f1d7f"
 
-# Pinned to the commit ivi-homescreen v3.0 carries as third_party/wayland-cxx-scanner,
-# so the host code generator and the vendored wl/ framework stay in lock-step.
-SRCREV ??= "003dde1be1100ef300c52e11d71e1a2e52ec36bb"
+# Normally pinned to the commit ivi-homescreen v3.0 carries as
+# third_party/wayland-cxx-scanner, so the host code generator and the vendored
+# wl/ framework stay in lock-step.
+#
+# Two commits ahead of that pin for now. jwinarske/wayland-cxx-scanner#130 is
+# needed here: pugixml exports its CMake config without a NAMESPACE before 1.12,
+# so on this release find_package(pugixml CONFIG) succeeds while defining only
+# the unnamespaced target, and the scanner failed configure asking for
+# pugixml::pugixml. The range is CMakeLists.txt only -- no wl/ header moved --
+# so the generator and the framework are still the same code, and the lock-step
+# this comment describes holds in substance. Drop back to a single pin when
+# ivi-homescreen next rolls its submodule.
+SRCREV ??= "75575fe3e78e95796f2b9abb51f8314cbf9c31b4"
 SRC_URI = "git://github.com/jwinarske/wayland-cxx-scanner.git;protocol=https;branch=main"
 
 DEPENDS = "pugixml"
