@@ -281,3 +281,53 @@ jobs:
             bitbake $a -c do_cleansstate
             bitbake $a
           done
+
+      # The FFI applications. All three inherit flutter-app-native, so their
+      # Dart packages carry hook/build.dart and compile native code during
+      # `flutter build bundle` -- the path the integration tests above never
+      # reach. They need the flutter_tools patch and the FLUTTER_HOOK_* wrappers
+      # to build for the target rather than the build host; without those the
+      # hook resolves a host compiler and emits a host-architecture library into
+      # a target package (meta-flutter#801).
+      #
+      # packagekit_dart: talks to PackageKit over D-Bus. master and the
+      # scarthgap-and-later branches build flutter-remote-manager here instead,
+      # but flatpak only entered meta-openembedded in scarthgap, so on kirkstone
+      # and dunfell that recipe has nothing to provide its DEPENDS. This
+      # exercises the same hook path against a system D-Bus library.
+      - name: Build jwinarske-packagekit-dart-packagekit-catalog
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: matrix.machine != 'qemuarm'
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake jwinarske-packagekit-dart-packagekit-catalog -c do_cleansstate
+          bitbake jwinarske-packagekit-dart-packagekit-catalog
+
+      #
+      # appstream_dart: resolves a system sqlite3 through a hook user_define.
+      - name: Build flatpak-minimal-appstream-dart-flathub-catalog
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: matrix.machine != 'qemuarm'
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake flatpak-minimal-appstream-dart-flathub-catalog -c do_cleansstate
+          bitbake flatpak-minimal-appstream-dart-flathub-catalog
+
+      #
+      # bluez_native: compiles a vendored sdbus-c++ from its own hook.
+      - name: Build jwinarske-bluez-native-flutter-ble-scanner
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: matrix.machine != 'qemuarm'
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake jwinarske-bluez-native-flutter-ble-scanner -c do_cleansstate
+          bitbake jwinarske-bluez-native-flutter-ble-scanner
