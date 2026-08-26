@@ -40,15 +40,22 @@ jobs:
       # only kirkstone, master and scarthgap -- so the layer is dropped here
       # rather than pinned to something it was never tested against.
       # dunfell's openembedded-core long predates clang moving into oe-core, so
-      # the clang toolchain has to come from meta-clang here. The old
-      # per-machine workflow pinned dunfell-clang14; keep that.
-      CLANG_BRANCH: dunfell-clang14
+      # the clang toolchain has to come from meta-clang here.
+      #
+      # The old per-machine workflow pinned dunfell-clang14, which is wrong for
+      # this release: that branch is written entirely in colon override syntax
+      # (27 colon overrides, 0 underscore), which bitbake 1.46 does not
+      # understand -- it reads PROVIDES:append:class-native as a variable of
+      # that literal name and silently applies nothing. Its layer.conf claims
+      # "dunfell hardknott honister" but the file contradicts it. The plain
+      # dunfell branch is underscore-only and declares "zeus dunfell".
+      CLANG_BRANCH: dunfell
       VULKAN_BRANCH: dunfell
 
     runs-on: [self-hosted, linux]
 
     container:
-      image: ghcr.io/meta-flutter/meta-flutter/ubuntu-24-dev:main
+      image: ghcr.io/meta-flutter/meta-flutter/ubuntu-22-dev:main
       options:
         --read-only
         --log-driver=none
