@@ -40,8 +40,12 @@ PV = "${FLUTTER_SDK_VERSION}"
 
 inherit pkgconfig
 
+FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+
+# The SDK is a release tarball, so patches apply to the unpacked tree.
 SRC_URI = "\
     https://storage.googleapis.com/flutter_infra_release/releases/${@get_flutter_archive(d)};name=flutter-sdk \
+    file://0001-flutter_tools-let-a-caller-supply-the-code-asset-tool.patch;patchdir=${S} \
     https://storage.googleapis.com/flutter_infra_release/flutter/fonts/3012db47f3130e62f7cc0beabff968a33cbec8d8/fonts.zip;name=fonts;destsuffix=${D}${datadir}/flutter/sdk/bin/cache/artifacts/material_fonts \
 "
 SRC_URI[flutter-sdk.sha256sum] = "${@get_flutter_sha256(d)}"
