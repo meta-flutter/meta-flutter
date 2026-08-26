@@ -288,3 +288,39 @@ jobs:
           . ./openembedded-core/oe-init-build-env
           bitbake toyota-connected-tcna-packages-flatpak-flutter-example -c do_cleansstate
           bitbake toyota-connected-tcna-packages-flatpak-flutter-example
+
+      # The two FFI applications. Both inherit flutter-app-native, so their Dart
+      # packages carry hook/build.dart and actually compile native code during
+      # `flutter build bundle` -- the path the flatpak example above does not
+      # exercise, since it inherits plain flutter-app.
+      #
+      # They need the SDK patch and the FLUTTER_HOOK_* wrappers in
+      # flutter-app-native.bbclass to build for the target rather than the host.
+      # Without them the hook resolves a compiler on the build machine and emits
+      # a host-architecture library into a target package (meta-flutter#801):
+      #
+      #   Architecture did not match (x86-64, expected AArch64) in
+      #     .../flutter_assets/native_assets/linux/libappstream.so
+      - name: Build flatpak-minimal-appstream-dart-flathub-catalog
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: matrix.machine != 'qemuarm'
+        shell: bash
+        working-directory: ../wrynose-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake flatpak-minimal-appstream-dart-flathub-catalog -c do_cleansstate
+          bitbake flatpak-minimal-appstream-dart-flathub-catalog
+
+      # Builds a vendored sdbus-c++ from its own hook, so it compiles rather
+      # than resolving a system library the way flathub-catalog does.
+      - name: Build jwinarske-bluez-native-flutter-ble-scanner
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: matrix.machine != 'qemuarm'
+        shell: bash
+        working-directory: ../wrynose-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake jwinarske-bluez-native-flutter-ble-scanner -c do_cleansstate
+          bitbake jwinarske-bluez-native-flutter-ble-scanner
