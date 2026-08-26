@@ -62,7 +62,7 @@ inherit cmake pkgconfig
 
 # Skip cmake do_configure
 do_configure[noexec] = "1"
-do_compile[prefuncs] += "flutter_native_cmake_setup flutter_native_toolchain_setup flutter_native_path_setup"
+do_compile[prefuncs] += "flutter_native_cmake_setup flutter_native_toolchain_setup flutter_native_toolchain_env flutter_native_path_setup"
 
 # Tell the code-asset hooks which toolchain to use.
 #
@@ -108,9 +108,24 @@ HOOK_LD_EOF
     chmod +x ${WORKDIR}/flutter-hook-cc ${WORKDIR}/flutter-hook-ar ${WORKDIR}/flutter-hook-ld
 }
 
-export FLUTTER_HOOK_CC = "${WORKDIR}/flutter-hook-cc"
-export FLUTTER_HOOK_AR = "${WORKDIR}/flutter-hook-ar"
-export FLUTTER_HOOK_LD = "${WORKDIR}/flutter-hook-ld"
+FLUTTER_HOOK_CC = "${WORKDIR}/flutter-hook-cc"
+FLUTTER_HOOK_AR = "${WORKDIR}/flutter-hook-ar"
+FLUTTER_HOOK_LD = "${WORKDIR}/flutter-hook-ld"
+
+# Put them where the flutter invocation will actually see them.
+#
+# common.inc's do_compile is a python task that seeds its subprocess
+# environment from os.environ. bitbake's `export` only populates the
+# environment of *shell* tasks, so exporting these would set them for nothing
+# and the hook would go on resolving a host compiler. Prefuncs run in the same
+# interpreter as the python task body, so mutating os.environ here reaches it.
+python flutter_native_toolchain_env() {
+    import os
+    for var in ('FLUTTER_HOOK_CC', 'FLUTTER_HOOK_AR', 'FLUTTER_HOOK_LD'):
+        value = d.getVar(var)
+        if value:
+            os.environ[var] = value
+}
 
 flutter_native_cmake_setup() {
     # Create cmake wrapper to insert OE environment options
