@@ -239,6 +239,7 @@ jobs:
           bitbake flutter-auto
 
       - name: Build flutter-pi
+        id: base
         shell: bash
         working-directory: ../dunfell-linux-dummy
         run: |
@@ -262,7 +263,7 @@ jobs:
       - name: Build ivi-homescreen integration tests
         # flutter build bundle has no linux-arm target platform,
         # so the app recipes do not parse for a 32-bit machine
-        if: matrix.machine != 'qemuarm'
+        if: ${{ steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
         shell: bash
         working-directory: ../dunfell-linux-dummy
         run: |
@@ -277,10 +278,20 @@ jobs:
             ivi-homescreen-scroll-bench \
             ivi-homescreen-stopwatch-stress-test \
             ivi-homescreen-watchdog-test"
+          # Report every failing test, not just the first. A round costs
+          # over an hour, so learning about one broken recipe at a time
+          # turns a single bad commit into a week of rebuilds.
+          failed=""
           for a in $apps; do
-            bitbake $a -c do_cleansstate
-            bitbake $a
+            if bitbake $a -c do_cleansstate && bitbake $a; then
+              continue
+            fi
+            failed="$failed $a"
           done
+          if [ -n "$failed" ]; then
+            echo "::error::integration tests failed:$failed"
+            exit 1
+          fi
 
       # The FFI applications. All three inherit flutter-app-native, so their
       # Dart packages carry hook/build.dart and compile native code during
@@ -298,7 +309,7 @@ jobs:
       - name: Build jwinarske-packagekit-dart-packagekit-catalog
         # flutter build bundle has no linux-arm target platform,
         # so the app recipes do not parse for a 32-bit machine
-        if: matrix.machine != 'qemuarm'
+        if: ${{ steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
         shell: bash
         working-directory: ../dunfell-linux-dummy
         run: |
@@ -311,7 +322,7 @@ jobs:
       - name: Build flatpak-minimal-appstream-dart-flathub-catalog
         # flutter build bundle has no linux-arm target platform,
         # so the app recipes do not parse for a 32-bit machine
-        if: matrix.machine != 'qemuarm'
+        if: ${{ steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
         shell: bash
         working-directory: ../dunfell-linux-dummy
         run: |
@@ -324,7 +335,7 @@ jobs:
       - name: Build jwinarske-bluez-native-flutter-ble-scanner
         # flutter build bundle has no linux-arm target platform,
         # so the app recipes do not parse for a 32-bit machine
-        if: matrix.machine != 'qemuarm'
+        if: ${{ steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
         shell: bash
         working-directory: ../dunfell-linux-dummy
         run: |
