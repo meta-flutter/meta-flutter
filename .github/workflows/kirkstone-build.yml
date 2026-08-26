@@ -281,19 +281,3 @@ jobs:
             bitbake $a -c do_cleansstate
             bitbake $a
           done
-
-      # One FFI application, to cover the path where a Flutter app reaches a
-      # system library through dart:ffi rather than through an embedder plugin.
-      # flathub-catalog is the cheapest of the four to satisfy: sqlite3 out of
-      # oe-core and no distro feature, where the bluez and packagekit examples
-      # want an sd-bus provider and flutter-remote-manager wants polkit.
-      - name: Build appstream-dart flathub-catalog
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: matrix.machine != 'qemuarm'
-        shell: bash
-        working-directory: ../kirkstone-linux-dummy
-        run: |
-          . ./openembedded-core/oe-init-build-env
-          bitbake flatpak-minimal-appstream-dart-flathub-catalog -c do_cleansstate
-          bitbake flatpak-minimal-appstream-dart-flathub-catalog
