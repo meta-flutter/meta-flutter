@@ -42,14 +42,16 @@ jobs:
       # dunfell's openembedded-core long predates clang moving into oe-core, so
       # the clang toolchain has to come from meta-clang here.
       #
-      # The old per-machine workflow pinned dunfell-clang14, which is wrong for
-      # this release: that branch is written entirely in colon override syntax
-      # (27 colon overrides, 0 underscore), which bitbake 1.46 does not
-      # understand -- it reads PROVIDES:append:class-native as a variable of
-      # that literal name and silently applies nothing. Its layer.conf claims
-      # "dunfell hardknott honister" but the file contradicts it. The plain
-      # dunfell branch is underscore-only and declares "zeus dunfell".
-      CLANG_BRANCH: dunfell
+      # Pinned to dunfell-clang14, as the old per-machine workflow did.
+      #
+      # That branch is written in colon override syntax, which bitbake 1.46
+      # does not understand -- it reads EXTRA_OECMAKE:append:class-target as a
+      # variable of that literal name and applies nothing. The base
+      # EXTRA_OECMAKE still applies, so clang builds usably, but any of its
+      # conditional tweaks are inert. Anything this layer needs from them has
+      # to be set here instead, in underscore form -- see the libcxx bbappend
+      # under dynamic-layers/clang-layer.
+      CLANG_BRANCH: dunfell-clang14
       VULKAN_BRANCH: dunfell
 
     runs-on: [self-hosted, linux]
