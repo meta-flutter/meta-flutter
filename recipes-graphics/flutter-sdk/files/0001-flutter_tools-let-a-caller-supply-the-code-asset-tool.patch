@@ -1,0 +1,109 @@
+From: Joel Winarske <joel.winarske@linux.com>
+Subject: [PATCH] [flutter_tools] Let a caller supply the code-asset toolchain
+
+On Linux the compiler used for code-asset build hooks is resolved only
+from the app's CMake cache. A build with no CMake app project --
+`flutter build bundle`, a custom device, or an embedder packaged by a
+cross-compiling build system -- has no way to name a toolchain, so
+cCompilerConfigLinux returns null and the hook falls back to whatever
+native_toolchain_c detects on the build host.
+
+That is wrong whenever the host is not the target. Cross-compiling an
+app whose dependency tree carries a hook produces a host-architecture
+library inside a bundle meant for another machine, which fails at
+packaging or at load:
+
+  Architecture did not match (x86-64, expected AArch64) in
+    .../flutter_assets/native_assets/linux/libappstream.so
+
+Read FLUTTER_HOOK_CC / FLUTTER_HOOK_AR / FLUTTER_HOOK_LD when they are
+set, and build the CCompilerConfig from them. An explicit toolchain wins
+over anything inferred: the caller knows the target. All three must be
+given together, since CCompilerConfig needs a compiler, an archiver and
+a linker; setting only some of them is an error rather than a silent
+partial config.
+
+Nothing changes when the variables are unset, so app builds that do have
+a CMake project keep reading it exactly as before.
+
+Upstream-Status: Pending
+
+Not yet submitted. The mechanism it adds -- a caller-supplied
+CCompilerConfig for builds with no CMake app project -- is the shape
+upstream would need for cross-compiled bundle builds, and is worth
+proposing once it has run in anger here. See meta-flutter#801.
+
+Signed-off-by: Joel Winarske <joel.winarske@linux.com>
+---
+--- a/packages/flutter_tools/lib/src/isolated/native_assets/linux/native_assets.dart
++++ b/packages/flutter_tools/lib/src/isolated/native_assets/linux/native_assets.dart
+@@ -9,6 +9,55 @@
+ import '../../../convert.dart';
+ import '../../../globals.dart' as globals;
+ 
++/// Environment variables naming an explicit toolchain for code-asset hooks.
++///
++/// On Linux the compiler for hooks is otherwise resolved only from the app's
++/// CMake cache. A build with no CMake app project -- `flutter build bundle`, a
++/// custom device, or an embedder packaged by a cross-compiling build system --
++/// has no way to say which toolchain to use, and the hook falls back to
++/// whatever it detects on the build host. That is wrong whenever the host is
++/// not the target: the hook then emits a host-architecture library into a
++/// bundle meant for another machine.
++///
++/// Setting these lets such a caller state the toolchain outright. All three
++/// must be given together, since [CCompilerConfig] needs a compiler, an
++/// archiver and a linker.
++const String kFlutterHookCc = 'FLUTTER_HOOK_CC';
++const String kFlutterHookAr = 'FLUTTER_HOOK_AR';
++const String kFlutterHookLd = 'FLUTTER_HOOK_LD';
++
++/// Builds a [CCompilerConfig] from [kFlutterHookCc] and friends, or null when
++/// no explicit toolchain was given.
++CCompilerConfig? cCompilerConfigFromEnvironment() {
++  final String? compiler = globals.platform.environment[kFlutterHookCc];
++  if (compiler == null || compiler.isEmpty) {
++    return null;
++  }
++  final String? archiver = globals.platform.environment[kFlutterHookAr];
++  final String? linker = globals.platform.environment[kFlutterHookLd];
++  if (archiver == null || archiver.isEmpty || linker == null || linker.isEmpty) {
++    throwToolExit(
++      '$kFlutterHookCc is set, so $kFlutterHookAr and $kFlutterHookLd must be '
++      'set as well: a code asset toolchain needs a compiler, an archiver and a '
++      'linker.',
++    );
++  }
++
++  Uri requireExists(String path, String variable) {
++    final File file = globals.fs.file(path);
++    if (!file.existsSync()) {
++      throwToolExit('Expected $path (read from $variable) to exist.');
++    }
++    return file.uri;
++  }
++
++  return CCompilerConfig(
++    compiler: requireExists(compiler, kFlutterHookCc),
++    archiver: requireExists(archiver, kFlutterHookAr),
++    linker: requireExists(linker, kFlutterHookLd),
++  );
++}
++
+ /// Returns a [CCompilerConfig] suitable for compiling code assets for Linux apps.
+ ///
+ /// For app builds, [cmakeDirectory] must be given and point to the CMake build root for the app,
+@@ -21,6 +70,13 @@
+   Directory? cmakeDirectory,
+   bool throwIfNotFound = true,
+ }) async {
++  // An explicitly configured toolchain wins over anything inferred: the caller
++  // knows the target, and a cross build has no CMake app project to infer from.
++  final CCompilerConfig? fromEnvironment = cCompilerConfigFromEnvironment();
++  if (fromEnvironment != null) {
++    return fromEnvironment;
++  }
++
+   if (cmakeDirectory == null) {
+     // No CMake reference (e.g. for a widget test). Hooks can resolve to any
+     // compiler.
