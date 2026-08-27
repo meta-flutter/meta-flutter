@@ -19,12 +19,25 @@ jobs:
   dunfell-build:
 
     strategy:
-      # Every machine master covers. The runner is sequential, so these queue
-      # and run one at a time against the same tree, exactly as master's four
-      # per-machine workflows do.
+      # The runner is sequential, so these queue and run one at a time against
+      # the same tree.
+      #
+      # No qemuriscv64. This release pins clang 14, whose lld has no RISC-V
+      # linker relaxation, so linking the embedder against a GCC-built glibc
+      # fails on the startup object before any meta-flutter code is reached:
+      #
+      #   ld.lld: error: Scrt1.o:(.text+0x0): relocation R_RISCV_ALIGN requires
+      #   unimplemented linker relaxation; recompile with -mno-relax
+      #
+      # The advice does not apply -- Scrt1.o is glibc's, not ours. Forcing
+      # -fuse-ld=bfd for this architecture is the other way out, but libc++ and
+      # compiler-rt are set up around lld here, so it trades one failure for a
+      # search. RISC-V was barely supported by this era's toolchain; the later
+      # branches all cover it, and this one carries the v3 stack on the three
+      # architectures its toolchain can actually link.
       fail-fast: false
       matrix:
-        machine: [qemux86-64, qemuarm64, qemuriscv64, qemuarm]
+        machine: [qemux86-64, qemuarm64, qemuarm]
 
     name: dunfell-${{ matrix.machine }}
 
