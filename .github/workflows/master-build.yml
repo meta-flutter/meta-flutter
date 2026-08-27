@@ -2,7 +2,11 @@ name: master-build
 
 on:
   pull_request:
-    types: [ opened, synchronize, reopened, closed ]
+    # No 'closed': nothing here is conditioned on the event, so closing or
+    # merging a pull request started a second full build of a branch whose
+    # work was already done. One sat queued for an hour holding the runners
+    # while a release branch waited behind it.
+    types: [ opened, synchronize, reopened ]
     # Each job is a 45-60 minute build and the runner is sequential, so one
     # pull request costs several hours of runner time. Skip that for changes
     # that cannot affect a build. Anything under conf/, classes/, lib/,
