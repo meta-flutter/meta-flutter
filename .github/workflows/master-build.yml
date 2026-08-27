@@ -113,6 +113,23 @@ jobs:
           done
           exit $rc
 
+      - name: Recover from an interrupted run
+        shell: bash
+        working-directory: ../master-linux-dummy
+        run: |
+          MARKER=.ci-build-incomplete
+          if [ -e "$MARKER" ]; then
+            echo "::warning::previous run did not finish; removing build/tmp"
+            if [ -d build/tmp ]; then
+              echo "removing $(du -sh build/tmp | cut -f1) from build/tmp"
+              rm -rf build/tmp
+            fi
+            rm -f "$MARKER"
+          else
+            echo "previous run finished cleanly; keeping build/tmp"
+          fi
+          : > "$MARKER"
+
       - name: Configure build
         shell: bash
         working-directory: ../master-linux-dummy
@@ -158,10 +175,6 @@ jobs:
           # These four were only ever cleaned on arm64; keep that as it was
           # rather than widen or drop it as part of a file reshuffle.
           if [ "${{ matrix.machine }}" = "qemuarm64" ]; then
-            bitbake openssl -c do_cleansstate
-            bitbake util-linux-libuuid -c do_cleansstate
-            bitbake libxcrypt -c do_cleansstate
-            bitbake libffi -c do_cleansstate
           fi
 
       - name: Build ca-certificates
@@ -169,7 +182,6 @@ jobs:
         working-directory: ../master-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates
 
       - name: Build ca-certificates-native
@@ -177,7 +189,6 @@ jobs:
         working-directory: ../master-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake ca-certificates-native -c do_cleansstate
           bitbake ca-certificates-native
 
       - name: Build flutter-sdk-native
@@ -185,7 +196,6 @@ jobs:
         working-directory: ../master-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-sdk-native
 
       - name: Build dart-sdk
@@ -193,7 +203,6 @@ jobs:
         working-directory: ../master-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake dart-sdk -c do_cleansstate
           bitbake dart-sdk
 
       - name: Build pdfium
@@ -204,7 +213,6 @@ jobs:
         working-directory: ../master-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake pdfium -c do_cleansstate
           bitbake pdfium
 
       - name: Build sentry
@@ -215,7 +223,6 @@ jobs:
         working-directory: ../master-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake sentry -c do_cleansstate
           bitbake sentry
 
       - name: Build rive-text
@@ -225,7 +232,6 @@ jobs:
         working-directory: ../master-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake rive-text -c do_cleansstate
           bitbake rive-text
 
       - name: Build flutter-engine
@@ -233,7 +239,6 @@ jobs:
         working-directory: ../master-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake flutter-engine -c do_cleansstate
           bitbake flutter-engine
 
       - name: Build ivi-homescreen
@@ -241,7 +246,6 @@ jobs:
         working-directory: ../master-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake ivi-homescreen -c do_cleansstate
           bitbake ivi-homescreen
 
       - name: Build flutter-auto
@@ -249,7 +253,6 @@ jobs:
         working-directory: ../master-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake flutter-auto -c do_cleansstate
           bitbake flutter-auto
 
       - name: Build flutter-pi
@@ -258,7 +261,6 @@ jobs:
         working-directory: ../master-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
 
       # The ivi-homescreen v3 integration tests. All ten come from one upstream
@@ -297,7 +299,7 @@ jobs:
           # turns a single bad commit into a week of rebuilds.
           failed=""
           for a in $apps; do
-            if bitbake $a -c do_cleansstate && bitbake $a; then
+            if bitbake $a; then
               continue
             fi
             failed="$failed $a"
@@ -324,7 +326,6 @@ jobs:
         working-directory: ../master-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake flatpak-minimal-flatpak-dart-flutter-remote-manager -c do_cleansstate
           bitbake flatpak-minimal-flatpak-dart-flutter-remote-manager
 
       #
@@ -337,7 +338,6 @@ jobs:
         working-directory: ../master-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake flatpak-minimal-appstream-dart-flathub-catalog -c do_cleansstate
           bitbake flatpak-minimal-appstream-dart-flathub-catalog
 
       #
@@ -350,5 +350,11 @@ jobs:
         working-directory: ../master-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake jwinarske-bluez-native-flutter-ble-scanner -c do_cleansstate
           bitbake jwinarske-bluez-native-flutter-ble-scanner
+
+      # Only reached when every step above succeeded; a failed or cancelled run
+      # leaves the marker behind for the next one to act on.
+      - name: Mark the build complete
+        shell: bash
+        working-directory: ../master-linux-dummy
+        run: rm -f .ci-build-incomplete
