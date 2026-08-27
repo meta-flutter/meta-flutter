@@ -503,6 +503,30 @@ python () {
                     % (pn, ', '.join(sorted(plugins))))
 }
 
+# The core wayland.xml comes from the sysroot, not the build host.
+#
+# The embedder's cmake reads wayland-scanner's pkgdatadir with
+# pkg_get_variable(), which returns .pc values un-sysroot-prefixed, then tries to
+# correct that with a probe beginning "if (NOT CMAKE_SYSROOT) return()".
+# oe-core only sets CMAKE_SYSROOT in its toolchain file from scarthgap onward, so
+# on older releases the probe does nothing and the generator reads
+# /usr/share/wayland/wayland.xml out of the build container.
+#
+# The XML must describe the libwayland actually being linked. Where the host's is
+# newer, the generated bindings declare events the sysroot's headers lack:
+#
+#   display.cc:427:54: error: excess elements in struct initializer
+#
+# on wl_output_listener, whose name and description events arrived in wayland
+# 1.20 -- dunfell ships 1.18. Where the host's XML is older the same mismatch is
+# silent, the events simply compiled out.
+#
+# Setting it outright is what the embedder documents for a sysroot layout its
+# probe cannot see. Only with a Wayland backend enabled, matching the condition
+# that puts target wayland in DEPENDS, since that is what stages the file.
+IVI_WL_BACKENDS = "backend-wayland-egl backend-wayland-vulkan backend-wayland-leased-drm"
+EXTRA_OECMAKE += "${@bb.utils.contains_any('PACKAGECONFIG', d.getVar('IVI_WL_BACKENDS'), '-D IVI_WL_CORE_XML=' + d.getVar('STAGING_DATADIR') + '/wayland/wayland.xml', '', d)}"
+
 EXTRA_OECMAKE += "\
     -D LLVM_CONFIG=${STAGING_BINDIR_NATIVE}/llvm-config \
     -D PLUGINS_DIR=${S}/ivi-homescreen-plugins/plugins \
