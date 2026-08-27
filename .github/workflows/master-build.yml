@@ -172,10 +172,6 @@ jobs:
           bitbake -e core-image-minimal | grep "^DISTRO_FEATURES"
           echo '***************************************'
           bitbake -e > bb.environment
-          # These four were only ever cleaned on arm64; keep that as it was
-          # rather than widen or drop it as part of a file reshuffle.
-          if [ "${{ matrix.machine }}" = "qemuarm64" ]; then
-          fi
 
       - name: Build ca-certificates
         shell: bash
