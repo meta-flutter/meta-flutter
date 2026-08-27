@@ -127,6 +127,39 @@ python flutter_native_toolchain_env() {
             os.environ[var] = value
 }
 
+# oe-core grew OECMAKE_ARGS in scarthgap. On this release cmake_do_configure
+# still writes the same arguments out inline, so there is no variable for the
+# wrapper below to reuse and ${OECMAKE_ARGS} expands to nothing. cmake then
+# configures with no toolchain file and picks a compiler off PATH -- bitbake's
+# hosttools gcc -- so a hook that drives cmake itself compiles for the build
+# host and never sees the target sysroot:
+#
+#   <command-line>: fatal error: systemd/sd-bus.h: No such file or directory
+#
+# Weak default, so a release that does define OECMAKE_ARGS still wins. The list
+# mirrors this release's own cmake_do_configure.
+OECMAKE_ARGS ??= "\
+    -DCMAKE_INSTALL_PREFIX:PATH=${prefix} \
+    -DCMAKE_INSTALL_BINDIR:PATH=${@os.path.relpath(d.getVar('bindir'), d.getVar('prefix') + '/')} \
+    -DCMAKE_INSTALL_SBINDIR:PATH=${@os.path.relpath(d.getVar('sbindir'), d.getVar('prefix') + '/')} \
+    -DCMAKE_INSTALL_LIBEXECDIR:PATH=${@os.path.relpath(d.getVar('libexecdir'), d.getVar('prefix') + '/')} \
+    -DCMAKE_INSTALL_SYSCONFDIR:PATH=${sysconfdir} \
+    -DCMAKE_INSTALL_SHAREDSTATEDIR:PATH=${@os.path.relpath(d.getVar('sharedstatedir'), d.getVar('prefix') + '/')} \
+    -DCMAKE_INSTALL_LOCALSTATEDIR:PATH=${localstatedir} \
+    -DCMAKE_INSTALL_LIBDIR:PATH=${@os.path.relpath(d.getVar('libdir'), d.getVar('prefix') + '/')} \
+    -DCMAKE_INSTALL_INCLUDEDIR:PATH=${@os.path.relpath(d.getVar('includedir'), d.getVar('prefix') + '/')} \
+    -DCMAKE_INSTALL_DATAROOTDIR:PATH=${@os.path.relpath(d.getVar('datadir'), d.getVar('prefix') + '/')} \
+    -DPYTHON_EXECUTABLE:PATH=${PYTHON} \
+    -DPython_EXECUTABLE:PATH=${PYTHON} \
+    -DPython3_EXECUTABLE:PATH=${PYTHON} \
+    -DLIB_SUFFIX=${@d.getVar('baselib').replace('lib', '')} \
+    -DCMAKE_INSTALL_SO_NO_EXE=0 \
+    -DCMAKE_TOOLCHAIN_FILE:FILEPATH=${WORKDIR}/toolchain.cmake \
+    -DCMAKE_NO_SYSTEM_FROM_IMPORTED=1 \
+    -DCMAKE_EXPORT_NO_PACKAGE_REGISTRY=ON \
+    -DFETCHCONTENT_FULLY_DISCONNECTED=ON \
+"
+
 flutter_native_cmake_setup() {
     # Create cmake wrapper to insert OE environment options
     cat > ${WORKDIR}/cmake <<CMAKE_WRAPPER_EOF
