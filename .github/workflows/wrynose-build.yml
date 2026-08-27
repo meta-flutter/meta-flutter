@@ -16,7 +16,12 @@ name: wrynose-build
 
 on:
   pull_request:
-    types: [ opened, synchronize, reopened, closed ]
+    # No 'closed': nothing here is conditioned on the event, so closing or
+    # merging a pull request started a second full build of work already
+    # merged. One of those sat queued for an hour holding both runners while
+    # a kirkstone build waited behind it, and kirkstone started within a
+    # minute of it being cancelled.
+    types: [ opened, synchronize, reopened ]
     # Same exclusions master uses: a change that cannot affect a build should
     # not cost four of them.
     paths-ignore:
