@@ -18,6 +18,16 @@ SRC_URI = "gitsm://github.com/jwinarske/packagekit_dart.git;branch=main;protocol
 SDBUS_PROVIDER = "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'systemd', 'basu', d)}"
 DEPENDS += "${SDBUS_PROVIDER}"
 
+# hook/build.dart maps the target architecture to a cmake one and handles only
+# x64 and arm64; anything else raises and takes the build down with it:
+#
+#   Unsupported operation: packagekit_dart does not support architecture: riscv64
+#   build.dart returned with exit code: 255
+#
+# State that here so the recipe is skipped with a reason on an architecture the
+# package does not build for, rather than failing partway through do_compile.
+COMPATIBLE_HOST = "(x86_64|aarch64).*-linux"
+
 FLUTTER_APPLICATION_PATH = "example/packagekit_catalog"
 PUBSPEC_APPNAME = "packagekit_catalog"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "packagekit-dart-example-packagekit-catalog"
