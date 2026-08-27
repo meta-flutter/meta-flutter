@@ -293,19 +293,25 @@ jobs:
             exit 1
           fi
 
-      # The FFI applications. All three inherit flutter-app-native, so their
-      # Dart packages carry hook/build.dart and compile native code during
+      # The FFI applications. Both inherit flutter-app-native, so their Dart
+      # packages carry hook/build.dart and compile native code during
       # `flutter build bundle` -- the path the integration tests above never
       # reach. They need the flutter_tools patch and the FLUTTER_HOOK_* wrappers
       # to build for the target rather than the build host; without those the
       # hook resolves a host compiler and emits a host-architecture library into
       # a target package (meta-flutter#801).
       #
-      # packagekit_dart: talks to PackageKit over D-Bus. master and the
-      # scarthgap-and-later branches build flutter-remote-manager here instead,
-      # but flatpak only entered meta-openembedded in scarthgap, so on dunfell
-      # and kirkstone that recipe has nothing to provide its DEPENDS. This
-      # exercises the same hook path against a system D-Bus library.
+      # master and the scarthgap-and-later branches build two further apps here,
+      # flutter-remote-manager and flathub-catalog. Both are omitted on this
+      # release rather than left failing: flatpak entered meta-openembedded in
+      # scarthgap and appstream entered oe-core in scarthgap, so neither has
+      # anything here to resolve against. A hook that cannot find its library in
+      # the sysroot silently falls back to the build host's copy, which is how
+      # flathub-catalog came to ship a libappstream.so wanting GLIBCXX_3.4.31 --
+      # a symbol version this release's GCC target does not provide.
+      #
+      # packagekit_dart: talks to PackageKit over D-Bus, exercising the same
+      # hook path against a system library that does exist here.
       - name: Build jwinarske-packagekit-dart-packagekit-catalog
         # flutter build bundle has no linux-arm target platform,
         # so the app recipes do not parse for a 32-bit machine
@@ -316,19 +322,6 @@ jobs:
           . ./openembedded-core/oe-init-build-env
           bitbake jwinarske-packagekit-dart-packagekit-catalog -c do_cleansstate
           bitbake jwinarske-packagekit-dart-packagekit-catalog
-
-      #
-      # appstream_dart: resolves a system sqlite3 through a hook user_define.
-      - name: Build flatpak-minimal-appstream-dart-flathub-catalog
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
-        shell: bash
-        working-directory: ../dunfell-linux-dummy
-        run: |
-          . ./openembedded-core/oe-init-build-env
-          bitbake flatpak-minimal-appstream-dart-flathub-catalog -c do_cleansstate
-          bitbake flatpak-minimal-appstream-dart-flathub-catalog
 
       #
       # bluez_native: compiles a vendored sdbus-c++ from its own hook.
