@@ -83,17 +83,31 @@ jobs:
 
       - name: Free other release-branch trees
         run: |
-          # Only one release branch keeps a populated tmp at a time. master's
-          # tree is deliberately left alone so its per-pull-request builds stay
-          # fast.
-          for d in ../*-linux-dummy; do
-            case "$(basename "$d")" in
-              master-linux-dummy|wrynose-linux-dummy) continue ;;
-            esac
-            [ -d "$d/build/tmp" ] || continue
-            echo "removing $(du -sh "$d/build/tmp" | cut -f1) from $d/build/tmp"
-            rm -rf "$d/build/tmp"
-          done
+          # Reclaim other release branches' build/tmp, but only when the disk
+          # is actually short.
+          #
+          # This used to run unconditionally, on the assumption that a tree
+          # measures around 106G and so only two would fit. Measured, the five
+          # trees come to 153G in total -- 19G to 34G each -- against terabytes
+          # free. Every job was destroying 30-50G that the next build of that
+          # branch then re-extracted from sstate, for space that was never
+          # scarce. master's tree is left alone regardless, so its
+          # per-pull-request builds stay fast.
+          MIN_FREE_GB=${CI_MIN_FREE_GB:-300}
+          free_gb=$(df -BG --output=avail . | tail -1 | tr -dc '0-9')
+          if [ "${free_gb:-0}" -ge "$MIN_FREE_GB" ]; then
+            echo "${free_gb}G free (>= ${MIN_FREE_GB}G), keeping the other release trees"
+          else
+            echo "${free_gb}G free (< ${MIN_FREE_GB}G), reclaiming other release trees"
+            for d in ../*-linux-dummy; do
+              case "$(basename "$d")" in
+                master-linux-dummy|wrynose-linux-dummy) continue ;;
+              esac
+              [ -d "$d/build/tmp" ] || continue
+              echo "removing $(du -sh "$d/build/tmp" | cut -f1) from $d/build/tmp"
+              rm -rf "$d/build/tmp"
+            done
+          fi
 
       - name: Fetch poky
         run: |
@@ -130,6 +144,40 @@ jobs:
               fi
           done
           exit $rc
+
+      # Recover from a run that did not finish.
+      #
+      # Every recipe used to be cleansstate'd before building, which rebuilt the
+      # whole layer from source on every job to guard against state left by an
+      # interrupted build. That is an hour a round spent on something that only
+      # happens after an abnormal exit, and it guarded narrowly: a per-recipe
+      # clean cannot fix the cross-recipe drift that actually bites here --
+      # orphaned entries in build/tmp/sysroots-components, or a partially
+      # written sstate manifest -- which is why runner-maintenance.yml wipes
+      # build/tmp instead.
+      #
+      # So clean when it is warranted and not otherwise. The marker is written
+      # before the first build and removed only after the last one succeeds, so
+      # it survives exactly the cases that leave bad state: a cancelled run, an
+      # OOM kill, a crashed worker. Finding it means the previous run died
+      # mid-build, and build/tmp goes -- strictly more than the old per-recipe
+      # clean did, and regenerable from the shared sstate mount.
+      - name: Recover from an interrupted run
+        shell: bash
+        working-directory: ../wrynose-linux-dummy
+        run: |
+          MARKER=.ci-build-incomplete
+          if [ -e "$MARKER" ]; then
+            echo "::warning::previous run did not finish; removing build/tmp"
+            if [ -d build/tmp ]; then
+              echo "removing $(du -sh build/tmp | cut -f1) from build/tmp"
+              rm -rf build/tmp
+            fi
+            rm -f "$MARKER"
+          else
+            echo "previous run finished cleanly; keeping build/tmp"
+          fi
+          : > "$MARKER"
 
       - name: Configure build
         shell: bash
@@ -175,7 +223,6 @@ jobs:
         working-directory: ../wrynose-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake ca-certificates -c do_cleansstate
           bitbake ca-certificates
 
       - name: Build ca-certificates-native
@@ -183,7 +230,6 @@ jobs:
         working-directory: ../wrynose-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake ca-certificates-native -c do_cleansstate
           bitbake ca-certificates-native
 
       - name: Build flutter-sdk-native
@@ -191,7 +237,6 @@ jobs:
         working-directory: ../wrynose-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake flutter-sdk-native -c do_cleansstate
           bitbake flutter-sdk-native
 
       - name: Build dart-sdk
@@ -199,7 +244,6 @@ jobs:
         working-directory: ../wrynose-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake dart-sdk -c do_cleansstate
           bitbake dart-sdk
 
       - name: Build sentry
@@ -207,7 +251,6 @@ jobs:
         working-directory: ../wrynose-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake sentry -c do_cleansstate
           bitbake sentry
 
       - name: Build rive-text
@@ -215,7 +258,6 @@ jobs:
         working-directory: ../wrynose-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake rive-text -c do_cleansstate
           bitbake rive-text
 
       - name: Build flutter-engine
@@ -223,7 +265,6 @@ jobs:
         working-directory: ../wrynose-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake flutter-engine -c do_cleansstate
           bitbake flutter-engine
 
       - name: Build ivi-homescreen
@@ -231,7 +272,6 @@ jobs:
         working-directory: ../wrynose-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake ivi-homescreen -c do_cleansstate
           bitbake ivi-homescreen
 
       - name: Build flutter-auto
@@ -239,7 +279,6 @@ jobs:
         working-directory: ../wrynose-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake flutter-auto -c do_cleansstate
           bitbake flutter-auto
 
       - name: Build flutter-pi
@@ -248,7 +287,6 @@ jobs:
         working-directory: ../wrynose-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake flutter-pi -c do_cleansstate
           bitbake flutter-pi
 
       # The ivi-homescreen v3 integration tests. All ten come from one upstream
@@ -287,7 +325,7 @@ jobs:
           # turns a single bad commit into a week of rebuilds.
           failed=""
           for a in $apps; do
-            if bitbake $a -c do_cleansstate && bitbake $a; then
+            if bitbake $a; then
               continue
             fi
             failed="$failed $a"
@@ -314,7 +352,6 @@ jobs:
         working-directory: ../wrynose-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake flatpak-minimal-flatpak-dart-flutter-remote-manager -c do_cleansstate
           bitbake flatpak-minimal-flatpak-dart-flutter-remote-manager
 
       #
@@ -327,7 +364,6 @@ jobs:
         working-directory: ../wrynose-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake flatpak-minimal-appstream-dart-flathub-catalog -c do_cleansstate
           bitbake flatpak-minimal-appstream-dart-flathub-catalog
 
       #
@@ -340,5 +376,11 @@ jobs:
         working-directory: ../wrynose-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake jwinarske-bluez-native-flutter-ble-scanner -c do_cleansstate
           bitbake jwinarske-bluez-native-flutter-ble-scanner
+
+      # Only reached when every step above succeeded; a failed or cancelled run
+      # leaves the marker behind for the next one to act on.
+      - name: Mark the build complete
+        shell: bash
+        working-directory: ../wrynose-linux-dummy
+        run: rm -f .ci-build-incomplete
