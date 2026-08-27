@@ -110,11 +110,11 @@ EXTRA_OECMAKE += " \
     -D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr \
 "
 
-cmake_do_install:append() {
+cmake_do_install_append() {
     rm -rf ${D}${libdir}
 }
 
-RDEPENDS:${PN} += "\
+RDEPENDS_${PN} += "\
     flutter-engine \
     ${@bb.utils.contains('PACKAGECONFIG', 'pc-file-selector', 'zenity', '', d)} \
 "

@@ -17,7 +17,7 @@ DEPENDS += "\
     virtual/egl \
     "
 
-RDEPENDS:${PN} += " \
+RDEPENDS_${PN} += " \
     xkeyboard-config \
     libxkbcommon \
     ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', '', 'libuv', d)} \
@@ -37,13 +37,13 @@ inherit pkgconfig cmake features_check
 
 require conf/include/flutter-version.inc
 
-PACKAGECONFIG:append = " ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'systemd', 'libuv', d)}"
+PACKAGECONFIG_append = " ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'systemd', 'libuv', d)}"
 PACKAGECONFIG[systemd] = ",,systemd,libuv"
 PACKAGECONFIG[libuv] = ",,libuv"
 
 EXTRA_OECMAKE += "-D USER_PROJECT_PATH=${S}/examples/${PN}"
 
-do_configure:prepend() {
+do_configure_prepend() {
 
     rm -rf ${S}/build || true
 
@@ -72,7 +72,7 @@ do_configure:prepend() {
 do_package_qa[noexec] = "1"
 EXCLUDE_FROM_SHLIBS = "1"
 
-RDEPENDS:${PN} += "flutter-engine"
+RDEPENDS_${PN} += "flutter-engine"
 
 python () {
     d.setVar('FLUTTER_SDK_VERSION', get_flutter_sdk_version(d))

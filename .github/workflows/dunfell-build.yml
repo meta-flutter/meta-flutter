@@ -1,0 +1,377 @@
+name: dunfell-build
+
+# Release-branch builds are dispatch-only, but cover every machine master
+# covers. The runner is sequential, so the matrix queues and runs one machine
+# at a time against a single tree, which is how master's tmp comes to hold all
+# four already.
+#
+# Dispatch rather than per-pull-request is a disk constraint, not a coverage
+# one: a populated tmp is around 106G against 264G free, so master and the four
+# release branches cannot all keep one. The tree here is this branch's own, so
+# master's is never disturbed, and any other release branch's tmp is removed
+# first, which holds the release branches to one populated tree between them.
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  dunfell-build:
+
+    strategy:
+      # The runner is sequential, so these queue and run one at a time against
+      # the same tree.
+      #
+      # No qemuriscv64. This release pins clang 14, whose lld has no RISC-V
+      # linker relaxation, so linking the embedder against a GCC-built glibc
+      # fails on the startup object before any meta-flutter code is reached:
+      #
+      #   ld.lld: error: Scrt1.o:(.text+0x0): relocation R_RISCV_ALIGN requires
+      #   unimplemented linker relaxation; recompile with -mno-relax
+      #
+      # The advice does not apply -- Scrt1.o is glibc's, not ours. Forcing
+      # -fuse-ld=bfd for this architecture is the other way out, but libc++ and
+      # compiler-rt are set up around lld here, so it trades one failure for a
+      # search. RISC-V was barely supported by this era's toolchain; the later
+      # branches all cover it, and this one carries the v3 stack on the three
+      # architectures its toolchain can actually link.
+      fail-fast: false
+      matrix:
+        machine: [qemux86-64, qemuarm64, qemuarm]
+
+    name: dunfell-${{ matrix.machine }}
+
+    env:
+      MACHINE: ${{ matrix.machine }}
+      # openembedded-core, meta-yocto and meta-openembedded carry dunfell.
+      YOCTO_BRANCH: dunfell
+      # bitbake is versioned rather than named after the release. dunfell's
+      # openembedded-core declares BB_MIN_VERSION 1.53.0, which is a floor;
+      # 2.0 is the branch that shipped with kirkstone.
+      BITBAKE_BRANCH: '1.46'
+      # meta-vulkan carries dunfell. meta-drm has no dunfell branch at all --
+      # only kirkstone, master and scarthgap -- so the layer is dropped here
+      # rather than pinned to something it was never tested against.
+      # dunfell's openembedded-core long predates clang moving into oe-core, so
+      # the clang toolchain has to come from meta-clang here.
+      #
+      # Pinned to dunfell-clang14, as the old per-machine workflow did.
+      #
+      # That branch is written in colon override syntax, which bitbake 1.46
+      # does not understand -- it reads EXTRA_OECMAKE:append:class-target as a
+      # variable of that literal name and applies nothing. The base
+      # EXTRA_OECMAKE still applies, so clang builds usably, but any of its
+      # conditional tweaks are inert. Anything this layer needs from them has
+      # to be set here instead, in underscore form -- see the libcxx bbappend
+      # under dynamic-layers/clang-layer.
+      CLANG_BRANCH: dunfell-clang14
+      VULKAN_BRANCH: dunfell
+
+    runs-on: [self-hosted, linux]
+
+    container:
+      image: ghcr.io/meta-flutter/meta-flutter/ubuntu-22-dev:main
+      options:
+        --read-only
+        --log-driver=none
+        --user 1001:1001
+        --userns keep-id:uid=1001,gid=1001
+        --security-opt label=disable
+        --pids-limit=-1
+        --storage-opt overlay.mount_program=/usr/bin/fuse-overlayfs
+        --storage-opt overlay.mountopt=nodev,metacopy=on,noxattrs=1
+        -v /home/runner/.ssh:/home/dev/.ssh:ro
+        -v /mnt/raid10/github-ci/download:/home/dev/dl:Z
+        -v /mnt/raid10/github-ci/sstate/yocto/dunfell-linux-dummy:/home/dev/sstate:Z
+
+    steps:
+
+      - uses: actions/checkout@v4
+        with:
+          path: ''
+
+      - name: Free other release-branch trees
+        run: |
+          # Reclaim other release branches' build/tmp, but only when the disk
+          # is actually short.
+          #
+          # This used to run unconditionally, on the assumption that a tree
+          # measures around 106G and so only two would fit. Measured, the five
+          # trees come to 153G in total -- 19G to 34G each -- against terabytes
+          # free. Every job was destroying 30-50G that the next build of that
+          # branch then re-extracted from sstate, for space that was never
+          # scarce. master's tree is left alone regardless, so its
+          # per-pull-request builds stay fast.
+          MIN_FREE_GB=${CI_MIN_FREE_GB:-300}
+          free_gb=$(df -BG --output=avail . | tail -1 | tr -dc '0-9')
+          if [ "${free_gb:-0}" -ge "$MIN_FREE_GB" ]; then
+            echo "${free_gb}G free (>= ${MIN_FREE_GB}G), keeping the other release trees"
+          else
+            echo "${free_gb}G free (< ${MIN_FREE_GB}G), reclaiming other release trees"
+            for d in ../*-linux-dummy; do
+              case "$(basename "$d")" in
+                master-linux-dummy|dunfell-linux-dummy) continue ;;
+              esac
+              [ -d "$d/build/tmp" ] || continue
+              echo "removing $(du -sh "$d/build/tmp" | cut -f1) from $d/build/tmp"
+              rm -rf "$d/build/tmp"
+            done
+          fi
+
+      - name: Fetch poky
+        run: |
+          [ -d ../dunfell-linux-dummy ] || mkdir -p ../dunfell-linux-dummy
+          cd ../dunfell-linux-dummy
+          pwd
+          # every layer cloned below must be listed here: this is a persistent
+          # self-hosted runner and 'git clone' into an existing directory fails.
+          rm -rf poky bitbake openembedded-core meta-yocto \
+                 meta-openembedded meta-clang meta-vulkan
+          # 'wait' with no operands always returns 0, so collect the pids and
+          # wait on each to see a failed clone.
+          pids=""
+          for spec in \
+              "${{ env.BITBAKE_BRANCH }}|https://github.com/openembedded/bitbake.git" \
+              "${{ env.YOCTO_BRANCH }}|https://github.com/openembedded/openembedded-core.git" \
+              "${{ env.YOCTO_BRANCH }}|https://github.com/yoctoproject/meta-yocto.git" \
+              "${{ env.YOCTO_BRANCH }}|https://github.com/openembedded/meta-openembedded.git" \
+              "${{ env.CLANG_BRANCH }}|https://github.com/kraj/meta-clang.git" \
+              "${{ env.VULKAN_BRANCH }}|https://github.com/jwinarske/meta-vulkan.git" ; do
+              branch=${spec%%|*}
+              repo=${spec#*|}
+              git clone -b "$branch" --single-branch "$repo" &
+              pids="$pids $!:$repo@$branch"
+          done
+
+          rc=0
+          for entry in $pids; do
+              pid=${entry%%:*}
+              repo=${entry#*:}
+              if ! wait "$pid"; then
+                  echo "::error::clone failed: $repo"
+                  rc=1
+              fi
+          done
+          exit $rc
+
+      - name: Recover from an interrupted run
+        shell: bash
+        working-directory: ../dunfell-linux-dummy
+        run: |
+          MARKER=.ci-build-incomplete
+          if [ -e "$MARKER" ]; then
+            echo "::warning::previous run did not finish; removing build/tmp"
+            if [ -d build/tmp ]; then
+              echo "removing $(du -sh build/tmp | cut -f1) from build/tmp"
+              rm -rf build/tmp
+            fi
+            rm -f "$MARKER"
+          else
+            echo "previous run finished cleanly; keeping build/tmp"
+          fi
+          : > "$MARKER"
+
+      - name: Configure build
+        shell: bash
+        working-directory: ../dunfell-linux-dummy
+        run: |
+          rm -rf build/conf
+          . ./openembedded-core/oe-init-build-env
+          echo '***************************************'
+          sed -i '/MACHINE ??=/d' ./conf/local.conf
+          echo "MACHINE ??= \"${{ env.MACHINE }}\"" >> ./conf/local.conf
+          echo '***************************************'
+          # Include CI build configuration to disable SPDX
+          echo 'require ../../meta-flutter/conf/distro/include/ci-build.inc' >> ./conf/local.conf
+          echo '********** ./conf/local.conf **********'
+          cat ./conf/local.conf
+          echo '***************************************'
+          bitbake-layers show-layers
+          bitbake-layers add-layer \
+              ../openembedded-core/meta \
+              ../meta-yocto/meta-yocto-bsp \
+              ../meta-yocto/meta-poky \
+              ../meta-openembedded/meta-oe \
+              ../meta-openembedded/meta-filesystems \
+              ../meta-openembedded/meta-gnome \
+              ../meta-openembedded/meta-multimedia \
+              ../meta-openembedded/meta-networking \
+              ../meta-openembedded/meta-python \
+              ../meta-clang \
+              ../meta-vulkan \
+              ../../meta-flutter \
+              ../../meta-flutter/meta-flutter-apps
+          bitbake-layers show-layers
+          echo '***************************************'
+          bitbake -e virtual/kernel | grep "^PV"
+          bitbake -e virtual/kernel | grep "^PN"
+          echo '***************************************'
+          bitbake -e core-image-minimal | grep "^DISTRO_FEATURES"
+          echo '***************************************'
+          bitbake -e > bb.environment
+
+      - name: Build ca-certificates
+        shell: bash
+        working-directory: ../dunfell-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake ca-certificates
+
+      - name: Build ca-certificates-native
+        shell: bash
+        working-directory: ../dunfell-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake ca-certificates-native
+
+      - name: Build flutter-sdk-native
+        shell: bash
+        working-directory: ../dunfell-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake flutter-sdk-native
+
+      - name: Build dart-sdk
+        shell: bash
+        working-directory: ../dunfell-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake dart-sdk
+
+      - name: Build sentry
+        shell: bash
+        working-directory: ../dunfell-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake sentry
+
+      - name: Build rive-text
+        shell: bash
+        working-directory: ../dunfell-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake rive-text
+
+      - name: Build flutter-engine
+        shell: bash
+        working-directory: ../dunfell-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake flutter-engine
+
+      - name: Build ivi-homescreen
+        shell: bash
+        working-directory: ../dunfell-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake ivi-homescreen
+
+      - name: Build flutter-auto
+        shell: bash
+        working-directory: ../dunfell-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake flutter-auto
+
+      - name: Build flutter-pi
+        id: base
+        shell: bash
+        working-directory: ../dunfell-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake flutter-pi
+
+      # The ivi-homescreen v3 integration tests. All ten come from one upstream
+      # tree at HOMESCREEN_COMMIT through ivi-homescreen-test.inc, so they share
+      # a source revision and stand or fall together far more often than not.
+      #
+      # One workflow step, but bitbake is called once per recipe so they build
+      # one at a time. A single 'bitbake app1 app2 ...' call lets bitbake run
+      # all ten do_compile tasks at once, and they race: each drives the flutter
+      # tool against its own recipe-sysroot-native, whose SDK files are
+      # hardlinked from the shared native sysroot, so concurrent writes under
+      # bin/cache are visible to the others. A recipe reading that directory
+      # mid-write decides the tool snapshot is stale and re-resolves
+      # packages/flutter_tools -- which does not inherit our --offline, so in a
+      # network-isolated do_compile it can only fail.
+      - name: Build ivi-homescreen integration tests
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        shell: bash
+        working-directory: ../dunfell-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          apps="ivi-homescreen-gesture-playground \
+            ivi-homescreen-hardware-keyboard-test \
+            ivi-homescreen-keyboard-test \
+            ivi-homescreen-mcp-drive-test \
+            ivi-homescreen-multi-touch-test \
+            ivi-homescreen-multi-view-test \
+            ivi-homescreen-osgi-activator-test \
+            ivi-homescreen-scroll-bench \
+            ivi-homescreen-stopwatch-stress-test \
+            ivi-homescreen-watchdog-test"
+          # Report every failing test, not just the first. A round costs
+          # over an hour, so learning about one broken recipe at a time
+          # turns a single bad commit into a week of rebuilds.
+          failed=""
+          for a in $apps; do
+            if bitbake $a; then
+              continue
+            fi
+            failed="$failed $a"
+          done
+          if [ -n "$failed" ]; then
+            echo "::error::integration tests failed:$failed"
+            exit 1
+          fi
+
+      # The FFI applications. Both inherit flutter-app-native, so their Dart
+      # packages carry hook/build.dart and compile native code during
+      # `flutter build bundle` -- the path the integration tests above never
+      # reach. They need the flutter_tools patch and the FLUTTER_HOOK_* wrappers
+      # to build for the target rather than the build host; without those the
+      # hook resolves a host compiler and emits a host-architecture library into
+      # a target package (meta-flutter#801).
+      #
+      # master and the scarthgap-and-later branches build two further apps here,
+      # flutter-remote-manager and flathub-catalog. Both are omitted on this
+      # release rather than left failing: flatpak entered meta-openembedded in
+      # scarthgap and appstream entered oe-core in scarthgap, so neither has
+      # anything here to resolve against. A hook that cannot find its library in
+      # the sysroot silently falls back to the build host's copy, which is how
+      # flathub-catalog came to ship a libappstream.so wanting GLIBCXX_3.4.31 --
+      # a symbol version this release's GCC target does not provide.
+      #
+      # packagekit_dart: talks to PackageKit over D-Bus, exercising the same
+      # hook path against a system library that does exist here.
+      - name: Build jwinarske-packagekit-dart-packagekit-catalog
+        # No linux-arm target platform for flutter build bundle, and the
+        # package's hook handles only x64 and arm64, so riscv64 is out too --
+        # see COMPATIBLE_HOST on the recipe.
+        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' && matrix.machine != 'qemuriscv64' }}
+        shell: bash
+        working-directory: ../dunfell-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake jwinarske-packagekit-dart-packagekit-catalog
+
+      #
+      # bluez_native: compiles a vendored sdbus-c++ from its own hook.
+      - name: Build jwinarske-bluez-native-flutter-ble-scanner
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        shell: bash
+        working-directory: ../dunfell-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake jwinarske-bluez-native-flutter-ble-scanner
+
+      # Only reached when every step above succeeded; a failed or cancelled run
+      # leaves the marker behind for the next one to act on.
+      - name: Mark the build complete
+        shell: bash
+        working-directory: ../dunfell-linux-dummy
+        run: rm -f .ci-build-incomplete

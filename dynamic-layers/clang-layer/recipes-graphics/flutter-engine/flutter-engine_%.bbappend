@@ -2,9 +2,22 @@
 # Copyright (c) 2020-2025 Joel Winarske. All rights reserved.
 #
 
-DEPENDS:riscv64 += "\
-    compiler-rt \
+# The engine links with lld and builds against libc++. On master both come from
+# openembedded-core, which now carries clang; dunfell long predates that, so
+# they are meta-clang's to provide and belong here rather than in the recipe --
+# a dependency the recipe cannot satisfy without this layer stops it parsing.
+#
+# meta-clang has no separate lld recipe. lld is built inside clang, so ld.lld
+# arrives with clang-native rather than an lld-native of its own:
+#
+#   ERROR: Nothing PROVIDES 'lld-native' ... Close matches: llvm-native
+DEPENDS += "\
     libcxx \
+    clang-native \
+    "
+
+DEPENDS_riscv64 += "\
+    compiler-rt \
     "
 
 RUNTIME = "llvm"
@@ -15,14 +28,11 @@ LIBCPLUSPLUS = "-stdlib=libc++"
 # RISC-V specific
 #
 
-COMPATIBLE_MACHINE:riscv32 = "(.*)"
-COMPATIBLE_MACHINE:riscv64 = "(.*)"
+COMPATIBLE_MACHINE_riscv32 = "(.*)"
+COMPATIBLE_MACHINE_riscv64 = "(.*)"
 
 
-# Use Yocto clang for riscv64; required for linking
-CLANG_PATH:riscv64 = "${STAGING_DIR_NATIVE}/usr"
-
-do_configure:append() {
+do_configure_append() {
     cd ${STAGING_DIR_TARGET}/usr/lib
 
     test -e crtbeginS.o && rm crtbeginS.o

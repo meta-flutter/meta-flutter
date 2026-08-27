@@ -8,15 +8,9 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit packagegroup
 
-RDEPENDS:${PN} += " \
+RDEPENDS_${PN} += " \
     googleads-flutter-samples-admob-mediation-example-mediationexample \
-    googleads-flutter-samples-admob-native-template-example \
-    googleads-flutter-samples-admob-rewarded-example \
-    googleads-flutter-samples-admob-banner-example \
-    googleads-flutter-samples-admob-native-platform-example \
-    googleads-flutter-samples-admob-app-open-example \
-    googleads-flutter-samples-admob-interstitial-example \
-    googleads-flutter-samples-admob-rewarded-interstitial-example \
+    googleads-flutter-samples-admob-api-demo \
     googleads-flutter-packages-mediation-gma-mediation-line-example \
     googleads-flutter-packages-mediation-gma-mediation-bidmachine-example \
     googleads-flutter-packages-mediation-gma-mediation-liftoffmonetize-example \

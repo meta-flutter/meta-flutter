@@ -33,6 +33,6 @@ SRC_URI[model_file.sha256sum] = "cbdecd08b44c5dea3821f77c5468e2936ecfbf43cde0795
 
 inherit flutter-app
 
-RDEPENDS:${PN} += " \
+RDEPENDS_${PN} += " \
     tensorflow-lite \
 "

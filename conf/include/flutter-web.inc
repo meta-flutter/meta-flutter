@@ -29,6 +29,6 @@ do_install() {
     cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/web/* ${D}${FLUTTER_INSTALL_DIR}/
 }
 
-FILES:${PN} = "\
+FILES_${PN} = "\
     ${FLUTTER_INSTALL_DIR} \
     "

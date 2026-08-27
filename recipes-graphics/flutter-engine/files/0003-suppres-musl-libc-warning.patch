@@ -1,0 +1,29 @@
+From 78672cfb355bc4dae7f6729b52858798a11a869d Mon Sep 17 00:00:00 2001
+From: andryblack <blackicebox@gmail.com>
+Date: Mon, 7 Oct 2024 01:14:14 +0300
+Subject: [PATCH] suppres musl libc warning
+
+Upstream-Status: Inappropriate
+
+---
+ runtime/bin/socket_base_posix.cc | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/runtime/bin/socket_base_posix.cc b/runtime/bin/socket_base_posix.cc
+index 3838e6d1..7bb2443b 100644
+--- a/runtime/bin/socket_base_posix.cc
++++ b/runtime/bin/socket_base_posix.cc
+@@ -22,6 +22,10 @@
+ #include "bin/socket_base_macos.h"
+ #include "platform/signal_blocker.h"
+ 
++#ifdef _LIBCPP_HAS_MUSL_LIBC
++  #pragma clang diagnostic ignored "-Wsign-compare"
++#endif
++
+ namespace dart {
+ namespace bin {
+ 
+-- 
+2.39.3 (Apple Git-146)
+

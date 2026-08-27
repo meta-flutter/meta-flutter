@@ -312,3 +312,111 @@ def test_internet_connection() -> bool:
         res = True
 
     return res
+
+
+# Phrases that identify a license, matched against the file's text with
+# whitespace collapsed. Titles are spelled without the comma that the
+# cross-references use ("Apache License Version 2.0" as a heading, versus
+# "the GNU Lesser General Public License, Version 2.1" where MPL-2.0 names its
+# secondary licenses) so that naming a license does not read as being it.
+_LICENSE_MARKERS = [
+    ('Apache-2.0',   (('apache license version 2.0',), ())),
+    ('GPL-3.0',      (('gnu general public license version 3',), ())),
+    ('GPL-2.0',      (('gnu general public license version 2',), ())),
+    ('LGPL-3.0',     (('gnu lesser general public license version 3',), ())),
+    ('LGPL-2.1',     (('gnu lesser general public license version 2.1',), ())),
+    ('MPL-2.0',      (('mozilla public license version 2.0',), ())),
+    # BSD-3-Clause is BSD-2-Clause plus non-endorsement, so the two-clause form
+    # is only itself when the third clause is absent.
+    ('BSD-3-Clause', (('redistribution and use in source and binary forms',
+                       'neither the name'), ())),
+    ('BSD-2-Clause', (('redistribution and use in source and binary forms',),
+                      ('neither the name',))),
+    # The SIL Open Font License opens with the same sentence as MIT but grants
+    # over "the Font Software"; flutter/games ships both, so MIT has to key on
+    # its own object to avoid claiming every font license as MIT.
+    ('OFL-1.1',      (('sil open font license',), ())),
+    ('MIT',          (('free of charge, to any person obtaining a copy of this software',), ())),
+    ('ISC',          (('permission to use, copy, modify, and/or distribute this software',), ())),
+]
+
+# Families where the license file alone cannot settle the identifier. A project
+# shipping the GPL ships the same COPYING whether it is "version 3 only" or
+# "version 3 or later" -- that distinction lives in the per-file headers, and
+# the license text's own appendix always shows the or-later wording. So detect
+# the family and accept either variant rather than guess.
+_LICENSE_FAMILIES = {
+    'GPL-3.0':  ('GPL-3.0-only', 'GPL-3.0-or-later'),
+    'GPL-2.0':  ('GPL-2.0-only', 'GPL-2.0-or-later'),
+    'LGPL-3.0': ('LGPL-3.0-only', 'LGPL-3.0-or-later'),
+    'LGPL-2.1': ('LGPL-2.1-only', 'LGPL-2.1-or-later'),
+}
+
+
+def detect_licenses(license_path: str) -> list:
+    """Return the SPDX identifiers a license file's text contains.
+
+    A list, because upstreams routinely ship one file holding several licenses
+    -- flutter/games concatenates the Chromium BSD-3-Clause notice and the full
+    Apache-2.0 text, and a recipe claiming either one alone would be wrong.
+
+    Detection is deliberately conservative: a file matching nothing yields an
+    empty list, so callers can tell "disagrees with the source" from "could not
+    be checked".
+    """
+    try:
+        with open(license_path, 'r', encoding='utf-8', errors='replace') as f:
+            text = f.read().lower()
+    except OSError:
+        return []
+
+    # Collapse whitespace so matching survives the comment prefixes and hard
+    # wrapping that upstreams wrap their license text in.
+    text = ' '.join(text.split())
+
+    found = []
+    for spdx, (required, forbidden) in _LICENSE_MARKERS:
+        if all(m in text for m in required) and not any(m in text for m in forbidden):
+            found.append(spdx)
+    return found
+
+
+def detect_license(license_path: str) -> str:
+    """detect_licenses() as a license expression, e.g. "BSD-3-Clause & MIT".
+
+    Joined with '&' rather than 'AND': this release's license-format QA accepts
+    only &, | and parentheses as separators, and reads AND as a license name.
+    """
+    return ' & '.join(sorted(detect_licenses(license_path)))
+
+
+def license_agrees_with_source(declared: str, detected_list: list) -> bool:
+    """Whether a declared LICENSE value is consistent with the detected text.
+
+    Detection is coarse on purpose. A great many licenses embed the BSD or MIT
+    wording verbatim and then add a clause -- Sendmail, OpenSSL, ZPL and the
+    whole X11 family all read as BSD or MIT to a text match. So a declared
+    identifier counts as agreeing when it is the detected one, a variant of a
+    family the text cannot disambiguate (see _LICENSE_FAMILIES), or a more
+    specific spelling of it (BSD-3-Clause-Clear over BSD-3-Clause).
+
+    What this still catches is the case worth catching: a declared license with
+    no relation at all to the shipped text, which is how depot-tools carried
+    LICENSE = "GPLv3" over BSD-3-Clause.
+    """
+    if not detected_list:
+        return True          # nothing to contradict it
+
+    declared_set = {t for t in declared.replace('(', ' ').replace(')', ' ').split()
+                    if t.upper() not in ('AND', 'OR', '&', '|')}
+
+    for want in detected_list:
+        variants = {want} | set(_LICENSE_FAMILIES.get(want, ()))
+        if declared_set & variants:
+            continue
+        # A more specific spelling of the detected license, or a derivative
+        # that embeds its text.
+        if any(d.startswith(want + '-') or want.startswith(d + '-') for d in declared_set):
+            continue
+        return False
+    return True

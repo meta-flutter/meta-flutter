@@ -21,7 +21,7 @@ DEPENDS += "\
     wayland-protocols \
     "
 
-RDEPENDS:${PN} += "\
+RDEPENDS_${PN} += "\
     flutter-engine \
     "
 
@@ -111,7 +111,7 @@ PACKAGECONFIG[verbose] = "-DCMAKE_BUILD_TYPE=Debug"
 
 EXTRA_OECMAKE += " -D CMAKE_SYSROOT=${STAGING_DIR_TARGET}/usr"
 
-cmake_do_install:append() {
+cmake_do_install_append() {
     rm -rf ${D}${libdir}
 }
 
