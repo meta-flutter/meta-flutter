@@ -313,9 +313,10 @@ jobs:
       # packagekit_dart: talks to PackageKit over D-Bus, exercising the same
       # hook path against a system library that does exist here.
       - name: Build jwinarske-packagekit-dart-packagekit-catalog
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        # No linux-arm target platform for flutter build bundle, and the
+        # package's hook handles only x64 and arm64, so riscv64 is out too --
+        # see COMPATIBLE_HOST on the recipe.
+        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' && matrix.machine != 'qemuriscv64' }}
         shell: bash
         working-directory: ../dunfell-linux-dummy
         run: |
