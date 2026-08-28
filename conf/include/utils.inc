@@ -1,5 +1,7 @@
 #
-# Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2024 Joel Winarske
+#
+# SPDX-License-Identifier: MIT
 #
 
 def get_binary_pkg_arch(d):

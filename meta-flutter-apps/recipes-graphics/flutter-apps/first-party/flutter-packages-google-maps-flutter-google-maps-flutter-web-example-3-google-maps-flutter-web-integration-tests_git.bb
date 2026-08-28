@@ -1,5 +1,7 @@
 #
-# Copyright (c) 2020-2025 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2025 Joel Winarske
+#
+# SPDX-License-Identifier: MIT
 #
 
 SUMMARY = "google_maps_flutter_web_integration_tests"
