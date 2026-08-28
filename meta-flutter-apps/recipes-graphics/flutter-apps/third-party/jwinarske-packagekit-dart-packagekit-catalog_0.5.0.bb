@@ -1,5 +1,7 @@
 #
-# Copyright (c) 2026 Joel Winarske. All rights reserved.
+# Copyright (c) 2026 Joel Winarske
+#
+# SPDX-License-Identifier: MIT
 #
 SUMMARY = "packagekit_catalog"
 DESCRIPTION = "Flutter Linux desktop app demonstrating the packagekit_dart package."

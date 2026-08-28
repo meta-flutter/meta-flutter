@@ -1,5 +1,7 @@
 #
-# Copyright (c) 2026 Joel Winarske. All rights reserved.
+# Copyright (c) 2026 Joel Winarske
+#
+# SPDX-License-Identifier: MIT
 #
 SUMMARY = "flutter_remote_manager"
 DESCRIPTION = "Flutter Linux desktop app demonstrating the flatpak_dart package."

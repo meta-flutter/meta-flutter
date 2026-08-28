@@ -1,5 +1,7 @@
 #
-# Copyright (c) 2020-2026 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2026 Joel Winarske
+#
+# SPDX-License-Identifier: MIT
 #
 # Shared body for the ivi-homescreen v3.0 embedder recipes. The two consumers
 # (ivi-homescreen_3.0.bb, flutter-auto_3.0.bb) differ only in EXE_OUTPUT_NAME,

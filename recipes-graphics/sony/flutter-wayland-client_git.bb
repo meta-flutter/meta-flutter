@@ -1,5 +1,7 @@
 #
-# Copyright (c) 2020-2025 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2025 Joel Winarske
+#
+# SPDX-License-Identifier: MIT
 #
 
 DESCRIPTION = "Flutter Embedder with Wayland Client Backend."
