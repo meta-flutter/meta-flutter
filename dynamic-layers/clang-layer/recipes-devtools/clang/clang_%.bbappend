@@ -1,5 +1,7 @@
 #
-# Copyright (c) 2026 Joel Winarske. All rights reserved.
+# Copyright (c) 2026 Joel Winarske
+#
+# SPDX-License-Identifier: MIT
 #
 # Declare clang-native as the provider of lld-native.
 #

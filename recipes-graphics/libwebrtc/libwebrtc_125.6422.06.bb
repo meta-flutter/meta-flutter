@@ -1,5 +1,7 @@
 #
-# Copyright (c) 2024-2025 Joel Winarske. All rights reserved.
+# Copyright (c) 2024-2025 Joel Winarske
+#
+# SPDX-License-Identifier: MIT
 #
 
 SUMMARY = "libwebrtc"
