@@ -1,5 +1,7 @@
 #
-# Copyright (c) 2026 Joel Winarske. All rights reserved.
+# Copyright (c) 2026 Joel Winarske
+#
+# SPDX-License-Identifier: MIT
 #
 SUMMARY = "flutter_ble_scanner"
 DESCRIPTION = "Flutter Linux desktop app demonstrating the bluez_native package."

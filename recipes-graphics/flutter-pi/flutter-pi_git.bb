@@ -1,5 +1,7 @@
 #
-# Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2024 Joel Winarske
+#
+# SPDX-License-Identifier: MIT
 #
 
 SUMMARY = "A light-weight Flutter Engine Embedder for Raspberry Pi that runs without X."

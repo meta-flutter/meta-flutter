@@ -1,5 +1,7 @@
 #
-# Copyright (c) 2020-2026 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2026 Joel Winarske
+#
+# SPDX-License-Identifier: MIT
 #
 
 # The v3 embedder builds against libc++/compiler-rt and links with lld. On
