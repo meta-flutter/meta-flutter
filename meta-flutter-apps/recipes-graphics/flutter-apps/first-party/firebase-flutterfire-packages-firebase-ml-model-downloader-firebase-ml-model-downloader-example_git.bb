@@ -1,5 +1,7 @@
 #
-# Copyright (c) 2020-2025 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2025 Joel Winarske
+#
+# SPDX-License-Identifier: MIT
 #
 
 SUMMARY = "firebase_ml_model_downloader_example"
