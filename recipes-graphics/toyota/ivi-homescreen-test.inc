@@ -1,5 +1,7 @@
 #
-# Copyright (c) 2020-2026 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2026 Joel Winarske
+#
+# SPDX-License-Identifier: MIT
 #
 # Shared body for the ivi-homescreen v3.0 integration test applications, which
 # live under test/integration in the embedder repository.
