@@ -46,24 +46,13 @@ do_configure:prepend() {
 
     mkdir -p ${S}/build || true
 
-    # determine build type based on what flutter-engine installed
-    FLUTTER_RUNTIME_MODES="$(ls ${STAGING_DIR_TARGET}${datadir}/flutter/${FLUTTER_SDK_VERSION}/)"
-
-    for FLUTTER_RUNTIME_MODE in $FLUTTER_RUNTIME_MODES; do
-        if [ "${FLUTTER_RUNTIME_MODE}" = "release" ]; then
-            break
-        elif [ "${FLUTTER_RUNTIME_MODE}" = "jit_release" ]; then
-            break
-        elif [ "${FLUTTER_RUNTIME_MODE}" = "profile" ]; then
-            break
-        elif [ "${FLUTTER_RUNTIME_MODE}" = "debug" ]; then
-            break
-        fi
+    for FLUTTER_ENGINE in ${STAGING_DIR_TARGET}${datadir}/flutter/${FLUTTER_SDK_VERSION}/*/lib/libflutter_engine.so; do
+        [ -e "$FLUTTER_ENGINE" ] || continue
+        ln -sf "$FLUTTER_ENGINE" ${S}/build/libflutter_engine.so
+        break
     done
 
-    FLUTTER_ENGINE_PATH=${STAGING_DIR_TARGET}${datadir}/flutter/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}
-
-    ln -sf ${FLUTTER_ENGINE_PATH}/lib/libflutter_engine.so ${S}/build/libflutter_engine.so
+    [ -e ${S}/build/libflutter_engine.so ] || bbfatal "No libflutter_engine.so found in the target sysroot"
 }
 
 PRIVATE_LIBS:${PN} = "libflutter_engine.so"
