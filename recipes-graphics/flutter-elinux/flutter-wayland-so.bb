@@ -21,4 +21,6 @@ do_install() {
     install -m 0755 ${B}/libflutter_elinux_wayland.so ${D}${libdir}
 }
 
+SOLIBS = ".so"
+FILES_SOLIBSDEV = ""
 FILES:${PN} = "${libdir}"

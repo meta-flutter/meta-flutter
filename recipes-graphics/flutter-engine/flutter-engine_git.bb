@@ -598,6 +598,8 @@ FILES:${PN} = "\
 
 ALLOW_EMPTY:${PN} = "1"
 RDEPENDS:${PN} += "${@' '.join('${PN}-' + m.replace('_', '-') for m in bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d).split())}"
+# file-rdeps checks direct dependencies, so expose the library guaranteed by the mode packages.
+RPROVIDES:${PN} += "libflutter_engine.so()(64bit) libflutter_engine.so"
 
 FILES:${PN}-dbg = "\
     ${FLUTTER_ENGINE_INSTALL_PREFIX}/*/lib/.debug \
