@@ -160,10 +160,6 @@ jobs:
               ../meta-vulkan \
               ../../meta-flutter \
               ../../meta-flutter/meta-flutter-apps
-          # Only qemuriscv64 ever added this layer.
-          if [ "${{ matrix.machine }}" = "qemuriscv64" ]; then
-            bitbake-layers add-layer ../meta-riscv
-          fi
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
