@@ -291,7 +291,9 @@ def create_recipe(directory,
     print(f'filename: {filename}')
     with open(filename, "w") as f:
         f.write('#\n')
-        f.write('# Copyright (c) 2020-2025 Joel Winarske. All rights reserved.\n')
+        f.write('# Copyright (c) 2020-2025 Joel Winarske\n')
+        f.write('#\n')
+        f.write('# SPDX-License-Identifier: MIT\n')
         f.write('#\n')
         f.write('\n')
 
@@ -404,7 +406,9 @@ def create_package_group(org, unit, recipes,
 
     with open(filename, "w") as f:
         f.write('#\n')
-        f.write('# Copyright (c) 2020-2025 Joel Winarske. All rights reserved.\n')
+        f.write('# Copyright (c) 2020-2025 Joel Winarske\n')
+        f.write('#\n')
+        f.write('# SPDX-License-Identifier: MIT\n')
         f.write('#\n')
         f.write('\n')
         f.write(f'SUMMARY = "Package of Flutter {org} {unit} apps"\n')
