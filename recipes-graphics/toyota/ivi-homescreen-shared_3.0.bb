@@ -1,5 +1,7 @@
 #
-# Copyright (c) 2026 Joel Winarske. All rights reserved.
+# Copyright (c) 2026 Joel Winarske
+#
+# SPDX-License-Identifier: MIT
 #
 # ihs_shared: the C-ABI shared library that fronts logging, tracing,
 # platform-view surface negotiation and config read-back for out-of-tree Dart
