@@ -5,7 +5,9 @@ This fetcher is created for gclient.
 The main target is flutter-engine, so for other gclient projects, this fetcher might not work.
 
 Copyright (c) 2020-2022 Woven Alpha, Inc
-Copyright (c) 2023-2025 Joel Winarske. All rights reserved.
+Copyright (c) 2023-2025 Joel Winarske
+
+SPDX-License-Identifier: MIT
 """
 
 import os
