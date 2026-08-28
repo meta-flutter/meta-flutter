@@ -20,7 +20,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=8992d37861cd7e48b171be43673f1d7f"
 
 # Pinned to the commit ivi-homescreen v3.0 carries as third_party/wayland-cxx-scanner,
 # so the host code generator and the vendored wl/ framework stay in lock-step.
-SRCREV ??= "003dde1be1100ef300c52e11d71e1a2e52ec36bb"
+SRCREV ??= "75575fe3e78e95796f2b9abb51f8314cbf9c31b4"
 SRC_URI = "git://github.com/jwinarske/wayland-cxx-scanner.git;protocol=https;branch=main"
 
 DEPENDS = "pugixml"
