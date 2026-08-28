@@ -1,5 +1,7 @@
 #
-# Copyright (c) 2020-2024 Joel Winarske. All rights reserved.
+# Copyright (c) 2020-2024 Joel Winarske
+#
+# SPDX-License-Identifier: MIT
 #
 
 SUMMARY = "Flutter makes it easy and fast to build beautiful apps for mobile and beyond."

@@ -1,4 +1,4 @@
-# Copyright (C) 2023 Joel Winarske. All rights reserved.
+# Copyright (c) 2023 Joel Winarske
 #
 # SPDX-License-Identifier: MIT
 #

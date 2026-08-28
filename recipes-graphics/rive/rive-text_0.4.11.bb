@@ -1,5 +1,7 @@
 #
-# Copyright (c) 2024 Joel Winarske. All rights reserved.
+# Copyright (c) 2024 Joel Winarske
+#
+# SPDX-License-Identifier: MIT
 #
 
 SUMMARY = "rive_common"
