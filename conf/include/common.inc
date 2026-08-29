@@ -523,11 +523,27 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
             flutter_source_file = ''
             flutter_source_package = ''
             flutter_source_defines = ''
-            dart_plugin_registrant_file = f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/dart_plugin_registrant.dart'
+            flutter_filesystem = ''
+            flutter_app_dir = os.path.normpath(f'{source_dir}/{flutter_application_path}')
+            dart_plugin_registrant_file = f'{flutter_app_dir}/.dart_tool/flutter_build/dart_plugin_registrant.dart'
             if os.path.isfile(dart_plugin_registrant_file):
-                flutter_source_file = f'--source file://{dart_plugin_registrant_file}'
+                # The registrant is the one library with no package: URI, so it
+                # is named to the frontend by path -- and that path becomes the
+                # generated library's import URI, which the AOT image keeps
+                # verbatim. Naming it absolutely puts WORKDIR, and so TMPDIR,
+                # inside every shipped libapp.so and trips the buildpaths QA
+                # check. A relative path does not help: the frontend
+                # canonicalizes it back to an absolute file URI. Only a scheme
+                # with no absolute form does, so declare the app as a filesystem
+                # root and name the registrant against it. See #819.
+                registrant_scheme = 'org-dartlang-root'
+                registrant_uri = f'{registrant_scheme}:///' \
+                    f'{os.path.relpath(dart_plugin_registrant_file, flutter_app_dir)}'
+                flutter_filesystem = f'--filesystem-root {flutter_app_dir}' \
+                    f' --filesystem-scheme {registrant_scheme}'
+                flutter_source_file = f'--source {registrant_uri}'
                 flutter_source_package = '--source package:flutter/src/dart_plugin_registrant.dart'
-                flutter_source_defines = f'-Dflutter.dart_plugin_registrant=file://{dart_plugin_registrant_file}'
+                flutter_source_defines = f'-Dflutter.dart_plugin_registrant={registrant_uri}'
 
             flutter_native_assets = ''
             yaml_path = glob.glob(f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/native_assets.yaml')
@@ -567,6 +583,7 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
                 --aot \
                 --tfa \
                 --target-os linux \
+                {flutter_filesystem} \
                 --packages {package_config_json} \
                 --output-dill {flutter_app_output_dill} \
                 --depfile {dep_path[0]} \
