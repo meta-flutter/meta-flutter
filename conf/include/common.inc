@@ -529,8 +529,20 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
                 frontend_snapshot = f'{flutter_sdk}/bin/cache/artifacts/engine/linux-{clang_build_arch(d)}/frontend_server.dart.snapshot'
                 dep_path = glob.glob(f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/kernel_snapshot.d')
             else:
-                dart_runtime = f'{flutter_sdk}/bin/cache/dart-sdk/bin/dartaotruntime'
-                frontend_snapshot = f'{flutter_sdk}/bin/cache/artifacts/engine/linux-{clang_build_arch(d)}/frontend_server_aot.dart.snapshot'
+                dart_runtime    = f'{flutter_sdk}/bin/cache/dart-sdk/bin/dartaotruntime'
+                # The frontend server runs on the build host, so its snapshot has to
+                # match the host, not the target. The copy under
+                # artifacts/engine/linux-<target>/ is built for x86-64 whatever the
+                # directory is named, so on an arm64 host dartaotruntime rejects it:
+                #
+                #   Loading failed: Architecture mismatch.
+                #   VM initialization failed: Invalid vm isolate snapshot seen
+                #
+                # The dart-sdk copy is host-native. Prefer it, and keep the engine one
+                # as the fallback for an SDK that does not ship it. See #575.
+                sdk_snapshot    = f'{flutter_sdk}/bin/cache/dart-sdk/bin/snapshots/frontend_server_aot.dart.snapshot'
+                engine_snapshot = f'{flutter_sdk}/bin/cache/artifacts/engine/linux-{clang_build_arch(d)}/frontend_server_aot.dart.snapshot'
+                frontend_snapshot = sdk_snapshot if os.path.exists(sdk_snapshot) else engine_snapshot
                 dep_path = glob.glob(f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/kernel_snapshot_program.d')
 
             cmd = f'{dart_runtime} \
