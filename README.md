@@ -86,6 +86,21 @@ Targets flutter-engine-* is known to work on
 * STM32MP157x - cortexa7t2hf
 * etc
 
+### Gesture responsiveness on custom touch controllers
+
+If drags and swipes feel unresponsive on a custom touch controller, the
+cause is usually Flutter's touch slop -- the distance a pointer must travel
+before a movement counts as a drag rather than a tap. The default suits a
+phone digitizer and is often too small for an industrial or resistive panel.
+
+Patch `kTouchSlop` in `flutter-sdk-native`:
+
+    packages/flutter/lib/src/gestures/constants.dart
+
+Raising it from 18 to 64 has made custom touch controllers markedly more
+responsive in the field. The right value is panel-specific, so treat 64 as a
+starting point rather than a recommendation.
+
 ## Include the Flutter SDK into Yocto SDK
 
 Add to local.conf file:
