@@ -6,15 +6,22 @@
 #
 # Pairs with the SRC_URI fragment produced by tools/pubvendor/pubvendor.py:
 #   * points PUB_CACHE at the staged tree
-#   * asserts the in-tree pubspec.lock matches the lockfile the .inc was
-#     generated from (PUBSPEC_LOCK_SHA256)
+#   * installs PUBSPEC_LOCK_FILE, the lockfile the fragment was generated
+#     from, over the app's own -- they differ, because the roll re-resolves
+#     against the SDK this layer pins
+#   * asserts the result matches PUBSPEC_LOCK_SHA256, which now catches the
+#     layer's .inc and .lock drifting apart
 #   * synthesizes hosted-hashes/<host>/<pkg>-<ver>.sha256 files from the
 #     SRC_URI checksum flags, so newer Dart SDKs' content verification
 #     passes offline
-#   * runs `dart pub get --offline --enforce-lockfile`
+#   * runs `flutter pub get --offline --enforce-lockfile` -- flutter rather
+#     than dart, see the note above the task
+#   * marks do_archive_pub_cache and do_restore_pub_cache noexec, so the
+#     layer's own networked pub cache path stands down
 #
 # The recipe must set PUBSPEC_APP_DIR to the app source dir containing
-# pubspec.yaml/pubspec.lock (default ${S}).
+# pubspec.yaml/pubspec.lock (default ${S}), and PUBSPEC_LOCK_FILE to the
+# vendored lockfile it carries in SRC_URI.
 
 PUB_CACHE_LOCAL ?= "pub_cache"
 PUB_CACHE = "${WORKDIR}/${PUB_CACHE_LOCAL}"
