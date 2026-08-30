@@ -542,6 +542,4 @@ RDEPENDS:${PN} += "\
     ivi-homescreen-shared \
     "
 
-INSANE_SKIP:${PN}-dbg += " buildpaths"
-
 BBCLASSEXTEND = "verbose-logs"
