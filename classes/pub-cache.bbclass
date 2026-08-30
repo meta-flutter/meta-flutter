@@ -156,10 +156,23 @@ do_pub_get_offline() {
     export HOME="${WORKDIR}"
     export XDG_CONFIG_HOME="${WORKDIR}"
 
+    # Opt out of analytics before resolving, while the config write is the
+    # only thing happening. It is a local settings file, so it needs no
+    # network itself, but leaving it unset makes the first flutter run in a
+    # fresh XDG_CONFIG_HOME do its first-run work -- which does.
+    flutter config --no-analytics --no-cli-animations >/dev/null 2>&1 || true
+
     cd ${PUBSPEC_APP_DIR}
-    flutter pub get --offline --enforce-lockfile
+    flutter --suppress-analytics pub get --offline --enforce-lockfile
 }
-addtask pub_get_offline after do_check_pubspec_lock do_write_hosted_hashes do_seed_pub_cache do_patch before do_compile
+# Ordered after do_archive_pub_cache as well, even though this class makes
+# that task noexec. It is the layer's convention for "before pub runs": a
+# recipe that must touch the source first orders itself before it, as the
+# appstream_dart app does to inject its hooks section. Ordering only against
+# do_patch left both siblings of it with no relative order, so the edit could
+# land after resolution -- and pub then re-resolves, fetching security
+# advisories from pub.dev and failing with no network.
+addtask pub_get_offline after do_check_pubspec_lock do_write_hosted_hashes do_seed_pub_cache do_patch do_archive_pub_cache before do_compile
 do_pub_get_offline[network] = "0"
 
 # The layer's own pub cache path fetches with the network and carries the
