@@ -85,5 +85,3 @@ python () {
 # it by the recipe name.
 DEBIAN_NOAUTONAME:${PN} = "1"
 DEBIAN_NOAUTONAME:${PN}-dev = "1"
-
-INSANE_SKIP:${PN}-dbg += " buildpaths"
