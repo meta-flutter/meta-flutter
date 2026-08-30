@@ -71,9 +71,27 @@ python do_write_hosted_hashes() {
 }
 addtask write_hosted_hashes after do_unpack before do_configure
 
+# `flutter pub get`, not `dart pub get`. Both resolve offline from the staged
+# cache, but only the flutter one writes .flutter-plugins-dependencies, which
+# is what tells the build which plugins to register and feeds the generated
+# dart_plugin_registrant.dart. With `dart pub get` an app builds green and
+# registers no plugins.
 do_pub_get_offline() {
     cd ${PUBSPEC_APP_DIR}
-    dart pub get --offline --enforce-lockfile
+    flutter pub get --offline --enforce-lockfile
 }
 addtask pub_get_offline after do_check_pubspec_lock do_write_hosted_hashes before do_compile
 do_pub_get_offline[network] = "0"
+
+# The layer's own pub cache path fetches with the network and carries the
+# resolution artifacts through an archive (common.inc, the .project copy in
+# do_archive_pub_cache and the moves back in do_restore_pub_cache). A recipe
+# staging its cache through SRC_URI needs neither: do_unpack puts the packages
+# in place and do_pub_get_offline regenerates the artifacts locally. Leaving
+# both enabled would mean two populators of ${WORKDIR}/pub_cache, one of them
+# reaching for the network, which is the thing this class exists to avoid.
+#
+# Doing it here rather than in common.inc keeps opting in to exactly
+# "inherit pub-cache", with no effect on any recipe that does not.
+do_archive_pub_cache[noexec] = "1"
+do_restore_pub_cache[noexec] = "1"
