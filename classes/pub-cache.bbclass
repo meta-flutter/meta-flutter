@@ -51,7 +51,47 @@ python do_install_pubspec_lock() {
     shutil.copyfile(src, dst)
     bb.note("installed vendored pubspec.lock from %s" % name)
 }
-addtask install_pubspec_lock after do_unpack before do_check_pubspec_lock
+# after do_patch, not just do_unpack: a patch -- or a recipe task ordered
+# around one, as with the user_defines injection in the appstream_dart app --
+# can change pubspec.yaml or pubspec.lock. Resolving before that lands means
+# resolving against source that is not what gets built, and an edit arriving
+# afterwards makes pub re-resolve, which reaches for the network.
+addtask install_pubspec_lock after do_unpack do_patch before do_check_pubspec_lock
+
+# do_unpack stages the app's dependencies into PUB_CACHE, and nothing else.
+# flutter's own tool packages are not among them: flutter_tools has its own
+# pubspec -- it depends on `test`, among others -- and resolving that is the
+# first thing `flutter pub get` does. Without them the tool goes to pub.dev
+# and fails, reporting a package the app never mentions.
+#
+# common.inc gets these by copying the SDK's .pub-cache wholesale, but it
+# rmtree's the destination first, which would discard everything do_unpack
+# staged. Merge instead, and let the staged copies win: those came through
+# SRC_URI with checksums bitbake verified.
+python do_seed_pub_cache() {
+    import os
+    import shutil
+
+    sdk_cache = os.path.join(d.getVar('FLUTTER_SDK'), '.pub-cache')
+    if not os.path.isdir(sdk_cache):
+        bb.fatal("no .pub-cache in %s; flutter-sdk-native did not stage one"
+                 % d.getVar('FLUTTER_SDK'))
+    dest = d.getVar('PUB_CACHE')
+
+    added = 0
+    for root, _, files in os.walk(sdk_cache):
+        rel = os.path.relpath(root, sdk_cache)
+        target = os.path.join(dest, rel) if rel != '.' else dest
+        bb.utils.mkdirhier(target)
+        for name in files:
+            dst = os.path.join(target, name)
+            if os.path.exists(dst):
+                continue
+            shutil.copy2(os.path.join(root, name), dst)
+            added += 1
+    bb.note("seeded %d files from the SDK pub cache" % added)
+}
+addtask seed_pub_cache after do_unpack do_patch before do_pub_get_offline
 
 python do_check_pubspec_lock() {
     import hashlib, os
@@ -100,7 +140,7 @@ python do_write_hosted_hashes() {
         with open(os.path.join(dst, pkgver + '.sha256'), 'w') as f:
             f.write(sha)
 }
-addtask write_hosted_hashes after do_unpack before do_configure
+addtask write_hosted_hashes after do_unpack do_patch before do_configure
 
 # `flutter pub get`, not `dart pub get`. Both resolve offline from the staged
 # cache, but only the flutter one writes .flutter-plugins-dependencies, which
@@ -119,7 +159,7 @@ do_pub_get_offline() {
     cd ${PUBSPEC_APP_DIR}
     flutter pub get --offline --enforce-lockfile
 }
-addtask pub_get_offline after do_check_pubspec_lock do_write_hosted_hashes before do_compile
+addtask pub_get_offline after do_check_pubspec_lock do_write_hosted_hashes do_seed_pub_cache do_patch before do_compile
 do_pub_get_offline[network] = "0"
 
 # The layer's own pub cache path fetches with the network and carries the
