@@ -98,7 +98,12 @@ do_install() {
     done
 }
 
-INSANE_SKIP:${PN} += " ldflags libdir dev-so buildpaths"
+# buildpaths is deliberately not skipped. The AOT image used to embed the
+# absolute path of the plugin registrant, and suppressing the check here is
+# what let that ship unnoticed; with the registrant named through a
+# filesystem-root scheme (see common.inc) an app package has no build path
+# left in it, so the check is a regression guard rather than noise.
+INSANE_SKIP:${PN} += " ldflags libdir dev-so"
 
 FILES:${PN} = "\
     ${bindir} \
