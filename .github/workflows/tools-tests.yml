@@ -44,3 +44,38 @@ jobs:
         # Discovers every tests/ dir under tools/, so a new tool with tests
         # is picked up without touching this workflow.
         run: python -m pytest tools -q
+
+  offline-get:
+    # #845: the staged pub cache layout is a pub internal, not a documented
+    # contract. The unit tests can only assert what pubvendor emits; only a
+    # real `pub get --offline` shows the layout is one pub accepts, and only
+    # for the SDK it ran with -- hence the matrix.
+    name: offline pub get (dart ${{ matrix.dart }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # An older SDK and the current stable, so a layout change surfaces
+        # when Dart rolls rather than when someone's build breaks.
+        dart: ['3.6', 'stable']
+    steps:
+      - name: 📚 Git Checkout
+        uses: actions/checkout@v4
+
+      - name: 🎯 Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ matrix.dart }}
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: 📦 Install Dependencies
+        run: python -m pip install --disable-pip-version-check pyyaml
+
+      - name: 🌐 Stage a cache and resolve from it offline
+        # Network populates the cache; the pub get itself is --offline and
+        # fails if it reaches out.
+        run: python tools/pubvendor/offline_check.py
