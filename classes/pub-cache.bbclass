@@ -33,10 +33,13 @@ python do_install_pubspec_lock() {
     name = d.getVar('PUBSPEC_LOCK_FILE')
     if not name:
         return
-    src = os.path.join(d.getVar('WORKDIR'), name)
+    # file:// unpacks into UNPACKDIR from scarthgap on, and straight into
+    # WORKDIR before that. Take whichever this release provides.
+    base = d.getVar('UNPACKDIR') or d.getVar('WORKDIR')
+    src = os.path.join(base, name)
     if not os.path.isfile(src):
-        bb.fatal("PUBSPEC_LOCK_FILE %s not found in WORKDIR; is it in SRC_URI?"
-                 % name)
+        bb.fatal("PUBSPEC_LOCK_FILE %s not found in %s; is it in SRC_URI?"
+                 % (name, base))
     dst = os.path.join(d.getVar('PUBSPEC_APP_DIR'), 'pubspec.lock')
     shutil.copyfile(src, dst)
     bb.note("installed vendored pubspec.lock from %s" % name)
@@ -98,6 +101,14 @@ addtask write_hosted_hashes after do_unpack before do_configure
 # dart_plugin_registrant.dart. With `dart pub get` an app builds green and
 # registers no plugins.
 do_pub_get_offline() {
+    # The SDK is staged by flutter-sdk-native and is not on the task PATH by
+    # default. HOME and XDG_CONFIG_HOME are set for the same reasons
+    # common.inc sets them for its own pub invocations: dart and flutter both
+    # write into them and must not touch the builder's real home.
+    export PATH="${FLUTTER_SDK}/bin:${PUB_CACHE}/bin:$PATH"
+    export HOME="${WORKDIR}"
+    export XDG_CONFIG_HOME="${WORKDIR}"
+
     cd ${PUBSPEC_APP_DIR}
     flutter pub get --offline --enforce-lockfile
 }
