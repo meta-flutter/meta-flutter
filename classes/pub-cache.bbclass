@@ -22,6 +22,27 @@ PUBSPEC_APP_DIR ?= "${S}"
 
 export PUB_CACHE
 
+# The fragment is generated from a lockfile resolved against the SDK this
+# layer pins, which is not the one the app committed upstream. do_unpack
+# brings that resolved lockfile in through SRC_URI; install it over the app's
+# own before anything reads it, so what gets built is what was vendored.
+python do_install_pubspec_lock() {
+    import os
+    import shutil
+
+    name = d.getVar('PUBSPEC_LOCK_FILE')
+    if not name:
+        return
+    src = os.path.join(d.getVar('WORKDIR'), name)
+    if not os.path.isfile(src):
+        bb.fatal("PUBSPEC_LOCK_FILE %s not found in WORKDIR; is it in SRC_URI?"
+                 % name)
+    dst = os.path.join(d.getVar('PUBSPEC_APP_DIR'), 'pubspec.lock')
+    shutil.copyfile(src, dst)
+    bb.note("installed vendored pubspec.lock from %s" % name)
+}
+addtask install_pubspec_lock after do_unpack before do_check_pubspec_lock
+
 python do_check_pubspec_lock() {
     import hashlib, os
 
@@ -40,7 +61,7 @@ python do_check_pubspec_lock() {
             "different lockfile (expected %s, got %s). Re-run pubvendor.py."
             % (expected, actual))
 }
-addtask check_pubspec_lock after do_unpack before do_configure
+addtask check_pubspec_lock after do_install_pubspec_lock before do_configure
 
 python do_write_hosted_hashes() {
     # Newer Dart SDKs verify hosted package content hashes against

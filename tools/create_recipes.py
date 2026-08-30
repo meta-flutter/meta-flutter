@@ -280,7 +280,14 @@ def generate_pubcache_inc(app_dir, recipe_name, output_path) -> bool:
     if rc != 0:
         print(f'WARNING: {recipe_name}: pubvendor failed, no fragment written')
         return False
-    print(f'{recipe_name}: wrote {os.path.basename(out)}')
+
+    # Ship the lockfile the fragment was generated from. The resolution above
+    # happened in this clone, which is not what the recipe builds -- that
+    # fetches the app at SRCREV, carrying whatever lockfile upstream committed.
+    # Without this the two disagree and pub-cache.bbclass stops the build on
+    # the mismatch it exists to catch.
+    shutil.copyfile(lock, os.path.join(output_path, f'{recipe_name}-pubspec.lock'))
+    print(f'{recipe_name}: wrote {os.path.basename(out)} + pubspec.lock')
     return True
 
 
@@ -451,9 +458,12 @@ def create_recipe(directory,
 
         if pubvendor:
             f.write('\n')
+            f.write('FILESEXTRAPATHS:prepend := "${THISDIR}:"\n')
+            f.write(f'SRC_URI += "file://{recipe_name}-pubspec.lock"\n')
             f.write(f'require {recipe_name}-pubcache.inc\n')
             f.write('inherit pub-cache\n')
             f.write('PUBSPEC_APP_DIR = "${S}/${FLUTTER_APPLICATION_PATH}"\n')
+            f.write(f'PUBSPEC_LOCK_FILE = "{recipe_name}-pubspec.lock"\n')
 
         if rdepends_list and flutter_application_path in rdepends_list:
             rdepends = rdepends_list[flutter_application_path]
