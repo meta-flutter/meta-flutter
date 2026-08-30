@@ -387,6 +387,13 @@ def detect_licenses(license_path: str) -> list:
 # branch and each is a regression on the other, so the value is declared here
 # and checked, rather than left to a sweep to notice after the fact. Change it
 # in the same commit that branches for a new release. See README.
+# Override syntax for generated fragments: ':append' from kirkstone on,
+# '_append' for dunfell's older bitbake. Declared alongside LICENSE_OPERATOR
+# because it is the same kind of fact -- branch-specific, correct on its own
+# branch, and a regression if carried to the other. Change it in the same
+# commit that branches for a new release. See README.
+OVERRIDE_STYLE = 'new'
+
 LICENSE_OPERATOR = 'AND'
 _LICENSE_OPERATOR_OTHER = '&'
 
