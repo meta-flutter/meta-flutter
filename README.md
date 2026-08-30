@@ -172,6 +172,28 @@ This file is the origin of truth for all of the Flutter Applications present, an
 
 roll_meta_flutter.py autogenerates all of the flutter application recipes.
 
+### The LICENSE operator differs between master and the release branches
+
+A `license_type` naming more than one license joins them with **`AND` on
+master** and with **`&` on wrynose, scarthgap, kirkstone and dunfell**. The
+same split applies to `LICENSE` in hand-written recipes. Both spellings are
+correct, on their own branch, and converting either way is a regression on the
+other -- so do not "fix" one to match the other, and take care when
+cherry-picking a recipe or a manifest entry between branches.
+
+The dividing line is oe-core commit 51c7930220 (2026-07-15, "lib/oe: Add SPDX
+license library"). Before it, `license.py` recognised only `& | ( )` as
+operators, and a bare `AND` matched the license *name* pattern -- so it was
+read as a license called "AND" and failed. Since it, `AND` is the native SPDX
+operator; `&` is accepted only because `_substitute_legacy_license()` rewrites
+it, and `license.py` then warns
+
+    <pn>: LICENSE is using an old syntax and should be upgraded to: "..."
+
+exactly when that rewrite fires. master builds against oe-core `master` -- CI
+clones it fresh on every run -- so master needs the newer form, and the release
+branches, pinned to older oe-core, need the older one.
+
 ## Process used to update a Rust recipe
 
 * Update recipe SRCREV to desired version, rename recipe name to match
