@@ -1,0 +1,46 @@
+name: tools-tests
+
+# The Python under tools/ has no coverage in the build workflows: 'tools/**'
+# is in their paths-ignore, correctly, because a script change should not
+# trigger four hour-long Yocto builds. This runs the test suites instead.
+#
+# GitHub-hosted on purpose. The build workflows use the self-hosted runner and
+# run one at a time; a five-second test run must not queue behind an hour-long
+# build, and it needs nothing the self-hosted runner provides.
+
+on:
+  pull_request:
+    paths:
+      - 'tools/**'
+      - '.github/workflows/tools-tests.yml'
+  workflow_dispatch:
+
+jobs:
+
+  pytest:
+    name: pytest (${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.10 is the floor: pubvendor.py annotates dataclass fields with
+        # 'str | None', which is evaluated at class creation. Newest is
+        # tested too so a deprecation surfaces here rather than on a
+        # maintainer's machine.
+        python: ['3.10', '3.13']
+    steps:
+      - name: 📚 Git Checkout
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: 📦 Install Dependencies
+        run: python -m pip install --disable-pip-version-check pytest pyyaml
+
+      - name: 🧪 Run tools test suites
+        # Discovers every tests/ dir under tools/, so a new tool with tests
+        # is picked up without touching this workflow.
+        run: python -m pytest tools -q

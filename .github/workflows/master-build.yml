@@ -16,6 +16,8 @@ on:
       - 'docs/**'
       - 'tools/**'
       - '.github/workflows/runner-maintenance.yml'
+      # Runs on a GitHub-hosted runner and never touches a build.
+      - '.github/workflows/tools-tests.yml'
       # Release-branch builds are registered here so they can be
       # dispatched, but they never affect a master build.
       - '.github/workflows/scarthgap-build.yml'
