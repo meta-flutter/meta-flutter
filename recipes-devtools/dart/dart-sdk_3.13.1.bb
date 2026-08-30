@@ -145,6 +145,10 @@ do_install() {
     cp -R ${BUILD_DIR}/dart-sdk/* ${D}${datadir}/dart-sdk/
 }
 
+# buildpaths: gen_kernel_aot.dart.snapshot embeds a build path. It comes out
+# of the SDK's own `ninja create_sdk`, so it is not ours to construct and not
+# yet fixed -- see #827. The skip arrived here undocumented with the 3.47.1
+# roll; it is a known defect being hidden, not a check that does not apply.
 INSANE_SKIP:${PN} = "already-stripped ldflags buildpaths"
 
 FILES:${PN} += "${datadir}"
