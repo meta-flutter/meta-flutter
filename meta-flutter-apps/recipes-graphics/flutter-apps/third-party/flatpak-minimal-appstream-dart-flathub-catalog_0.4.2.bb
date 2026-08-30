@@ -24,6 +24,34 @@ FLUTTER_APPLICATION_INSTALL_SUFFIX = "appstream-dart-example-flathub-catalog"
 
 inherit flutter-app-native
 
+# Vendored pub cache: dependencies arrive through SRC_URI with checksums
+# rather than a networked `pub get` during the build. See
+# tools/pubvendor/README.md.
+FILESEXTRAPATHS:prepend := "${THISDIR}:"
+SRC_URI += "file://flatpak-minimal-appstream-dart-flathub-catalog-pubspec.lock"
+require flatpak-minimal-appstream-dart-flathub-catalog-pubcache.inc
+inherit pub-cache
+PUBSPEC_APP_DIR = "${S}/${FLUTTER_APPLICATION_PATH}"
+PUBSPEC_LOCK_FILE = "flatpak-minimal-appstream-dart-flathub-catalog-pubspec.lock"
+
+# Temporary: the offline resolve fails in CI but not in any local
+# reproduction, so record what pub actually sees before it runs. Remove once
+# the cause is known.
+do_pub_get_offline[prefuncs] += "dump_pub_state"
+dump_pub_state() {
+    bbplain "--- pub state ---"
+    bbplain "PUB_CACHE=${PUB_CACHE}"
+    bbplain "app=${PUBSPEC_APP_DIR}"
+    bbplain "pubspec/lock: $(cd ${PUBSPEC_APP_DIR} && sha256sum pubspec.yaml pubspec.lock | tr '\n' ' ')"
+    bbplain "pubspec newer than lock: $([ ${PUBSPEC_APP_DIR}/pubspec.yaml -nt ${PUBSPEC_APP_DIR}/pubspec.lock ] && echo yes || echo no)"
+    bbplain "hooks in pubspec: $(grep -c '^hooks:' ${PUBSPEC_APP_DIR}/pubspec.yaml || true)"
+    bbplain "app .dart_tool: $(ls -A ${PUBSPEC_APP_DIR}/.dart_tool 2>/dev/null | tr '\n' ' ')"
+    bbplain "cache files: $(find ${PUB_CACHE} -type f 2>/dev/null | wc -l), dirs: $(find ${PUB_CACHE} -type d 2>/dev/null | wc -l)"
+    bbplain "archive staged: $(find ${PUB_CACHE}/hosted/pub.dev/archive-* -type f 2>/dev/null | wc -l) files"
+    bbplain "sdk cache files: $(find ${FLUTTER_SDK}/.pub-cache -type f 2>/dev/null | wc -l)"
+    bbplain "-----------------"
+}
+
 # The sqlite3 Dart package (via drift) otherwise downloads a prebuilt
 # libsqlite3 from GitHub during `flutter build`, which fails in the
 # network-isolated do_compile. Tell its build hook to resolve sqlite3 from the

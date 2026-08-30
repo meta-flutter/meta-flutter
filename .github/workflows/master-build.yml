@@ -330,7 +330,32 @@ jobs:
         working-directory: ../master-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake flatpak-minimal-appstream-dart-flathub-catalog
+          APP=flatpak-minimal-appstream-dart-flathub-catalog
+
+          # This app vendors its pub cache (tools/pubvendor), so its
+          # dependencies arrive through SRC_URI rather than a networked
+          # `pub get` inside the build. Fetch everything first, then build
+          # with the network off: anything the fragment failed to declare
+          # cannot be fetched and fails here rather than silently working
+          # on a machine that happens to be online.
+          bitbake --runall=fetch "$APP"
+          BB_NO_NETWORK=1 bitbake "$APP"
+
+          # Offline is only half of it. `dart pub get` also resolves offline
+          # but writes no .flutter-plugins-dependencies, so an app can build
+          # green having registered nothing. Assert the registrant is in the
+          # image the build produced.
+          LIBAPP=$(find tmp*/work -path "*$APP*" -name libapp.so \
+                     -path "*/packages-split/*" | head -1)
+          if [ -z "$LIBAPP" ]; then
+            echo "::error::no packaged libapp.so found for $APP"
+            exit 1
+          fi
+          if ! strings -a "$LIBAPP" | grep -q '_PluginRegistrant'; then
+            echo "::error::$APP built with no plugins registered ($LIBAPP)"
+            exit 1
+          fi
+          echo "plugins registered in $LIBAPP"
 
       #
       # bluez_native: compiles a vendored sdbus-c++ from its own hook.
