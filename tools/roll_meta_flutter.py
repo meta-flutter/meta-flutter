@@ -14,6 +14,8 @@ import sys
 
 from common import detect_licenses
 from common import license_agrees_with_source
+from common import LICENSE_OPERATOR
+from common import wrong_license_operator
 from common import make_sure_path_exists
 from common import print_banner
 
@@ -126,6 +128,21 @@ def get_repo(repo_path: str, output_path: str,
         # LICENSE = "GPLv3" over BSD-3-Clause text. Upstreams also relicense and
         # add licenses between rolls -- flutter/games grew an Apache-2.0 section
         # and a bundled font's OFL-1.1 -- and a roll is when that surfaces.
+        # The operator is branch-specific and each spelling is a regression on
+        # the other branch, so a manifest entry carrying the wrong one has to
+        # fail here -- it generates recipes in the wrong dialect for the
+        # oe-core this branch builds against, and nothing downstream looks.
+        # A cherry-picked entry is the likely way in.
+        wrong = wrong_license_operator(license_type)
+        if wrong:
+            print_banner(
+                f'ERROR: {repo_name}: license_type joins licenses with '
+                f'"{wrong}", but this branch uses "{LICENSE_OPERATOR}"\n'
+                f'  declared: {license_type}\n'
+                f'Fix license_type in flutter-apps.json. See the LICENSE '
+                f'operator note in README.')
+            exit(1)
+
         if validate_license:
             detected = detect_licenses(license_path)
             if not detected:

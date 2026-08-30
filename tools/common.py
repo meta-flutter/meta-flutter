@@ -381,9 +381,43 @@ def detect_licenses(license_path: str) -> list:
     return found
 
 
+# Multiple licenses are joined with "AND" on master and with "&" on the release
+# branches: oe-core 51c7930220 made AND the native SPDX operator, and before it
+# a bare AND parsed as a license *name*. Both spellings are correct on their own
+# branch and each is a regression on the other, so the value is declared here
+# and checked, rather than left to a sweep to notice after the fact. Change it
+# in the same commit that branches for a new release. See README.
+LICENSE_OPERATOR = 'AND'
+_LICENSE_OPERATOR_OTHER = '&'
+
+
 def detect_license(license_path: str) -> str:
     """detect_licenses() as an SPDX expression, e.g. "BSD-3-Clause AND MIT"."""
-    return ' AND '.join(sorted(detect_licenses(license_path)))
+    return f' {LICENSE_OPERATOR} '.join(sorted(detect_licenses(license_path)))
+
+
+def wrong_license_operator(declared: str) -> str:
+    """The operator in [declared] that this branch does not use, else ''.
+
+    Does not require an operator to be present -- a single-license value has
+    none. "&" cannot occur inside an SPDX id, so a substring test is enough for
+    it; "AND" can, so that one is matched on token boundaries.
+    """
+    if not declared:
+        return ''
+    if LICENSE_OPERATOR == 'AND':
+        return '&' if '&' in declared else ''
+    return 'AND' if 'AND' in re.split(r'[\s()]+', declared) else ''
+    # Match on token boundaries: "&" cannot appear inside an SPDX id, but "AND"
+    # would otherwise match inside a name that contains it.
+    tokens = re.split(r'[\s()]+', declared)
+    if _LICENSE_OPERATOR_OTHER in tokens:
+        return _LICENSE_OPERATOR_OTHER
+    if LICENSE_OPERATOR == 'AND' and '&' in declared:
+        return '&'
+    if LICENSE_OPERATOR == '&' and 'AND' in tokens:
+        return 'AND'
+    return ''
 
 
 def license_agrees_with_source(declared: str, detected_list: list) -> bool:
