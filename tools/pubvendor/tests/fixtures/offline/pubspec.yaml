@@ -1,0 +1,11 @@
+name: pubvendor_fixture
+description: Fixture exercising hosted and git dependency staging.
+publish_to: none
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+dependencies:
+  path: ^1.9.0
+  args:
+    git:
+      url: https://github.com/dart-lang/args.git
+      ref: v2.5.0
