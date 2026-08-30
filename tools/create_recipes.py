@@ -237,6 +237,60 @@ def copy_src_file(file: str, src_folder: str, patch_dir: str, output_path: str):
     shutil.copy2(src_file, dst_file)
 
 
+def generate_pubcache_inc(app_dir, recipe_name, output_path) -> bool:
+    """Regenerate the lockfile against the pinned SDK, then emit its fragment.
+
+    The lockfile an app ships was resolved against whatever SDK its authors
+    used, which is rarely the one this layer pins -- that mismatch is why
+    generated recipes have always set PUBSPEC_IGNORE_LOCKFILE, deleting the
+    lockfile at build time and re-resolving per build. Resolving once here and
+    committing the result is the same concession made once, visibly, and
+    identically for everyone, rather than silently on every builder.
+
+    Needs `flutter` on PATH, and only for apps that opt in.
+    """
+    import shutil
+    import subprocess
+    import sys
+
+    if shutil.which('flutter') is None:
+        print_banner(
+            f'ERROR: {recipe_name}: "pubvendor" needs flutter on PATH to '
+            f'resolve against the pinned SDK')
+        return False
+
+    lock = os.path.join(app_dir, 'pubspec.lock')
+    if os.path.exists(lock):
+        os.remove(lock)
+    r = subprocess.run(['flutter', 'pub', 'get'], cwd=app_dir,
+                       capture_output=True, text=True)
+    if r.returncode != 0 or not os.path.exists(lock):
+        # Not fatal: an app that cannot resolve against the pinned SDK is a
+        # fact about that app, and one of them must not block a whole roll.
+        print(f'WARNING: {recipe_name}: pub get failed, no fragment written\n'
+              f'{r.stderr.strip()[:400]}')
+        return False
+
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'pubvendor'))
+    import pubvendor
+    from common import OVERRIDE_STYLE
+
+    out = os.path.join(output_path, f'{recipe_name}-pubcache.inc')
+    rc = pubvendor.main(['-i', lock, '-o', out, '--style', OVERRIDE_STYLE])
+    if rc != 0:
+        print(f'WARNING: {recipe_name}: pubvendor failed, no fragment written')
+        return False
+
+    # Ship the lockfile the fragment was generated from. The resolution above
+    # happened in this clone, which is not what the recipe builds -- that
+    # fetches the app at SRCREV, carrying whatever lockfile upstream committed.
+    # Without this the two disagree and pub-cache.bbclass stops the build on
+    # the mismatch it exists to catch.
+    shutil.copyfile(lock, os.path.join(output_path, f'{recipe_name}-pubspec.lock'))
+    print(f'{recipe_name}: wrote {os.path.basename(out)} + pubspec.lock')
+    return True
+
+
 def create_recipe(directory,
                   pubspec_yaml,
                   flutter_application_path,
@@ -251,7 +305,8 @@ def create_recipe(directory,
                   src_folder,
                   src_files,
                   variables,
-                  patch_dir) -> str:
+                  patch_dir,
+                  pubvendor=False) -> str:
     is_web = False
     # TODO detect web
 
@@ -280,6 +335,15 @@ def create_recipe(directory,
     make_sure_path_exists(str(output_path))
 
     recipe_name = get_recipe_name(org, unit, flutter_application_path, project_name)
+
+    # A fragment that failed to generate must not leave behind a recipe that
+    # `require`s it -- a missing include is a parse error for the whole layer,
+    # so one bad app would take the rest down with it.
+    if pubvendor:
+        pubvendor = generate_pubcache_inc(
+            app_dir=os.path.dirname(pubspec_yaml),
+            recipe_name=recipe_name,
+            output_path=output_path)
 
     if project_version is not None:
         version = project_version.split('+')
@@ -369,7 +433,14 @@ def create_recipe(directory,
 
         f.write(f'PUBSPEC_APPNAME = "{project_name}"\n')
         f.write(f'FLUTTER_APPLICATION_INSTALL_SUFFIX = "{recipe_name}"\n')
-        f.write(f'PUBSPEC_IGNORE_LOCKFILE = "1"\n')
+        if pubvendor:
+            # The fragment is generated from this app's lockfile, and
+            # pub-cache.bbclass refuses to build if the in-tree lockfile no
+            # longer matches it -- so the lockfile has to survive do_unpack
+            # rather than be deleted here.
+            f.write(f'PUBSPEC_IGNORE_LOCKFILE = "0"\n')
+        else:
+            f.write(f'PUBSPEC_IGNORE_LOCKFILE = "1"\n')
 
         f.write(f'FLUTTER_APPLICATION_PATH = "{flutter_application_path}"\n')
 
@@ -384,6 +455,15 @@ def create_recipe(directory,
             f.write('inherit flutter-web\n')
         else:
             f.write('inherit flutter-app\n')
+
+        if pubvendor:
+            f.write('\n')
+            f.write('FILESEXTRAPATHS:prepend := "${THISDIR}:"\n')
+            f.write(f'SRC_URI += "file://{recipe_name}-pubspec.lock"\n')
+            f.write(f'require {recipe_name}-pubcache.inc\n')
+            f.write('inherit pub-cache\n')
+            f.write('PUBSPEC_APP_DIR = "${S}/${FLUTTER_APPLICATION_PATH}"\n')
+            f.write(f'PUBSPEC_LOCK_FILE = "{recipe_name}-pubspec.lock"\n')
 
         if rdepends_list and flutter_application_path in rdepends_list:
             rdepends = rdepends_list[flutter_application_path]
@@ -451,7 +531,8 @@ def create_yocto_recipes(directory,
                          src_files,
                          entry_files,
                          variables,
-                         patch_dir):
+                         patch_dir,
+                         pubvendor=False):
     """Create bb recipe for each pubspec.yaml file in path"""
     import glob
 
@@ -533,7 +614,8 @@ def create_yocto_recipes(directory,
                                src_folder=src_folder,
                                src_files=src_files,
                                variables=variables,
-                               patch_dir=patch_dir)
+                               patch_dir=patch_dir,
+                               pubvendor=pubvendor)
 
         if recipe != '':
             recipes.append([recipe, flutter_application_path])
