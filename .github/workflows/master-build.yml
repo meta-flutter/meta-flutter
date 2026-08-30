@@ -85,7 +85,9 @@ jobs:
           # existing directory fails. Those failures are swallowed by
           # the backgrounded clones and bare 'wait', so an omitted
           # layer silently freezes at whatever revision it was first
-          # cloned at. poky is kept to clear any legacy checkout.
+          # cloned at. poky, meta-drm and meta-vulkan are kept here, though no
+          # longer cloned, so a runner that has them from an earlier run does
+          # not keep a stale checkout around.
           rm -rf poky bitbake openembedded-core meta-yocto \
                  meta-openembedded meta-drm meta-vulkan
           # 'wait' with no operands always returns 0, so a failed clone used to
@@ -97,9 +99,7 @@ jobs:
               https://git.openembedded.org/bitbake.git \
               https://git.openembedded.org/openembedded-core.git \
               https://git.yoctoproject.org/meta-yocto.git \
-              https://github.com/openembedded/meta-openembedded.git \
-              https://github.com/jwinarske/meta-drm.git \
-              https://github.com/jwinarske/meta-vulkan.git ; do
+              https://github.com/openembedded/meta-openembedded.git ; do
               git clone -b ${{ env.YOCTO_BRANCH }} --single-branch "$repo" &
               pids="$pids $!:$repo"
           done
@@ -158,8 +158,6 @@ jobs:
               ../meta-openembedded/meta-multimedia \
               ../meta-openembedded/meta-networking \
               ../meta-openembedded/meta-python \
-              ../meta-drm \
-              ../meta-vulkan \
               ../../meta-flutter \
               ../../meta-flutter/meta-flutter-apps
           bitbake-layers show-layers
