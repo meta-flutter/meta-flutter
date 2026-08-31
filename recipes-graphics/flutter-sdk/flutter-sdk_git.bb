@@ -168,6 +168,62 @@ do_install:append:class-target () {
     rm -rf ${D}${datadir}/flutter/sdk/bin/cache/dart-sdk/bin
 }
 
+# pub records where it resolved a package, and it records it absolutely: every
+# package_config.json in the SDK names its dependencies as file:// URIs under
+# ${S}, which is inside TMPDIR. Nothing recreates that path in a recipe that
+# consumes the SDK -- there it lives under recipe-sysroot-native -- so all of
+# those entries dangle, and the flutter tool concludes flutter_tools is
+# unresolved and re-runs `dart pub get` on it. That resolve is not offline. It
+# reaches pub.dev on every app build, and in a task with no network it does not
+# fail, it hangs until something kills it.
+#
+# The URIs may be relative to the file that holds them, which flutter_tools'
+# own entry ("../") already is. Making the rest relative makes the staged SDK
+# relocatable, and takes an absolute TMPDIR out of a staged artifact while it
+# is there. See #566.
+python relativize_dart_package_configs() {
+    import json
+    import os
+    import urllib.parse
+
+    s_root = os.path.realpath(d.getVar('S'))
+    sdk_root = d.getVar('D') + d.getVar('datadir') + '/flutter/sdk'
+
+    for root, dirs, files in os.walk(sdk_root):
+        if 'package_config.json' not in files:
+            continue
+        path = os.path.join(root, 'package_config.json')
+        with open(path, 'r') as f:
+            cfg = json.load(f)
+
+        rewritten = 0
+        foreign = []
+        for pkg in cfg.get('packages', []):
+            uri = pkg.get('rootUri', '')
+            if not uri.startswith('file://'):
+                continue
+            abs_path = urllib.parse.unquote(urllib.parse.urlparse(uri).path)
+            if abs_path != s_root and not abs_path.startswith(s_root + os.sep):
+                # Outside the SDK entirely: relativizing would not help and
+                # would hide it, so say so and leave it.
+                foreign.append('%s -> %s' % (pkg.get('name'), uri))
+                continue
+            staged = os.path.join(sdk_root, os.path.relpath(abs_path, s_root))
+            pkg['rootUri'] = os.path.relpath(staged, root)
+            rewritten += 1
+
+        if foreign:
+            bb.warn('%s: %d package(s) resolved outside the SDK, left absolute: %s'
+                    % (os.path.relpath(path, sdk_root), len(foreign),
+                       ', '.join(foreign[:3])))
+        if rewritten:
+            with open(path, 'w') as f:
+                json.dump(cfg, f, indent=2)
+            bb.note('%s: made %d rootUri entries relative'
+                    % (os.path.relpath(path, sdk_root), rewritten))
+}
+do_install[postfuncs] += "relativize_dart_package_configs"
+
 python () {
     d.setVar('FLUTTER_SDK_VERSION', get_flutter_sdk_version(d))
 }
