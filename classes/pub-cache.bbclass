@@ -56,7 +56,12 @@ python do_install_pubspec_lock() {
 # can change pubspec.yaml or pubspec.lock. Resolving before that lands means
 # resolving against source that is not what gets built, and an edit arriving
 # afterwards makes pub re-resolve, which reaches for the network.
-addtask install_pubspec_lock after do_unpack do_patch before do_check_pubspec_lock
+# Also after do_archive_pub_cache, for the same reason do_pub_get_offline is:
+# a recipe that edits pubspec.yaml orders itself before that task, and this
+# class makes it noexec without removing it from the graph. Installing the
+# lock first leaves pubspec.yaml newer, which is one of the conditions pub
+# uses to decide the lockfile is stale and re-resolve.
+addtask install_pubspec_lock after do_unpack do_patch do_archive_pub_cache before do_check_pubspec_lock
 
 # do_unpack stages the app's dependencies into PUB_CACHE, and nothing else.
 # flutter's own tool packages are not among them: flutter_tools has its own
