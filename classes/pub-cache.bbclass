@@ -79,7 +79,24 @@ python do_seed_pub_cache() {
     dest = d.getVar('PUB_CACHE')
 
     added = 0
-    for root, _, files in os.walk(sdk_cache):
+    for root, dirs, files in os.walk(sdk_cache):
+        # Skip pub's own metadata cache. It holds cached version listings and
+        # advisory responses, not packages, and carrying them across is what
+        # lets pub reach the network from an offline resolve:
+        #
+        #   hosted.dart:981  _versionInfo() returns null when offline and no
+        #                    cached listing exists, so status() comes back
+        #                    empty and advisoriesUpdated is null
+        #   hosted.dart:774  _getAdvisories() returns immediately on a null
+        #                    advisoriesUpdated -- but with a listing present it
+        #                    proceeds, and has no isOffline guard of its own
+        #
+        # So a listing for a package turns an offline `pub get` into one that
+        # will fetch https://pub.dev/api/packages/<pkg>/advisories whenever the
+        # cached advisory response is older than the listing says it should be.
+        # Without the listings that path cannot be entered at all.
+        if '.cache' in dirs:
+            dirs.remove('.cache')
         rel = os.path.relpath(root, sdk_cache)
         target = os.path.join(dest, rel) if rel != '.' else dest
         bb.utils.mkdirhier(target)
