@@ -24,6 +24,16 @@ FLUTTER_APPLICATION_INSTALL_SUFFIX = "appstream-dart-example-flathub-catalog"
 
 inherit flutter-app-native
 
+# Vendored pub cache: dependencies arrive through SRC_URI with checksums
+# rather than a networked `pub get` during the build. See
+# tools/pubvendor/README.md.
+FILESEXTRAPATHS:prepend := "${THISDIR}:"
+SRC_URI += "file://flatpak-minimal-appstream-dart-flathub-catalog-pubspec.lock"
+require flatpak-minimal-appstream-dart-flathub-catalog-pubcache.inc
+inherit pub-cache
+PUBSPEC_APP_DIR = "${S}/${FLUTTER_APPLICATION_PATH}"
+PUBSPEC_LOCK_FILE = "flatpak-minimal-appstream-dart-flathub-catalog-pubspec.lock"
+
 # The sqlite3 Dart package (via drift) otherwise downloads a prebuilt
 # libsqlite3 from GitHub during `flutter build`, which fails in the
 # network-isolated do_compile. Tell its build hook to resolve sqlite3 from the
