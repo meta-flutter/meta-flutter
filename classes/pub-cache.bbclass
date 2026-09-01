@@ -13,7 +13,8 @@
 #     layer's .inc and .lock drifting apart
 #   * synthesizes hosted-hashes/<host>/<pkg>-<ver>.sha256 files from the
 #     SRC_URI checksum flags, so newer Dart SDKs' content verification
-#     passes offline
+#     passes offline, and asserts while it is there that every package the
+#     fragment declared is staged where pub will look for it
 #   * runs `flutter pub get --offline --enforce-lockfile` -- flutter rather
 #     than dart, see the note above the task
 #   * marks do_archive_pub_cache and do_restore_pub_cache noexec, so the
@@ -24,7 +25,17 @@
 # vendored lockfile it carries in SRC_URI.
 
 PUB_CACHE_LOCAL ?= "pub_cache"
-PUB_CACHE = "${WORKDIR}/${PUB_CACHE_LOCAL}"
+# The fragment stages the cache with SRC_URI subdir=, and subdir= is relative
+# to UNPACKDIR, which is ${WORKDIR}/sources from scarthgap on and WORKDIR
+# itself before that. Anchoring PUB_CACHE to WORKDIR unconditionally pointed
+# it at a directory the packages were never unpacked into: they landed in
+# ${WORKDIR}/sources/pub_cache while pub read ${WORKDIR}/pub_cache, which
+# do_seed_pub_cache had filled from the SDK. Resolution then succeeded on
+# whatever the SDK's own cache happened to carry and failed on the first
+# package it did not -- with the vendored copy sitting unused one directory
+# away. Take the same base do_install_pubspec_lock takes.
+PUB_CACHE_BASE ?= "${@d.getVar('UNPACKDIR') or d.getVar('WORKDIR')}"
+PUB_CACHE = "${PUB_CACHE_BASE}/${PUB_CACHE_LOCAL}"
 PUBSPEC_APP_DIR ?= "${S}"
 
 export PUB_CACHE
@@ -144,6 +155,7 @@ python do_write_hosted_hashes() {
 
     pub_cache = d.getVar('PUB_CACHE')
     marker = '/hosted/'
+    missing = []
     for uri in (d.getVar('SRC_URI') or '').split():
         _, _, _, _, _, parm = decodeurl(uri)
         subdir = parm.get('subdir', '')
@@ -161,6 +173,27 @@ python do_write_hosted_hashes() {
         bb.utils.mkdirhier(dst)
         with open(os.path.join(dst, pkgver + '.sha256'), 'w') as f:
             f.write(sha)
+
+        # Assert the package the fragment declared is actually where pub will
+        # look for it. This loop already derives the exact path, so the check
+        # is free -- and it is the one failure this class could not otherwise
+        # see. do_seed_pub_cache fills the same tree from the SDK, so a
+        # PUB_CACHE pointing somewhere the vendored packages were never
+        # unpacked into does not come out empty; it comes out holding the
+        # SDK's cache, and resolution gets as far as the first package the SDK
+        # does not happen to ship. That reads as an ordinary dependency error
+        # a long way from its cause, and every app whose dependencies the SDK
+        # already carries would have passed while vendoring nothing.
+        if not os.path.isdir(os.path.join(pub_cache, subdir[idx + 1:])):
+            missing.append(pkgver)
+
+    if missing:
+        bb.fatal(
+            "%d of the vendored packages are not staged under PUB_CACHE "
+            "(%s): %s.\nSRC_URI subdir= unpacks into UNPACKDIR; check "
+            "PUB_CACHE_BASE resolves to the same place."
+            % (len(missing), pub_cache, ', '.join(sorted(missing)[:5])
+               + (', ...' if len(missing) > 5 else '')))
 }
 addtask write_hosted_hashes after do_unpack do_patch before do_configure
 
