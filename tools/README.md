@@ -1,36 +1,111 @@
 # Tools
 
-
-## How to auto roll meta-flutter
+## How to roll meta-flutter
 
 1. Fork https://github.com/meta-flutter/meta-flutter
-
-2. run auto-roll script
-```
-tools/roll_meta_flutter.py
-```
-
+2. Run the roll: `tools/roll_meta_flutter.py`
 3. Test
+4. Open a PR saying what was tested, and on which targets
 
-4. Create PR documenting what was tested and targets tested on
+*Only stable branch versions are accepted.*
 
-*Note: Only stable branch versions will be accepted*
+## Selecting a version
 
+The roll updates `conf/include/releases_linux.json` first, then picks from it,
+so the channel it resolves is the one the channel points at now rather than
+whatever was last committed.
 
-## Process to Auto Roll Flutter Applications, Flutter SDK version (includes Engine), and Dart-SDK recipe
+```
+tools/roll_meta_flutter.py                     # stable
+tools/roll_meta_flutter.py --channel=beta
+tools/roll_meta_flutter.py --channel=dev
+tools/roll_meta_flutter.py --version=3.47.1    # a specific version
+```
 
-channel `stable`
+It rolls `FLUTTER_SDK_TAG`, the dart-sdk recipe, and every app in
+`meta-flutter-apps/conf/flutter-apps.json`.
 
-    tools/roll_meta_flutter.py
+## Reading the output
 
-channel `beta`
+The roll is not silent and is not always successful. Three things it reports
+are worth reading before opening the PR.
 
-    tools/roll_meta_flutter.py --channel=beta
+### Failures
 
-channel `dev`
+A repo that cannot be cloned, whose declared license does not match its source,
+or whose manifest entry is unusable **fails the roll**, and every failure is
+reported rather than only the first:
 
-    tools/roll_meta_flutter.py --channel=dev
+```
+2 of 24 repos failed to roll
+  https://github.com/example/one.git
+      RollError: license_type joins licenses with "&", but this branch uses "AND"
+  https://github.com/example/two.git
+      CalledProcessError: Command '['git', 'clone', ...]' returned non-zero exit status 128
+```
 
-specific version
+Before #863 these were swallowed -- the work ran in a thread pool whose futures
+were never read, so the roll printed "Repos Cloned" and exited 0 having
+generated nothing for that repo. A roll that exits 0 has rolled everything it
+was asked to.
 
-    tools/roll_meta_flutter.py --version=2.40.0
+### Skipped apps
+
+An app whose declared `environment` excludes the pinned SDK is skipped with a
+reason rather than generating a recipe that fails to build later:
+
+```
+1 app(s) skipped: the pinned SDK is outside their declared environment
+  packages/foo/example: needs Dart >=3.20.0 <4.0.0, this layer pins Dart 3.13.1
+```
+
+This is deliberately conservative: a constraint it cannot parse, a missing
+`environment`, or an unknown pinned version all mean *do not skip*. A gate that
+misfires drops an app silently, which is worse than the build failure it
+prevents. Use the manifest's `ignore` list for deliberate exclusions, so
+"we do not want this" and "this cannot work here" stay distinguishable.
+
+### Vendored lockfiles
+
+For an app with `"pubvendor": true`, the roll says where the lockfile came
+from, and the generated `.inc` records it too -- the fragment looks identical
+in all three cases:
+
+| | |
+|---|---|
+| `the project's own, unchanged` | it held against the pinned SDK under `--enforce-lockfile` |
+| `re-resolved by the roll; the shipped one did not hold` | it did not |
+| `created by the roll; none is shipped` | there was nothing to preserve |
+
+An app declaring `resolution: workspace` has no lockfile of its own; the roll
+follows the `workspace` list to the root and uses the one there, and says
+`(pub workspace)`. See `tools/pubvendor/README.md`.
+
+## Manifest keys
+
+`meta-flutter-apps/conf/flutter-apps.json`, one entry per repository. `uri` and
+`branch` are required -- an entry missing either is an error, not something to
+skip past.
+
+| key | |
+|---|---|
+| `uri`, `branch`, `rev` | where to clone from, and optionally what to pin to |
+| `license_file`, `license_type` | checked against the text the recipe ships |
+| `license_validate` | set false for a license the detector reads wrong |
+| `author` | recorded as `AUTHOR` in the generated recipe |
+| `folder` | `first-party` or `third-party` |
+| `ignore` | paths not to generate recipes for |
+| `rdepends` | runtime dependencies, per app path |
+| `output_folder`, `variables`, `src_folder`, `src_files`, `entry_files` | per-app recipe overrides |
+| `compiler_requires_network` | apps whose build hooks fetch |
+| `pubvendor` | `true` to vendor the pub cache, `"resolve"` to always replace a committed lockfile |
+
+## Tests
+
+```
+python -m pytest tools -q
+```
+
+Runs in CI on every change under `tools/`, against two Python versions, plus a
+real offline `pub get` against two Dart SDKs -- the staged pub cache layout is
+a pub internal, so only a real resolve shows it is one pub accepts.
