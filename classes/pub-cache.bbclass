@@ -202,6 +202,13 @@ addtask write_hosted_hashes after do_unpack do_patch before do_configure
 # is what tells the build which plugins to register and feeds the generated
 # dart_plugin_registrant.dart. With `dart pub get` an app builds green and
 # registers no plugins.
+# Resolving from a staged cache is sub-second work. A run that takes minutes
+# is not doing the work slowly, it is waiting on something, and an unbounded
+# wait inside a task that reports nothing until it ends is the worst shape for
+# diagnosing that: the build looks alive for as long as it takes. Bound it, and
+# let the timeout turn a stall into a failure with the verbose log attached.
+PUB_GET_TIMEOUT ?= "600"
+
 do_pub_get_offline() {
     # The SDK is staged by flutter-sdk-native and is not on the task PATH by
     # default. HOME and XDG_CONFIG_HOME are set for the same reasons
@@ -218,7 +225,44 @@ do_pub_get_offline() {
     flutter config --no-analytics --no-cli-animations >/dev/null 2>&1 || true
 
     cd ${PUBSPEC_APP_DIR}
-    flutter --suppress-analytics pub get --offline --enforce-lockfile
+
+    # Keep pub's own output in a file rather than letting it into the task
+    # log. bbfatal does not trigger bitbake's log dump, so anything written to
+    # stdout here is lost on the failure that matters; the tail below is put on
+    # the console deliberately instead.
+    #
+    # `|| rc=$?` and not `if ! ...`: after a negation $? is the status of the
+    # negation, which is always 0, so the timeout could never be told apart
+    # from an ordinary failure.
+    pubget_log="${T}/pub_get_verbose.log"
+    rc=0
+    timeout ${PUB_GET_TIMEOUT} flutter --suppress-analytics pub get \
+        --offline --enforce-lockfile --verbose > "$pubget_log" 2>&1 || rc=$?
+
+    if [ $rc -ne 0 ]; then
+        # Whether the task is actually network-isolated is worth recording
+        # rather than assuming. bitbake-worker honours [network] = "0" through
+        # bb.utils.to_boolean, but only applies it when bb.utils.is_local_uid()
+        # holds, and it says so at debug level -- so in a container the isolation
+        # can silently not happen. Probe DNS and TCP separately: a resolver with
+        # nowhere to go is the classic source of a long, quiet stall.
+        if timeout 5 getent hosts pub.dev >/dev/null 2>&1; then
+            bbplain "pub-get: DNS resolves pub.dev"
+        else
+            bbplain "pub-get: DNS cannot resolve pub.dev"
+        fi
+        if timeout 5 sh -c 'exec 3<>/dev/tcp/151.101.1.140/443' >/dev/null 2>&1; then
+            bbwarn "pub-get: the network is reachable in a task marked [network] = 0"
+        else
+            bbplain "pub-get: network unreachable, as intended"
+        fi
+        bbplain "pub-get: last 80 lines of pub --verbose"
+        bbplain "$(tail -n 80 "$pubget_log" 2>/dev/null)"
+        if [ $rc -eq 124 ]; then
+            bbfatal "offline pub get did not finish within ${PUB_GET_TIMEOUT}s. Resolving from a staged cache takes under a second, so this is a wait rather than work; the tail above is where it stopped."
+        fi
+        bbfatal "offline pub get failed with exit code $rc"
+    fi
 }
 # Ordered after do_archive_pub_cache as well, even though this class makes
 # that task noexec. It is the layer's convention for "before pub runs": a
