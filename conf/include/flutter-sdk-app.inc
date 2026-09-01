@@ -91,3 +91,28 @@ do_stage_sdk_workspace() {
 addtask stage_sdk_workspace after do_unpack do_prepare_recipe_sysroot before do_patch
 
 inherit flutter-app
+
+# Vendor the workspace's pub cache, so the build resolves offline.
+#
+# SDK apps are pub workspace members: there is no per-app lockfile, only one at
+# the workspace root covering all 78 members. So one fragment serves every SDK
+# app, and its cost does not grow as recipes are added -- the opposite of the
+# third-party apps, where each needs its own.
+#
+# After `inherit flutter-app`, not before: conf/include/common.inc assigns
+# PUB_CACHE = "${WORKDIR}/pub_cache" with a hard =, and flutter-app pulls it
+# in. Inheriting pub-cache first lets that assignment win, which puts the
+# cache back in the directory the packages are not unpacked into -- the
+# defect #862 fixed, reintroduced by ordering alone.
+#
+# PUBSPEC_APP_DIR is left at its default of ${S}, which for these recipes is
+# the workspace root. That is where pub has to resolve a workspace, and where
+# the lockfile the fragment was generated from already sits: it arrives with
+# SDK_WORKSPACE_PATHS rather than through SRC_URI, so PUBSPEC_LOCK_FILE stays
+# unset and pub-cache.bbclass skips installing one.
+SDK_WORKSPACE_VENDOR ?= "1"
+SDK_WORKSPACE_FRAGMENT ?= "${LAYERDIR_meta-flutter}/recipes-graphics/flutter-sdk/apps/flutter-sdk-workspace-pubcache.inc"
+
+require ${@'recipes-graphics/flutter-sdk/apps/flutter-sdk-workspace-pubcache.inc' if d.getVar('SDK_WORKSPACE_VENDOR') == '1' else ''}
+
+inherit ${@'pub-cache' if d.getVar('SDK_WORKSPACE_VENDOR') == '1' else ''}
