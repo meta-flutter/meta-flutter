@@ -20,6 +20,15 @@ from common import make_sure_path_exists
 from common import print_banner
 
 
+class RollError(Exception):
+    """A repo could not be rolled.
+
+    Raised rather than exit()ed: get_repo() runs in a worker thread, where
+    SystemExit ends that thread and nothing else. It reads like it stops the
+    script and does not.
+    """
+
+
 def get_flutter_apps(filename) -> dict:
     filepath = os.path.join(filename)
     with open(filepath, 'r') as f:
@@ -66,12 +75,14 @@ def get_repo(repo_path: str, output_path: str,
     # if not output_path_override_list:
     #    output_path_override_list = []
 
+    # Not "skip": a manifest entry that cannot be cloned is a manifest bug,
+    # and skipping it produced a roll that quietly generated nothing for that
+    # repo. The flutter/flutter entry sat branchless in flutter-apps.json
+    # doing exactly that.
     if not uri:
-        print("repo entry needs a 'uri' key.  Skipping")
-        return
+        raise RollError("repo entry has no 'uri'")
     if not branch:
-        print("repo entry needs a 'branch' key.  Skipping")
-        return
+        raise RollError(f"{uri}: repo entry has no 'branch'")
 
     # get repo folder name
     from urllib.parse import urlparse
@@ -121,7 +132,7 @@ def get_repo(repo_path: str, output_path: str,
         license_path = os.path.join(repo_path, repo_name, license_file)
         if not os.path.isfile(license_path):
             print_banner(f'ERROR: {license_path} is not present')
-            exit(1)
+            raise RollError(f'{repo_name}: {license_file} is not present')
 
         # Check the declared license against the text the recipe will ship.
         # flutter-apps.json states a license for someone else's repository and
@@ -142,7 +153,9 @@ def get_repo(repo_path: str, output_path: str,
                 f'  declared: {license_type}\n'
                 f'Fix license_type in flutter-apps.json. See the LICENSE '
                 f'operator note in README.')
-            exit(1)
+            raise RollError(
+                f'{repo_name}: license_type joins licenses with "{wrong}", '
+                f'but this branch uses "{LICENSE_OPERATOR}"')
 
         if validate_license:
             detected = detect_licenses(license_path)
@@ -156,7 +169,9 @@ def get_repo(repo_path: str, output_path: str,
                     f'  {license_file} contains: {" AND ".join(detected)}\n'
                     f'Fix license_type in flutter-apps.json, or set '
                     f'"license_validate": false for a license this check reads wrong.')
-                exit(1)
+                raise RollError(
+                    f'{repo_name}: declared license {license_type} does not '
+                    f'match {license_file}')
 
         if license_type != 'CLOSED':
             from create_recipes import get_file_md5
@@ -166,7 +181,8 @@ def get_repo(repo_path: str, output_path: str,
         # A license type with no file to back it cannot produce LIC_FILES_CHKSUM.
         print_banner(f'ERROR: {repo_name}: license_type "{license_type}" declared '
                      f'without a license_file')
-        exit(1)
+        raise RollError(f'{repo_name}: license_type "{license_type}" declared '
+                        f'without a license_file')
 
     repo_path = os.path.join(repo_path, repo_name)
 
@@ -194,31 +210,51 @@ def get_repo(repo_path: str, output_path: str,
 def get_workspace_repos(repo_path, repos, output_path, package_output_path, patch_dir):
     """ Clone GIT repos referenced in config repos dict to base_folder """
 
-    futures = []
     import concurrent.futures
+
+    futures = {}
     with concurrent.futures.ThreadPoolExecutor() as executor:
         for r in repos:
-            futures.append(executor.submit(get_repo, repo_path=repo_path,
-                                           output_path=output_path,
-                                           package_output_path=package_output_path,
-                                           uri=r.get('uri'),
-                                           branch=r.get('branch'),
-                                           rev=r.get('rev'),
-                                           license_file=r.get('license_file'),
-                                           license_type=r.get('license_type'),
-                                           validate_license=r.get('license_validate', True),
-                                           author=r.get('author'),
-                                           recipe_folder=r.get('folder'),
-                                           ignore_list=r.get('ignore'),
-                                           rdepends_list=r.get('rdepends'),
-                                           output_path_override_list=r.get('output_folder'),
-                                           compiler_requires_network_list=r.get('compiler_requires_network'),
-                                          pubvendor=r.get('pubvendor', False),
-                                           src_folder=r.get('src_folder'),
-                                           src_files=r.get('src_files'),
-                                           entry_files=r.get('entry_files'),
-                                           variables=r.get('variables'),
-                                           patch_dir=patch_dir))
+            futures[executor.submit(get_repo, repo_path=repo_path,
+                                    output_path=output_path,
+                                    package_output_path=package_output_path,
+                                    uri=r.get('uri'),
+                                    branch=r.get('branch'),
+                                    rev=r.get('rev'),
+                                    license_file=r.get('license_file'),
+                                    license_type=r.get('license_type'),
+                                    validate_license=r.get('license_validate', True),
+                                    author=r.get('author'),
+                                    recipe_folder=r.get('folder'),
+                                    ignore_list=r.get('ignore'),
+                                    rdepends_list=r.get('rdepends'),
+                                    output_path_override_list=r.get('output_folder'),
+                                    compiler_requires_network_list=r.get('compiler_requires_network'),
+                                    pubvendor=r.get('pubvendor', False),
+                                    src_folder=r.get('src_folder'),
+                                    src_files=r.get('src_files'),
+                                    entry_files=r.get('entry_files'),
+                                    variables=r.get('variables'),
+                                    patch_dir=patch_dir)] = r.get('uri') or '<no uri>'
+
+    # Read every future. Submitting and never calling result() means an
+    # exception in a worker is captured in its Future and re-raised nowhere:
+    # a failed clone, a license mismatch, anything create_yocto_recipes()
+    # raises. The roll then exits 0 having generated nothing for that repo,
+    # which run by hand scrolls past and run from CI is a green build with
+    # recipes silently missing.
+    failed = []
+    for future, uri in futures.items():
+        try:
+            future.result()
+        except BaseException as e:
+            failed.append((uri, e))
+
+    if failed:
+        print_banner(f'{len(failed)} of {len(futures)} repos failed to roll')
+        for uri, e in failed:
+            print(f'  {uri}\n      {type(e).__name__}: {e}')
+        sys.exit(1)
 
     print_banner("Repos Cloned")
 

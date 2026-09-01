@@ -15,6 +15,10 @@ on:
       - '**/*.md'
       - 'docs/**'
       - 'tools/**'
+      # Roll input, not build input: nothing bitbake parses reads it. The
+      # recipes it generates are committed separately, so a real roll touches
+      # those too and triggers a build on its own.
+      - 'meta-flutter-apps/conf/flutter-apps.json'
       - '.github/workflows/runner-maintenance.yml'
       # Runs on a GitHub-hosted runner and never touches a build.
       - '.github/workflows/tools-tests.yml'
