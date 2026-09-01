@@ -237,15 +237,25 @@ def copy_src_file(file: str, src_folder: str, patch_dir: str, output_path: str):
     shutil.copy2(src_file, dst_file)
 
 
-def generate_pubcache_inc(app_dir, recipe_name, output_path) -> bool:
-    """Regenerate the lockfile against the pinned SDK, then emit its fragment.
+def generate_pubcache_inc(app_dir, recipe_name, output_path,
+                          always_resolve=False) -> bool:
+    """Emit the SRC_URI fragment for an app's pub cache.
 
-    The lockfile an app ships was resolved against whatever SDK its authors
-    used, which is rarely the one this layer pins -- that mismatch is why
-    generated recipes have always set PUBSPEC_IGNORE_LOCKFILE, deleting the
-    lockfile at build time and re-resolving per build. Resolving once here and
-    committing the result is the same concession made once, visibly, and
-    identically for everyone, rather than silently on every builder.
+    Two cases, which used to be one. An app that ships no pubspec.lock has
+    nothing to preserve: the layer resolves for it anyway, per build and with
+    the network (conf/include/common.inc creates one when absent), so doing it
+    once here and committing the result is strictly better -- one resolution
+    everyone shares instead of one per builder.
+
+    An app that does ship a lockfile is different. Deleting it substitutes this
+    layer's resolution for the author's, including any pin they added to avoid
+    a bad version. Try theirs first, against the SDK this layer pins, and
+    re-resolve only when it will not hold. Which of the two happened is
+    recorded in the fragment header and printed here, because the resulting
+    .inc looks identical either way. See #861.
+
+    Set "pubvendor": "resolve" in flutter-apps.json for an app whose committed
+    lockfile must always be replaced.
 
     Needs `flutter` on PATH, and only for apps that opt in.
     """
@@ -259,11 +269,34 @@ def generate_pubcache_inc(app_dir, recipe_name, output_path) -> bool:
             f'resolve against the pinned SDK')
         return False
 
+    def resolve(*args):
+        return subprocess.run(['flutter', 'pub', 'get', *args], cwd=app_dir,
+                              capture_output=True, text=True)
+
     lock = os.path.join(app_dir, 'pubspec.lock')
-    if os.path.exists(lock):
+    shipped = os.path.exists(lock)
+
+    if not shipped:
+        provenance = 'created by the roll; the app ships none'
+        r = resolve()
+    elif always_resolve:
+        provenance = 're-resolved by the roll (pubvendor: resolve)'
         os.remove(lock)
-    r = subprocess.run(['flutter', 'pub', 'get'], cwd=app_dir,
-                       capture_output=True, text=True)
+        r = resolve()
+    else:
+        # --enforce-lockfile fails rather than silently rewriting, which is
+        # exactly the question being asked: does the author's resolution still
+        # hold against the SDK this layer pins?
+        r = resolve('--enforce-lockfile')
+        if r.returncode == 0:
+            provenance = "the app's own, unchanged"
+        else:
+            print(f'NOTE: {recipe_name}: the committed lockfile does not hold '
+                  f'against the pinned SDK, re-resolving')
+            provenance = 're-resolved by the roll; the app\'s own did not hold'
+            os.remove(lock)
+            r = resolve()
+
     if r.returncode != 0 or not os.path.exists(lock):
         # Not fatal: an app that cannot resolve against the pinned SDK is a
         # fact about that app, and one of them must not block a whole roll.
@@ -276,18 +309,20 @@ def generate_pubcache_inc(app_dir, recipe_name, output_path) -> bool:
     from common import OVERRIDE_STYLE
 
     out = os.path.join(output_path, f'{recipe_name}-pubcache.inc')
-    rc = pubvendor.main(['-i', lock, '-o', out, '--style', OVERRIDE_STYLE])
+    rc = pubvendor.main(['-i', lock, '-o', out, '--style', OVERRIDE_STYLE,
+                         '--provenance', provenance])
     if rc != 0:
         print(f'WARNING: {recipe_name}: pubvendor failed, no fragment written')
         return False
 
     # Ship the lockfile the fragment was generated from. The resolution above
     # happened in this clone, which is not what the recipe builds -- that
-    # fetches the app at SRCREV, carrying whatever lockfile upstream committed.
-    # Without this the two disagree and pub-cache.bbclass stops the build on
-    # the mismatch it exists to catch.
+    # fetches the app at SRCREV, with whatever lockfile it has there, if any.
+    # Without this the two can disagree and pub-cache.bbclass stops the build
+    # on the mismatch it exists to catch.
     shutil.copyfile(lock, os.path.join(output_path, f'{recipe_name}-pubspec.lock'))
-    print(f'{recipe_name}: wrote {os.path.basename(out)} + pubspec.lock')
+    print(f'{recipe_name}: wrote {os.path.basename(out)} + pubspec.lock '
+          f'(lockfile: {provenance})')
     return True
 
 
@@ -340,10 +375,15 @@ def create_recipe(directory,
     # `require`s it -- a missing include is a parse error for the whole layer,
     # so one bad app would take the rest down with it.
     if pubvendor:
+        # "pubvendor": "resolve" means always replace the committed lockfile;
+        # plain true means keep it when it still holds. Read before the
+        # reassignment below turns this into the bool the rest of the function
+        # tests.
         pubvendor = generate_pubcache_inc(
             app_dir=os.path.dirname(pubspec_yaml),
             recipe_name=recipe_name,
-            output_path=output_path)
+            output_path=output_path,
+            always_resolve=(pubvendor == 'resolve'))
 
     if project_version is not None:
         version = project_version.split('+')
