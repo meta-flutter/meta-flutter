@@ -10,6 +10,25 @@ INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 DL_DIR = "/home/dev/dl"
 SSTATE_DIR = "/home/dev/sstate"
 
+# Keep the hash equivalence database with the sstate it describes.
+#
+# With BB_HASHSERVE = "auto" the database defaults to PERSISTENT_DIR or CACHE,
+# both inside the build directory -- and each branch builds in its own
+# (wrynose-linux-dummy, master-linux-dummy, ...) while sharing one SSTATE_DIR.
+# The hashes that say which sstate objects are equivalent then live in one
+# build tree and are invisible to the next, so the shared sstate is there but
+# largely unusable. oe-core says so at every start:
+#
+#   WARNING: Sstate directory is shared between several builds ... but hash
+#   equivalency database is inside this particular build directory ... This
+#   will prevent sstate reuse
+#
+# Safe here: bitbake refuses this only when the directory is on NFS, and the
+# warning above is the branch oe/sanity.py takes when SSTATE_DIR is not, so
+# that is settled by the message itself. bitbake creates the directory if it
+# is missing.
+BB_HASHSERVE_DB_DIR ?= "${SSTATE_DIR}"
+
 INIT_MANAGER = "systemd"
 
 # ***************************************
