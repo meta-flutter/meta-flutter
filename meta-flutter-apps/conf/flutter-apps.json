@@ -143,19 +143,6 @@
         ]
     },
     {
-        "uri": "https://github.com/flutter/flutter.git",
-        "ver": "5874a72aa4c779a02553007c47dacbefba2374dc",
-        "license_file": "LICENSE",
-        "license_type": "BSD-3-Clause",
-        "author": "Google",
-        "folder": "first-party",
-        "rdepends": {
-            "dev/integration_tests/flutter_gallery": [
-                "xdg-user-dirs"
-            ]
-        }
-    },
-    {
         "uri": "https://github.com/mogol/flutter_secure_storage.git",
         "branch": "develop",
         "license_file": "LICENSE",
