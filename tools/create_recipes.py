@@ -13,6 +13,8 @@ from common import get_yaml_obj
 from common import make_sure_path_exists
 from common import print_banner
 
+import sdk_constraint
+
 
 def get_file_md5(file_name):
     import hashlib
@@ -600,12 +602,26 @@ def create_yocto_recipes(directory,
     # Iterate all pubspec.yaml files
     #
     recipes = []
+    # An app whose declared environment excludes the pinned SDK cannot work
+    # here, and generating a recipe for it just moves the discovery to a build
+    # failure and then to a hand-written 'ignore' entry weeks later. Gate it
+    # with a reason instead. Reported at the end rather than silently: an app
+    # disappearing from the layer with no trace is the thing to avoid. See #850.
+    pinned_flutter, pinned_dart = sdk_constraint.pinned_versions()
+    incompatible = []
+
     for filename in glob.iglob(directory + '**/pubspec.yaml', recursive=True):
 
         # handle invalid pubspec.yaml files
         yaml_obj = get_yaml_obj(filename)
         if len(yaml_obj) == 0:
             print(f'Invalid YAML: {filename}')
+            continue
+
+        reason = sdk_constraint.excluded_reason(
+            yaml_obj, pinned_flutter, pinned_dart)
+        if reason:
+            incompatible.append((os.path.relpath(filename, directory), reason))
             continue
 
         path_tokens = filename.split('/')
@@ -663,6 +679,12 @@ def create_yocto_recipes(directory,
     create_package_group(org, unit, recipes,
                          output_path_override_list,
                          package_output_path)
+
+    if incompatible:
+        print(f'\n{len(incompatible)} app(s) skipped: the pinned SDK is '
+              f'outside their declared environment')
+        for rel, reason in sorted(incompatible):
+            print(f'  {os.path.dirname(rel) or "."}: {reason}')
 
     print_banner("Creating Yocto Recipes done.")
 
