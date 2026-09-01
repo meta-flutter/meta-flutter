@@ -2,7 +2,6 @@
     {
         "uri": "https://github.com/flutter/packages.git",
         "branch": "main",
-        "ver": "0af905d779d52fc81ffc239c211e8c5956154f34",
         "license_file": "LICENSE",
         "license_type": "BSD-3-Clause",
         "author": "Google",
@@ -341,7 +340,6 @@
     {
         "uri": "https://github.com/rive-app/rive-flutter.git",
         "branch": "master",
-        "ver": "0.8.4",
         "license_file": "LICENSE",
         "license_type": "MIT",
         "author": "Rive",
