@@ -487,6 +487,18 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
         build_folder = os.path.join(source_root, 'build')
         if os.path.exists(build_folder):
             run_command(d, 'flutter clean -v', source_root, env)
+            # `flutter clean` removes .dart_tool, and the build below carries
+            # --no-pub whenever do_compile has no network, so nothing puts the
+            # resolution back. The snapshot is then handed a package_config.json
+            # that was deleted moments after do_compile resolved it. Resolve
+            # again -- offline, against the cache the earlier get populated.
+            #
+            # Only visible on a rebuild, since a first build has no build/ for
+            # the clean to trigger on. It bites hardest on a pub workspace,
+            # where .dart_tool/pub/workspace_ref.json goes with it and the
+            # snapshot silently falls back to a member package_config.json that
+            # a workspace member never has.
+            run_command(d, 'flutter pub get --offline', source_root, env)
 
         if runtime_mode == 'jit_release':
             cmd = (f'flutter build {flutter_build_args} --local-engine -v')
