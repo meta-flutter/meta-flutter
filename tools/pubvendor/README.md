@@ -15,18 +15,36 @@ Options: `--style old` for pre-kirkstone `_append` syntax,
 ## From the roll
 
 Set `"pubvendor": true` on an entry in `meta-flutter-apps/conf/flutter-apps.json`
-and `roll_meta_flutter.py` does the rest: it re-resolves the app's lockfile
-against the SDK this layer pins, writes `<recipe>-pubcache.inc` and
+and `roll_meta_flutter.py` does the rest: it settles the app's lockfile against
+the SDK this layer pins, writes `<recipe>-pubcache.inc` and
 `<recipe>-pubspec.lock` beside the recipe, and emits the lines below into it.
 `--style` comes from `OVERRIDE_STYLE` in `tools/common.py`, which is
 branch-specific in the same way `LICENSE_OPERATOR` is.
 
-The re-resolve is deliberate. An app's committed lockfile was resolved
-against whatever SDK its authors used, which is why generated recipes have
-always carried `PUBSPEC_IGNORE_LOCKFILE = "1"` and deleted it at build time,
-leaving every builder to re-resolve independently. Resolving once at roll
-time and committing the result is that same concession made once, visibly,
-and identically for everyone.
+## Where the lockfile comes from
+
+Three outcomes, and the fragment header says which one you are looking at,
+because the `.inc` is otherwise identical in all three:
+
+| header line | what happened |
+|---|---|
+| `Lockfile: the app's own, unchanged` | it resolved against the pinned SDK under `--enforce-lockfile`, so the author's resolution is kept |
+| `Lockfile: re-resolved by the roll; the app's own did not hold` | it did not, so the roll resolved instead |
+| `Lockfile: created by the roll; the app ships none` | there was nothing to preserve |
+
+The last is more common than it looks. Plenty of apps commit no `pubspec.lock`
+at all, and for those the layer already resolves per build and with the
+network -- `conf/include/common.inc` creates one when absent -- so doing it
+once here and committing the result is strictly better: one resolution
+everyone shares instead of one per builder.
+
+The middle case is the one to read carefully. Replacing a committed lockfile
+substitutes this layer's resolution for the author's, including any pin they
+added to avoid a bad version. It happens only when their resolution will not
+hold against the pinned SDK, and the roll says so as it goes.
+
+Set `"pubvendor": "resolve"` instead of `true` for an app whose committed
+lockfile must always be replaced.
 
 An app that cannot resolve against the pinned SDK is reported and skipped
 rather than failing the roll, and its recipe is written *without* the

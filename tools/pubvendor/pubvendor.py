@@ -204,9 +204,17 @@ def _assign_idents(recipe: LockfileRecipe) -> None:
         taken.add(g.ident)
 
 
-def render(recipe: LockfileRecipe, style: str, download_prefix: str) -> str:
+def render(recipe: LockfileRecipe, style: str, download_prefix: str,
+           provenance: str = "") -> str:
     op = ":append" if style == "new" else "_append"
-    parts = [GENERATED_HEADER, "\n"]
+    parts = [GENERATED_HEADER]
+    if provenance:
+        # Whose resolution this is. A reader of the fragment cannot otherwise
+        # tell the app's own lockfile from one the roll produced, and the two
+        # mean different things: the first is what upstream tested, the second
+        # is what this layer settled on because the first did not hold.
+        parts.append(f"#\n# Lockfile: {provenance}\n")
+    parts.append("\n")
     parts.append('PUB_CACHE_LOCAL ?= "pub_cache"\n')
     parts.append(f'PUBSPEC_LOCK_SHA256 = "{recipe.lock_sha256}"\n\n')
 
@@ -241,6 +249,11 @@ def main(argv=None) -> int:
     ap.add_argument(
         "--download-prefix", default="pub-cache/",
         help="DL_DIR subdirectory prefix for hosted tarballs",
+    )
+    ap.add_argument(
+        "--provenance", default="",
+        help="one line recorded in the fragment header saying where the "
+             "lockfile came from",
     )
     ap.add_argument(
         "--resolve-missing", action="store_true",
@@ -279,7 +292,8 @@ def main(argv=None) -> int:
         project = _project_name(args.lockfile.parent / "pubspec.yaml")
         out = args.lockfile.parent / f"{project}.inc"
 
-    out.write_text(render(recipe, args.style, args.download_prefix))
+    out.write_text(render(recipe, args.style, args.download_prefix,
+                          args.provenance))
     print(
         f"{out}: {len(recipe.hosted)} hosted, {len(recipe.git)} git, "
         f"{len(recipe.skipped)} skipped",
