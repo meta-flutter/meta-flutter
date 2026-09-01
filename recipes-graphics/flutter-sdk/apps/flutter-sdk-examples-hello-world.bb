@@ -1,0 +1,13 @@
+#
+# Copyright (c) 2026 Joel Winarske
+#
+# SPDX-License-Identifier: MIT
+#
+
+SUMMARY = "hello_world"
+DESCRIPTION = "The smallest app the Flutter SDK ships: a single Text widget."
+
+PUBSPEC_APPNAME = "hello_world"
+FLUTTER_APPLICATION_PATH = "examples/hello_world"
+
+require conf/include/flutter-sdk-app.inc

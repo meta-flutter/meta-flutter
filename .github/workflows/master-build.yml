@@ -357,6 +357,21 @@ jobs:
           # rounds reporting a failure the build did not have.
 
       #
+      # The first app that ships inside the Flutter SDK rather than in a
+      # repository of its own (#867). It has no source of its own at all: the
+      # SDK is already staged in recipe-sysroot-native, so the recipe copies
+      # the workspace out of it.
+      - name: Build flutter-sdk-examples-hello-world
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        shell: bash
+        working-directory: ../master-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake flutter-sdk-examples-hello-world
+
+      #
       # bluez_native: compiles a vendored sdbus-c++ from its own hook.
       - name: Build jwinarske-bluez-native-flutter-ble-scanner
         # flutter build bundle has no linux-arm target platform,
