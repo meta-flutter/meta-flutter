@@ -33,6 +33,20 @@ on:
     types: [ published, created, edited ]
   workflow_dispatch:
 
+# One run per branch. Every push to a pull request starts a run and GitHub
+# does not stop the previous one, so an iterated branch leaves a queue of runs
+# against commits that have already been superseded -- on a sequential runner,
+# each one is roughly an hour of matrix that can only reproduce a result we
+# have moved past.
+#
+# Cancelling is limited to pull_request on purpose. A workflow_dispatch is
+# someone deliberately asking for a build, and a second dispatch on the same
+# ref should not silently kill the first; the release branches are dispatch
+# only, so there it would be the sole behaviour.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
 
   master-build:
