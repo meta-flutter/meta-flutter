@@ -15,6 +15,20 @@ TOOLCHAIN = "clang"
 # Required to make dart happy
 DEPENDS:append = " lld-native"
 
+# Force lld use and using compiler-rt and libunwind instead of libgcc.
+# Ideally these could just be added to LDFLAGS, but they have to go into the
+# general flags variables: the resulting CMAKE_<LANG>_LINK_FLAGS in the
+# toolchain.cmake that cmake.bbclass writes do not appear to be used, perhaps
+# from behaviour changes in cmake 4.3.
+DEPENDS:append = " libunwind"
+CFLAGS += "-rtlib=compiler-rt -unwindlib=libunwind -fuse-ld=lld"
+CXXFLAGS += "-rtlib=compiler-rt -unwindlib=libunwind -fuse-ld=lld"
+
+# Force libc++ instead of the default libstdc++, which is what upstream
+# expects. TOOLCHAIN = "clang" alone does not get there: oe-core only selects
+# libc++ when TC_CXX_RUNTIME is overridden for the whole toolchain build.
+CXXFLAGS += "-stdlib=libc++"
+
 # NOTE: conf/include/flutter-app.inc already requires gn-utils.inc and appends
 # "--target-platform linux-${@gn_target_arch_name(d)}" to FLUTTER_BUILD_ARGS.
 # This class must not repeat that, or --target-platform is passed twice.
@@ -104,8 +118,16 @@ do_install:append() {
     fi
 }
 
-# Ensure do_compile has a clean slate when it runs
-do_compile[cleandirs] = "${S}/.dart_tool"
+# Ensure do_compile has a clean slate when it runs.
+#
+# Narrowed to the hook output. Other tasks put things under .dart_tool that
+# do_compile needs: pub-cache.bbclass resolves offline before do_compile and
+# leaves package_config.json there, and wiping the directory would throw that
+# resolution away and send pub back to the network to redo it.
+#
+# The path carries FLUTTER_APPLICATION_PATH because this layer supports an app
+# in a subdirectory of its repository, where ${S}/.dart_tool is not the app's.
+do_compile[cleandirs] += "${S}/${FLUTTER_APPLICATION_PATH}/.dart_tool/hooks_runner"
 
 # Quiet QA warnings about debug libraries under /usr/share/flutter/.../lib/.debug
 INSANE_SKIP:${PN}-dbg += " libdir"
