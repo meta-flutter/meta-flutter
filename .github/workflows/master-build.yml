@@ -383,7 +383,11 @@ jobs:
         working-directory: ../master-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake flutter-sdk-examples-hello-world
+          # hello_world proves the shape; flutter_gallery proves it holds for an
+          # app with real dependencies -- ten of them, including url_launcher,
+          # whose Linux implementation exercises plugin registration. The SDK's
+          # apps are otherwise mostly dependency-free.
+          bitbake flutter-sdk-examples-hello-world flutter-sdk-flutter-gallery
 
       #
       # bluez_native: compiles a vendored sdbus-c++ from its own hook.
