@@ -1,0 +1,16 @@
+{
+  "_comment": [
+    "Per-app additions for generated SDK app recipes. The generator writes",
+    "everything else; anything hand-tuned belongs here so it survives the next",
+    "roll. Keyed by the app's path inside the Flutter SDK."
+  ],
+  "dev/integration_tests/flutter_gallery": {
+    "summary": "flutter_gallery",
+    "description": "The Flutter gallery: material and cupertino demos, the SDK's largest example app and the first with dependencies that resolve to something.",
+    "rdepends": ["xdg-user-dirs"]
+  },
+  "examples/hello_world": {
+    "summary": "hello_world",
+    "description": "The smallest app the Flutter SDK ships: a single Text widget."
+  }
+}
