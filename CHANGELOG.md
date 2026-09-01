@@ -1,5 +1,29 @@
 # Changelog
 
+August 31, 2026
+1. add test-runner recipe (toyota-connected/test_runner)
+   - Cap'n Proto RPC daemon that injects uinput events, records /dev/input and
+     captures Weston screenshots on a device under test
+   - CMake switches exposed as PACKAGECONFIG: server, examples, recorder,
+     libinput, weston-screenshooter, agl-health, coverage
+   - without 'server' only libTestRunnerClient is built, needing neither uinput
+     nor Wayland, so native/nativesdk default to a client-only package and
+     wayland is required only by the screenshooter plugin's server half
+   - BUILD_CAPNP pinned OFF; capnproto.bbclass supplies the native compiler and
+     target runtime. BUILD_TESTS and BUILD_UNIT_TESTS excluded and pinned OFF,
+     both broken upstream for a cross build
+   - 'recorder' off drops libTestRunnerRecorder, the TestRunner-Recorder tool
+     and the always-on snapshot recorder; the Recorder RPC methods stay in the
+     schema answering "unimplemented", so clients need no rebuild
+   - no SOVERSION on the libraries, so SOLIBS/FILES_SOLIBSDEV keep the .so
+     files out of -dev
+   - built for qemux86-64, covered by wrynose-build on every machine
+2. build capnproto position independent (capnproto_%.bbappend)
+   - meta-oe builds it static and non-PIC, so linking capnp or kj into a shared
+     library fails on kj/exception.c++'s thread-local
+   - code model only; packaging unchanged, capnproto's sstate invalidated
+   - belongs in meta-oe, either this way or as shared libraries
+
 August 19, 2026
 1. roll Flutter SDK to 3.47.1 (Dart 3.13.1)
    - dart-sdk recipe 3.10.1 -> 3.13.1

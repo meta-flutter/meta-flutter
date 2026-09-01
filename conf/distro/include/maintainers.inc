@@ -15,3 +15,4 @@ RECIPE_MAINTAINER_pn-flutter-video-player-plugin = "Joel Winarse <jwinarske@gmai
 RECIPE_MAINTAINER_pn-flutter-wayland-client = "Joel Winarse <jwinarske@gmail.com>"
 RECIPE_MAINTAINER_pn-flutter-wayland-so = "Joel Winarse <jwinarske@gmail.com>"
 RECIPE_MAINTAINER_pn-flutter-x11-client = "Joel Winarse <jwinarske@gmail.com>"
+RECIPE_MAINTAINER_pn-test-runner = "Joel Winarse <jwinarske@gmail.com>"

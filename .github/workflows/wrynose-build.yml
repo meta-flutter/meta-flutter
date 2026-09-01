@@ -289,6 +289,15 @@ jobs:
           . ./openembedded-core/oe-init-build-env
           bitbake flutter-pi
 
+      # The remote test-runner daemon. No Flutter involvement, so unlike the
+      # app recipes below it builds on qemuarm too.
+      - name: Build test-runner
+        shell: bash
+        working-directory: ../wrynose-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake test-runner
+
       # The ivi-homescreen v3 integration tests. All ten come from one upstream
       # tree at HOMESCREEN_COMMIT through ivi-homescreen-test.inc, so they share
       # a source revision and stand or fall together far more often than not.
