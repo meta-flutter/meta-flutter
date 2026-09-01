@@ -330,7 +330,27 @@ jobs:
         working-directory: ../master-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake flatpak-minimal-appstream-dart-flathub-catalog
+          APP=flatpak-minimal-appstream-dart-flathub-catalog
+
+          # This app vendors its pub cache (tools/pubvendor), so its
+          # dependencies arrive through SRC_URI rather than a networked
+          # `pub get` inside the build. Fetch everything first, then build
+          # with the network off: anything the fragment failed to declare
+          # cannot be fetched and fails here rather than silently working
+          # on a machine that happens to be online.
+          bitbake --runall=fetch "$APP"
+          BB_NO_NETWORK=1 bitbake "$APP"
+
+          # Offline is only half of it. `dart pub get` also resolves
+          # offline but writes no .flutter-plugins-dependencies, so an app can
+          # build green having registered nothing -- the defect fixed in #851.
+          #
+          # That is asserted in the build now, by flutter-app.inc, against the
+          # package it just wrote: an app declaring Linux plugins whose
+          # libapp.so carries no registrant fails do_package. Checking it here
+          # instead meant reading an ipk out of a deploy directory that
+          # survives between matrix jobs, which is how this step spent five
+          # rounds reporting a failure the build did not have.
 
       #
       # bluez_native: compiles a vendored sdbus-c++ from its own hook.
