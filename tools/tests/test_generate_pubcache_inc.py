@@ -66,7 +66,7 @@ def _header(out, name='probe'):
 def test_no_lockfile_is_created_not_replaced(app):
     app_dir, out = app
     assert create_recipes.generate_pubcache_inc(str(app_dir), 'probe', str(out))
-    assert 'Lockfile: created by the roll; the app ships none' in _header(out)
+    assert 'Lockfile: created by the roll; none is shipped' in _header(out)
 
 
 def test_a_holding_lockfile_is_kept(app, monkeypatch):
@@ -74,7 +74,7 @@ def test_a_holding_lockfile_is_kept(app, monkeypatch):
     (app_dir / 'pubspec.lock').write_text(LOCK)
     monkeypatch.setenv('ENFORCE_RC', '0')
     assert create_recipes.generate_pubcache_inc(str(app_dir), 'probe', str(out))
-    assert "Lockfile: the app's own, unchanged" in _header(out)
+    assert "Lockfile: the project's own, unchanged" in _header(out)
     # the author's resolution was never re-run
     assert not (app_dir / 'resolved.marker').exists()
 

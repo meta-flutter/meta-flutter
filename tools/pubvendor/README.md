@@ -46,6 +46,19 @@ hold against the pinned SDK, and the roll says so as it goes.
 Set `"pubvendor": "resolve"` instead of `true` for an app whose committed
 lockfile must always be replaced.
 
+### Workspace members
+
+An app that declares `resolution: workspace` has no lockfile of its own. The
+resolution lives at the workspace root, covers every member, and is where pub
+has to be run, so the roll follows the `workspace` list up to that root and
+uses the lockfile there. The header says `(pub workspace)` when it did.
+
+Every app the Flutter SDK ships is like this: one lockfile at the SDK root
+covering 78 members. That makes the resolution shared rather than per-app --
+generating a fragment for one SDK app produces the same 167 entries as
+generating it for any other, so the cost is paid once however many are
+vendored.
+
 An app that cannot resolve against the pinned SDK is reported and skipped
 rather than failing the roll, and its recipe is written *without* the
 `require` line -- a recipe requiring a fragment that was never generated is

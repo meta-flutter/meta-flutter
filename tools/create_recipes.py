@@ -239,6 +239,39 @@ def copy_src_file(file: str, src_folder: str, patch_dir: str, output_path: str):
     shutil.copy2(src_file, dst_file)
 
 
+def workspace_root_for(app_dir):
+    """The pub workspace root this app belongs to, or None if it is not a member.
+
+    An app that declares `resolution: workspace` has no lockfile of its own;
+    the resolution lives at the root, covers every member, and is where pub
+    must be run. The Flutter SDK's own apps are all like this -- one lockfile
+    at the SDK root for 78 members -- so an app-directory lookup finds nothing
+    and would generate a per-app resolution, which is the wrong unit.
+
+    Found the way pub finds it: walk up looking for a pubspec that names this
+    app in its `workspace` list.
+    """
+    pubspec = os.path.join(app_dir, 'pubspec.yaml')
+    if not os.path.isfile(pubspec):
+        return None
+    spec = get_yaml_obj(pubspec)
+    if not spec or spec.get('resolution') != 'workspace':
+        return None
+
+    app_dir = os.path.abspath(app_dir)
+    current = os.path.dirname(app_dir)
+    while True:
+        candidate = os.path.join(current, 'pubspec.yaml')
+        if os.path.isfile(candidate):
+            root_spec = get_yaml_obj(candidate) or {}
+            if os.path.relpath(app_dir, current) in (root_spec.get('workspace') or []):
+                return current
+        parent = os.path.dirname(current)
+        if parent == current:
+            return None
+        current = parent
+
+
 def generate_pubcache_inc(app_dir, recipe_name, output_path,
                           always_resolve=False) -> bool:
     """Emit the SRC_URI fragment for an app's pub cache.
@@ -272,17 +305,21 @@ def generate_pubcache_inc(app_dir, recipe_name, output_path,
         return False
 
     def resolve(*args):
-        return subprocess.run(['flutter', 'pub', 'get', *args], cwd=app_dir,
+        return subprocess.run(['flutter', 'pub', 'get', *args], cwd=resolve_dir,
                               capture_output=True, text=True)
 
-    lock = os.path.join(app_dir, 'pubspec.lock')
+    # A workspace member resolves at the root, not in its own directory.
+    workspace = workspace_root_for(app_dir)
+    resolve_dir = workspace or app_dir
+    lock = os.path.join(resolve_dir, 'pubspec.lock')
     shipped = os.path.exists(lock)
+    ws = ' (pub workspace)' if workspace else ''
 
     if not shipped:
-        provenance = 'created by the roll; the app ships none'
+        provenance = f'created by the roll; none is shipped{ws}'
         r = resolve()
     elif always_resolve:
-        provenance = 're-resolved by the roll (pubvendor: resolve)'
+        provenance = f're-resolved by the roll (pubvendor: resolve){ws}'
         os.remove(lock)
         r = resolve()
     else:
@@ -291,11 +328,11 @@ def generate_pubcache_inc(app_dir, recipe_name, output_path,
         # hold against the SDK this layer pins?
         r = resolve('--enforce-lockfile')
         if r.returncode == 0:
-            provenance = "the app's own, unchanged"
+            provenance = f"the project's own, unchanged{ws}"
         else:
             print(f'NOTE: {recipe_name}: the committed lockfile does not hold '
                   f'against the pinned SDK, re-resolving')
-            provenance = 're-resolved by the roll; the app\'s own did not hold'
+            provenance = f're-resolved by the roll; the shipped one did not hold{ws}'
             os.remove(lock)
             r = resolve()
 
