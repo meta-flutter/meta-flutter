@@ -81,6 +81,27 @@ An app declaring `resolution: workspace` has no lockfile of its own; the roll
 follows the `workspace` list to the root and uses the one there, and says
 `(pub workspace)`. See `tools/pubvendor/README.md`.
 
+### Flutter SDK apps
+
+The apps the SDK itself ships have no manifest entry and no SRCREV: they move
+with `FLUTTER_SDK_TAG`, so the roll regenerates their recipes rather than
+tracking them. It clones `flutter/flutter` at the commit the pinned release
+names -- blobless and narrowed to three directories, about 130 MB -- and emits
+one recipe per candidate into `recipes-graphics/flutter-sdk/apps/`, plus a
+single fragment vendoring the workspace's pub cache for all of them.
+
+Apps that are not candidates are reported with a reason rather than dropped.
+Anything hand-tuned belongs in `sdk-apps-overrides.json`, keyed by app path, so
+the next roll cannot lose it.
+
+If the clone fails the roll says so and continues: it has already updated the
+pinned SDK by that point, and one unreachable remote should not discard that.
+The warning matters, though -- recipes left describing the previous SDK keep
+parsing, and only the two built in CI would notice.
+
+    tools/sdk_apps.py --path .              # regenerate by hand
+    tools/sdk_apps.py --clone /path/to/ff   # reuse an existing checkout
+
 ## Manifest keys
 
 `meta-flutter-apps/conf/flutter-apps.json`, one entry per repository. `uri` and

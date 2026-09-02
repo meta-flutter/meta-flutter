@@ -227,11 +227,55 @@ def generate(layer_root, clone_root, overrides_path, output_dir, read_yaml):
     return written, rejected
 
 
-def main(argv=None):
-    import argparse
+def roll_sdk_apps(layer_root, clone=None):
+    """Regenerate the SDK app recipes. Called by the roll; returns True on success.
+
+    Not fatal when it cannot run. A roll that reaches this point has already
+    updated the pinned SDK and the dart-sdk recipe, and one unavailable clone
+    should not throw that away -- but it says so loudly, because recipes left
+    describing the previous SDK would keep parsing and only the handful built
+    in CI would notice.
+    """
     import tempfile
 
     import yaml
+
+    output_dir = os.path.join(layer_root, 'recipes-graphics', 'flutter-sdk', 'apps')
+    overrides = os.path.join(output_dir, 'sdk-apps-overrides.json')
+
+    tmp = None
+    if clone is None:
+        release_hash = pinned_release_hash(layer_root)
+        if not release_hash:
+            print('WARNING: no release hash for the pinned SDK; '
+                  'SDK app recipes not regenerated and now describe an older SDK')
+            return False
+        tmp = tempfile.mkdtemp(prefix='flutter-sdk-apps-')
+        try:
+            clone = clone_pinned(release_hash, os.path.join(tmp, 'flutter'))
+        except subprocess.CalledProcessError as e:
+            shutil.rmtree(tmp, ignore_errors=True)
+            print(f'WARNING: could not clone flutter/flutter at {release_hash}: '
+                  f'{e.stderr.strip()[:200]}\n'
+                  f'SDK app recipes not regenerated and now describe an older SDK')
+            return False
+
+    try:
+        written, rejected = generate(layer_root, clone, overrides, output_dir,
+                                     lambda p: yaml.safe_load(open(p)))
+    finally:
+        if tmp:
+            shutil.rmtree(tmp, ignore_errors=True)
+
+    print(f'{len(written)} SDK app recipe(s) written')
+    print(f'{len(rejected)} app(s) not generated:')
+    for rel, reason in rejected:
+        print(f'  {rel}: {reason}')
+    return True
+
+
+def main(argv=None):
+    import argparse
 
     ap = argparse.ArgumentParser(
         description="Generate recipes for the apps inside the Flutter SDK")
@@ -240,34 +284,7 @@ def main(argv=None):
                     help='an existing flutter/flutter checkout to use instead '
                          'of cloning (must be at the pinned commit)')
     args = ap.parse_args(argv)
-
-    layer = args.path
-    output_dir = os.path.join(layer, 'recipes-graphics', 'flutter-sdk', 'apps')
-    overrides = os.path.join(output_dir, 'sdk-apps-overrides.json')
-
-    clone = args.clone
-    tmp = None
-    if clone is None:
-        release_hash = pinned_release_hash(layer)
-        if not release_hash:
-            print('ERROR: no release hash for the pinned SDK')
-            return 1
-        tmp = tempfile.mkdtemp(prefix='flutter-sdk-apps-')
-        clone = clone_pinned(release_hash, os.path.join(tmp, 'flutter'))
-
-    try:
-        written, rejected = generate(layer, clone, overrides, output_dir,
-                                     lambda p: yaml.safe_load(open(p)))
-    finally:
-        if tmp:
-            shutil.rmtree(tmp, ignore_errors=True)
-
-    print(f'{len(written)} recipe(s) written to '
-          f'{os.path.relpath(output_dir, layer)}')
-    print(f'{len(rejected)} app(s) not generated:')
-    for rel, reason in rejected:
-        print(f'  {rel}: {reason}')
-    return 0
+    return 0 if roll_sdk_apps(args.path, args.clone) else 1
 
 
 if __name__ == '__main__':
