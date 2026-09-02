@@ -60,7 +60,8 @@ def get_repo(repo_path: str, output_path: str,
              entry_files: dict,
              variables: dict,
              patch_dir: str,
-             pubvendor: bool = False):
+             pubvendor: bool = False,
+             generate_recipes: bool = True):
     """ Clone Git Repo """
 
     print(f'repo_path: {repo_path}')
@@ -204,7 +205,8 @@ def get_repo(repo_path: str, output_path: str,
                          entry_files=entry_files,
                          variables=variables,
                          patch_dir=patch_dir,
-                         pubvendor=pubvendor)
+                         pubvendor=pubvendor,
+                         generate_recipes=generate_recipes)
 
 
 def get_workspace_repos(repo_path, repos, output_path, package_output_path, patch_dir):
@@ -231,6 +233,7 @@ def get_workspace_repos(repo_path, repos, output_path, package_output_path, patc
                                     output_path_override_list=r.get('output_folder'),
                                     compiler_requires_network_list=r.get('compiler_requires_network'),
                                     pubvendor=r.get('pubvendor', False),
+                                    generate_recipes=r.get('generate_recipes', True),
                                     src_folder=r.get('src_folder'),
                                     src_files=r.get('src_files'),
                                     entry_files=r.get('entry_files'),

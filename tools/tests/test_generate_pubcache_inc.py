@@ -104,3 +104,35 @@ def test_the_lockfile_is_shipped_beside_the_fragment(app):
     shipped = out / 'probe-pubspec.lock'
     assert shipped.exists()
     assert shipped.read_text() == (app_dir / 'pubspec.lock').read_text()
+
+
+def test_vendor_only_leaves_the_recipe_alone(app, monkeypatch, tmp_path):
+    """An app whose recipe is hand-written but whose cache the roll maintains.
+
+    The generator only ever emits `inherit flutter-app`, so generating over a
+    recipe that inherits flutter-app-native, or carries extra tasks, silently
+    drops whatever made it work. generate_recipes=False vendors the cache and
+    writes no recipe. See #888.
+    """
+    import create_recipes
+    app_dir, out = app
+    (app_dir / 'pubspec.yaml').write_text('name: probe\nversion: 1.0.0\n')
+
+    result = create_recipes.create_recipe(
+        directory=str(app_dir.parent),
+        pubspec_yaml=str(app_dir / 'pubspec.yaml'),
+        flutter_application_path='app',
+        org='o', unit='u', submodules=False,
+        url='https://example.invalid/x.git', lfs=False, branch='main',
+        commit='deadbeef',
+        license_file=None, license_type='CLOSED', license_md5='',
+        author='x', recipe_folder='third-party', output_path=str(out),
+        rdepends_list=None, output_path_override_list=None,
+        compiler_requires_network_list=None, src_folder=None, src_files=None,
+        variables=None, patch_dir=None, pubvendor=True,
+        generate_recipes=False)
+
+    assert result == ''
+    assert not list(out.rglob('*.bb')), 'a recipe was written despite generate_recipes=False'
+    assert list(out.rglob('*-pubcache.inc')), 'the fragment was not vendored'
+    assert list(out.rglob('*-pubspec.lock')), 'the lockfile was not shipped'
