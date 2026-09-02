@@ -239,6 +239,65 @@ def copy_src_file(file: str, src_folder: str, patch_dir: str, output_path: str):
     shutil.copy2(src_file, dst_file)
 
 
+# Markers pub prints when it has decided the graph cannot be satisfied, as
+# opposed to when it could not find out. Only the first kind is a reason to
+# skip an app: the second means the roll could not tell, and dropping an app on
+# "could not tell" is the misfire this whole family of gates has to avoid.
+_UNSOLVABLE = (
+    'version solving failed',
+    'requires sdk version',
+    'doesn\'t support null safety',
+)
+_CANNOT_TELL = (
+    'socketexception', 'connection', 'could not resolve host', 'timed out',
+    'temporary failure', 'network is unreachable', 'failed host lookup',
+)
+
+
+def resolve_check(app_dir, recipe_name, timeout=300):
+    """Does this app's dependency graph actually solve against the pinned SDK?
+
+    The static gate reads declared constraints, which catches an app that says
+    outright it needs a different Dart. It cannot catch an app that declares a
+    range the pinned SDK satisfies and still fails to resolve, because a
+    dependency of a dependency does not -- for that, something has to run pub.
+
+    Returns a reason when pub says the graph cannot be satisfied, and None
+    otherwise. None also covers every case where the answer is unknown: no
+    flutter on PATH, a network failure, a timeout, output that does not match
+    either shape. A roll that drops apps because pub.dev was briefly
+    unreachable would be worse than one that does not check at all.
+    """
+    import shutil
+    import subprocess
+
+    if shutil.which('flutter') is None:
+        return None
+    try:
+        r = subprocess.run(['flutter', '--suppress-analytics', 'pub', 'get'],
+                           cwd=app_dir, capture_output=True, text=True,
+                           timeout=timeout)
+    except (subprocess.TimeoutExpired, OSError) as e:
+        print(f'NOTE: {recipe_name}: could not resolve ({e}); not treating that '
+              f'as incompatible')
+        return None
+    if r.returncode == 0:
+        return None
+
+    blob = f'{r.stdout}\n{r.stderr}'.lower()
+    if any(m in blob for m in _CANNOT_TELL):
+        print(f'NOTE: {recipe_name}: resolve failed for a reason that is not the '
+              f'app; not treating that as incompatible')
+        return None
+    if any(m in blob for m in _UNSOLVABLE):
+        first = next((l.strip() for l in f'{r.stdout}\n{r.stderr}'.splitlines()
+                      if l.strip().startswith('Because')), '')
+        return f'dependencies do not solve against the pinned SDK{": " + first if first else ""}'
+    print(f'NOTE: {recipe_name}: pub get failed but said nothing about solving; '
+          f'not treating that as incompatible\n{r.stderr.strip()[:300]}')
+    return None
+
+
 def workspace_root_for(app_dir):
     """The pub workspace root this app belongs to, or None if it is not a member.
 
@@ -621,7 +680,8 @@ def create_yocto_recipes(directory,
                          variables,
                          patch_dir,
                          pubvendor=False,
-                         generate_recipes=True):
+                         generate_recipes=True,
+                         resolve_all=False):
     """Create bb recipe for each pubspec.yaml file in path"""
     import glob
 
@@ -669,13 +729,20 @@ def create_yocto_recipes(directory,
             yaml_obj, pinned_flutter, pinned_dart)
         if not reason:
             # An app can declare a range the pinned SDK satisfies and still
-            # fail to resolve because something it depends on does not. In
-            # general that needs a real pub get, which the roll cannot afford
-            # per app; dependencies by path are the exception, since their
-            # pubspecs are already on disk. See #850.
+            # fail to resolve because something it depends on does not.
+            # Dependencies by path are free to check, since their pubspecs are
+            # already on disk. See #850.
             reason = sdk_constraint.path_dependency_reason(
                 os.path.dirname(filename), yaml_obj,
                 pinned_flutter, pinned_dart, get_yaml_obj)
+        if not reason and resolve_all:
+            # Dependencies from pub are not free: knowing whether those solve
+            # means running pub, once per app. Off by default so a roll being
+            # watched stays quick, on for the unattended one, where the time
+            # costs nobody anything and an unexplained build failure costs
+            # most.
+            reason = resolve_check(os.path.dirname(filename),
+                                   os.path.relpath(filename, directory))
         if reason:
             incompatible.append((os.path.relpath(filename, directory), reason))
             continue

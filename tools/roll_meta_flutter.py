@@ -61,7 +61,8 @@ def get_repo(repo_path: str, output_path: str,
              variables: dict,
              patch_dir: str,
              pubvendor: bool = False,
-             generate_recipes: bool = True):
+             generate_recipes: bool = True,
+             resolve_all: bool = False):
     """ Clone Git Repo """
 
     print(f'repo_path: {repo_path}')
@@ -206,10 +207,12 @@ def get_repo(repo_path: str, output_path: str,
                          variables=variables,
                          patch_dir=patch_dir,
                          pubvendor=pubvendor,
-                         generate_recipes=generate_recipes)
+                         generate_recipes=generate_recipes,
+                         resolve_all=resolve_all)
 
 
-def get_workspace_repos(repo_path, repos, output_path, package_output_path, patch_dir):
+def get_workspace_repos(repo_path, repos, output_path, package_output_path,
+                        patch_dir, resolve_all=False):
     """ Clone GIT repos referenced in config repos dict to base_folder """
 
     import concurrent.futures
@@ -234,6 +237,7 @@ def get_workspace_repos(repo_path, repos, output_path, package_output_path, patc
                                     compiler_requires_network_list=r.get('compiler_requires_network'),
                                     pubvendor=r.get('pubvendor', False),
                                     generate_recipes=r.get('generate_recipes', True),
+                                    resolve_all=resolve_all,
                                     src_folder=r.get('src_folder'),
                                     src_files=r.get('src_files'),
                                     entry_files=r.get('entry_files'),
@@ -402,6 +406,12 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--channel', default='stable', type=str, help='Flutter Channel - beta, dev, stable')
+    parser.add_argument('--resolve-all', action='store_true',
+                        help='run pub get for every app, not only those that '
+                             'vendor, so an app whose dependencies do not solve '
+                             'against the pinned SDK is skipped rather than '
+                             'generated. Costs one resolve per app; meant for '
+                             'the unattended roll.')
     parser.add_argument('--version', default=None, type=str, help='Flutter SDK version')
     parser.add_argument('--path', default='.', type=str, help='meta-flutter root path')
     parser.add_argument('--json', default=None, type=str,
@@ -499,7 +509,8 @@ def main():
     output_path = os.path.join(args.path, 'meta-flutter-apps')
     make_sure_path_exists(output_path)
 
-    get_workspace_repos(repo_path, repos, output_path, package_output_path, args.patch_dir)
+    get_workspace_repos(repo_path, repos, output_path, package_output_path,
+                        args.patch_dir, resolve_all=args.resolve_all)
 
     clear_folder(repo_path)
 
