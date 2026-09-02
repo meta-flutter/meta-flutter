@@ -121,6 +121,20 @@ skip past.
 | `compiler_requires_network` | apps whose build hooks fetch |
 | `pubvendor` | `true` to vendor the pub cache, `"resolve"` to always replace a committed lockfile |
 
+## Requirements
+
+Python 3.10 or newer, and:
+
+    pip install pycurl pyyaml
+
+`pycurl` downloads `releases_linux.json` and the version files; `pyyaml` reads
+every `pubspec.yaml`. Neither is optional, and `pycurl` needs libcurl headers
+to build (`libcurl4-openssl-dev` on Debian, `libcurl-devel` on Fedora).
+
+The roll also needs `git`, and `flutter` on `PATH` for any app that sets
+`"pubvendor"` -- at the version this layer pins, since that is what the
+lockfile is resolved against.
+
 ## Tests
 
 ```

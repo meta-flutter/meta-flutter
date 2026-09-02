@@ -180,7 +180,17 @@ def get_yaml_obj(filepath: str):
 
 
 def fetch_https_progress(download_t, download_d, _upload_t, _upload_d):
-    """callback function for pycurl.XFERINFOFUNCTION"""
+    """callback function for pycurl.XFERINFOFUNCTION
+
+    Only when someone is watching. The meter redraws with \r, which is right
+    on a terminal and useless in a file: a roll downloads several files and
+    the result is thousands of Progress: lines interleaved with the output
+    that matters -- the repos that failed, the apps that were skipped, where
+    each lockfile came from. That output is the reason to read a roll log at
+    all, and it is the part that gets buried.
+    """
+    if not stream.isatty():
+        return
     stream.write('Progress: {}/{} kiB ({}%)\r'.format(str(int(download_d / KB)), str(int(download_t / KB)),
                                                       str(int(download_d / download_t * 100) if download_t > 0 else 0)))
     stream.flush()
@@ -289,68 +299,28 @@ def get_flutter_sdk_version() -> str:
         return flutter_version
 
 
-def test_internet_connection() -> bool:
-    """Test internet by connecting to nameserver"""
-    import pycurl
+def test_internet_connection(host='storage.googleapis.com', port=443,
+                             timeout=5) -> bool:
+    """Can the roll reach what it needs?
 
-    c = pycurl.Curl()
-    c.setopt(pycurl.URL, "https://dns.google")
-    c.setopt(pycurl.FOLLOWLOCATION, 0)
-    c.setopt(pycurl.CONNECTTIMEOUT, 5)
-    c.setopt(pycurl.NOSIGNAL, 1)
-    c.setopt(pycurl.NOPROGRESS, 1)
-    c.setopt(pycurl.NOBODY, 1)
+    A plain socket connect rather than pycurl. pycurl is still required --
+    fetch_https_binary_file() downloads releases_linux.json with it -- but a
+    reachability probe does not need it, and importing it here made a missing
+    pycurl fail at the connectivity check rather than at the download, which
+    reads like a network problem instead of a missing dependency.
+
+    Aimed at the host the roll actually uses, rather than at a general-purpose
+    nameserver: a check that passes while the endpoint the work depends on is
+    unreachable is worse than no check.
+    """
+    import socket
+
     try:
-        c.perform()
-    except pycurl.error as e:
-        error_code, message = e
-        print(f'pycurl exception: {error_code}: {message}')
-        pass
-
-    res = False
-    if c.getinfo(pycurl.RESPONSE_CODE) == 200:
-        res = True
-
-    return res
-
-
-# Phrases that identify a license, matched against the file's text with
-# whitespace collapsed. Titles are spelled without the comma that the
-# cross-references use ("Apache License Version 2.0" as a heading, versus
-# "the GNU Lesser General Public License, Version 2.1" where MPL-2.0 names its
-# secondary licenses) so that naming a license does not read as being it.
-_LICENSE_MARKERS = [
-    ('Apache-2.0',   (('apache license version 2.0',), ())),
-    ('GPL-3.0',      (('gnu general public license version 3',), ())),
-    ('GPL-2.0',      (('gnu general public license version 2',), ())),
-    ('LGPL-3.0',     (('gnu lesser general public license version 3',), ())),
-    ('LGPL-2.1',     (('gnu lesser general public license version 2.1',), ())),
-    ('MPL-2.0',      (('mozilla public license version 2.0',), ())),
-    # BSD-3-Clause is BSD-2-Clause plus non-endorsement, so the two-clause form
-    # is only itself when the third clause is absent.
-    ('BSD-3-Clause', (('redistribution and use in source and binary forms',
-                       'neither the name'), ())),
-    ('BSD-2-Clause', (('redistribution and use in source and binary forms',),
-                      ('neither the name',))),
-    # The SIL Open Font License opens with the same sentence as MIT but grants
-    # over "the Font Software"; flutter/games ships both, so MIT has to key on
-    # its own object to avoid claiming every font license as MIT.
-    ('OFL-1.1',      (('sil open font license',), ())),
-    ('MIT',          (('free of charge, to any person obtaining a copy of this software',), ())),
-    ('ISC',          (('permission to use, copy, modify, and/or distribute this software',), ())),
-]
-
-# Families where the license file alone cannot settle the identifier. A project
-# shipping the GPL ships the same COPYING whether it is "version 3 only" or
-# "version 3 or later" -- that distinction lives in the per-file headers, and
-# the license text's own appendix always shows the or-later wording. So detect
-# the family and accept either variant rather than guess.
-_LICENSE_FAMILIES = {
-    'GPL-3.0':  ('GPL-3.0-only', 'GPL-3.0-or-later'),
-    'GPL-2.0':  ('GPL-2.0-only', 'GPL-2.0-or-later'),
-    'LGPL-3.0': ('LGPL-3.0-only', 'LGPL-3.0-or-later'),
-    'LGPL-2.1': ('LGPL-2.1-only', 'LGPL-2.1-or-later'),
-}
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError as e:
+        print(f'no connection to {host}:{port}: {e}')
+        return False
 
 
 def detect_licenses(license_path: str) -> list:
