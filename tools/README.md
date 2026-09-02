@@ -139,11 +139,17 @@ skip past.
 
 Python 3.10 or newer, and:
 
-    pip install pycurl pyyaml
+    pip install -r tools/requirements.txt
 
-`pycurl` downloads `releases_linux.json` and the version files; `pyyaml` reads
-every `pubspec.yaml`. Neither is optional, and `pycurl` needs libcurl headers
-to build (`libcurl4-openssl-dev` on Debian, `libcurl-devel` on Fedora).
+`pycurl` and `certifi` download `releases_linux.json` and the version files;
+`pyyaml` reads every `pubspec.yaml`. None is optional, and `pycurl` needs
+libcurl headers to build (`libcurl4-openssl-dev` on Debian, `libcurl-devel` on
+Fedora).
+
+The list is checked against the code: `tools/tests/test_requirements.py` walks
+every import under `tools/` and fails if one is missing from the file, or if
+the file names something nothing imports. A hand-kept list drifted twice before
+that existed.
 
 The roll also needs `git`, and `flutter` on `PATH` for any app that sets
 `"pubvendor"` -- at the version this layer pins, since that is what the
