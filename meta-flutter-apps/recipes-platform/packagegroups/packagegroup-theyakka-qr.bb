@@ -11,5 +11,4 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS:${PN} += " \
-    theyakka-qr-example \
 "
