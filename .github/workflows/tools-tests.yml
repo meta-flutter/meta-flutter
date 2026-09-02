@@ -38,7 +38,12 @@ jobs:
           python-version: ${{ matrix.python }}
 
       - name: 📦 Install Dependencies
-        run: python -m pip install --disable-pip-version-check pytest pyyaml
+        # From the file, not a second hand-kept list. The two drifted before:
+        # the README named pycurl and pyyaml, CI installed pytest and pyyaml,
+        # and certifi -- which the roll actually needs -- was in neither.
+        run: |
+          python -m pip install --disable-pip-version-check pytest
+          python -m pip install --disable-pip-version-check -r tools/requirements.txt
 
       - name: 🧪 Run tools test suites
         # Discovers every tests/ dir under tools/, so a new tool with tests
