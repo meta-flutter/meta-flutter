@@ -14,7 +14,7 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=2b36ca50262dc615e560c27654badb26"
 
-SRCREV = "b33d9334f58b1cb6dfc1d6a46deb1c24f4a6425a"
+SRCREV = "955fd5d2d2abcebfbc34abfe56f2aad924c4d612"
 SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=https"
 
 PUBSPEC_APPNAME = "google_maps_flutter_example"
