@@ -20,8 +20,9 @@ on:
       # those too and triggers a build on its own.
       - 'meta-flutter-apps/conf/flutter-apps.json'
       - '.github/workflows/runner-maintenance.yml'
-      # Runs on a GitHub-hosted runner and never touches a build.
+      # Run on a GitHub-hosted runner and never touch a build.
       - '.github/workflows/tools-tests.yml'
+      - '.github/workflows/roll.yml'
       # Release-branch builds are registered here so they can be
       # dispatched, but they never affect a master build.
       - '.github/workflows/scarthgap-build.yml'

@@ -9,6 +9,25 @@
 
 *Only stable branch versions are accepted.*
 
+## Rolling automatically
+
+`.github/workflows/roll.yml` stages a roll as a draft pull request. It is
+dispatched by meta-flutter/flutter-channel-watch when the stable release
+version changes, or by hand from the Actions tab with an optional version.
+
+It never merges anything: the pull request is the deliverable, CI is the gate,
+a person merges. If the roll produces no changes it exits green without opening
+one, and if the layer already pins the requested version it does nothing at all.
+
+It runs on a GitHub-hosted runner rather than the self-hosted matrix -- a roll
+clones and generates, it builds nothing, so it has no reason to queue behind
+hour-long builds.
+
+The version is an **input** rather than something the roll discovers, which is
+what makes the ordering work: an app that vendors its pub cache resolves its
+lockfile against the SDK being rolled to, so that SDK has to be fetched before
+the roll runs, and it is not known until the roll has updated the pin.
+
 ## Selecting a version
 
 The roll updates `conf/include/releases_linux.json` first, then picks from it,
