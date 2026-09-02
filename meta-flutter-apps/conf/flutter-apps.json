@@ -89,7 +89,7 @@
         "uri": "https://github.com/flutter/samples.git",
         "branch": "main",
         "license_file": "LICENSE",
-        "license_type": "BSD-3-Clause",
+        "license_type": "Apache-2.0 AND BSD-3-Clause AND OFL-1.1",
         "author": "Google",
         "folder": "first-party",
         "ignore": [
