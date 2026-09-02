@@ -420,5 +420,19 @@
                 "\nSRC_URI[model_file.sha256sum] = \"cbdecd08b44c5dea3821f77c5468e2936ecfbf43cde0795a2729fdb43401e58b\""
             ]
         }
-    }   
+    }   ,
+    {
+        "uri": "https://github.com/flatpak-minimal/appstream_dart.git",
+        "branch": "main",
+        "rev": "c44e741569f4fb5d6f9dd5bdc6960d91314b174c",
+        "license_file": "LICENSE",
+        "license_type": "Apache-2.0",
+        "author": "Joel Winarske",
+        "folder": "third-party",
+        "pubvendor": true,
+        "generate_recipes": false,
+        "ignore": [
+            ""
+        ]
+    }
 ]

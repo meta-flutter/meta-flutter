@@ -81,6 +81,19 @@ An app declaring `resolution: workspace` has no lockfile of its own; the roll
 follows the `workspace` list to the root and uses the one there, and says
 `(pub workspace)`. See `tools/pubvendor/README.md`.
 
+### Hand-written recipes that vendor
+
+The generator only ever emits `inherit flutter-app` or `inherit flutter-web`. A
+recipe that needs anything else -- `flutter-app-native`, an extra task, a
+`do_install:append` -- has to be written by hand, and generating over it would
+quietly drop whatever made it work.
+
+`"generate_recipes": false` covers that case: the roll clones the repository and
+regenerates the app's `-pubcache.inc` and `-pubspec.lock` against the pinned SDK,
+and writes no recipe. Without it a vendored fragment ages silently against a
+moving SDK, and the eventual failure is a `PUBSPEC_LOCK_SHA256` mismatch that
+says nothing about why.
+
 ### Flutter SDK apps
 
 The apps the SDK itself ships have no manifest entry and no SRCREV: they move
@@ -120,6 +133,7 @@ skip past.
 | `output_folder`, `variables`, `src_folder`, `src_files`, `entry_files` | per-app recipe overrides |
 | `compiler_requires_network` | apps whose build hooks fetch |
 | `pubvendor` | `true` to vendor the pub cache, `"resolve"` to always replace a committed lockfile |
+| `generate_recipes` | `false` for a repository whose recipes are hand-written; the roll still vendors its pub cache |
 
 ## Requirements
 

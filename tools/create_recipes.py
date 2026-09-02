@@ -380,7 +380,8 @@ def create_recipe(directory,
                   src_files,
                   variables,
                   patch_dir,
-                  pubvendor=False) -> str:
+                  pubvendor=False,
+                  generate_recipes=True) -> str:
     is_web = False
     # TODO detect web
 
@@ -423,6 +424,14 @@ def create_recipe(directory,
             recipe_name=recipe_name,
             output_path=output_path,
             always_resolve=(pubvendor == 'resolve'))
+
+    # An app whose recipe is maintained by hand, but whose vendored pub cache
+    # should still follow the pinned SDK. The generator emits `inherit
+    # flutter-app` and nothing else -- no flutter-app-native, no extra tasks --
+    # so generating over such a recipe would quietly drop whatever made it work.
+    # Vendor the cache, leave the recipe alone.
+    if not generate_recipes:
+        return ''
 
     if project_version is not None:
         version = project_version.split('+')
@@ -611,7 +620,8 @@ def create_yocto_recipes(directory,
                          entry_files,
                          variables,
                          patch_dir,
-                         pubvendor=False):
+                         pubvendor=False,
+                         generate_recipes=True):
     """Create bb recipe for each pubspec.yaml file in path"""
     import glob
 
@@ -708,7 +718,8 @@ def create_yocto_recipes(directory,
                                src_files=src_files,
                                variables=variables,
                                patch_dir=patch_dir,
-                               pubvendor=pubvendor)
+                               pubvendor=pubvendor,
+                               generate_recipes=generate_recipes)
 
         if recipe != '':
             recipes.append([recipe, flutter_application_path])
