@@ -59,6 +59,20 @@ reason rather than generating a recipe that fails to build later:
   packages/foo/example: needs Dart >=3.20.0 <4.0.0, this layer pins Dart 3.13.1
 ```
 
+Dependencies by path are followed too, transitively: an app can declare a range
+the pinned SDK satisfies and still fail to resolve because something beside it
+in the same repository does not. That is the monorepo case, and it costs
+nothing to check because those pubspecs are already on disk. The reason names
+the dependency:
+
+```
+  foo/example: depends on foo_core by path, which needs Dart >=2.17.0 <3.0.0,
+               this layer pins Dart 3.13.2
+```
+
+Dependencies from pub are not followed -- knowing whether those resolve needs a
+real `pub get`, which the roll does not run for every app.
+
 This is deliberately conservative: a constraint it cannot parse, a missing
 `environment`, or an unknown pinned version all mean *do not skip*. A gate that
 misfires drops an app silently, which is worse than the build failure it

@@ -667,6 +667,15 @@ def create_yocto_recipes(directory,
 
         reason = sdk_constraint.excluded_reason(
             yaml_obj, pinned_flutter, pinned_dart)
+        if not reason:
+            # An app can declare a range the pinned SDK satisfies and still
+            # fail to resolve because something it depends on does not. In
+            # general that needs a real pub get, which the roll cannot afford
+            # per app; dependencies by path are the exception, since their
+            # pubspecs are already on disk. See #850.
+            reason = sdk_constraint.path_dependency_reason(
+                os.path.dirname(filename), yaml_obj,
+                pinned_flutter, pinned_dart, get_yaml_obj)
         if reason:
             incompatible.append((os.path.relpath(filename, directory), reason))
             continue
