@@ -70,8 +70,21 @@ the dependency:
                this layer pins Dart 3.13.2
 ```
 
-Dependencies from pub are not followed -- knowing whether those resolve needs a
-real `pub get`, which the roll does not run for every app.
+Dependencies from pub need a real `pub get` to check, which costs one resolve
+per app. `--resolve-all` turns that on; the roll workflow passes it, and a roll
+someone is watching does not. An app whose dependencies do not solve is skipped
+with pub's own explanation:
+
+```
+  foo/example: dependencies do not solve against the pinned SDK: Because
+               foo/example depends on bar >=2.0.0 which requires SDK version
+               >=3.20.0, version solving failed.
+```
+
+Only pub saying the graph cannot be satisfied counts. A network failure, a
+timeout, no `flutter` on `PATH`, or output that matches neither shape all mean
+*do not skip* -- a roll that dropped apps because pub.dev blinked would be
+worse than one that does not check.
 
 This is deliberately conservative: a constraint it cannot parse, a missing
 `environment`, or an unknown pinned version all mean *do not skip*. A gate that
