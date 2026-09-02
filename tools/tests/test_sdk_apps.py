@@ -129,3 +129,45 @@ def test_apps_are_emitted_in_a_stable_order(tmp_path):
         _app(tmp_path, rel)
     cands, _ = _find(tmp_path)
     assert [c['path'] for c in cands] == sorted(c['path'] for c in cands)
+
+
+def test_roll_sdk_apps_is_not_fatal_when_the_clone_fails(tmp_path, monkeypatch, capsys):
+    """A roll that has already bumped the SDK must not be thrown away.
+
+    But it has to say so: recipes left describing the previous SDK keep
+    parsing, and only the handful built in CI would ever notice.
+    """
+    import subprocess as sp
+    monkeypatch.setattr(sdk_apps, 'pinned_release_hash', lambda root: 'deadbeef')
+
+    def boom(*a, **kw):
+        raise sp.CalledProcessError(128, 'git', stderr='could not read from remote')
+    monkeypatch.setattr(sdk_apps, 'clone_pinned', boom)
+
+    assert sdk_apps.roll_sdk_apps(str(tmp_path)) is False
+    out = capsys.readouterr().out
+    assert 'WARNING' in out
+    assert 'describe an older SDK' in out
+
+
+def test_roll_sdk_apps_reports_a_missing_release_hash(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(sdk_apps, 'pinned_release_hash', lambda root: None)
+    assert sdk_apps.roll_sdk_apps(str(tmp_path)) is False
+    assert 'no release hash' in capsys.readouterr().out
+
+
+def test_roll_sdk_apps_generates_from_an_existing_clone(tmp_path):
+    clone = tmp_path / 'flutter'
+    _app(clone, 'examples/hello_world')
+    (clone / 'pubspec.yaml').write_text('name: _flutter_packages\n')
+    layer = tmp_path / 'layer'
+    (layer / 'conf' / 'include').mkdir(parents=True)
+    (layer / 'conf' / 'include' / 'flutter-version.inc').write_text(
+        'FLUTTER_SDK_TAG ??= "3.47.1"\n')
+    (layer / 'conf' / 'include' / 'releases_linux.json').write_text(
+        '{"releases": [{"version": "3.47.1", "dart_sdk_version": "3.13.1"}]}')
+
+    assert sdk_apps.roll_sdk_apps(str(layer), str(clone)) is True
+    written = sorted(p.name for p in
+                     (layer / 'recipes-graphics' / 'flutter-sdk' / 'apps').iterdir())
+    assert 'flutter-sdk-examples-hello-world.bb' in written
