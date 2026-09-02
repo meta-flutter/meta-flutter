@@ -387,8 +387,16 @@ jobs:
           # app with real dependencies -- ten of them, including url_launcher,
           # whose Linux implementation exercises plugin registration. The SDK's
           # apps are otherwise mostly dependency-free.
-          bitbake flutter-sdk-examples-hello-world \
-                  flutter-sdk-dev-integration-tests-flutter-gallery
+          APPS="flutter-sdk-examples-hello-world \
+                flutter-sdk-dev-integration-tests-flutter-gallery"
+
+          # These vendor the SDK workspace's pub cache -- one fragment for all
+          # of them, since they are members of one workspace with one lockfile.
+          # Fetch first, then build with the network off: anything the fragment
+          # failed to declare cannot be fetched and fails here rather than
+          # working quietly on a machine that happens to be online.
+          bitbake --runall=fetch $APPS
+          BB_NO_NETWORK=1 bitbake $APPS
 
       #
       # bluez_native: compiles a vendored sdbus-c++ from its own hook.

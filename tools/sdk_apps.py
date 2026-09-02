@@ -156,6 +156,40 @@ def render(app, overrides):
     return '\n'.join(lines)
 
 
+def generate_workspace_fragment(clone_root, output_path):
+    """Vendor the SDK workspace's pub cache into one SRC_URI fragment.
+
+    SDK apps are pub workspace members: there is no per-app lockfile, only one
+    at the workspace root covering every member. So unlike the third-party apps
+    -- where vendoring costs a fragment each -- one fragment serves all of
+    them, and the cost does not grow with the number of recipes.
+
+    The lockfile is shipped in the release archive and `flutter update-packages`
+    during the SDK build leaves it byte-identical, so this is the project's own
+    resolution rather than one the roll invented.
+    """
+    import sys as _sys
+
+    _sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                     'pubvendor'))
+    import pubvendor
+    from common import OVERRIDE_STYLE
+
+    lock = os.path.join(clone_root, 'pubspec.lock')
+    if not os.path.isfile(lock):
+        print(f'WARNING: no workspace lockfile at {lock}; no fragment written')
+        return None
+    rc = pubvendor.main(['-i', lock, '-o', output_path,
+                         '--style', OVERRIDE_STYLE,
+                         '--provenance',
+                         "the SDK's own, as shipped in the release archive "
+                         "(pub workspace, all members)"])
+    if rc != 0:
+        print('WARNING: pubvendor failed on the workspace lockfile')
+        return None
+    return output_path
+
+
 def generate(layer_root, clone_root, overrides_path, output_dir, read_yaml):
     """Write a recipe per candidate app. Returns (written, rejected)."""
     flutter, dart = sdk_constraint.pinned_versions(layer_root)
@@ -171,7 +205,8 @@ def generate(layer_root, clone_root, overrides_path, output_dir, read_yaml):
     # Generated recipes are owned by this script: remove the ones it wrote last
     # time so an app that leaves the SDK leaves the layer with it.
     for existing in os.listdir(output_dir):
-        if existing.startswith('flutter-sdk-') and existing.endswith('.bb'):
+        if existing.startswith('flutter-sdk-') and \
+                existing.endswith(('.bb', '-pubcache.inc')):
             os.remove(os.path.join(output_dir, existing))
 
     written = []
@@ -180,6 +215,10 @@ def generate(layer_root, clone_root, overrides_path, output_dir, read_yaml):
         with open(path, 'w') as f:
             f.write(render(app, overrides))
         written.append(os.path.basename(path))
+
+    fragment = os.path.join(output_dir, 'flutter-sdk-workspace-pubcache.inc')
+    if generate_workspace_fragment(clone_root, fragment):
+        written.append(os.path.basename(fragment))
 
     stale = sorted(set(overrides) - {a['path'] for a in candidates})
     if stale:
