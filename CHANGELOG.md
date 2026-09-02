@@ -1,5 +1,14 @@
 # Changelog
 
+October 11, 2026
+1. drop the capnproto PIC bbappend (capnproto_%.bbappend)
+   - added on 31 August as a stand-in for the meta-oe fix. meta-oe now sets
+     CMAKE_POSITION_INDEPENDENT_CODE=ON on both master and wrynose, so the
+     bbappend duplicates what the recipe's own layer already does
+   - a bbappend for another layer's recipe does not belong here
+   - capnproto's sstate is invalidated again, as it was when the bbappend
+     landed
+
 October 6, 2026
 1. flutter-sdk: do not preserve ownership when staging the SDK. cp -a implies
    --preserve=all, and do_install runs under pseudo, so every staged file took
