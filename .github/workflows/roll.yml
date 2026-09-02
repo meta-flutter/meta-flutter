@@ -1,0 +1,168 @@
+# Stage a roll as a pull request when the stable channel moves.
+#
+# Dispatched by meta-flutter/flutter-channel-watch when the stable release
+# version changes, or by hand. Never merges anything: the pull request is the
+# deliverable, CI is the gate, a person merges.
+#
+# Runs on a GitHub-hosted runner on purpose. A roll clones repositories and
+# generates recipes; it builds nothing, so it has no business queueing behind
+# the self-hosted matrix -- which is where every hour of this project's CI
+# time goes.
+
+name: roll
+
+on:
+  repository_dispatch:
+    types: [flutter-stable-roll]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Flutter version to roll to (blank = current stable)'
+        required: false
+        type: string
+
+concurrency:
+  group: roll
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  roll:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Work out which version to roll to
+        id: version
+        run: |
+          set -euo pipefail
+          want="${{ github.event.client_payload.version || inputs.version }}"
+          if [ -z "$want" ]; then
+            curl --fail --show-error --silent --retry 3 --max-time 60 \
+              -o releases.json \
+              https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json
+            want=$(jq -r '.current_release.stable as $h | .releases[]
+                          | select(.hash == $h) | .version' releases.json | head -1)
+            rm -f releases.json
+          fi
+          if ! printf '%s' "$want" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::not a version: $want"
+            exit 1
+          fi
+          have=$(grep -oP '(?<=FLUTTER_SDK_TAG \?\?= ")[^"]+' conf/include/flutter-version.inc)
+          echo "want=$want" >> "$GITHUB_OUTPUT"
+          echo "have=$have" >> "$GITHUB_OUTPUT"
+          echo "the layer pins $have; rolling to $want"
+
+      - name: Already there
+        if: steps.version.outputs.want == steps.version.outputs.have
+        run: echo "nothing to do — the layer already pins ${{ steps.version.outputs.want }}"
+
+      - name: Install the roll's dependencies
+        if: steps.version.outputs.want != steps.version.outputs.have
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libcurl4-openssl-dev
+          python -m pip install --disable-pip-version-check -r tools/requirements.txt
+
+      - name: Fetch the Flutter SDK being rolled to
+        if: steps.version.outputs.want != steps.version.outputs.have
+        run: |
+          set -euo pipefail
+          # The version is an input rather than something the roll discovers,
+          # which is what makes this orderable at all: the SDK an app resolves
+          # its lockfile against has to be the one being rolled to, and that is
+          # not known until the roll has already updated the pin.
+          v="${{ steps.version.outputs.want }}"
+          curl --fail --show-error --silent --retry 3 --max-time 120 \
+            -o releases.json \
+            https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json
+          archive=$(jq -r --arg v "$v" '.releases[] | select(.version == $v)
+                    | select(.channel == "stable") | .archive' releases.json | head -1)
+          if [ -z "$archive" ]; then
+            echo "::error::no stable release archive for $v"
+            exit 1
+          fi
+          curl --fail --show-error --silent --retry 3 --max-time 900 \
+            -o flutter.tar.xz \
+            "https://storage.googleapis.com/flutter_infra_release/releases/$archive"
+          tar xf flutter.tar.xz -C "$RUNNER_TEMP"
+          rm -f flutter.tar.xz releases.json
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+
+      - name: Roll
+        if: steps.version.outputs.want != steps.version.outputs.have
+        run: |
+          set -euo pipefail
+          flutter --version
+          # Fails loudly now: a repository that cannot be cloned, whose declared
+          # license does not match its source, or whose manifest entry is
+          # unusable stops the roll rather than leaving recipes quietly missing.
+          # --resolve-all: run pub get for every app, so one whose
+          # dependencies do not solve against the pinned SDK is skipped
+          # with a reason rather than generated and left to fail at build
+          # time. It costs a resolve per app, which is why it is off for a
+          # roll someone is watching and on here, where nobody is.
+          python tools/roll_meta_flutter.py --path . \
+            --version "${{ steps.version.outputs.want }}" \
+            --resolve-all
+
+      - name: Stage it
+        if: steps.version.outputs.want != steps.version.outputs.have
+        id: stage
+        run: |
+          set -euo pipefail
+          v="${{ steps.version.outputs.want }}"
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "the roll produced no changes"
+            echo "staged=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git config user.name "meta-flutter roll"
+          git config user.email "noreply@meta-flutter.dev"
+          git checkout -B "auto/roll-$v"
+          git add -A
+          # Two -m flags rather than a multi-line string: everything inside a
+          # run: | block has to stay indented, and an unindented continuation
+          # line ends the block scalar.
+          git commit \
+            -m "master: roll to Flutter $v" \
+            -m "Rolled by .github/workflows/roll.yml. The job log carries what the roll reported: repositories that failed, apps skipped because the pinned SDK is outside their declared environment, and where each vendored lockfile came from."
+          git push -f origin "auto/roll-$v"
+          echo "staged=true" >> "$GITHUB_OUTPUT"
+
+      - name: Open a pull request
+        if: steps.stage.outputs.staged == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          v="${{ steps.version.outputs.want }}"
+          run="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          # Draft: a roll is generated content and wants reading before it wants
+          # reviewers. Whoever picks it up marks it ready.
+          if gh pr view "auto/roll-$v" --json number >/dev/null 2>&1; then
+            echo "pull request already open for $v; the branch was updated"
+            exit 0
+          fi
+          body=$(printf '%s\n' \
+            "Staged by the roll workflow, from ${{ steps.version.outputs.have }}." \
+            "" \
+            "Nothing here is merged automatically. The [job log]($run) carries what the roll reported and is worth reading before the diff:" \
+            "" \
+            "- repositories that failed to roll — the roll exits non-zero on those, so reaching this point means none did" \
+            "- apps skipped because the pinned SDK is outside their declared environment, each with a reason" \
+            "- where each vendored lockfile came from" \
+            "" \
+            "Mark ready when it has been looked at.")
+          gh pr create --draft \
+            --base master --head "auto/roll-$v" \
+            --title "master: roll to Flutter $v" \
+            --body "$body"
