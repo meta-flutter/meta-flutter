@@ -128,6 +128,55 @@ def excluded_reason(yaml_obj, flutter_version, dart_version):
     return None
 
 
+def path_dependency_reason(app_dir, spec, flutter_version, dart_version,
+                           read_yaml, _seen=None):
+    """Why a path dependency of this app excludes the pinned SDK, or None.
+
+    An app can declare a range the pinned SDK satisfies and still fail to
+    resolve, because something it depends on does not. Detecting that in
+    general needs a real `pub get`, which the roll cannot afford for every app.
+
+    Dependencies by path are the exception: they live in the same repository,
+    their pubspecs are already on disk, and reading them costs nothing. That
+    covers the monorepo case, which is most of what the manifest tracks -- an
+    app beside a package that has not been updated for the current Dart.
+
+    Followed transitively, since a path dependency may have its own, with a
+    visited set because they can be mutually referential.
+    """
+    if _seen is None:
+        _seen = set()
+    app_dir = os.path.realpath(app_dir)
+    if app_dir in _seen:
+        return None
+    _seen.add(app_dir)
+
+    deps = (spec or {}).get('dependencies')
+    if not isinstance(deps, dict):
+        return None
+
+    for name, value in sorted(deps.items()):
+        if not isinstance(value, dict) or 'path' not in value:
+            continue
+        dep_dir = os.path.normpath(os.path.join(app_dir, str(value['path'])))
+        pubspec = os.path.join(dep_dir, 'pubspec.yaml')
+        if not os.path.isfile(pubspec):
+            # A path that does not resolve is a problem for pub, not for this
+            # gate; saying so here would be guessing at a different failure.
+            continue
+        dep_spec = read_yaml(pubspec)
+        if not dep_spec:
+            continue
+        reason = excluded_reason(dep_spec, flutter_version, dart_version)
+        if reason:
+            return f'depends on {name} by path, which {reason}'
+        deeper = path_dependency_reason(dep_dir, dep_spec, flutter_version,
+                                        dart_version, read_yaml, _seen)
+        if deeper:
+            return f'depends on {name} by path, which {deeper}'
+    return None
+
+
 def pinned_versions(layer_root=None):
     """(flutter, dart) this layer pins, either possibly None.
 

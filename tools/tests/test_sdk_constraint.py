@@ -115,3 +115,80 @@ def test_pinned_versions_reads_the_layer():
     flutter, dart = sc.pinned_versions()
     assert flutter and dart
     assert sc.parse_version(flutter) and sc.parse_version(dart)
+
+
+# --- path dependencies (#850 case 2) -----------------------------------------
+
+def _repo(tmp_path, app_env, dep_env, dep_rel='../pkg'):
+    import yaml
+    app = tmp_path / 'app'
+    pkg = tmp_path / 'pkg'
+    app.mkdir(); pkg.mkdir()
+    (app / 'pubspec.yaml').write_text(yaml.safe_dump({
+        'name': 'app', 'environment': {'sdk': app_env},
+        'dependencies': {'pkg': {'path': dep_rel}}}))
+    (pkg / 'pubspec.yaml').write_text(yaml.safe_dump({
+        'name': 'pkg', 'environment': {'sdk': dep_env}}))
+    return app
+
+
+def _read(p):
+    import yaml
+    return yaml.safe_load(open(p))
+
+
+def _reason(app):
+    return sc.path_dependency_reason(str(app), _read(app / 'pubspec.yaml'),
+                                     '3.47.1', '3.13.1', _read)
+
+
+def test_an_incompatible_path_dependency_excludes_the_app(tmp_path):
+    # the app itself is fine; what it depends on is not, and only a resolve
+    # would otherwise find that
+    app = _repo(tmp_path, '^3.11.0-0', '>=2.17.0 <3.0.0')
+    r = _reason(app)
+    assert r is not None
+    assert 'depends on pkg by path' in r and 'Dart' in r
+
+
+def test_a_compatible_path_dependency_is_not_an_exclusion(tmp_path):
+    assert _reason(_repo(tmp_path, '^3.11.0-0', '^3.11.0-0')) is None
+
+
+def test_it_follows_path_dependencies_transitively(tmp_path):
+    import yaml
+    app = _repo(tmp_path, '^3.11.0-0', '^3.11.0-0')
+    deep = tmp_path / 'deep'
+    deep.mkdir()
+    (deep / 'pubspec.yaml').write_text(yaml.safe_dump({
+        'name': 'deep', 'environment': {'sdk': '>=2.16.0 <3.0.0'}}))
+    (tmp_path / 'pkg' / 'pubspec.yaml').write_text(yaml.safe_dump({
+        'name': 'pkg', 'environment': {'sdk': '^3.11.0-0'},
+        'dependencies': {'deep': {'path': '../deep'}}}))
+    r = _reason(app)
+    assert r is not None and 'deep' in r
+
+
+def test_mutually_referential_paths_do_not_recurse_forever(tmp_path):
+    import yaml
+    app = _repo(tmp_path, '^3.11.0-0', '^3.11.0-0')
+    (tmp_path / 'pkg' / 'pubspec.yaml').write_text(yaml.safe_dump({
+        'name': 'pkg', 'environment': {'sdk': '^3.11.0-0'},
+        'dependencies': {'app': {'path': '../app'}}}))
+    assert _reason(app) is None
+
+
+def test_a_path_that_does_not_exist_is_not_our_failure(tmp_path):
+    # pub will complain about it; guessing here would report the wrong problem
+    app = _repo(tmp_path, '^3.11.0-0', '^3.11.0-0', dep_rel='../nowhere')
+    assert _reason(app) is None
+
+
+def test_hosted_dependencies_are_not_followed(tmp_path):
+    import yaml
+    app = tmp_path / 'app'
+    app.mkdir()
+    (app / 'pubspec.yaml').write_text(yaml.safe_dump({
+        'name': 'app', 'environment': {'sdk': '^3.11.0-0'},
+        'dependencies': {'http': '^1.0.0', 'flutter': {'sdk': 'flutter'}}}))
+    assert _reason(app) is None
