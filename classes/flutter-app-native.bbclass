@@ -111,12 +111,80 @@ python flutter_native_path_setup() {
     d.setVar('PATH', workdir + ':' + path)
 }
 
+# Native-assets libraries: install them, and put them where dlopen looks.
+#
+# The flutter tool records a bare file name for a Linux desktop build --
+# isolated/native_assets/native_assets.dart writes
+# KernelAssetAbsolutePath(Uri(path: fileName)), so the manifest entry is
+# ["absolute", "libfoo.so"] with no directory. The engine hands that straight to
+# dlopen (runtime/dart_isolate.cc, path_type == kAbsolute ->
+# NativeAssets::DlopenAbsolute), and a name with no slash is resolved by the
+# dynamic linker: DT_RUNPATH, LD_LIBRARY_PATH, ld.so.cache, default directories.
+# flutter_assets/ is never consulted -- NativeAssetsManager only parses the
+# manifest, it does not resolve against the asset store.
+#
+# So bundling the library is not enough; the directory holding it has to be on
+# the linker search path. Hence the ld.so.conf.d fragment below.
+#
+# The libraries go in their own subdirectory rather than beside libapp.so, so
+# that adding it to the search path does not also make libapp.so and the
+# libflutter_engine.so symlink globally resolvable by name.
+#
+# Only release and profile get them, matching the AOT install in
+# conf/include/flutter-app.inc. FLUTTER_RUNTIME_MODE cannot be used here: it is
+# a shell loop variable in that file's do_install, and this append runs after
+# the loop has exited, so it needs its own loop.
+#
+# One limitation worth knowing: conf/include/common.inc reuses a single build/
+# directory across runtime modes and runs `flutter clean` between them, so at
+# install time the hook output belongs to whichever mode was built last. With
+# more than one mode enabled, each mode therefore gets that same binary.
 do_install:append() {
-    if [ -d ${S}/${FLUTTER_APPLICATION_PATH}/build/native_assets/linux ]; then
-        cp -r ${S}/${FLUTTER_APPLICATION_PATH}/build/native_assets/linux/* \
-            ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/lib/
+    nadir="${S}/${FLUTTER_APPLICATION_PATH}/build/flutter_assets/native_assets/linux"
+
+    if [ ! -d "$nadir" ] || [ -z "$(ls -A "$nadir" 2>/dev/null)" ]; then
+        bbnote "no native-assets output at $nadir; nothing to install"
+        return 0
     fi
+
+    installed=""
+    for mode in $(ls ${STAGING_DIR_TARGET}${datadir}/flutter/${FLUTTER_SDK_VERSION}); do
+        if ! echo "${FLUTTER_APP_RUNTIME_MODES}" | grep -qw "$mode"; then
+            continue
+        fi
+        if [ "$mode" != "release" ] && [ "$mode" != "profile" ]; then
+            continue
+        fi
+        dest="${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/$mode/lib/native_assets"
+        install -d ${D}$dest
+        cp -a "$nadir"/* ${D}$dest/
+        bbnote "[$mode] native assets installed into $dest:" \
+               "$(ls ${D}$dest | tr '\n' ' ')"
+        installed="$installed $dest"
+    done
+
+    if [ -z "$installed" ]; then
+        bbwarn "this app has native assets in $nadir but none were installed:" \
+               "FLUTTER_APP_RUNTIME_MODES is '${FLUTTER_APP_RUNTIME_MODES}' and" \
+               "they are only installed for release and profile"
+        return 0
+    fi
+
+    # dlopen resolves these by bare name, so the directory has to be searched.
+    # ldconfig runs at rootfs assembly, which is what turns this into cache
+    # entries; an image built without it will not find the libraries.
+    install -d ${D}${sysconfdir}/ld.so.conf.d
+    conf="${D}${sysconfdir}/ld.so.conf.d/flutter-${PN}.conf"
+    : > "$conf"
+    for dest in $installed; do
+        echo "$dest" >> "$conf"
+    done
 }
+
+# :append rather than +=: conf/include/flutter-app.inc assigns FILES:${PN}
+# outright, and it is inherited at the bottom of this file, so a += here is
+# parsed first and then thrown away. Same trap as PUB_CACHE in common.inc.
+FILES:${PN}:append = " ${sysconfdir}/ld.so.conf.d/flutter-${PN}.conf"
 
 # Ensure do_compile has a clean slate when it runs.
 #
