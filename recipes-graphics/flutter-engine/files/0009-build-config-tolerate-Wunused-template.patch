@@ -1,0 +1,37 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@linux.com>
+Date: Wed, 3 Sep 2026 10:00:00 -0700
+Subject: [PATCH] build/config: do not fail on -Wunused-template
+
+The engine builds with -Werror unconditionally, and clang 23 reports
+unused function templates in vendored third-party sources that predate
+the diagnostic:
+
+  third_party/dart/third_party/double-conversion/src/bignum.cc:49:12:
+    error: unused function template 'BitSize' [-Werror,-Wunused-template]
+
+Only riscv64 hits this in meta-flutter: every other architecture builds
+the engine with the clang bundled in the SDK's buildtools, while riscv64
+sets CLANG_PATH to the native toolchain, which oe-core has moved to
+clang/llvm 23.1.0.
+
+The warning is about third-party code this layer does not maintain, so
+disable it rather than carry a patch per vendored source.
+
+Upstream-Status: Inappropriate [oe-specific toolchain combination]
+Signed-off-by: Joel Winarske <joel.winarske@linux.com>
+---
+diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
+--- a/build/config/compiler/BUILD.gn
++++ b/build/config/compiler/BUILD.gn
+@@ -738,6 +738,10 @@ if (is_win) {
+     # Disables.
+     "-Wno-missing-field-initializers",  # "struct foo f = {0};"
+     "-Wno-unused-parameter",  # Unused function parameters.
++
++    # clang 23 reports unused function templates in vendored third-party
++    # sources that predate the diagnostic.
++    "-Wno-unused-template",
+   ]
+ 
+   if (!is_qnx) {
