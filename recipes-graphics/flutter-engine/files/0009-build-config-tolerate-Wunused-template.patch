@@ -21,9 +21,9 @@ disable it rather than carry a patch per vendored source.
 Upstream-Status: Inappropriate [oe-specific toolchain combination]
 Signed-off-by: Joel Winarske <joel.winarske@linux.com>
 ---
-diff --git a/build/config/compiler/BUILD.gn b/build/config/compiler/BUILD.gn
---- a/build/config/compiler/BUILD.gn
-+++ b/build/config/compiler/BUILD.gn
+diff --git a/engine/src/build/config/compiler/BUILD.gn b/engine/src/build/config/compiler/BUILD.gn
+--- a/engine/src/build/config/compiler/BUILD.gn
++++ b/engine/src/build/config/compiler/BUILD.gn
 @@ -738,6 +738,10 @@ if (is_win) {
      # Disables.
      "-Wno-missing-field-initializers",  # "struct foo f = {0};"
