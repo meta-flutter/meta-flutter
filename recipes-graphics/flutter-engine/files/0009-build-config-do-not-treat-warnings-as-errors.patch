@@ -1,0 +1,43 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@linux.com>
+Date: Wed, 3 Sep 2026 12:00:00 -0700
+Subject: [PATCH] build/config: do not treat warnings as errors
+
+The engine adds -Werror unconditionally, and riscv64 builds this tree
+with oe-core's native clang rather than the clang bundled in the SDK's
+buildtools, because CLANG_PATH:riscv64 points at the native toolchain.
+That toolchain is far newer than the one upstream tests against, so each
+clang release turns another diagnostic on in vendored third-party
+sources:
+
+  double-conversion/src/bignum.cc:49:12: error: unused function template
+    'BitSize' [-Werror,-Wunused-template]
+
+  abseil-cpp/absl/synchronization/mutex.h:602:68: error:
+    'lifetime_capture_by(this)' is deprecated [-Werror,-Wdeprecated-attributes]
+
+Disabling them one at a time only defers the next one, and none of this
+is code the layer can fix. Drop -Werror instead; the warnings still
+print.
+
+Upstream-Status: Inappropriate [oe-specific toolchain combination]
+Signed-off-by: Joel Winarske <joel.winarske@linux.com>
+---
+diff --git a/engine/src/build/config/compiler/BUILD.gn b/engine/src/build/config/compiler/BUILD.gn
+--- a/engine/src/build/config/compiler/BUILD.gn
++++ b/engine/src/build/config/compiler/BUILD.gn
+@@ -740,7 +740,13 @@ if (is_win) {
+     "-Wno-unused-parameter",  # Unused function parameters.
+   ]
+ 
+-  if (!is_qnx) {
++  # -Werror removed: meta-flutter builds this tree for riscv64 with oe-core's
++  # native clang rather than the clang bundled in the SDK's buildtools, and
++  # that toolchain is far newer than the one upstream tests against. Each
++  # release turns another diagnostic on in vendored third-party sources --
++  # -Wunused-template in double-conversion, -Wdeprecated-attributes in
++  # abseil -- none of which is code this layer can fix. Warnings still print.
++  if (false) {
+     default_warning_flags += [
+       "-Werror",  # Warnings as errors.
+     ]

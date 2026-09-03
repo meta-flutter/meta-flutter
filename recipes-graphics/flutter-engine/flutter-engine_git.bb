@@ -48,7 +48,7 @@ SRC_URI = "\
     file://BUILD.gn.in \
     file://0003-gn-riscv32-and-riscv64.patch \
     file://0006-fml-fixes-text_input-compiler-warnings.patch \
-    file://0009-build-config-tolerate-Wunused-template.patch \
+    file://0009-build-config-do-not-treat-warnings-as-errors.patch \
     file://0001-flutter-third_party-swiftshader-pointer-cast-to-void.patch \
     file://0002-flutter-third_party-swiftshader-llvm-16.0-required-f.patch \
     ${SRC_URI_EXTRA} \
