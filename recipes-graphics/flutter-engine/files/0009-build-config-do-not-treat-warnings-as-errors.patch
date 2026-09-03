@@ -1,14 +1,16 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Joel Winarske <joel.winarske@linux.com>
 Date: Wed, 3 Sep 2026 12:00:00 -0700
-Subject: [PATCH] build/config: do not treat warnings as errors
+Subject: [PATCH] build/config: survive a newer clang than upstream tests with
 
-The engine adds -Werror unconditionally, and riscv64 builds this tree
-with oe-core's native clang rather than the clang bundled in the SDK's
-buildtools, because CLANG_PATH:riscv64 points at the native toolchain.
-That toolchain is far newer than the one upstream tests against, so each
-clang release turns another diagnostic on in vendored third-party
-sources:
+riscv64 builds this tree with oe-core's native clang rather than the
+clang bundled in the SDK's buildtools, because CLANG_PATH:riscv64 points
+at the native toolchain. That toolchain runs ahead of the one upstream
+tests against, so each clang release turns another diagnostic on in
+vendored third-party sources. Two changes, for two different mechanisms.
+
+-Werror is dropped. Disabling diagnostics one at a time only defers the
+next failure:
 
   double-conversion/src/bignum.cc:49:12: error: unused function template
     'BitSize' [-Werror,-Wunused-template]
@@ -16,9 +18,24 @@ sources:
   abseil-cpp/absl/synchronization/mutex.h:602:68: error:
     'lifetime_capture_by(this)' is deprecated [-Werror,-Wdeprecated-attributes]
 
-Disabling them one at a time only defers the next one, and none of this
-is code the layer can fix. Drop -Werror instead; the warnings still
-print.
+harfbuzz needs more than that. It promotes whole groups to errors from
+inside hb.hh:
+
+  #pragma GCC diagnostic error "-Wunused"
+
+and in clang -Wunused covers -Wunused-template. No command-line flag
+overrides it, because the pragma re-enables the group as it is parsed, so
+dropping -Werror leaves this failing:
+
+  third_party/harfbuzz/src/hb-meta.hh:131:3: error: unused function
+    template 'operator()' [-Werror,-Wunused-template]
+
+HB_NO_PRAGMA_GCC_DIAGNOSTIC_ERROR is harfbuzz's own guard for that: it
+skips the block promoting to error and leaves its other pragmas alone.
+meta-flutter's rive-text recipe carries the same define for the same
+reason.
+
+Warnings still print in both cases.
 
 Upstream-Status: Inappropriate [oe-specific toolchain combination]
 Signed-off-by: Joel Winarske <joel.winarske@linux.com>
@@ -26,7 +43,23 @@ Signed-off-by: Joel Winarske <joel.winarske@linux.com>
 diff --git a/engine/src/build/config/compiler/BUILD.gn b/engine/src/build/config/compiler/BUILD.gn
 --- a/engine/src/build/config/compiler/BUILD.gn
 +++ b/engine/src/build/config/compiler/BUILD.gn
-@@ -740,7 +740,13 @@ if (is_win) {
+@@ -69,7 +69,14 @@ config("compiler") {
+   cflags_objcc = []
+   swiftflags = []
+   ldflags = []
+-  defines = []
++
++  # harfbuzz promotes warning groups to errors from inside hb.hh
++  # (#pragma GCC diagnostic error "-Wunused"), which no command-line flag can
++  # override -- the pragma re-enables the group as it is parsed. clang 23
++  # reports unused function templates in hb-meta.hh, so the build fails there
++  # whatever -Werror does. This is harfbuzz's own escape hatch: it skips the
++  # block that promotes to error and leaves its other pragmas alone.
++  defines = [ "HB_NO_PRAGMA_GCC_DIAGNOSTIC_ERROR" ]
+   configs = []
+ 
+   # Platform-specific configs.
+@@ -740,7 +747,13 @@ if (is_win) {
      "-Wno-unused-parameter",  # Unused function parameters.
    ]
  
