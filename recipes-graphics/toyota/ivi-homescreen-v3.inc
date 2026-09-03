@@ -70,7 +70,7 @@ REQUIRED_DISTRO_FEATURES = "\
 "
 
 HOMESCREEN_COMMIT ??= "131cbc37a1248f394978b408d4c02f1ea7eee6c3"
-PLUGINS_COMMIT ??= "aa310172ac93efbfaf2beaaab7d99bb1f8fd586e"
+PLUGINS_COMMIT ??= "8738e1f06ddffff9b0639ef0016614b5092a599c"
 # v4l2-webrtc-codec supplies the V4L2 M2M encoder sources the embedder compiles
 # in directly (it installs nothing, so it is consumed as a source tree via
 # V4L2WC_DIR rather than as a library).
