@@ -1,36 +1,212 @@
 # Tools
 
-
-## How to auto roll meta-flutter
+## How to roll meta-flutter
 
 1. Fork https://github.com/meta-flutter/meta-flutter
-
-2. run auto-roll script
-```
-tools/roll_meta_flutter.py
-```
-
+2. Run the roll: `tools/roll_meta_flutter.py`
 3. Test
+4. Open a PR saying what was tested, and on which targets
 
-4. Create PR documenting what was tested and targets tested on
+*Only stable branch versions are accepted.*
 
-*Note: Only stable branch versions will be accepted*
+## Rolling automatically
 
+`.github/workflows/roll.yml` stages a roll as a draft pull request. It is
+dispatched by meta-flutter/flutter-channel-watch when the stable release
+version changes, or by hand from the Actions tab with an optional version.
 
-## Process to Auto Roll Flutter Applications, Flutter SDK version (includes Engine), and Dart-SDK recipe
+It never merges anything: the pull request is the deliverable, CI is the gate,
+a person merges. If the roll produces no changes it exits green without opening
+one, and if the layer already pins the requested version it does nothing at all.
 
-channel `stable`
+It runs on a GitHub-hosted runner rather than the self-hosted matrix -- a roll
+clones and generates, it builds nothing, so it has no reason to queue behind
+hour-long builds.
 
-    tools/roll_meta_flutter.py
+The version is an **input** rather than something the roll discovers, which is
+what makes the ordering work: an app that vendors its pub cache resolves its
+lockfile against the SDK being rolled to, so that SDK has to be fetched before
+the roll runs, and it is not known until the roll has updated the pin.
 
-channel `beta`
+## Selecting a version
 
-    tools/roll_meta_flutter.py --channel=beta
+The roll updates `conf/include/releases_linux.json` first, then picks from it,
+so the channel it resolves is the one the channel points at now rather than
+whatever was last committed.
 
-channel `dev`
+```
+tools/roll_meta_flutter.py                     # stable
+tools/roll_meta_flutter.py --channel=beta
+tools/roll_meta_flutter.py --channel=dev
+tools/roll_meta_flutter.py --version=3.47.1    # a specific version
+```
 
-    tools/roll_meta_flutter.py --channel=dev
+It rolls `FLUTTER_SDK_TAG`, the dart-sdk recipe, and every app in
+`meta-flutter-apps/conf/flutter-apps.json`.
 
-specific version
+## Reading the output
 
-    tools/roll_meta_flutter.py --version=2.40.0
+The roll is not silent and is not always successful. Three things it reports
+are worth reading before opening the PR.
+
+### Failures
+
+A repo that cannot be cloned, whose declared license does not match its source,
+or whose manifest entry is unusable **fails the roll**, and every failure is
+reported rather than only the first:
+
+```
+2 of 24 repos failed to roll
+  https://github.com/example/one.git
+      RollError: license_type joins licenses with "&", but this branch uses "AND"
+  https://github.com/example/two.git
+      CalledProcessError: Command '['git', 'clone', ...]' returned non-zero exit status 128
+```
+
+Before #863 these were swallowed -- the work ran in a thread pool whose futures
+were never read, so the roll printed "Repos Cloned" and exited 0 having
+generated nothing for that repo. A roll that exits 0 has rolled everything it
+was asked to.
+
+### Skipped apps
+
+An app whose declared `environment` excludes the pinned SDK is skipped with a
+reason rather than generating a recipe that fails to build later:
+
+```
+1 app(s) skipped: the pinned SDK is outside their declared environment
+  packages/foo/example: needs Dart >=3.20.0 <4.0.0, this layer pins Dart 3.13.1
+```
+
+Dependencies by path are followed too, transitively: an app can declare a range
+the pinned SDK satisfies and still fail to resolve because something beside it
+in the same repository does not. That is the monorepo case, and it costs
+nothing to check because those pubspecs are already on disk. The reason names
+the dependency:
+
+```
+  foo/example: depends on foo_core by path, which needs Dart >=2.17.0 <3.0.0,
+               this layer pins Dart 3.13.2
+```
+
+Dependencies from pub need a real `pub get` to check, which costs one resolve
+per app. `--resolve-all` turns that on; the roll workflow passes it, and a roll
+someone is watching does not. An app whose dependencies do not solve is skipped
+with pub's own explanation:
+
+```
+  foo/example: dependencies do not solve against the pinned SDK: Because
+               foo/example depends on bar >=2.0.0 which requires SDK version
+               >=3.20.0, version solving failed.
+```
+
+Only pub saying the graph cannot be satisfied counts. A network failure, a
+timeout, no `flutter` on `PATH`, or output that matches neither shape all mean
+*do not skip* -- a roll that dropped apps because pub.dev blinked would be
+worse than one that does not check.
+
+This is deliberately conservative: a constraint it cannot parse, a missing
+`environment`, or an unknown pinned version all mean *do not skip*. A gate that
+misfires drops an app silently, which is worse than the build failure it
+prevents. Use the manifest's `ignore` list for deliberate exclusions, so
+"we do not want this" and "this cannot work here" stay distinguishable.
+
+### Vendored lockfiles
+
+For an app with `"pubvendor": true`, the roll says where the lockfile came
+from, and the generated `.inc` records it too -- the fragment looks identical
+in all three cases:
+
+| | |
+|---|---|
+| `the project's own, unchanged` | it held against the pinned SDK under `--enforce-lockfile` |
+| `re-resolved by the roll; the shipped one did not hold` | it did not |
+| `created by the roll; none is shipped` | there was nothing to preserve |
+
+An app declaring `resolution: workspace` has no lockfile of its own; the roll
+follows the `workspace` list to the root and uses the one there, and says
+`(pub workspace)`. See `tools/pubvendor/README.md`.
+
+### Hand-written recipes that vendor
+
+The generator only ever emits `inherit flutter-app` or `inherit flutter-web`. A
+recipe that needs anything else -- `flutter-app-native`, an extra task, a
+`do_install:append` -- has to be written by hand, and generating over it would
+quietly drop whatever made it work.
+
+`"generate_recipes": false` covers that case: the roll clones the repository and
+regenerates the app's `-pubcache.inc` and `-pubspec.lock` against the pinned SDK,
+and writes no recipe. Without it a vendored fragment ages silently against a
+moving SDK, and the eventual failure is a `PUBSPEC_LOCK_SHA256` mismatch that
+says nothing about why.
+
+### Flutter SDK apps
+
+The apps the SDK itself ships have no manifest entry and no SRCREV: they move
+with `FLUTTER_SDK_TAG`, so the roll regenerates their recipes rather than
+tracking them. It clones `flutter/flutter` at the commit the pinned release
+names -- blobless and narrowed to three directories, about 130 MB -- and emits
+one recipe per candidate into `recipes-graphics/flutter-sdk/apps/`, plus a
+single fragment vendoring the workspace's pub cache for all of them.
+
+Apps that are not candidates are reported with a reason rather than dropped.
+Anything hand-tuned belongs in `sdk-apps-overrides.json`, keyed by app path, so
+the next roll cannot lose it.
+
+If the clone fails the roll says so and continues: it has already updated the
+pinned SDK by that point, and one unreachable remote should not discard that.
+The warning matters, though -- recipes left describing the previous SDK keep
+parsing, and only the two built in CI would notice.
+
+    tools/sdk_apps.py --path .              # regenerate by hand
+    tools/sdk_apps.py --clone /path/to/ff   # reuse an existing checkout
+
+## Manifest keys
+
+`meta-flutter-apps/conf/flutter-apps.json`, one entry per repository. `uri` and
+`branch` are required -- an entry missing either is an error, not something to
+skip past.
+
+| key | |
+|---|---|
+| `uri`, `branch`, `rev` | where to clone from, and optionally what to pin to |
+| `license_file`, `license_type` | checked against the text the recipe ships |
+| `license_validate` | set false for a license the detector reads wrong |
+| `author` | recorded as `AUTHOR` in the generated recipe |
+| `folder` | `first-party` or `third-party` |
+| `ignore` | paths not to generate recipes for |
+| `rdepends` | runtime dependencies, per app path |
+| `output_folder`, `variables`, `src_folder`, `src_files`, `entry_files` | per-app recipe overrides |
+| `compiler_requires_network` | apps whose build hooks fetch |
+| `pubvendor` | `true` to vendor the pub cache, `"resolve"` to always replace a committed lockfile |
+| `generate_recipes` | `false` for a repository whose recipes are hand-written; the roll still vendors its pub cache |
+
+## Requirements
+
+Python 3.10 or newer, and:
+
+    pip install -r tools/requirements.txt
+
+`pycurl` and `certifi` download `releases_linux.json` and the version files;
+`pyyaml` reads every `pubspec.yaml`. None is optional, and `pycurl` needs
+libcurl headers to build (`libcurl4-openssl-dev` on Debian, `libcurl-devel` on
+Fedora).
+
+The list is checked against the code: `tools/tests/test_requirements.py` walks
+every import under `tools/` and fails if one is missing from the file, or if
+the file names something nothing imports. A hand-kept list drifted twice before
+that existed.
+
+The roll also needs `git`, and `flutter` on `PATH` for any app that sets
+`"pubvendor"` -- at the version this layer pins, since that is what the
+lockfile is resolved against.
+
+## Tests
+
+```
+python -m pytest tools -q
+```
+
+Runs in CI on every change under `tools/`, against two Python versions, plus a
+real offline `pub get` against two Dart SDKs -- the staged pub cache layout is
+a pub internal, so only a real resolve shows it is one pub accepts.
