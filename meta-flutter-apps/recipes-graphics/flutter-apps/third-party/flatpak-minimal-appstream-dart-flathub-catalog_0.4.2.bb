@@ -12,7 +12,7 @@ SECTION = "graphics"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=641bdc36389b26ea9787acb6844e4b22"
 
-SRCREV = "c44e741569f4fb5d6f9dd5bdc6960d91314b174c"
+SRCREV = "486c103fe5a0accec2bba2b4952387e671c5691e"
 SRC_URI = "gitsm://github.com/flatpak-minimal/appstream_dart.git;branch=main;protocol=https"
 
 # appstream_core links sqlite3.
