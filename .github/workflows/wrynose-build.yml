@@ -28,6 +28,7 @@ on:
       - '**/*.md'
       - 'docs/**'
       - 'tools/**'
+      - '.github/workflows/tools-tests.yml'
       - '.gitignore'
       - 'LICENSE'
   workflow_dispatch:

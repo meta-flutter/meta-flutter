@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-FileCopyrightText: (C) 2020-2025 Joel Winarske
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: MIT
 #
 # Script to create Yocto recipes from a given path.
 #
@@ -12,6 +12,8 @@ import sys
 from common import get_yaml_obj
 from common import make_sure_path_exists
 from common import print_banner
+
+import sdk_constraint
 
 
 def get_file_md5(file_name):
@@ -237,6 +239,191 @@ def copy_src_file(file: str, src_folder: str, patch_dir: str, output_path: str):
     shutil.copy2(src_file, dst_file)
 
 
+# Markers pub prints when it has decided the graph cannot be satisfied, as
+# opposed to when it could not find out. Only the first kind is a reason to
+# skip an app: the second means the roll could not tell, and dropping an app on
+# "could not tell" is the misfire this whole family of gates has to avoid.
+_UNSOLVABLE = (
+    'version solving failed',
+    'requires sdk version',
+    'doesn\'t support null safety',
+)
+_CANNOT_TELL = (
+    'socketexception', 'connection', 'could not resolve host', 'timed out',
+    'temporary failure', 'network is unreachable', 'failed host lookup',
+)
+
+
+def resolve_check(app_dir, recipe_name, timeout=300):
+    """Does this app's dependency graph actually solve against the pinned SDK?
+
+    The static gate reads declared constraints, which catches an app that says
+    outright it needs a different Dart. It cannot catch an app that declares a
+    range the pinned SDK satisfies and still fails to resolve, because a
+    dependency of a dependency does not -- for that, something has to run pub.
+
+    Returns a reason when pub says the graph cannot be satisfied, and None
+    otherwise. None also covers every case where the answer is unknown: no
+    flutter on PATH, a network failure, a timeout, output that does not match
+    either shape. A roll that drops apps because pub.dev was briefly
+    unreachable would be worse than one that does not check at all.
+    """
+    import shutil
+    import subprocess
+
+    if shutil.which('flutter') is None:
+        return None
+    try:
+        r = subprocess.run(['flutter', '--suppress-analytics', 'pub', 'get'],
+                           cwd=app_dir, capture_output=True, text=True,
+                           timeout=timeout)
+    except (subprocess.TimeoutExpired, OSError) as e:
+        print(f'NOTE: {recipe_name}: could not resolve ({e}); not treating that '
+              f'as incompatible')
+        return None
+    if r.returncode == 0:
+        return None
+
+    blob = f'{r.stdout}\n{r.stderr}'.lower()
+    if any(m in blob for m in _CANNOT_TELL):
+        print(f'NOTE: {recipe_name}: resolve failed for a reason that is not the '
+              f'app; not treating that as incompatible')
+        return None
+    if any(m in blob for m in _UNSOLVABLE):
+        first = next((l.strip() for l in f'{r.stdout}\n{r.stderr}'.splitlines()
+                      if l.strip().startswith('Because')), '')
+        return f'dependencies do not solve against the pinned SDK{": " + first if first else ""}'
+    print(f'NOTE: {recipe_name}: pub get failed but said nothing about solving; '
+          f'not treating that as incompatible\n{r.stderr.strip()[:300]}')
+    return None
+
+
+def workspace_root_for(app_dir):
+    """The pub workspace root this app belongs to, or None if it is not a member.
+
+    An app that declares `resolution: workspace` has no lockfile of its own;
+    the resolution lives at the root, covers every member, and is where pub
+    must be run. The Flutter SDK's own apps are all like this -- one lockfile
+    at the SDK root for 78 members -- so an app-directory lookup finds nothing
+    and would generate a per-app resolution, which is the wrong unit.
+
+    Found the way pub finds it: walk up looking for a pubspec that names this
+    app in its `workspace` list.
+    """
+    pubspec = os.path.join(app_dir, 'pubspec.yaml')
+    if not os.path.isfile(pubspec):
+        return None
+    spec = get_yaml_obj(pubspec)
+    if not spec or spec.get('resolution') != 'workspace':
+        return None
+
+    app_dir = os.path.abspath(app_dir)
+    current = os.path.dirname(app_dir)
+    while True:
+        candidate = os.path.join(current, 'pubspec.yaml')
+        if os.path.isfile(candidate):
+            root_spec = get_yaml_obj(candidate) or {}
+            if os.path.relpath(app_dir, current) in (root_spec.get('workspace') or []):
+                return current
+        parent = os.path.dirname(current)
+        if parent == current:
+            return None
+        current = parent
+
+
+def generate_pubcache_inc(app_dir, recipe_name, output_path,
+                          always_resolve=False) -> bool:
+    """Emit the SRC_URI fragment for an app's pub cache.
+
+    Two cases, which used to be one. An app that ships no pubspec.lock has
+    nothing to preserve: the layer resolves for it anyway, per build and with
+    the network (conf/include/common.inc creates one when absent), so doing it
+    once here and committing the result is strictly better -- one resolution
+    everyone shares instead of one per builder.
+
+    An app that does ship a lockfile is different. Deleting it substitutes this
+    layer's resolution for the author's, including any pin they added to avoid
+    a bad version. Try theirs first, against the SDK this layer pins, and
+    re-resolve only when it will not hold. Which of the two happened is
+    recorded in the fragment header and printed here, because the resulting
+    .inc looks identical either way. See #861.
+
+    Set "pubvendor": "resolve" in flutter-apps.json for an app whose committed
+    lockfile must always be replaced.
+
+    Needs `flutter` on PATH, and only for apps that opt in.
+    """
+    import shutil
+    import subprocess
+    import sys
+
+    if shutil.which('flutter') is None:
+        print_banner(
+            f'ERROR: {recipe_name}: "pubvendor" needs flutter on PATH to '
+            f'resolve against the pinned SDK')
+        return False
+
+    def resolve(*args):
+        return subprocess.run(['flutter', 'pub', 'get', *args], cwd=resolve_dir,
+                              capture_output=True, text=True)
+
+    # A workspace member resolves at the root, not in its own directory.
+    workspace = workspace_root_for(app_dir)
+    resolve_dir = workspace or app_dir
+    lock = os.path.join(resolve_dir, 'pubspec.lock')
+    shipped = os.path.exists(lock)
+    ws = ' (pub workspace)' if workspace else ''
+
+    if not shipped:
+        provenance = f'created by the roll; none is shipped{ws}'
+        r = resolve()
+    elif always_resolve:
+        provenance = f're-resolved by the roll (pubvendor: resolve){ws}'
+        os.remove(lock)
+        r = resolve()
+    else:
+        # --enforce-lockfile fails rather than silently rewriting, which is
+        # exactly the question being asked: does the author's resolution still
+        # hold against the SDK this layer pins?
+        r = resolve('--enforce-lockfile')
+        if r.returncode == 0:
+            provenance = f"the project's own, unchanged{ws}"
+        else:
+            print(f'NOTE: {recipe_name}: the committed lockfile does not hold '
+                  f'against the pinned SDK, re-resolving')
+            provenance = f're-resolved by the roll; the shipped one did not hold{ws}'
+            os.remove(lock)
+            r = resolve()
+
+    if r.returncode != 0 or not os.path.exists(lock):
+        # Not fatal: an app that cannot resolve against the pinned SDK is a
+        # fact about that app, and one of them must not block a whole roll.
+        print(f'WARNING: {recipe_name}: pub get failed, no fragment written\n'
+              f'{r.stderr.strip()[:400]}')
+        return False
+
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'pubvendor'))
+    import pubvendor
+    from common import OVERRIDE_STYLE
+
+    out = os.path.join(output_path, f'{recipe_name}-pubcache.inc')
+    rc = pubvendor.main(['-i', lock, '-o', out, '--style', OVERRIDE_STYLE,
+                         '--provenance', provenance])
+    if rc != 0:
+        print(f'WARNING: {recipe_name}: pubvendor failed, no fragment written')
+        return False
+
+    # Ship the lockfile the fragment was generated from. The resolution above
+    # happened in this clone, which is not what the recipe builds -- that
+    # fetches the app at SRCREV, with whatever lockfile it has there, if any.
+    # Without this the two can disagree and pub-cache.bbclass stops the build
+    # on the mismatch it exists to catch.
+    shutil.copyfile(lock, os.path.join(output_path, f'{recipe_name}-pubspec.lock'))
+    print(f'{recipe_name}: wrote {os.path.basename(out)} + pubspec.lock '
+          f'(lockfile: {provenance})')
+    return True
+
+
 def create_recipe(directory,
                   pubspec_yaml,
                   flutter_application_path,
@@ -251,7 +438,9 @@ def create_recipe(directory,
                   src_folder,
                   src_files,
                   variables,
-                  patch_dir) -> str:
+                  patch_dir,
+                  pubvendor=False,
+                  generate_recipes=True) -> str:
     is_web = False
     # TODO detect web
 
@@ -280,6 +469,28 @@ def create_recipe(directory,
     make_sure_path_exists(str(output_path))
 
     recipe_name = get_recipe_name(org, unit, flutter_application_path, project_name)
+
+    # A fragment that failed to generate must not leave behind a recipe that
+    # `require`s it -- a missing include is a parse error for the whole layer,
+    # so one bad app would take the rest down with it.
+    if pubvendor:
+        # "pubvendor": "resolve" means always replace the committed lockfile;
+        # plain true means keep it when it still holds. Read before the
+        # reassignment below turns this into the bool the rest of the function
+        # tests.
+        pubvendor = generate_pubcache_inc(
+            app_dir=os.path.dirname(pubspec_yaml),
+            recipe_name=recipe_name,
+            output_path=output_path,
+            always_resolve=(pubvendor == 'resolve'))
+
+    # An app whose recipe is maintained by hand, but whose vendored pub cache
+    # should still follow the pinned SDK. The generator emits `inherit
+    # flutter-app` and nothing else -- no flutter-app-native, no extra tasks --
+    # so generating over such a recipe would quietly drop whatever made it work.
+    # Vendor the cache, leave the recipe alone.
+    if not generate_recipes:
+        return ''
 
     if project_version is not None:
         version = project_version.split('+')
@@ -317,6 +528,13 @@ def create_recipe(directory,
         f.write('SECTION = "graphics"\n')
         f.write('\n')
 
+        # oe-core warns that a bare CLOSED is deprecated and suggests
+        # LicenseRef-<pn>-CLOSED. Do not take that suggestion here: a license
+        # ref has to resolve, either to a file in COMMON_LICENSE_DIR or through
+        # NO_GENERIC_LICENSE, and an app with no license file upstream has
+        # neither. The ref would then fail license-format, which is an error by
+        # default, so following the advice trades a warning for a broken build.
+        # CLOSED stays until such an app grows a license worth pointing at.
         f.write(f'LICENSE = "{license_type}"\n')
         if license_type != 'CLOSED':
             f.write(f'LIC_FILES_CHKSUM = "file://{license_file};md5={license_md5}"\n')
@@ -362,7 +580,14 @@ def create_recipe(directory,
 
         f.write(f'PUBSPEC_APPNAME = "{project_name}"\n')
         f.write(f'FLUTTER_APPLICATION_INSTALL_SUFFIX = "{recipe_name}"\n')
-        f.write(f'PUBSPEC_IGNORE_LOCKFILE = "1"\n')
+        if pubvendor:
+            # The fragment is generated from this app's lockfile, and
+            # pub-cache.bbclass refuses to build if the in-tree lockfile no
+            # longer matches it -- so the lockfile has to survive do_unpack
+            # rather than be deleted here.
+            f.write(f'PUBSPEC_IGNORE_LOCKFILE = "0"\n')
+        else:
+            f.write(f'PUBSPEC_IGNORE_LOCKFILE = "1"\n')
 
         f.write(f'FLUTTER_APPLICATION_PATH = "{flutter_application_path}"\n')
 
@@ -377,6 +602,15 @@ def create_recipe(directory,
             f.write('inherit flutter-web\n')
         else:
             f.write('inherit flutter-app\n')
+
+        if pubvendor:
+            f.write('\n')
+            f.write('FILESEXTRAPATHS:prepend := "${THISDIR}:"\n')
+            f.write(f'SRC_URI += "file://{recipe_name}-pubspec.lock"\n')
+            f.write(f'require {recipe_name}-pubcache.inc\n')
+            f.write('inherit pub-cache\n')
+            f.write('PUBSPEC_APP_DIR = "${S}/${FLUTTER_APPLICATION_PATH}"\n')
+            f.write(f'PUBSPEC_LOCK_FILE = "{recipe_name}-pubspec.lock"\n')
 
         if rdepends_list and flutter_application_path in rdepends_list:
             rdepends = rdepends_list[flutter_application_path]
@@ -444,7 +678,10 @@ def create_yocto_recipes(directory,
                          src_files,
                          entry_files,
                          variables,
-                         patch_dir):
+                         patch_dir,
+                         pubvendor=False,
+                         generate_recipes=True,
+                         resolve_all=False):
     """Create bb recipe for each pubspec.yaml file in path"""
     import glob
 
@@ -472,12 +709,42 @@ def create_yocto_recipes(directory,
     # Iterate all pubspec.yaml files
     #
     recipes = []
+    # An app whose declared environment excludes the pinned SDK cannot work
+    # here, and generating a recipe for it just moves the discovery to a build
+    # failure and then to a hand-written 'ignore' entry weeks later. Gate it
+    # with a reason instead. Reported at the end rather than silently: an app
+    # disappearing from the layer with no trace is the thing to avoid. See #850.
+    pinned_flutter, pinned_dart = sdk_constraint.pinned_versions()
+    incompatible = []
+
     for filename in glob.iglob(directory + '**/pubspec.yaml', recursive=True):
 
         # handle invalid pubspec.yaml files
         yaml_obj = get_yaml_obj(filename)
         if len(yaml_obj) == 0:
             print(f'Invalid YAML: {filename}')
+            continue
+
+        reason = sdk_constraint.excluded_reason(
+            yaml_obj, pinned_flutter, pinned_dart)
+        if not reason:
+            # An app can declare a range the pinned SDK satisfies and still
+            # fail to resolve because something it depends on does not.
+            # Dependencies by path are free to check, since their pubspecs are
+            # already on disk. See #850.
+            reason = sdk_constraint.path_dependency_reason(
+                os.path.dirname(filename), yaml_obj,
+                pinned_flutter, pinned_dart, get_yaml_obj)
+        if not reason and resolve_all:
+            # Dependencies from pub are not free: knowing whether those solve
+            # means running pub, once per app. Off by default so a roll being
+            # watched stays quick, on for the unattended one, where the time
+            # costs nobody anything and an unexplained build failure costs
+            # most.
+            reason = resolve_check(os.path.dirname(filename),
+                                   os.path.relpath(filename, directory))
+        if reason:
+            incompatible.append((os.path.relpath(filename, directory), reason))
             continue
 
         path_tokens = filename.split('/')
@@ -526,7 +793,9 @@ def create_yocto_recipes(directory,
                                src_folder=src_folder,
                                src_files=src_files,
                                variables=variables,
-                               patch_dir=patch_dir)
+                               patch_dir=patch_dir,
+                               pubvendor=pubvendor,
+                               generate_recipes=generate_recipes)
 
         if recipe != '':
             recipes.append([recipe, flutter_application_path])
@@ -534,6 +803,12 @@ def create_yocto_recipes(directory,
     create_package_group(org, unit, recipes,
                          output_path_override_list,
                          package_output_path)
+
+    if incompatible:
+        print(f'\n{len(incompatible)} app(s) skipped: the pinned SDK is '
+              f'outside their declared environment')
+        for rel, reason in sorted(incompatible):
+            print(f'  {os.path.dirname(rel) or "."}: {reason}')
 
     print_banner("Creating Yocto Recipes done.")
 
