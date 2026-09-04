@@ -157,7 +157,12 @@ do_install:append() {
         fi
         dest="${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/$mode/lib/native_assets"
         install -d ${D}$dest
-        cp -a "$nadir"/* ${D}$dest/
+        # cp -r, not cp -a: -a preserves the source ownership, and the hook
+        # output is owned by the build user, so the package ends up with files
+        # owned by a uid that does not exist on target. do_package then fails
+        # in the output hash with "getpwuid(): uid not found". Everything else
+        # in this layer copies with cp -r for the same reason.
+        cp -r "$nadir"/* ${D}$dest/
         bbnote "[$mode] native assets installed into $dest:" \
                "$(ls ${D}$dest | tr '\n' ' ')"
         installed="$installed $dest"
