@@ -69,8 +69,8 @@ REQUIRED_DISTRO_FEATURES = "\
     ${@bb.utils.contains_any('PACKAGECONFIG', 'backend-wayland-egl backend-drm-kms-egl backend-headless-egl', 'opengl', '', d)} \
 "
 
-HOMESCREEN_COMMIT ??= "131cbc37a1248f394978b408d4c02f1ea7eee6c3"
-PLUGINS_COMMIT ??= "aa310172ac93efbfaf2beaaab7d99bb1f8fd586e"
+HOMESCREEN_COMMIT ??= "1975f345badcab1381ed0b220c5e6824e9732bf2"
+PLUGINS_COMMIT ??= "19f03e2d36faea4a64167d4dbd913e296f878eca"
 # v4l2-webrtc-codec supplies the V4L2 M2M encoder sources the embedder compiles
 # in directly (it installs nothing, so it is consumed as a source tree via
 # V4L2WC_DIR rather than as a library).

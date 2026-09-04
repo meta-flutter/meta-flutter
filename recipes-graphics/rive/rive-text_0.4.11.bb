@@ -36,6 +36,26 @@ PREFERRED_PROVIDER_llvm-native = "clang-native"
 PREFERRED_PROVIDER_libgcc = "compiler-rt"
 LIBCPLUSPLUS = "-stdlib=libc++"
 
+# harfbuzz promotes whole warning groups to errors from inside hb.hh:
+#
+#   #pragma GCC diagnostic error "-Wunused"
+#
+# and in clang -Wunused is a group that now covers -Wunused-template, so
+# oe-core's move to clang/llvm 23.1.0 turned this into a build failure:
+#
+#   hb-meta.hh:131:3: error: unused function template 'operator()'
+#                                      [-Werror,-Wunused-template]
+#
+# The pragma is in the source, so there is no -Werror on the command line to
+# drop and a -Wno-unused-template there loses to it: the pragma re-enables the
+# group as it is parsed. harfbuzz provides the escape hatch instead --
+# HB_NO_PRAGMA_GCC_DIAGNOSTIC_ERROR skips only the block that promotes to
+# error, leaving its warning and ignored pragmas alone.
+#
+# This is vendored third-party source built as a dependency, not code this
+# layer maintains, so the warnings are not actionable here.
+CXXFLAGS:append = " -DHB_NO_PRAGMA_GCC_DIAGNOSTIC_ERROR"
+
 inherit cmake
 
 FILES_SOLIBSDEV = ""
