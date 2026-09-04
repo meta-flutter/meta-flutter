@@ -108,7 +108,7 @@ jobs:
           # longer cloned, so a runner that has them from an earlier run does
           # not keep a stale checkout around.
           rm -rf poky bitbake openembedded-core meta-yocto \
-                 meta-openembedded meta-drm meta-vulkan
+                 meta-openembedded meta-drm meta-vulkan meta-flatpak-minimal
           # 'wait' with no operands always returns 0, so a failed clone used to
           # leave the step green and the build ran against a missing or stale
           # layer. Collect the pids and wait on each one so the exit status is
@@ -118,7 +118,8 @@ jobs:
               https://git.openembedded.org/bitbake.git \
               https://git.openembedded.org/openembedded-core.git \
               https://git.yoctoproject.org/meta-yocto.git \
-              https://github.com/openembedded/meta-openembedded.git ; do
+              https://github.com/openembedded/meta-openembedded.git \
+              https://github.com/flatpak-minimal/meta-flatpak-minimal.git ; do
               git clone -b ${{ env.YOCTO_BRANCH }} --single-branch "$repo" &
               pids="$pids $!:$repo"
           done
@@ -178,7 +179,8 @@ jobs:
               ../meta-openembedded/meta-networking \
               ../meta-openembedded/meta-python \
               ../../meta-flutter \
-              ../../meta-flutter/meta-flutter-apps
+              ../../meta-flutter/meta-flutter-apps \
+              ../meta-flatpak-minimal
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
@@ -328,7 +330,10 @@ jobs:
       # hook resolves a host compiler and emits a host-architecture library into
       # a target package (meta-flutter#801).
       #
-      # flatpak_dart: talks to the flatpak system libraries.
+      # flatpak_dart: talks to the flatpak system libraries. This recipe and
+      # the appstream_dart one below now live in meta-flatpak-minimal, cloned
+      # above. They stay in this matrix because they are the coverage for
+      # flutter-app-native and the vendored pub cache.
       - name: Build flatpak-minimal-flatpak-dart-flutter-remote-manager
         # flutter build bundle has no linux-arm target platform,
         # so the app recipes do not parse for a 32-bit machine
