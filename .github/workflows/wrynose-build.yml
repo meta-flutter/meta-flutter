@@ -392,6 +392,19 @@ jobs:
 
       #
       # bluez_native: compiles a vendored sdbus-c++ from its own hook.
+      - name: Build the Flutter SDK example apps
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        shell: bash
+        working-directory: ../wrynose-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          # Two of the fourteen. hello_world proves the shape; flutter_gallery
+          # proves it holds for an app with real dependencies.
+          bitbake flutter-sdk-examples-hello-world \
+                  flutter-sdk-dev-integration-tests-flutter-gallery
+
       - name: Build jwinarske-bluez-native-flutter-ble-scanner
         # flutter build bundle has no linux-arm target platform,
         # so the app recipes do not parse for a 32-bit machine
