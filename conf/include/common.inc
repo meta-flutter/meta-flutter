@@ -26,7 +26,9 @@ FLUTTER_APPLICATION_INSTALL_PREFIX ??= "${datadir}/flutter"
 FLUTTER_APPLICATION_INSTALL_SUFFIX ??= "${PUBSPEC_APPNAME}"
 FLUTTER_INSTALL_DIR = "${FLUTTER_APPLICATION_INSTALL_PREFIX}/${FLUTTER_APPLICATION_INSTALL_SUFFIX}"
 
-PUB_CACHE = "${WORKDIR}/pub_cache"
+# ??=: pub-cache.bbclass points PUB_CACHE under UNPACKDIR, and a hard
+# assignment here beats it whatever order the recipe inherits in.
+PUB_CACHE ??= "${WORKDIR}/pub_cache"
 PUB_CACHE_ARCHIVE = ""
 
 PUBSPEC_IGNORE_LOCKFILE ??= "0"
@@ -449,6 +451,9 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
         build_folder = os.path.join(source_root, 'build')
         if os.path.exists(build_folder):
             run_command(d, 'flutter clean -v', source_root, env)
+            # clean drops .dart_tool and the build carries --no-pub without
+            # network, so nothing puts the resolution back. Rebuild path only.
+            run_command(d, 'flutter pub get --offline', source_root, env)
 
         if runtime_mode == 'jit_release':
             cmd = (f'flutter build {flutter_build_args} --local-engine -v')
