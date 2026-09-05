@@ -184,6 +184,7 @@ do_install:append:class-target () {
 python relativize_dart_package_configs() {
     import json
     import os
+    import time
     import urllib.parse
 
     s_root = os.path.realpath(d.getVar('S'))
@@ -221,6 +222,31 @@ python relativize_dart_package_configs() {
                 json.dump(cfg, f, indent=2)
             bb.note('%s: made %d rootUri entries relative'
                     % (os.path.relpath(path, sdk_root), rewritten))
+
+        # Make the resolution unambiguously newer than what it resolves.
+        #
+        # The flutter tool re-runs `pub get` on packages/flutter_tools when its
+        # package_config.json does not look newer than the pubspec beside it --
+        # and that resolve carries no --offline, so in a task with no network it
+        # hangs until something kills it. Relative rootUris (above) stopped the
+        # paths dangling; they do not say anything about freshness.
+        #
+        # do_install copies with `cp -rT`, which stamps mtimes at copy time in
+        # traversal order, so which of the two ends up newer is not decided by
+        # anything. sstate then preserves whatever it got, which is why the same
+        # SDK can build clean once and hang the next time it is restored.
+        #
+        # Stamp it here instead, after the file is written, and let sstate carry
+        # that.
+        stamp = time.time()
+        for near in (os.path.join(root, os.pardir, 'pubspec.yaml'),
+                     os.path.join(root, os.pardir, 'pubspec.lock')):
+            if os.path.isfile(near):
+                os.utime(near, (stamp - 2, stamp - 2))
+        os.utime(path, (stamp, stamp))
+        graph = os.path.join(root, 'package_graph.json')
+        if os.path.isfile(graph):
+            os.utime(graph, (stamp, stamp))
 }
 do_install[postfuncs] += "relativize_dart_package_configs"
 
