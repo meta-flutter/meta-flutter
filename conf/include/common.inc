@@ -35,6 +35,67 @@ PUBSPEC_IGNORE_LOCKFILE ??= "0"
 
 FLUTTER_SDK = "${STAGING_DIR_NATIVE}/usr/share/flutter/sdk"
 
+# flutter re-runs `pub get` when package_config.json does not look newer than
+# the pubspec beside it, and that resolve carries no --offline: with no network
+# it hangs holding flutter's startup lock, so a second app blocks behind it.
+#
+# Stamping in the SDK's do_install is not enough. mtimes only enter a task's
+# output hash for do_package (include_timestamps in oe/sstatesig.py), so hash
+# equivalence hands back the object built before the stamp. Do it here, where
+# it always runs.
+python flutter_stamp_sdk_resolution() {
+    import os
+
+    sdk_root = d.getVar('FLUTTER_SDK')
+    if not sdk_root or not os.path.isdir(sdk_root):
+        return
+
+    def restamp(path, when):
+        # STAGING_DIR_NATIVE is hardlinked from the sysroot-components tree, so
+        # utime() here would also move the mtime of a file shared with every
+        # other recipe staging this SDK. Break the link first.
+        try:
+            if os.stat(path).st_nlink > 1:
+                tmp = path + '.stamp.tmp'
+                with open(path, 'rb') as src, open(tmp, 'wb') as dst:
+                    dst.write(src.read())
+                os.chmod(tmp, os.stat(path).st_mode & 0o7777)
+                os.replace(tmp, path)
+            os.utime(path, (when, when))
+        except OSError as e:
+            bb.warn('could not stamp %s: %s' % (path, e))
+            return False
+        return True
+
+    stamped = 0
+    for root, dirs, files in os.walk(sdk_root):
+        if 'package_config.json' not in files:
+            continue
+
+        cfg = os.path.join(root, 'package_config.json')
+        pubspecs = [os.path.join(root, os.pardir, n)
+                    for n in ('pubspec.yaml', 'pubspec.lock')]
+        pubspecs = [p for p in pubspecs if os.path.isfile(p)]
+        if not pubspecs:
+            continue
+
+        newest = max(os.stat(p).st_mtime for p in pubspecs)
+        if os.stat(cfg).st_mtime > newest:
+            continue
+
+        when = newest + 2
+        if restamp(cfg, when):
+            stamped += 1
+        graph = os.path.join(root, 'package_graph.json')
+        if os.path.isfile(graph):
+            restamp(graph, when)
+
+    if stamped:
+        bb.note('stamped %d package_config.json file(s) in the staged SDK '
+                'as newer than their pubspec' % stamped)
+}
+do_prepare_recipe_sysroot[postfuncs] += "flutter_stamp_sdk_resolution"
+
 require conf/include/clang-utils.inc
 
 python () {
