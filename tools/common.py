@@ -323,6 +323,45 @@ def test_internet_connection(host='storage.googleapis.com', port=443,
         return False
 
 
+# Phrases that identify a license, matched against the file's text with
+# whitespace collapsed. Titles are spelled without the comma that the
+# cross-references use ("Apache License Version 2.0" as a heading, versus
+# "the GNU Lesser General Public License, Version 2.1" where MPL-2.0 names its
+# secondary licenses) so that naming a license does not read as being it.
+_LICENSE_MARKERS = [
+    ('Apache-2.0',   (('apache license version 2.0',), ())),
+    ('GPL-3.0',      (('gnu general public license version 3',), ())),
+    ('GPL-2.0',      (('gnu general public license version 2',), ())),
+    ('LGPL-3.0',     (('gnu lesser general public license version 3',), ())),
+    ('LGPL-2.1',     (('gnu lesser general public license version 2.1',), ())),
+    ('MPL-2.0',      (('mozilla public license version 2.0',), ())),
+    # BSD-3-Clause is BSD-2-Clause plus non-endorsement, so the two-clause form
+    # is only itself when the third clause is absent.
+    ('BSD-3-Clause', (('redistribution and use in source and binary forms',
+                       'neither the name'), ())),
+    ('BSD-2-Clause', (('redistribution and use in source and binary forms',),
+                      ('neither the name',))),
+    # The SIL Open Font License opens with the same sentence as MIT but grants
+    # over "the Font Software"; flutter/games ships both, so MIT has to key on
+    # its own object to avoid claiming every font license as MIT.
+    ('OFL-1.1',      (('sil open font license',), ())),
+    ('MIT',          (('free of charge, to any person obtaining a copy of this software',), ())),
+    ('ISC',          (('permission to use, copy, modify, and/or distribute this software',), ())),
+]
+
+# Families where the license file alone cannot settle the identifier. A project
+# shipping the GPL ships the same COPYING whether it is "version 3 only" or
+# "version 3 or later" -- that distinction lives in the per-file headers, and
+# the license text's own appendix always shows the or-later wording. So detect
+# the family and accept either variant rather than guess.
+_LICENSE_FAMILIES = {
+    'GPL-3.0':  ('GPL-3.0-only', 'GPL-3.0-or-later'),
+    'GPL-2.0':  ('GPL-2.0-only', 'GPL-2.0-or-later'),
+    'LGPL-3.0': ('LGPL-3.0-only', 'LGPL-3.0-or-later'),
+    'LGPL-2.1': ('LGPL-2.1-only', 'LGPL-2.1-or-later'),
+}
+
+
 def detect_licenses(license_path: str) -> list:
     """Return the SPDX identifiers a license file's text contains.
 
