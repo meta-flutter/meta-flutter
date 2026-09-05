@@ -17,12 +17,10 @@ August 31, 2026
      schema answering "unimplemented", so clients need no rebuild
    - no SOVERSION on the libraries, so SOLIBS/FILES_SOLIBSDEV keep the .so
      files out of -dev
+   - needs capnproto built PIC; meta-oe does not do that before the
+     CMAKE_POSITION_INDEPENDENT_CODE change, and libTestRunnerClient is SHARED
+     and links capnp and kj
    - built for qemux86-64, covered by wrynose-build on every machine
-2. build capnproto position independent (capnproto_%.bbappend)
-   - meta-oe builds it static and non-PIC, so linking capnp or kj into a shared
-     library fails on kj/exception.c++'s thread-local
-   - code model only; packaging unchanged, capnproto's sstate invalidated
-   - belongs in meta-oe, either this way or as shared libraries
 
 August 19, 2026
 1. roll Flutter SDK to 3.47.1 (Dart 3.13.1)
