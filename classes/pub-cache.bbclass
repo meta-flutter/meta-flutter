@@ -256,8 +256,8 @@ do_pub_get_offline() {
         else
             bbplain "pub-get: network unreachable, as intended"
         fi
-        bbplain "pub-get: last 80 lines of pub --verbose"
-        bbplain "$(tail -n 80 "$pubget_log" 2>/dev/null)"
+        bbplain "pub-get: last 200 lines of pub --verbose"
+        bbplain "$(tail -n 200 "$pubget_log" 2>/dev/null)"
         if [ $rc -eq 124 ]; then
             bbfatal "offline pub get did not finish within ${PUB_GET_TIMEOUT}s. Resolving from a staged cache takes under a second, so this is a wait rather than work; the tail above is where it stopped."
         fi
