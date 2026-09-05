@@ -112,3 +112,47 @@ FILES:${PN} = "\
     "
 
 RDEPENDS:${PN} = "flutter-engine"
+
+# An app that ships without its plugins registered is indistinguishable from
+# one that has none: no error, no missing file, just an app whose plugins do
+# nothing. The generated registrant is the only library an app links that has
+# no package: URI, so nothing downstream records whether it made it.
+#
+# Check the packaged image, which is what ships. Apps with no Linux plugins
+# legitimately have no registrant, so the plugin list decides whether its
+# absence is a fault -- the same test conf/include/common.inc applies before
+# building the snapshot.
+python flutter_check_packaged_registrant() {
+    import json
+    import os
+
+    pkgdest = d.getVar('PKGDEST')
+    if not pkgdest or not os.path.isdir(pkgdest):
+        return
+
+    app_dir = os.path.join(d.getVar('S'),
+                           d.getVar('FLUTTER_APPLICATION_PATH') or '')
+    plugins_json = os.path.join(app_dir, '.flutter-plugins-dependencies')
+    linux_plugins = []
+    if os.path.isfile(plugins_json):
+        with open(plugins_json, 'r') as f:
+            linux_plugins = [p['name'] for p in
+                             json.load(f).get('plugins', {}).get('linux', [])]
+
+    for dirpath, _, files in os.walk(pkgdest):
+        if 'libapp.so' not in files:
+            continue
+        path = os.path.join(dirpath, 'libapp.so')
+        if os.path.islink(path):
+            continue
+        with open(path, 'rb') as f:
+            count = f.read().count(b'_PluginRegistrant')
+        rel = os.path.relpath(path, pkgdest)
+        if linux_plugins and not count:
+            bb.fatal(
+                f'{rel} carries no plugin registrant, but this app declares '
+                f'Linux plugins ({", ".join(linux_plugins)}).\n'
+                f'It would install and run with those plugins silently inert.')
+        bb.note(f'plugin registrant in {rel}: {count}')
+}
+do_package[postfuncs] += "flutter_check_packaged_registrant"
