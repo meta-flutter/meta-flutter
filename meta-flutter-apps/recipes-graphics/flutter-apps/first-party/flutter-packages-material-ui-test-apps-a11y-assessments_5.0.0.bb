@@ -4,8 +4,8 @@
 # SPDX-License-Identifier: MIT
 #
 
-SUMMARY = "url_launcher_example"
-DESCRIPTION = "Demonstrates how to use the url_launcher plugin."
+SUMMARY = "a11y_assessments"
+DESCRIPTION = "A new Flutter project"
 AUTHOR = "Google"
 HOMEPAGE = "None"
 BUGTRACKER = "None"
@@ -17,9 +17,9 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=2b36ca50262dc615e560c27654badb26"
 SRCREV = "2c91ffef3ad5cd39308a80c514a97fb848695e50"
 SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=https"
 
-PUBSPEC_APPNAME = "url_launcher_example"
-FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-url-launcher-url-launcher-linux-url-launcher-example"
+PUBSPEC_APPNAME = "a11y_assessments"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-material-ui-test-apps-a11y-assessments"
 PUBSPEC_IGNORE_LOCKFILE = "1"
-FLUTTER_APPLICATION_PATH = "packages/url_launcher/url_launcher_linux/example"
+FLUTTER_APPLICATION_PATH = "packages/material_ui/test_apps/a11y_assessments"
 
 inherit flutter-app

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: MIT
 #
 
-FLUTTER_SDK_TAG ??= "3.47.1"
+FLUTTER_SDK_TAG ??= "3.47.2"
 
 def get_flutter_archive(d):
     return _get_flutter_release_info(d, "archive")
