@@ -403,8 +403,8 @@ def detect_licenses(license_path: str) -> list:
 # commit that branches for a new release. See README.
 OVERRIDE_STYLE = 'new'
 
-LICENSE_OPERATOR = 'AND'
-_LICENSE_OPERATOR_OTHER = '&'
+LICENSE_OPERATOR = '&'
+_LICENSE_OPERATOR_OTHER = 'AND'
 
 
 def detect_license(license_path: str) -> str:
