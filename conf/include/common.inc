@@ -554,6 +554,38 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
             flutter_filesystem = ''
             flutter_app_dir = os.path.normpath(f'{source_dir}/{flutter_application_path}')
             dart_plugin_registrant_file = f'{flutter_app_dir}/.dart_tool/flutter_build/dart_plugin_registrant.dart'
+
+            # An app with no plugins gets neither .flutter-plugins-dependencies
+            # nor a generated registrant, so an absent registrant is an ordinary
+            # state and leaving the flags below empty is right. An app that has
+            # plugins for this platform and no registrant is not: the snapshot
+            # is built without registration and the image ships with those
+            # plugins inert -- no error, no missing file, just an app whose
+            # plugins do nothing. Nothing downstream reads it either, so the
+            # only place it shows is the artifact.
+            #
+            # Both files are written by `flutter build`, which has already run
+            # by the time this code executes, so reaching here with a plugin
+            # list and no registrant means that step did not generate it or
+            # something removed it afterwards. Distinguish the two cases rather
+            # than skipping both.
+            plugins_json = f'{flutter_app_dir}/.flutter-plugins-dependencies'
+            have_registrant = os.path.isfile(dart_plugin_registrant_file)
+            linux_plugins = []
+            if os.path.isfile(plugins_json):
+                with open(plugins_json, 'r') as f:
+                    linux_plugins = [p['name'] for p in
+                                     json.load(f).get('plugins', {}).get('linux', [])]
+
+            if not have_registrant and linux_plugins:
+                bb.fatal(
+                    f'{pubspec_appname}: .flutter-plugins-dependencies lists '
+                    f'Linux plugins ({", ".join(linux_plugins)}) but no '
+                    f'registrant was generated at '
+                    f'{dart_plugin_registrant_file}.\n'
+                    f'Building the snapshot without it would ship an image '
+                    f'whose plugins are never registered.')
+
             if os.path.isfile(dart_plugin_registrant_file):
                 # The registrant is the one library with no package: URI, so it
                 # is named to the frontend by path -- and that path becomes the
