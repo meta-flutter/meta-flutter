@@ -197,7 +197,7 @@ other -- so do not "fix" one to match the other, and take care when
 cherry-picking a recipe or a manifest entry between branches.
 
 The dividing line is oe-core commit 51c7930220 (2026-07-15, "lib/oe: Add SPDX
-license library"). Before it, `license.py` recognised only `& | ( )` as
+license library"). Before it, `license.py` recognized only `& | ( )` as
 operators, and a bare `AND` matched the license *name* pattern -- so it was
 read as a license called "AND" and failed. Since it, `AND` is the native SPDX
 operator; `&` is accepted only because `_substitute_legacy_license()` rewrites
