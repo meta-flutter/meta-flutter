@@ -21,8 +21,8 @@ def _repos(n):
             for i in range(n)]
 
 
-def _run(monkeypatch, behaviour):
-    monkeypatch.setattr(roll, 'get_repo', behaviour)
+def _run(monkeypatch, behavior):
+    monkeypatch.setattr(roll, 'get_repo', behavior)
     roll.get_workspace_repos('/nonexistent', _repos(4), '/out', '/pkg', None)
 
 

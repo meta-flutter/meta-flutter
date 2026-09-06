@@ -357,7 +357,7 @@ def report_removed_gn_options(root_path: str, recipe_path: str, sdk_clone: str, 
 
     The recipe is copied forward verbatim apart from SRCREV, so PACKAGECONFIG
     entries survive a version bump even when the option they pass no longer
-    exists. gn.py uses argparse, which exits 2 on an unrecognised option, so the
+    exists. gn.py uses argparse, which exits 2 on an unrecognized option, so the
     result is a do_configure failure well after the roll, with nothing pointing
     back at the cause.
     """
@@ -397,7 +397,7 @@ def report_removed_gn_options(root_path: str, recipe_path: str, sdk_clone: str, 
               f'does not accept')
     print('')
     print(f'Remove these from {os.path.relpath(recipe_path, root_path)} before '
-          f'building; gn.py exits 2 on an unrecognised option, so do_configure '
+          f'building; gn.py exits 2 on an unrecognized option, so do_configure '
           f'will fail otherwise.')
 
 
