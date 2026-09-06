@@ -64,7 +64,7 @@ def test_a_network_failure_is_not_an_incompatibility(tmp_path, flutter, err):
     assert create_recipes.resolve_check(str(tmp_path), 'app') is None
 
 
-def test_an_unrecognised_failure_is_not_an_incompatibility(tmp_path, flutter):
+def test_an_unrecognized_failure_is_not_an_incompatibility(tmp_path, flutter):
     flutter(stderr='something nobody has seen before', rc=1)
     assert create_recipes.resolve_check(str(tmp_path), 'app') is None
 

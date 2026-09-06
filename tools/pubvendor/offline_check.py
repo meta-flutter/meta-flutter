@@ -7,7 +7,7 @@
 #
 # The unit tests assert what pubvendor.py *emits*. They cannot assert that
 # the staged layout is one pub accepts, because that layout is a pub
-# internal reconstructed from behaviour rather than a documented contract.
+# internal reconstructed from behavior rather than a documented contract.
 # Only running `pub get --offline` against a staged cache shows that, and
 # only for the SDK it is run with -- hence the matrix in CI.
 #
