@@ -14,7 +14,7 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=2b36ca50262dc615e560c27654badb26"
 
-SRCREV = "b33d9334f58b1cb6dfc1d6a46deb1c24f4a6425a"
+SRCREV = "2c91ffef3ad5cd39308a80c514a97fb848695e50"
 SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=https"
 
 PUBSPEC_APPNAME = "extension_google_sign_in_example"
