@@ -30,7 +30,7 @@ SECTION = "graphics"
 CVE_PRODUCT = "homescreen"
 
 # The plugins tree (Apache-2.0) and the v4l2-webrtc-codec encoder sources (MIT)
-# are only fetched when they are actually built, so both the licence list and its
+# are only fetched when they are actually built, so both the license list and its
 # checksums follow the PACKAGECONFIG.
 LICENSE = "Apache-2.0\
 ${@bb.utils.contains('PACKAGECONFIG', 'disable-plugins', '', ' & Apache-2.0', d)}\
