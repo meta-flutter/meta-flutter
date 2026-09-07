@@ -26,10 +26,11 @@
 
 PUB_CACHE_LOCAL ?= "pub_cache"
 # The fragment stages the cache with SRC_URI subdir=, and subdir= is relative
-# to UNPACKDIR, which is ${WORKDIR}/sources from scarthgap on and WORKDIR
-# itself before that. Anchoring PUB_CACHE to WORKDIR unconditionally pointed
-# it at a directory the packages were never unpacked into: they landed in
-# ${WORKDIR}/sources/pub_cache while pub read ${WORKDIR}/pub_cache, which
+# to UNPACKDIR, which is ${WORKDIR}/sources-unpack from styhead on and does
+# not exist before that. Anchoring PUB_CACHE to WORKDIR unconditionally
+# pointed it at a directory the packages were never unpacked into: they
+# landed in ${WORKDIR}/sources-unpack/pub_cache while pub read
+# ${WORKDIR}/pub_cache, which
 # do_seed_pub_cache had filled from the SDK. Resolution then succeeded on
 # whatever the SDK's own cache happened to carry and failed on the first
 # package it did not -- with the vendored copy sitting unused one directory
@@ -51,7 +52,7 @@ python do_install_pubspec_lock() {
     name = d.getVar('PUBSPEC_LOCK_FILE')
     if not name:
         return
-    # file:// unpacks into UNPACKDIR from scarthgap on, and straight into
+    # file:// unpacks into UNPACKDIR from styhead on, and straight into
     # WORKDIR before that. Take whichever this release provides.
     base = d.getVar('UNPACKDIR') or d.getVar('WORKDIR')
     src = os.path.join(base, name)
