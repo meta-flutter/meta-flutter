@@ -364,6 +364,15 @@ jobs:
           . ./openembedded-core/oe-init-build-env
           bitbake flatpak-minimal-appstream-dart-flathub-catalog
 
+      # The remote test-runner daemon. No Flutter involvement, so unlike the
+      # app recipes below it builds on qemuarm too.
+      - name: Build test-runner
+        shell: bash
+        working-directory: ../scarthgap-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake test-runner
+
       - name: Build the Flutter SDK example apps
         # flutter build bundle has no linux-arm target platform,
         # so the app recipes do not parse for a 32-bit machine
