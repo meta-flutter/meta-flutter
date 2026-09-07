@@ -10,13 +10,6 @@ DEPENDS += " \
     "
 
 FLUTTER_APPLICATION_PATH ??= ""
-
-# Directory pub resolves from, relative to S. Defaults to the application, which
-# is where a standalone package resolves. A pub workspace member resolves from
-# the workspace root instead -- its own directory has no lockfile and pub
-# refuses to operate there -- so such a recipe points this at the root and
-# leaves FLUTTER_APPLICATION_PATH on the member.
-FLUTTER_PUB_ROOT ??= "${FLUTTER_APPLICATION_PATH}"
 FLUTTER_PREBUILD_CMD ??= ""
 
 PUB_CACHE_EXTRA_ARCHIVE_CMD ??= ""
@@ -33,12 +26,75 @@ FLUTTER_APPLICATION_INSTALL_PREFIX ??= "${datadir}/flutter"
 FLUTTER_APPLICATION_INSTALL_SUFFIX ??= "${PUBSPEC_APPNAME}"
 FLUTTER_INSTALL_DIR = "${FLUTTER_APPLICATION_INSTALL_PREFIX}/${FLUTTER_APPLICATION_INSTALL_SUFFIX}"
 
-PUB_CACHE = "${WORKDIR}/pub_cache"
+# ??=: pub-cache.bbclass points PUB_CACHE under UNPACKDIR, and a hard
+# assignment here beats it whatever order the recipe inherits in.
+PUB_CACHE ??= "${WORKDIR}/pub_cache"
 PUB_CACHE_ARCHIVE = ""
 
 PUBSPEC_IGNORE_LOCKFILE ??= "0"
 
 FLUTTER_SDK = "${STAGING_DIR_NATIVE}/usr/share/flutter/sdk"
+
+# flutter re-runs `pub get` when package_config.json does not look newer than
+# the pubspec beside it, and that resolve carries no --offline: with no network
+# it hangs holding flutter's startup lock, so a second app blocks behind it.
+#
+# Stamping in the SDK's do_install is not enough. mtimes only enter a task's
+# output hash for do_package (include_timestamps in oe/sstatesig.py), so hash
+# equivalence hands back the object built before the stamp. Do it here, where
+# it always runs.
+python flutter_stamp_sdk_resolution() {
+    import os
+
+    sdk_root = d.getVar('FLUTTER_SDK')
+    if not sdk_root or not os.path.isdir(sdk_root):
+        return
+
+    def restamp(path, when):
+        # STAGING_DIR_NATIVE is hardlinked from the sysroot-components tree, so
+        # utime() here would also move the mtime of a file shared with every
+        # other recipe staging this SDK. Break the link first.
+        try:
+            if os.stat(path).st_nlink > 1:
+                tmp = path + '.stamp.tmp'
+                with open(path, 'rb') as src, open(tmp, 'wb') as dst:
+                    dst.write(src.read())
+                os.chmod(tmp, os.stat(path).st_mode & 0o7777)
+                os.replace(tmp, path)
+            os.utime(path, (when, when))
+        except OSError as e:
+            bb.warn('could not stamp %s: %s' % (path, e))
+            return False
+        return True
+
+    stamped = 0
+    for root, dirs, files in os.walk(sdk_root):
+        if 'package_config.json' not in files:
+            continue
+
+        cfg = os.path.join(root, 'package_config.json')
+        pubspecs = [os.path.join(root, os.pardir, n)
+                    for n in ('pubspec.yaml', 'pubspec.lock')]
+        pubspecs = [p for p in pubspecs if os.path.isfile(p)]
+        if not pubspecs:
+            continue
+
+        newest = max(os.stat(p).st_mtime for p in pubspecs)
+        if os.stat(cfg).st_mtime > newest:
+            continue
+
+        when = newest + 2
+        if restamp(cfg, when):
+            stamped += 1
+        graph = os.path.join(root, 'package_graph.json')
+        if os.path.isfile(graph):
+            restamp(graph, when)
+
+    if stamped:
+        bb.note('stamped %d package_config.json file(s) in the staged SDK '
+                'as newer than their pubspec' % stamped)
+}
+do_prepare_recipe_sysroot[postfuncs] += "flutter_stamp_sdk_resolution"
 
 require conf/include/clang-utils.inc
 
@@ -209,10 +265,6 @@ python do_archive_pub_cache() {
                 return
 
     app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
-    # pub runs here; for a workspace member this is the workspace root rather
-    # than the application. The cache is still keyed on the application, since
-    # that identifies what is being built -- one pub root can host several.
-    pub_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_PUB_ROOT"))
     localfile = get_pub_cache_archive_name(d, app_root)
     localpath = os.path.join(d.getVar("DL_DIR"), localfile)
 
@@ -230,10 +282,10 @@ python do_archive_pub_cache() {
     # Remove pubspec.lock file if present
     #
     if d.getVar("PUBSPEC_IGNORE_LOCKFILE") == "1":
-        pubspec_lock = os.path.join(pub_root, 'pubspec.lock')
+        pubspec_lock = os.path.join(app_root, 'pubspec.lock')
         if os.path.exists(pubspec_lock):
             bb.note('Deleting the pubspec.lock due to PUBSPEC_IGNORE_LOCKFILE = "1"')
-            run_command(d, 'rm -rf pubspec.lock', pub_root, env)
+            run_command(d, 'rm -rf pubspec.lock', app_root, env)
         else:
             bb.note('The pubspec.lock file is not present')
 
@@ -253,23 +305,20 @@ python do_archive_pub_cache() {
     #
     # go online to fetch, then mark offline
     #
-    run_command(d, 'flutter config --no-analytics', pub_root, env)
-    run_command(d, 'flutter config --no-cli-animations', pub_root, env)
-    run_command(d, 'flutter clean', pub_root, env)
+    run_command(d, 'flutter config --no-analytics', app_root, env)
+    run_command(d, 'flutter config --no-cli-animations', app_root, env)
+    run_command(d, 'flutter clean', app_root, env)
 
     # if no pubspec.lock, create it
-    pubspec_lock = os.path.join(pub_root, 'pubspec.lock')
+    pubspec_lock = os.path.join(app_root, 'pubspec.lock')
     if not os.path.exists(pubspec_lock):
-        run_command(d, 'dart pub --suppress-analytics --directory . get --example', pub_root, env)
-        run_command(d, 'dart pub --suppress-analytics --directory . get', pub_root, env)
+        run_command(d, 'dart pub --suppress-analytics --directory . get', app_root, env)
 
-    run_command(d, 'flutter pub get --enforce-lockfile', pub_root, env)
-    run_command(d, 'flutter pub get --enforce-lockfile --offline', pub_root, env)
+    run_command(d, 'flutter pub get --enforce-lockfile', app_root, env)
+    run_command(d, 'flutter pub get --enforce-lockfile --no-example --offline', app_root, env)
 
-    # The resolution artifacts (.dart_tool and friends) are written where pub
-    # ran, which for a workspace member is the root rather than the member.
     cp_cmd = f'mkdir -p {pub_cache}/.project | true; cp -rT . {pub_cache}/.project/ | true;'
-    run_command(d, cp_cmd, pub_root, env)
+    run_command(d, cp_cmd, app_root, env)
 
     bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
     pack_cmd = f'tar -I \"pbzip2 -p{bb_number_threads}\" -cf {localpath} ./'
@@ -302,8 +351,6 @@ python do_restore_pub_cache() {
     from   bb.fetch2 import UnpackError
 
     app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
-    # Mirrors the archive side: the resolution tree goes back where pub ran.
-    pub_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_PUB_ROOT"))
 
     workspace = d.getVar('WORKDIR')
     file = os.path.join(workspace, 'PUB_CACHE_ARCHIVE')
@@ -329,13 +376,13 @@ python do_restore_pub_cache() {
 
     # restore flutter pub get artifacts
     cmd = \
-        f'mv .project/.dart_tool {pub_root}/ | true; ' \
-        f'mv .project/.packages {pub_root}/ | true; ' \
-        f'mv .project/.dart_tool {pub_root}/ | true; ' \
-        f'mv .project/.flutter-plugins {pub_root}/ | true; ' \
-        f'mv .project/.flutter-plugins-dependencies {pub_root}/ | true; ' \
-        f'mv .project/.metadata {pub_root}/ | true; ' \
-        f'mv .project/.packages {pub_root}/ | true; ' \
+        f'mv .project/.dart_tool {app_root}/ | true; ' \
+        f'mv .project/.packages {app_root}/ | true; ' \
+        f'mv .project/.dart_tool {app_root}/ | true; ' \
+        f'mv .project/.flutter-plugins {app_root}/ | true; ' \
+        f'mv .project/.flutter-plugins-dependencies {app_root}/ | true; ' \
+        f'mv .project/.metadata {app_root}/ | true; ' \
+        f'mv .project/.packages {app_root}/ | true; ' \
         'rm -rf .project'
     bb.note(f'Running [{cmd}] in {unpackdir}')
     ret = subprocess.call(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir)
@@ -405,7 +452,7 @@ python do_compile() {
 
     run_command(d, 'flutter config --no-analytics', source_root, env)
     run_command(d, 'flutter config --no-cli-animations', source_root, env)
-    run_command(d, 'flutter pub get --enforce-lockfile --offline -v', source_root, env)
+    run_command(d, 'flutter pub get --enforce-lockfile --no-example --offline -v', source_root, env)
 
     build_type = d.getVar('BUILD_TYPE')
 
@@ -465,6 +512,9 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
         build_folder = os.path.join(source_root, 'build')
         if os.path.exists(build_folder):
             run_command(d, 'flutter clean -v', source_root, env)
+            # clean drops .dart_tool and the build carries --no-pub without
+            # network, so nothing puts the resolution back. Rebuild path only.
+            run_command(d, 'flutter pub get --offline', source_root, env)
 
         if runtime_mode == 'jit_release':
             cmd = (f'flutter build {flutter_build_args} --local-engine -v')
@@ -504,6 +554,38 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
             flutter_filesystem = ''
             flutter_app_dir = os.path.normpath(f'{source_dir}/{flutter_application_path}')
             dart_plugin_registrant_file = f'{flutter_app_dir}/.dart_tool/flutter_build/dart_plugin_registrant.dart'
+
+            # An app with no plugins gets neither .flutter-plugins-dependencies
+            # nor a generated registrant, so an absent registrant is an ordinary
+            # state and leaving the flags below empty is right. An app that has
+            # plugins for this platform and no registrant is not: the snapshot
+            # is built without registration and the image ships with those
+            # plugins inert -- no error, no missing file, just an app whose
+            # plugins do nothing. Nothing downstream reads it either, so the
+            # only place it shows is the artifact.
+            #
+            # Both files are written by `flutter build`, which has already run
+            # by the time this code executes, so reaching here with a plugin
+            # list and no registrant means that step did not generate it or
+            # something removed it afterwards. Distinguish the two cases rather
+            # than skipping both.
+            plugins_json = f'{flutter_app_dir}/.flutter-plugins-dependencies'
+            have_registrant = os.path.isfile(dart_plugin_registrant_file)
+            linux_plugins = []
+            if os.path.isfile(plugins_json):
+                with open(plugins_json, 'r') as f:
+                    linux_plugins = [p['name'] for p in
+                                     json.load(f).get('plugins', {}).get('linux', [])]
+
+            if not have_registrant and linux_plugins:
+                bb.fatal(
+                    f'{pubspec_appname}: .flutter-plugins-dependencies lists '
+                    f'Linux plugins ({", ".join(linux_plugins)}) but no '
+                    f'registrant was generated at '
+                    f'{dart_plugin_registrant_file}.\n'
+                    f'Building the snapshot without it would ship an image '
+                    f'whose plugins are never registered.')
+
             if os.path.isfile(dart_plugin_registrant_file):
                 # The registrant is the one library with no package: URI, so it
                 # is named to the frontend by path -- and that path becomes the
@@ -558,7 +640,6 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
                 engine_snapshot = f'{flutter_sdk}/bin/cache/artifacts/engine/linux-{clang_build_arch(d)}/frontend_server_aot.dart.snapshot'
                 frontend_snapshot = sdk_snapshot if os.path.exists(sdk_snapshot) else engine_snapshot
                 dep_path = glob.glob(f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/kernel_snapshot_program.d')
-
             cmd = f'{dart_runtime} \
                 --disable-dart-dev \
                 {frontend_snapshot} \
