@@ -30,6 +30,12 @@ SRC_URI = "git://github.com/toyota-connected/test_runner.git;protocol=https;bran
 SRCREV = "${TEST_RUNNER_COMMIT}"
 PV = "0.1+git"
 
+# The git fetcher unpacks to ${WORKDIR}/git on this release, while the default
+# S is ${WORKDIR}/${BP}. wrynose needs no S because UNPACKDIR and the fetcher's
+# destsuffix agree there; here they do not, and do_populate_lic fails first --
+# LIC_FILES_CHKSUM points at a LICENSE that is not under S.
+S = "${WORKDIR}/git"
+
 inherit cmake pkgconfig features_check
 
 # capnproto.bbclass arrived in meta-oe in 6b1ba4543a, after this branch, so
