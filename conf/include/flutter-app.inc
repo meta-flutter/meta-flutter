@@ -20,14 +20,11 @@ DEPENDS += " \
 
 BUILD_TYPE = "app"
 
+# Force the Flutter build to target the cross-compile machine architecture
+# rather than the build host (flutter defaults to `uname -m`). Use the
+# target-arch mapping (aarch64 -> arm64, x86-64 -> x64), not clang_build_arch()
+# which reports BUILD_ARCH. Use :append (not +=) so the ??= default survives.
 FLUTTER_BUILD_ARGS ??= "bundle"
-# We always build for Linux, but flutter defaults the target arch to the build
-# host's, so a cross-build resolves native assets for the wrong arch: the
-# bundled NativeAssetsManifest.json lists system assets (e.g. sqlite3, pulled in
-# via drift) under the host arch, and the app fails at runtime with "No
-# available native assets". Pin the target arch (aarch64 -> arm64, x86-64 ->
-# x64) via the target-arch mapping -- not clang_build_arch(), which reports
-# BUILD_ARCH. Use :append (not +=) so the ??= default survives.
 FLUTTER_BUILD_ARGS:append = " --target-platform linux-${@gn_target_arch_name(d)}"
 
 # flutter build bundle only accepts 64-bit Linux target platforms. As of 3.47.1
@@ -74,6 +71,9 @@ do_install() {
         install -d ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/lib
 
         if [ ! -z "${APP_CONFIG}" ]; then
+            # WORKDIR, not UNPACKDIR: that variable arrived in styhead and
+            # this branch has no definition for it, so ${UNPACKDIR} would
+            # expand to nothing and the install would read from /.
             install -D -m 0644 ${WORKDIR}/${APP_CONFIG} \
                 ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/config.toml
         fi
@@ -115,3 +115,47 @@ FILES:${PN} = "\
     "
 
 RDEPENDS:${PN} = "flutter-engine"
+
+# An app that ships without its plugins registered is indistinguishable from
+# one that has none: no error, no missing file, just an app whose plugins do
+# nothing. The generated registrant is the only library an app links that has
+# no package: URI, so nothing downstream records whether it made it.
+#
+# Check the packaged image, which is what ships. Apps with no Linux plugins
+# legitimately have no registrant, so the plugin list decides whether its
+# absence is a fault -- the same test conf/include/common.inc applies before
+# building the snapshot.
+python flutter_check_packaged_registrant() {
+    import json
+    import os
+
+    pkgdest = d.getVar('PKGDEST')
+    if not pkgdest or not os.path.isdir(pkgdest):
+        return
+
+    app_dir = os.path.join(d.getVar('S'),
+                           d.getVar('FLUTTER_APPLICATION_PATH') or '')
+    plugins_json = os.path.join(app_dir, '.flutter-plugins-dependencies')
+    linux_plugins = []
+    if os.path.isfile(plugins_json):
+        with open(plugins_json, 'r') as f:
+            linux_plugins = [p['name'] for p in
+                             json.load(f).get('plugins', {}).get('linux', [])]
+
+    for dirpath, _, files in os.walk(pkgdest):
+        if 'libapp.so' not in files:
+            continue
+        path = os.path.join(dirpath, 'libapp.so')
+        if os.path.islink(path):
+            continue
+        with open(path, 'rb') as f:
+            count = f.read().count(b'_PluginRegistrant')
+        rel = os.path.relpath(path, pkgdest)
+        if linux_plugins and not count:
+            bb.fatal(
+                f'{rel} carries no plugin registrant, but this app declares '
+                f'Linux plugins ({", ".join(linux_plugins)}).\n'
+                f'It would install and run with those plugins silently inert.')
+        bb.note(f'plugin registrant in {rel}: {count}')
+}
+do_package[postfuncs] += "flutter_check_packaged_registrant"
