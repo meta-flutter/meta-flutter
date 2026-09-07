@@ -366,25 +366,6 @@ jobs:
 
       # The remote test-runner daemon. No Flutter involvement, so unlike the
       # app recipes below it builds on qemuarm too.
-      # bitbake prints only the path to a failed task's log, and that path is
-      # inside the work tree on the runner. Without this a do_configure or
-      # do_compile failure reaches us as "ExecutionError(...run.do_configure)"
-      # and nothing else, which is not enough to act on.
-      - name: Show bitbake failure logs
-        if: failure()
-        shell: bash
-        working-directory: ../scarthgap-linux-dummy
-        run: |
-          found=0
-          while IFS= read -r f; do
-            grep -qiE '^(ERROR|CMake Error)|error:' "$f" || continue
-            found=1
-            echo "::group::$f"
-            tail -120 "$f"
-            echo "::endgroup::"
-          done < <(find build/tmp*/work -name 'log.do_*' -mmin -240 2>/dev/null | head -40)
-          [ "$found" = 1 ] || echo "no task log with an error recorded in the last 4h"
-
       - name: Build test-runner
         shell: bash
         working-directory: ../scarthgap-linux-dummy
@@ -425,3 +406,23 @@ jobs:
         shell: bash
         working-directory: ../scarthgap-linux-dummy
         run: rm -f .ci-build-incomplete
+
+      # bitbake prints only the path to a failed task's log, and that path is
+      # inside the work tree on the runner. Without this a do_configure or
+      # do_compile failure reaches us as "ExecutionError(...run.do_configure)"
+      # and nothing else, which is not enough to act on. Last in the job so it
+      # sees a failure from any step above it.
+      - name: Show bitbake failure logs
+        if: failure()
+        shell: bash
+        working-directory: ../scarthgap-linux-dummy
+        run: |
+          found=0
+          while IFS= read -r f; do
+            grep -qiE '^(ERROR|CMake Error)|error:' "$f" || continue
+            found=1
+            echo "::group::$f"
+            tail -120 "$f"
+            echo "::endgroup::"
+          done < <(find build/tmp*/work -name 'log.do_*' -mmin -240 2>/dev/null | head -40)
+          [ "$found" = 1 ] || echo "no task log with an error recorded in the last 4h"
