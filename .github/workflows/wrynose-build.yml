@@ -6,13 +6,13 @@ name: wrynose-build
 # already.
 #
 # This branch gets per-pull-request builds because it is the release branch
-# under active use, and because two populated trees fit: one measures around
-# 106G. The older release branches stay dispatch-only, since a third and fourth
-# tree would not. The tree here is this branch's own, so master's is never
-# disturbed, and any other release branch's tmp is removed first, which holds
-# the remaining release branches to one populated tree between them -- a
-# dispatch of one of those will evict this branch's tree, which then rebuilds
-# from sstate on the next pull request.
+# under active use. scarthgap builds per pull request too, since #918.
+#
+# The 106G-per-tree figure this comment used to cite was an estimate and it was
+# wrong: measured, the five trees come to 153G in total, 19G to 34G each,
+# against terabytes free -- see the reclaim step below, which has been
+# conditional on the disk actually being short ever since. The tree here is this
+# branch's own, so master's is never disturbed.
 
 on:
   pull_request:
