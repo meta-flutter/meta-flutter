@@ -52,5 +52,6 @@ RDEPENDS:${PN} += " \
     flutter-packages-espresso-example \
     flutter-packages-in-app-purchase-in-app-purchase-in-app-purchase-example \
     flutter-packages-material-ui-material-ui-examples \
+    flutter-packages-material-ui-test-apps-a11y-assessments \
     flutter-packages-interactive-media-ads-interactive-media-ads-example \
 "
