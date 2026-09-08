@@ -10,7 +10,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit packagegroup
 
-RDEPENDS_${PN} += " \
+RDEPENDS:${PN} += " \
     googleads-flutter-samples-admob-mediation-example-mediationexample \
     googleads-flutter-samples-admob-api-demo \
     googleads-flutter-packages-mediation-gma-mediation-line-example \

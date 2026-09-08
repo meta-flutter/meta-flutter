@@ -10,6 +10,5 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit packagegroup
 
-RDEPENDS_${PN} += " \
-    meta-flutter-tests-textures-test-egl \
+RDEPENDS:${PN} += " \
 "

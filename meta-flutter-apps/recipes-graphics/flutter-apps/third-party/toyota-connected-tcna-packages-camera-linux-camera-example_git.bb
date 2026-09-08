@@ -17,8 +17,6 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=d73cf6ba84211d8b7fd0d2865b678fe8"
 SRCREV = "57b1b51c2cf48cb61760f5ea976bccfe5f75ccbb"
 SRC_URI = "git://github.com/toyota-connected/tcna-packages.git;lfs=0;branch=v2.0;protocol=https"
 
-S = "${WORKDIR}/git"
-
 PUBSPEC_APPNAME = "camera_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "toyota-connected-tcna-packages-camera-linux-camera-example"
 PUBSPEC_IGNORE_LOCKFILE = "1"

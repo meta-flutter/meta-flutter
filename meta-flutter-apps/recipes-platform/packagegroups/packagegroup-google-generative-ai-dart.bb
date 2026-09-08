@@ -10,6 +10,6 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit packagegroup
 
-RDEPENDS_${PN} += " \
+RDEPENDS:${PN} += " \
     google-generative-ai-dart-samples-flutter-app-generative-ai-flutter \
 "

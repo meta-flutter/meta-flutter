@@ -10,7 +10,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit packagegroup
 
-RDEPENDS_${PN} += " \
+RDEPENDS:${PN} += " \
     flutter-samples-background-isolate-channels \
     flutter-samples-platform-channels \
     flutter-samples-form-app \
