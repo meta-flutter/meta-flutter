@@ -34,6 +34,7 @@ RDEPENDS:${PN} += " \
     perl-modules \
     unzip \
     \
+    gtk4-dev \
     upower-dev \
     xdg-user-dirs \
 "
