@@ -131,6 +131,13 @@ def test_apps_are_emitted_in_a_stable_order(tmp_path):
     assert [c['path'] for c in cands] == sorted(c['path'] for c in cands)
 
 
+def _carries_sdk_apps(layer):
+    """The guard in roll_sdk_apps skips a branch with no flutter-sdk-app.inc."""
+    inc = layer / 'conf' / 'include'
+    inc.mkdir(parents=True, exist_ok=True)
+    (inc / 'flutter-sdk-app.inc').write_text('# marker\n')
+
+
 def test_roll_sdk_apps_is_not_fatal_when_the_clone_fails(tmp_path, monkeypatch, capsys):
     """A roll that has already bumped the SDK must not be thrown away.
 
@@ -138,6 +145,7 @@ def test_roll_sdk_apps_is_not_fatal_when_the_clone_fails(tmp_path, monkeypatch, 
     parsing, and only the handful built in CI would ever notice.
     """
     import subprocess as sp
+    _carries_sdk_apps(tmp_path)
     monkeypatch.setattr(sdk_apps, 'pinned_release_hash', lambda root: 'deadbeef')
 
     def boom(*a, **kw):
@@ -151,6 +159,7 @@ def test_roll_sdk_apps_is_not_fatal_when_the_clone_fails(tmp_path, monkeypatch, 
 
 
 def test_roll_sdk_apps_reports_a_missing_release_hash(tmp_path, monkeypatch, capsys):
+    _carries_sdk_apps(tmp_path)
     monkeypatch.setattr(sdk_apps, 'pinned_release_hash', lambda root: None)
     assert sdk_apps.roll_sdk_apps(str(tmp_path)) is False
     assert 'no release hash' in capsys.readouterr().out
@@ -162,6 +171,7 @@ def test_roll_sdk_apps_generates_from_an_existing_clone(tmp_path):
     (clone / 'pubspec.yaml').write_text('name: _flutter_packages\n')
     layer = tmp_path / 'layer'
     (layer / 'conf' / 'include').mkdir(parents=True)
+    _carries_sdk_apps(layer)
     (layer / 'conf' / 'include' / 'flutter-version.inc').write_text(
         'FLUTTER_SDK_TAG ??= "3.47.1"\n')
     (layer / 'conf' / 'include' / 'releases_linux.json').write_text(
@@ -171,3 +181,15 @@ def test_roll_sdk_apps_generates_from_an_existing_clone(tmp_path):
     written = sorted(p.name for p in
                      (layer / 'recipes-graphics' / 'flutter-sdk' / 'apps').iterdir())
     assert 'flutter-sdk-examples-hello-world.bb' in written
+
+
+def test_roll_sdk_apps_skips_a_branch_without_the_include(tmp_path, capsys):
+    """dunfell carries no SDK apps.
+
+    Every generated recipe requires conf/include/flutter-sdk-app.inc, so
+    emitting them on a branch without it would break parsing for every target
+    on that branch. Skipping is success, not failure -- there is nothing to
+    generate.
+    """
+    assert sdk_apps.roll_sdk_apps(str(tmp_path)) is True
+    assert 'carries no SDK apps' in capsys.readouterr().out
