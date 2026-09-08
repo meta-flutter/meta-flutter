@@ -243,6 +243,16 @@ def roll_sdk_apps(layer_root, clone=None):
     output_dir = os.path.join(layer_root, 'recipes-graphics', 'flutter-sdk', 'apps')
     overrides = os.path.join(output_dir, 'sdk-apps-overrides.json')
 
+    # Every generated recipe starts with `require conf/include/flutter-sdk-app.inc`.
+    # A branch that does not carry that include does not carry SDK apps, and
+    # writing recipes that require a missing file would break parsing for every
+    # target on the branch. Skip rather than emit them.
+    include = os.path.join(layer_root, 'conf', 'include', 'flutter-sdk-app.inc')
+    if not os.path.isfile(include):
+        print('No conf/include/flutter-sdk-app.inc; this branch carries no SDK '
+              'apps, skipping their generation')
+        return True
+
     tmp = None
     if clone is None:
         release_hash = pinned_release_hash(layer_root)
