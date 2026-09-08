@@ -316,9 +316,9 @@ jobs:
         working-directory: ../wrynose-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake flutter-wayland-client \\
-                  flutter-x11-client \\
-                  flutter-drm-gbm-backend \\
+          bitbake flutter-wayland-client \
+                  flutter-x11-client \
+                  flutter-drm-gbm-backend \
                   flutter-drm-eglstream-backend
 
       # The remote test-runner daemon. No Flutter involvement, so unlike the
