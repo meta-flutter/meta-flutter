@@ -59,7 +59,10 @@ do_configure:prepend() {
 
 PRIVATE_LIBS:${PN} = "libflutter_engine.so"
 
-RDEPENDS:${PN} += "flutter-engine"
+# flutter-engine for the metapackage, and the package that actually ships
+# libflutter_engine.so so file-rdeps can resolve it. See FLUTTER_ENGINE_PACKAGE
+# in conf/include/flutter-version.inc.
+RDEPENDS:${PN} += "flutter-engine ${FLUTTER_ENGINE_PACKAGE}"
 
 python () {
     d.setVar('FLUTTER_SDK_VERSION', get_flutter_sdk_version(d))
