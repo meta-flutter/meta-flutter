@@ -384,7 +384,48 @@ jobs:
 
       # Only reached when every step above succeeded; a failed or cancelled run
       # leaves the marker behind for the next one to act on.
+      - name: Build the Flutter SDK example apps
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          # hello_world proves the shape; flutter_gallery proves it holds for an
+          # app with real dependencies. These are also the only recipes that
+          # inherit pub-cache, so without them the class and the timeout
+          # hosttool it needs are never executed.
+          APPS="flutter-sdk-examples-hello-world \
+                flutter-sdk-dev-integration-tests-flutter-gallery"
+
+          # Fetch first, then build with the network off: anything the workspace
+          # pub cache fragment failed to declare cannot be fetched and fails here
+          # rather than working quietly on a machine that happens to be online.
+          bitbake --runall=fetch $APPS
+          BB_NO_NETWORK=1 bitbake $APPS
+
       - name: Mark the build complete
         shell: bash
         working-directory: ../kirkstone-linux-dummy
         run: rm -f .ci-build-incomplete
+
+      # bitbake prints only the path to a failed task's log, and that path is
+      # inside the work tree on the runner. Without this a do_configure or
+      # do_compile failure reaches us as "ExecutionError(...run.do_configure)"
+      # and nothing else, which is not enough to act on. Last in the job so it
+      # sees a failure from any step above it.
+      - name: Show bitbake failure logs
+        if: failure()
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          found=0
+          while IFS= read -r f; do
+            grep -qiE '^(ERROR|CMake Error)|error:' "$f" || continue
+            found=1
+            echo "::group::$f"
+            tail -120 "$f"
+            echo "::endgroup::"
+          done < <(find build/tmp*/work -name 'log.do_*' -mmin -240 2>/dev/null | head -40)
+          [ "$found" = 1 ] || echo "no task log with an error recorded in the last 4h"
