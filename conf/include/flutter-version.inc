@@ -6,6 +6,23 @@
 
 FLUTTER_SDK_TAG ??= "3.47.2"
 
+# The package that ships libflutter_engine.so.
+#
+# flutter-engine is ALLOW_EMPTY and carries no files of its own: the per-mode
+# packages claim them, and it only RDEPENDs on whichever modes were built.
+# file-rdeps resolves a shared library against the packages named in a recipe's
+# RDEPENDS and does not follow a metapackage's own, so a recipe that links the
+# engine has to name the package that carries it. Depending on flutter-engine
+# alone gives "requires libflutter_engine.so(), but no providers found in
+# RDEPENDS" -- see #887.
+#
+# release is in the engine's default PACKAGECONFIG. Override in local.conf for
+# an image that ships a different mode:
+#
+#   FLUTTER_ENGINE_PACKAGE = "flutter-engine-debug"
+#
+FLUTTER_ENGINE_PACKAGE ??= "flutter-engine-release"
+
 def get_flutter_archive(d):
     return _get_flutter_release_info(d, "archive")
 
