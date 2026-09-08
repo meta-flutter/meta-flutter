@@ -381,7 +381,7 @@ jobs:
         working-directory: ../scarthgap-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          # Two of the fifteen. hello_world proves the shape; flutter_gallery
+          # Two of the fourteen. hello_world proves the shape; flutter_gallery
           # proves it holds for an app with real dependencies. These are also
           # the only recipes that inherit pub-cache, so without them the class
           # and the timeout hosttool it needs are never executed.
