@@ -484,10 +484,11 @@ def main():
     update_dart_recipe(args.path, flutter_sdk_version)
 
     #
-    # The apps the SDK itself ships. No manifest entry and no SRCREV: they
-    # move with FLUTTER_SDK_TAG, so they are regenerated rather than tracked.
-    # After update_flutter_version_inc() above, which is what makes the pinned
-    # version current.
+    # The apps the SDK itself ships. These have no manifest entry and no
+    # SRCREV: they move with FLUTTER_SDK_TAG, so they are regenerated here
+    # rather than tracked. After update_flutter_version_inc() above, because
+    # that is what makes the pinned version current -- generating first would
+    # emit recipes for the SDK being replaced.
     #
     print_banner('Updating Flutter SDK app recipes')
     from sdk_apps import roll_sdk_apps
