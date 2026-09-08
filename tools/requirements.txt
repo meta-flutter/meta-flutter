@@ -1,0 +1,14 @@
+# What the roll needs, beyond the standard library.
+#
+# Kept honest by tools/tests/test_requirements.py, which walks every import in
+# tools/ and fails if one is missing here. Written by hand this list was
+# already wrong: the README named pycurl and pyyaml and omitted certifi, which
+# get_version_files() reaches through get_engine_commit().
+#
+# pycurl needs libcurl headers to build:
+#   Debian/Ubuntu  libcurl4-openssl-dev
+#   Fedora         libcurl-devel
+
+certifi
+pycurl
+PyYAML

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-FileCopyrightText: (C) 2020-2024 Joel Winarske
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: MIT
 
 import errno
 import os
@@ -180,7 +180,17 @@ def get_yaml_obj(filepath: str):
 
 
 def fetch_https_progress(download_t, download_d, _upload_t, _upload_d):
-    """callback function for pycurl.XFERINFOFUNCTION"""
+    """callback function for pycurl.XFERINFOFUNCTION
+
+    Only when someone is watching. The meter redraws with \r, which is right
+    on a terminal and useless in a file: a roll downloads several files and
+    the result is thousands of Progress: lines interleaved with the output
+    that matters -- the repos that failed, the apps that were skipped, where
+    each lockfile came from. That output is the reason to read a roll log at
+    all, and it is the part that gets buried.
+    """
+    if not stream.isatty():
+        return
     stream.write('Progress: {}/{} kiB ({}%)\r'.format(str(int(download_d / KB)), str(int(download_t / KB)),
                                                       str(int(download_d / download_t * 100) if download_t > 0 else 0)))
     stream.flush()
@@ -289,29 +299,28 @@ def get_flutter_sdk_version() -> str:
         return flutter_version
 
 
-def test_internet_connection() -> bool:
-    """Test internet by connecting to nameserver"""
-    import pycurl
+def test_internet_connection(host='storage.googleapis.com', port=443,
+                             timeout=5) -> bool:
+    """Can the roll reach what it needs?
 
-    c = pycurl.Curl()
-    c.setopt(pycurl.URL, "https://dns.google")
-    c.setopt(pycurl.FOLLOWLOCATION, 0)
-    c.setopt(pycurl.CONNECTTIMEOUT, 5)
-    c.setopt(pycurl.NOSIGNAL, 1)
-    c.setopt(pycurl.NOPROGRESS, 1)
-    c.setopt(pycurl.NOBODY, 1)
+    A plain socket connect rather than pycurl. pycurl is still required --
+    fetch_https_binary_file() downloads releases_linux.json with it -- but a
+    reachability probe does not need it, and importing it here made a missing
+    pycurl fail at the connectivity check rather than at the download, which
+    reads like a network problem instead of a missing dependency.
+
+    Aimed at the host the roll actually uses, rather than at a general-purpose
+    nameserver: a check that passes while the endpoint the work depends on is
+    unreachable is worse than no check.
+    """
+    import socket
+
     try:
-        c.perform()
-    except pycurl.error as e:
-        error_code, message = e
-        print(f'pycurl exception: {error_code}: {message}')
-        pass
-
-    res = False
-    if c.getinfo(pycurl.RESPONSE_CODE) == 200:
-        res = True
-
-    return res
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError as e:
+        print(f'no connection to {host}:{port}: {e}')
+        return False
 
 
 # Phrases that identify a license, matched against the file's text with
@@ -381,13 +390,50 @@ def detect_licenses(license_path: str) -> list:
     return found
 
 
-def detect_license(license_path: str) -> str:
-    """detect_licenses() as a license expression, e.g. "BSD-3-Clause & MIT".
+# Multiple licenses are joined with "AND" on master and with "&" on the release
+# branches: oe-core 51c7930220 made AND the native SPDX operator, and before it
+# a bare AND parsed as a license *name*. Both spellings are correct on their own
+# branch and each is a regression on the other, so the value is declared here
+# and checked, rather than left to a sweep to notice after the fact. Change it
+# in the same commit that branches for a new release. See README.
+# Override syntax for generated fragments: ':append' from kirkstone on,
+# '_append' for dunfell's older bitbake. Declared alongside LICENSE_OPERATOR
+# because it is the same kind of fact -- branch-specific, correct on its own
+# branch, and a regression if carried to the other. Change it in the same
+# commit that branches for a new release. See README.
+OVERRIDE_STYLE = 'old'
 
-    Joined with '&' rather than 'AND': this release's license-format QA accepts
-    only &, | and parentheses as separators, and reads AND as a license name.
+LICENSE_OPERATOR = '&'
+_LICENSE_OPERATOR_OTHER = 'AND'
+
+
+def detect_license(license_path: str) -> str:
+    """detect_licenses() as an SPDX expression, e.g. "BSD-3-Clause AND MIT"."""
+    return f' {LICENSE_OPERATOR} '.join(sorted(detect_licenses(license_path)))
+
+
+def wrong_license_operator(declared: str) -> str:
+    """The operator in [declared] that this branch does not use, else ''.
+
+    Does not require an operator to be present -- a single-license value has
+    none. "&" cannot occur inside an SPDX id, so a substring test is enough for
+    it; "AND" can, so that one is matched on token boundaries.
     """
-    return ' & '.join(sorted(detect_licenses(license_path)))
+    if not declared:
+        return ''
+    if LICENSE_OPERATOR == 'AND':
+        return '&' if '&' in declared else ''
+    return 'AND' if 'AND' in re.split(r'[\s()]+', declared) else ''
+    # Match on token boundaries: "&" cannot appear inside an SPDX id, but "AND"
+    # would otherwise match inside a name that contains it.
+    tokens = re.split(r'[\s()]+', declared)
+    if _LICENSE_OPERATOR_OTHER in tokens:
+        return _LICENSE_OPERATOR_OTHER
+    if LICENSE_OPERATOR == 'AND' and '&' in declared:
+        return '&'
+    if LICENSE_OPERATOR == '&' and 'AND' in tokens:
+        return 'AND'
+    return ''
 
 
 def license_agrees_with_source(declared: str, detected_list: list) -> bool:
