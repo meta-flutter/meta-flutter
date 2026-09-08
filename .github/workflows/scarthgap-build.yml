@@ -385,8 +385,17 @@ jobs:
           # proves it holds for an app with real dependencies. These are also
           # the only recipes that inherit pub-cache, so without them the class
           # and the timeout hosttool it needs are never executed.
-          bitbake flutter-sdk-examples-hello-world \
-                  flutter-sdk-dev-integration-tests-flutter-gallery
+          APPS="flutter-sdk-examples-hello-world \
+                flutter-sdk-dev-integration-tests-flutter-gallery"
+
+          # These vendor the SDK workspace's pub cache -- one fragment for all
+          # of them, since they are members of one workspace with one lockfile.
+          # Fetch first, then build with the network off: anything the fragment
+          # failed to declare cannot be fetched and fails here rather than
+          # working quietly on a machine that happens to be online. Same as
+          # master and wrynose.
+          bitbake --runall=fetch $APPS
+          BB_NO_NETWORK=1 bitbake $APPS
 
       #
       # bluez_native: compiles a vendored sdbus-c++ from its own hook.
