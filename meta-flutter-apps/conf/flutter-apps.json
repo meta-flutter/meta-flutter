@@ -90,7 +90,7 @@
         "uri": "https://github.com/flutter/samples.git",
         "branch": "main",
         "license_file": "LICENSE",
-        "license_type": "BSD-3-Clause",
+        "license_type": "Apache-2.0 & BSD-3-Clause & OFL-1.1",
         "author": "Google",
         "folder": "first-party",
         "ignore": [
@@ -141,19 +141,6 @@
         "compiler_requires_network": [
             ""
         ]
-    },
-    {
-        "uri": "https://github.com/flutter/flutter.git",
-        "ver": "5874a72aa4c779a02553007c47dacbefba2374dc",
-        "license_file": "LICENSE",
-        "license_type": "BSD-3-Clause",
-        "author": "Google",
-        "folder": "first-party",
-        "rdepends": {
-            "dev/integration_tests/flutter_gallery": [
-                "xdg-user-dirs"
-            ]
-        }
     },
     {
         "uri": "https://github.com/mogol/flutter_secure_storage.git",
@@ -393,7 +380,6 @@
         "output_folder": {
             "packages/flatpak/example": "dynamic-layers/gnome-layer/recipes-graphics/flutter-apps"
         }
-
     },
     {
         "uri": "https://github.com/meta-flutter/flutter-tflite.git",
@@ -435,5 +421,5 @@
                 "\nSRC_URI[model_file.sha256sum] = \"cbdecd08b44c5dea3821f77c5468e2936ecfbf43cde0795a2729fdb43401e58b\""
             ]
         }
-    }   
+    }
 ]
