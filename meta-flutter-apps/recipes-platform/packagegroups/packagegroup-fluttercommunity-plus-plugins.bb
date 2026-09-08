@@ -10,7 +10,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit packagegroup
 
-RDEPENDS_${PN} += " \
+RDEPENDS:${PN} += " \
     fluttercommunity-plus-plugins-packages-share-plus-share-plus-example \
     fluttercommunity-plus-plugins-packages-device-info-plus-device-info-plus-example \
     fluttercommunity-plus-plugins-packages-connectivity-plus-connectivity-plus-example \

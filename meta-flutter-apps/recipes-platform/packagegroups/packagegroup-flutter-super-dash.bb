@@ -10,6 +10,5 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit packagegroup
 
-RDEPENDS_${PN} += " \
-    flutter-super-dash-super-dash \
+RDEPENDS:${PN} += " \
 "

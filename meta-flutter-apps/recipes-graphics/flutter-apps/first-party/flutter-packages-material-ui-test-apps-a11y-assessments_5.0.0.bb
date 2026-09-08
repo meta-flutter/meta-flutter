@@ -4,8 +4,8 @@
 # SPDX-License-Identifier: MIT
 #
 
-SUMMARY = "shared_preferences_tool"
-DESCRIPTION = "DevTools extension for package:shared_preferences. Manage SharedPreferences efficiently. Edit, search, and view keys."
+SUMMARY = "a11y_assessments"
+DESCRIPTION = "A new Flutter project"
 AUTHOR = "Google"
 HOMEPAGE = "None"
 BUGTRACKER = "None"
@@ -17,9 +17,9 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=2b36ca50262dc615e560c27654badb26"
 SRCREV = "c0b28f64cec228cad045b7cd0ddc3f7b9ba3d88a"
 SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=https"
 
-PUBSPEC_APPNAME = "shared_preferences_tool"
-FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-shared-preferences-shared-preferences-shared-preferences-tool"
+PUBSPEC_APPNAME = "a11y_assessments"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-material-ui-test-apps-a11y-assessments"
 PUBSPEC_IGNORE_LOCKFILE = "1"
-FLUTTER_APPLICATION_PATH = "packages/shared_preferences/shared_preferences_tool"
+FLUTTER_APPLICATION_PATH = "packages/material_ui/test_apps/a11y_assessments"
 
 inherit flutter-app

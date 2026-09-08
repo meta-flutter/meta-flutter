@@ -10,7 +10,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit packagegroup
 
-RDEPENDS_${PN} += " \
+RDEPENDS:${PN} += " \
     davbfr-dart-pdf-printing-example \
     davbfr-dart-pdf-demo-printing-demo \
 "

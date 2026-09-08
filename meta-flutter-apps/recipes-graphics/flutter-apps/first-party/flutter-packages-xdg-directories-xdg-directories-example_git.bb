@@ -14,10 +14,8 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=2b36ca50262dc615e560c27654badb26"
 
-SRCREV = "b33d9334f58b1cb6dfc1d6a46deb1c24f4a6425a"
+SRCREV = "c0b28f64cec228cad045b7cd0ddc3f7b9ba3d88a"
 SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=https"
-
-S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "xdg_directories_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-xdg-directories-xdg-directories-example"

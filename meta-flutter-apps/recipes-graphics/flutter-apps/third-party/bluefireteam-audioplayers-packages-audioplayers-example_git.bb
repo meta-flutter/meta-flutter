@@ -17,8 +17,6 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=c40600261a3b45d01ebc98bcb0a6b2d5"
 SRCREV = "cd475c760b2e730c4306c1f102f3ac6f4313109e"
 SRC_URI = "git://github.com/bluefireteam/audioplayers.git;lfs=0;branch=main;protocol=https"
 
-S = "${WORKDIR}/git"
-
 PUBSPEC_APPNAME = "audioplayers_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "bluefireteam-audioplayers-packages-audioplayers-example"
 PUBSPEC_IGNORE_LOCKFILE = "1"
@@ -26,7 +24,7 @@ FLUTTER_APPLICATION_PATH = "packages/audioplayers/example"
 
 inherit flutter-app
 
-RDEPENDS_${PN} += " \
+RDEPENDS:${PN} += " \
     gstreamer1.0 \
     gstreamer1.0-plugins-base \
     gstreamer1.0-plugins-good \

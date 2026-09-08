@@ -10,7 +10,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit packagegroup
 
-RDEPENDS_${PN} += " \
+RDEPENDS:${PN} += " \
     firebase-firebaseui-flutter-tests \
     firebase-firebaseui-flutter-packages-firebase-ui-localizations-example \
     firebase-firebaseui-flutter-packages-firebase-ui-auth-example \

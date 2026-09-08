@@ -10,7 +10,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit packagegroup
 
-RDEPENDS_${PN} += " \
+RDEPENDS:${PN} += " \
     flutter-packages-third-party-packages-flutter-svg-example \
     flutter-packages-vector-graphics-example \
     flutter-packages-pointer-interceptor-pointer-interceptor-pointer-interceptor-example \
@@ -52,5 +52,6 @@ RDEPENDS_${PN} += " \
     flutter-packages-espresso-example \
     flutter-packages-in-app-purchase-in-app-purchase-in-app-purchase-example \
     flutter-packages-material-ui-material-ui-examples \
+    flutter-packages-material-ui-test-apps-a11y-assessments \
     flutter-packages-interactive-media-ads-interactive-media-ads-example \
 "

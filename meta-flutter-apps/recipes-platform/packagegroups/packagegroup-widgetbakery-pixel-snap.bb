@@ -10,6 +10,5 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 inherit packagegroup
 
-RDEPENDS_${PN} += " \
-    widgetbakery-pixel-snap-example \
+RDEPENDS:${PN} += " \
 "
