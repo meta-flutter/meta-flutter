@@ -9,7 +9,7 @@ CVE_PRODUCT = "flutter-client"
 
 REQUIRED_DISTRO_FEATURES += "wayland"
 
-require sony-flutter.inc
+require flutter-elinux.inc
 
 DEPENDS += "\
     wayland \
