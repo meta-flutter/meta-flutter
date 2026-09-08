@@ -299,9 +299,9 @@ jobs:
         working-directory: ../scarthgap-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          bitbake flutter-wayland-client \\
-                  flutter-x11-client \\
-                  flutter-drm-gbm-backend \\
+          bitbake flutter-wayland-client \
+                  flutter-x11-client \
+                  flutter-drm-gbm-backend \
                   flutter-drm-eglstream-backend
 
       # The ivi-homescreen v3 integration tests. All ten come from one upstream
