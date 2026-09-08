@@ -1,18 +1,44 @@
 name: kirkstone-build
 
-# Release-branch builds are dispatch-only, but cover every machine master
-# covers. The runner is sequential, so the matrix queues and runs one machine
-# at a time against a single tree, which is how master's tmp comes to hold all
-# four already.
+# Builds per pull request, and covers every machine master covers. The runner
+# is sequential, so the matrix queues and runs one machine at a time against a
+# single tree, which is how master's tmp comes to hold all four already.
 #
-# Dispatch rather than per-pull-request is a disk constraint, not a coverage
-# one: a populated tmp is around 106G against 264G free, so master and the four
-# release branches cannot all keep one. The tree here is this branch's own, so
-# master's is never disturbed, and any other release branch's tmp is removed
-# first, which holds the release branches to one populated tree between them.
+# This was dispatch-only on the grounds that a populated tmp is around 106G
+# against 264G free. That figure was an assumption and it was wrong: measured,
+# the five trees come to 153G in total, 19G to 34G each, against terabytes
+# free -- see the reclaim step below, which has been conditional on the disk
+# actually being short since. master, wrynose and scarthgap already build per
+# pull request; this branch is next in line for parity work and should not
+# take it unbuilt.
+#
+# The tree here is this branch's own, so master's is never disturbed.
 
 on:
+  pull_request:
+    # No 'closed': nothing here is conditioned on the event, so closing or
+    # merging would start a second full build of work already merged.
+    types: [ opened, synchronize, reopened ]
+    # A change that cannot affect a build should not cost a matrix.
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - 'tools/**'
+      - '.github/workflows/tools-tests.yml'
+      - '.gitignore'
+      - 'LICENSE'
   workflow_dispatch:
+
+# One run per branch. Every push to a pull request starts a run and GitHub does
+# not stop the previous one, so an iterated branch leaves a queue of runs
+# against commits that have already been superseded.
+#
+# Cancelling is limited to pull_request on purpose: a workflow_dispatch is
+# someone deliberately asking for a build, and a second dispatch on the same
+# ref should not silently kill the first.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
 
