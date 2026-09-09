@@ -28,9 +28,12 @@ RDEPENDS_dart-sdk_libc-musl = "\
 S = "${WORKDIR}/gn"
 
 SRCREV = "60a57cd42d64dc03e9f07aa60a2e250755c1ef28"
+FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+
 SRC_URI = " \
     gn://github.com/dart-lang/sdk.git;gn_name=sdk \
     file://gcc_toolchain.gni.in \
+    file://0001-build-Make-SDK-artifacts-independent-of-the-builder-s.patch;patchdir=${S}/sdk \
 "
 
 inherit gn-fetcher pkgconfig
