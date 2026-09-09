@@ -45,10 +45,23 @@ inherit pkgconfig
 
 SRC_URI = "\
     https://storage.googleapis.com/flutter_infra_release/releases/${@get_flutter_archive(d)};name=flutter-sdk \
-    https://storage.googleapis.com/flutter_infra_release/flutter/fonts/3012db47f3130e62f7cc0beabff968a33cbec8d8/fonts.zip;name=fonts;destsuffix=${D}${datadir}/flutter/sdk/bin/cache/artifacts/material_fonts \
 "
 SRC_URI[flutter-sdk.sha256sum] = "${@get_flutter_sha256(d)}"
-SRC_URI[fonts.sha256sum] = "e56fa8e9bb4589fde964be3de451f3e5b251e4a1eafb1dc98d94add034dd5a86"
+
+# No SRC_URI entry for the material fonts. One was here, with
+# destsuffix=${D}.../bin/cache/artifacts/material_fonts, and it placed nothing:
+# destsuffix is implemented by the git, hg, npm and npmsw fetchers only, and
+# wget inherits the generic unpack, which honours subdir alone and ignores an
+# unknown parameter. The files landed in ${WORKDIR} and were never installed.
+#
+# Placement would not have survived anyway -- do_unpack:append below removes
+# ${S}/bin/cache, and ${D} does not exist at do_unpack. flutter_tools fetches
+# the fonts itself during do_unpack, which is why the dead entry looked like it
+# worked.
+#
+# Fetching precache artifacts declaratively is #711 and needs more than a
+# placement parameter: somewhere that survives the rmtree, and a way to stop
+# flutter_tools re-downloading.
 
 S = "${WORKDIR}/flutter"
 
