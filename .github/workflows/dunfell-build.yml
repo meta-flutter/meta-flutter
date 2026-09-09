@@ -308,14 +308,14 @@ jobs:
           . ./openembedded-core/oe-init-build-env
           bitbake flutter-pi
 
-      # The sony embedders. These link libflutter_engine.so directly, so they
+      # The flutter-elinux embedders. These link libflutter_engine.so directly, so they
       # are the recipes that exercise FLUTTER_ENGINE_PACKAGE -- nothing else in
       # this workflow does, and #887 sat broken because none of them was ever
       # built here.
       #
       # x11-client needs the x11 distro feature and the rest need wayland; the
       # CI distro carries both.
-      - name: Build the sony embedders
+      - name: Build the flutter-elinux embedders
         shell: bash
         working-directory: ../dunfell-linux-dummy
         run: |

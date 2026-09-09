@@ -4,23 +4,16 @@
 # SPDX-License-Identifier: MIT
 #
 
-DESCRIPTION = "Flutter Embedder with video player plugin."
-CVE_PRODUCT = "libvideo_player_plugin.so"
+DESCRIPTION = "Flutter Embedder with external texture plugin."
+CVE_PRODUCT = "libexternal_texture_test_plugin.so"
 
 REQUIRED_DISTRO_FEATURES += "wayland"
 
-require sony-flutter.inc
+require flutter-elinux.inc
 
 DEPENDS += "\
-    gstreamer1.0 \
-    gstreamer1.0-plugins-base \
     wayland \
     wayland-native \
-    "
-
-RDEPENDS_${PN} += "\
-    gstreamer1.0-plugins-good \
-    gstreamer1.0-plugins-bad \
     "
 
 INSANE_SKIP_${PN} += " ldflags"
@@ -30,8 +23,8 @@ FILES_SOLIBSDEV = ""
 do_install() {
     install -D -m0755 ${B}/flutter-client \
         ${D}${bindir}/flutter-client
-    install -D -m0644 ${B}/plugins/video_player/libvideo_player_plugin.so \
-        ${D}${libdir}/libvideo_player_plugin.so
+    install -D -m0644 ${B}/plugins/external_texture_test/libexternal_texture_test_plugin.so \
+        ${D}${libdir}/libexternal_texture_test_plugin.so
 }
 
 FILES_${PN} = "\

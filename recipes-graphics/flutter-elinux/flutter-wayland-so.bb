@@ -9,7 +9,7 @@ CVE_PRODUCT = "flutter_elinux_wayland.so"
 
 REQUIRED_DISTRO_FEATURES += "wayland"
 
-require sony-flutter.inc
+require flutter-elinux.inc
 
 DEPENDS += "\
     wayland \
@@ -23,4 +23,6 @@ do_install() {
     install -m 0755 ${B}/libflutter_elinux_wayland.so ${D}${libdir}
 }
 
+SOLIBS = ".so"
+FILES_SOLIBSDEV = ""
 FILES_${PN} = "${libdir}"
