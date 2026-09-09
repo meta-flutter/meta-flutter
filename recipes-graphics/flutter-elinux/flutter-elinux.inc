@@ -32,6 +32,12 @@ SRC_REPO_BRANCH ??= "master"
 SRC_URI = "git://${SRC_REPO};protocol=https;branch=${SRC_REPO_BRANCH}"
 SRCREV ??= "ee831b1510e16911ca81200a3f066daaf2a087af"
 
+# The git fetcher unpacks to ${WORKDIR}/git on this release, while the default
+# S is ${WORKDIR}/${BP}. master carries no S line because UNPACKDIR and the
+# fetcher's destsuffix agree there; here they do not, and do_populate_lic fails
+# first -- LIC_FILES_CHKSUM points at a LICENSE that is not under S.
+S = "${WORKDIR}/git"
+
 inherit pkgconfig cmake features_check
 
 require conf/include/flutter-version.inc
