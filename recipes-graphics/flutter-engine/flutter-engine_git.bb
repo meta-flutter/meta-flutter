@@ -67,6 +67,7 @@ S = "${WORKDIR}/gn"
 # stopped applying at 3.47.1 and are redundant with that define.
 SRC_URI_libc-musl += "\
     file://0003-suppres-musl-libc-warning.patch;patchdir=engine/src/flutter/third_party/dart \
+    file://0011-build-Make-SDK-artifacts-independent-of-the-builder-s.patch;patchdir=engine/src/flutter/third_party/dart \
     "
 
 inherit gn-fetcher features_check pkgconfig
