@@ -1,0 +1,119 @@
+From 36621baad44b81e4097191e4175ef4f9ea72522d Mon Sep 17 00:00:00 2001
+From: Ryan Macnak <rmacnak@google.com>
+Date: Wed, 02 Sep 2026 09:17:59 -0700
+Subject: [PATCH] [build] Make SDK artifacts independent of the builder's working directory.
+
+
+Backport of https://dart-review.googlesource.com/c/sdk/+/543800, which is
+still in review. Fixes the builder's absolute paths being baked into every
+snapshot under bin/snapshots/, which trips Yocto's buildpaths QA check:
+
+  QA Issue: File /usr/share/dart-sdk/bin/snapshots/gen_kernel_aot.dart.snapshot
+  in package dart-sdk contains reference to TMPDIR [buildpaths]
+
+Upstream-Status: Backport [https://dart-review.googlesource.com/c/sdk/+/543800]
+Signed-off-by: Joel Winarske <joel.winarske@linux.com>
+diff --git a/utils/aot_snapshot.gni b/utils/aot_snapshot.gni
+index 49b1242..d349a90 100644
+--- a/utils/aot_snapshot.gni
++++ b/utils/aot_snapshot.gni
+@@ -85,15 +85,19 @@
+ 
+     depfile = "$output.d"
+ 
++    scheme = "org-dartlang-sdk"
++
+     script = "$_dart_root/build/gn_run_binary.py"
+ 
+     args = [
+       rebase_path(gen_kernel_exe, root_build_dir),
+-      "--packages=" + rebase_path(package_config, root_build_dir),
++      "--packages=" + scheme + ":///" + rebase_path(package_config, "//"),
+       "--platform=" + rebase_path(platform_dill, root_build_dir),
+       "--aot",
+       "--output=" + rebase_path(output, root_build_dir),
+       "--depfile=" + rebase_path(depfile, root_build_dir),
++      "--filesystem-root=" + rebase_path("//", root_build_dir),
++      "--filesystem-scheme=" + scheme,
+ 
+       # Ensure the compiled application (e.g. kernel-service, frontend-server,
+       # ...) will use this SDK hash when consuming/producing kernel.
+@@ -107,7 +111,7 @@
+       "-Ddart.vm.tsan=$is_tsan",
+     ]
+     args += gen_kernel_args
+-    args += [ rebase_path(main_dart, root_build_dir) ]
++    args += [ scheme + ":///" + rebase_path(main_dart, "//") ]
+     if (defined(invoker.args)) {
+       args += invoker.args
+     }
+diff --git a/utils/application_snapshot.gni b/utils/application_snapshot.gni
+index 490d6fd..fea7ff6 100644
+--- a/utils/application_snapshot.gni
++++ b/utils/application_snapshot.gni
+@@ -150,18 +150,22 @@
+ 
+     depfile = "$output.d"
+ 
++    scheme = "org-dartlang-sdk"
++
+     script = "$_dart_root/build/gn_run_binary.py"
+     is_product_flag = dart_runtime_mode == "release"
+ 
+     args = [
+       rebase_path(gen_kernel_exe, root_build_dir),
+-      "--packages=" + rebase_path(package_config, root_build_dir),
++      "--packages=" + scheme + ":///" + rebase_path(package_config, "//"),
+       "--platform=" + rebase_path(platform_dill, root_build_dir),
+       "--no-aot",
+       "--no-embed-sources",
+       "--no-link-platform",
+       "--output=" + rebase_path(output, root_build_dir),
+       "--depfile=" + rebase_path(depfile, root_build_dir),
++      "--filesystem-root=" + rebase_path("//", root_build_dir),
++      "--filesystem-scheme=" + scheme,
+ 
+       # Ensure the compiled application (e.g. kernel-service, frontend-server,
+       # ...) will use this SDK hash when consuming/producing kernel.
+@@ -175,7 +179,7 @@
+       "-Ddart.vm.tsan=$is_tsan",
+     ]
+     args += gen_kernel_args
+-    args += [ rebase_path(main_dart, root_build_dir) ]
++    args += [ scheme + ":///" + rebase_path(main_dart, "//") ]
+   }
+ 
+   # Create a snapshot from kernel built above.
+diff --git a/utils/kernel-service/BUILD.gn b/utils/kernel-service/BUILD.gn
+index 3f41624..eea79b7 100644
+--- a/utils/kernel-service/BUILD.gn
++++ b/utils/kernel-service/BUILD.gn
+@@ -114,7 +114,7 @@
+     outputs = [ output ]
+     depfile = "$root_gen_dir/kernel_service" + invoker.target_name + "_dill.d"
+ 
+-    scheme = "org-dartlang-kernel-service"
++    scheme = "org-dartlang-sdk"
+ 
+     script = "$_dart_root/build/gn_run_binary.py"
+     args = [ rebase_path(get_label_info(gen_kernel_tool, "root_out_dir") +
+@@ -127,15 +127,16 @@
+       # Ensure the compiled kernel-service will use this SDK hash when
+       # consuming/producing kernel.
+       "-Dsdk_hash=$sdk_hash",
+-      "--packages=" + scheme + ":///.dart_tool/package_config.json",
++      "--packages=" + scheme + ":///" +
++          rebase_path("../../.dart_tool/package_config.json", "//"),
+       "--platform=" +
+           rebase_path("$root_out_dir/vm_platform.dill", root_build_dir),
+-      "--filesystem-root=" + rebase_path("../../", root_build_dir),
++      "--filesystem-root=" + rebase_path("//", root_build_dir),
+       "--filesystem-scheme=" + scheme,
+       "--no-aot",
+       "--no-embed-sources",
+       "--output=" + rebase_path(output, root_build_dir),
+-      scheme + ":///$_kernel_service_script",
++      scheme + ":///" + rebase_path(kernel_service_script, "//"),
+     ]
+   }
+ }
