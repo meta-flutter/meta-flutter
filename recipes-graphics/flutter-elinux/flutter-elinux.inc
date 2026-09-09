@@ -29,7 +29,13 @@ REQUIRED_DISTRO_FEATURES += "opengl"
 SRC_REPO ??= "github.com/flutter-elinux/flutter-embedded-linux.git"
 SRC_REPO_BRANCH ??= "master"
 
-SRC_URI = "git://${SRC_REPO};protocol=https;branch=${SRC_REPO_BRANCH}"
+FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+
+# This release's libdrm is 2.4.101 and defines neither DRM_MODE_CONNECTOR_SPI
+# nor _USB. Upstream guards USB only, so the DRM backends fail on SPI. Drop
+# this when the guard lands upstream.
+SRC_URI = "git://${SRC_REPO};protocol=https;branch=${SRC_REPO_BRANCH} \
+           file://0001-Guard-DRM_MODE_CONNECTOR_SPI-for-older-libdrm.patch"
 SRCREV ??= "ee831b1510e16911ca81200a3f066daaf2a087af"
 
 # The git fetcher unpacks to ${WORKDIR}/git on this release, while the default

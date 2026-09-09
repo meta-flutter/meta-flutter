@@ -320,14 +320,14 @@ jobs:
         working-directory: ../dunfell-linux-dummy
         run: |
           . ./openembedded-core/oe-init-build-env
-          # Only the two client embedders. The DRM backends do not compile on
-          # this release: the upstream source uses DRM_MODE_CONNECTOR_SPI and
-          # DRM_MODE_CONNECTOR_USB, and this branch's libdrm is 2.4.101, which
-          # has neither. That is a pre-existing breakage, not something this
-          # change introduces, and both recipes below link libflutter_engine.so
-          # so FLUTTER_ENGINE_PACKAGE is still exercised.
+          # All four, as the other branches build. The DRM backends needed a
+          # guard for DRM_MODE_CONNECTOR_SPI against this release's libdrm
+          # 2.4.101 -- see the patch in flutter-elinux/files. Building them is
+          # what keeps that honest.
           bitbake flutter-wayland-client \
-                  flutter-x11-client
+                  flutter-x11-client \
+                  flutter-drm-gbm-backend \
+                  flutter-drm-eglstream-backend
 
       # The ivi-homescreen v3 integration tests. All ten come from one upstream
       # tree at HOMESCREEN_COMMIT through ivi-homescreen-test.inc, so they share
