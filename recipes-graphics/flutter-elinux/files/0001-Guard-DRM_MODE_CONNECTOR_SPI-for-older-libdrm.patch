@@ -1,0 +1,37 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@linux.com>
+Date: Mon, 8 Sep 2026 00:00:00 +0000
+Subject: [PATCH] Guard DRM_MODE_CONNECTOR_SPI for older libdrm
+
+native_window_drm.cc already guards DRM_MODE_CONNECTOR_USB so it builds
+against mesa < 21, but uses DRM_MODE_CONNECTOR_SPI unguarded a line later.
+Both arrived in the same era, so a libdrm old enough to want the USB guard
+wants this one too:
+
+  native_window_drm.cc:39:6: error: 'DRM_MODE_CONNECTOR_SPI' was not
+    declared in this scope; did you mean 'DRM_MODE_CONNECTOR_DPI'?
+
+Seen on Yocto dunfell, which carries libdrm 2.4.101 and defines neither.
+
+Same reasoning as the existing guard: a linux uapi value, safe to hardcode
+when unset. SPI is 19 and USB is 20 in drm_mode.h.
+
+Upstream-Status: Pending [sent to flutter-elinux/flutter-embedded-linux]
+Signed-off-by: Joel Winarske <joel.winarske@linux.com>
+---
+ .../linux_embedded/window/native_window_drm.cc         | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/flutter/shell/platform/linux_embedded/window/native_window_drm.cc b/src/flutter/shell/platform/linux_embedded/window/native_window_drm.cc
+--- a/src/flutter/shell/platform/linux_embedded/window/native_window_drm.cc
++++ b/src/flutter/shell/platform/linux_embedded/window/native_window_drm.cc
+@@ -16,6 +16,9 @@
+ // Allow building with mesa < 21
+ // This is a linux uapi header value so there is no risk in hardcoding it if
+ // unset
++#ifndef DRM_MODE_CONNECTOR_SPI
++#define DRM_MODE_CONNECTOR_SPI 19
++#endif
+ #ifndef DRM_MODE_CONNECTOR_USB
+ #define DRM_MODE_CONNECTOR_USB 20
+ #endif
