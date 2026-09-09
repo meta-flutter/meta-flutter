@@ -26,9 +26,12 @@ DEPENDS += "\
 S = "${UNPACKDIR}/gn"
 
 SRCREV = "60a57cd42d64dc03e9f07aa60a2e250755c1ef28"
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
+
 SRC_URI = " \
     gn://github.com/dart-lang/sdk.git;gn_name=sdk \
     file://gcc_toolchain.gni.in \
+    file://0001-build-Make-SDK-artifacts-independent-of-the-builder-s.patch;patchdir=${S}/sdk \
 "
 
 TOOLCHAIN = "clang"
@@ -149,7 +152,7 @@ do_install() {
 # of the SDK's own `ninja create_sdk`, so it is not ours to construct and not
 # yet fixed -- see #827. The skip arrived here undocumented with the 3.47.1
 # roll; it is a known defect being hidden, not a check that does not apply.
-INSANE_SKIP:${PN} = "already-stripped ldflags buildpaths"
+INSANE_SKIP:${PN} = "already-stripped ldflags"
 
 FILES:${PN} += "${datadir}"
 
