@@ -15,6 +15,7 @@ RDEPENDS:${PN} += " \
     flutter-packages-vector-graphics-example \
     flutter-packages-pointer-interceptor-pointer-interceptor-pointer-interceptor-example \
     flutter-packages-url-launcher-url-launcher-linux-url-launcher-example \
+    flutter-packages-pigeon-example-native-interop-pigeon-native-interop-app \
     flutter-packages-pigeon-platform-tests-alternate-language-test-plugin-alternate-language-test-plugin-example \
     flutter-packages-pigeon-platform-tests-test-plugin-test-plugin-example \
     flutter-packages-camera-example \
