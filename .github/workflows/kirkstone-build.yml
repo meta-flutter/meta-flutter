@@ -399,6 +399,20 @@ jobs:
           . ./openembedded-core/oe-init-build-env
           bitbake jwinarske-bluez-native-flutter-ble-scanner
 
+      # A generated app recipe, through do_populate_lic only. The apps above
+      # are hand-maintained and carry their own S, so none of them caught the
+      # roll dropping S from every generated recipe (#978). LIC_FILES_CHKSUM
+      # resolves against S, so this fails on the first task that reads it.
+      - name: Check a generated app recipe unpacks into S
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        shell: bash
+        working-directory: ../kirkstone-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake -c populate_lic meta-flutter-video-player-linux-example-video-player-example
+
       # Only reached when every step above succeeded; a failed or cancelled run
       # leaves the marker behind for the next one to act on.
       - name: Build the Flutter SDK example apps

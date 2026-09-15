@@ -403,6 +403,13 @@ def detect_licenses(license_path: str) -> list:
 # commit that branches for a new release. See README.
 OVERRIDE_STYLE = 'new'
 
+# S for git-fetched app recipes. The git fetcher unpacks to ${WORKDIR}/git
+# here while the default S is ${WORKDIR}/${BP}; bitbake lines them up with
+# BB_GIT_DEFAULT_DESTSUFFIX only from styhead on. None there, where S is left
+# to the default. The generator ported from wrynose dropped S on every roll
+# until this was declared. See #978.
+GIT_S = '${WORKDIR}/git'
+
 LICENSE_OPERATOR = '&'
 _LICENSE_OPERATOR_OTHER = 'AND'
 

@@ -17,6 +17,8 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=ad4a5a1c16c771bac65521dacef3900e"
 SRCREV = "9ae0e422d6ad6376ddf7960186d42342b0370baf"
 SRC_URI = "git://github.com/mogol/flutter_secure_storage.git;lfs=0;branch=develop;protocol=https"
 
+S = "${WORKDIR}/git"
+
 PUBSPEC_APPNAME = "flutter_secure_storage_example"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "mogol-flutter-secure-storage-flutter-secure-storage-example"
 PUBSPEC_IGNORE_LOCKFILE = "1"
