@@ -136,3 +136,40 @@ def test_vendor_only_leaves_the_recipe_alone(app, monkeypatch, tmp_path):
     assert not list(out.rglob('*.bb')), 'a recipe was written despite generate_recipes=False'
     assert list(out.rglob('*-pubcache.inc')), 'the fragment was not vendored'
     assert list(out.rglob('*-pubspec.lock')), 'the lockfile was not shipped'
+
+
+def test_the_recipe_carries_the_branch_s(app, monkeypatch):
+    """S follows common.GIT_S.
+
+    The generator ported from wrynose never wrote S, so the 3.47.2 roll dropped
+    it from 149 recipes here and do_populate_lic could not find LICENSE in
+    ${WORKDIR}/${BP}. See #978.
+    """
+    import common
+    import create_recipes
+    app_dir, out = app
+    (app_dir / 'pubspec.yaml').write_text('name: probe\nversion: 1.0.0\n')
+
+    def make():
+        for p in out.rglob('*.bb'):
+            p.unlink()
+        create_recipes.create_recipe(
+            directory=str(app_dir.parent),
+            pubspec_yaml=str(app_dir / 'pubspec.yaml'),
+            flutter_application_path='app',
+            org='o', unit='u', submodules=False,
+            url='https://example.invalid/x.git', lfs=False, branch='main',
+            commit='deadbeef',
+            license_file=None, license_type='CLOSED', license_md5='',
+            author='x', recipe_folder='third-party', output_path=str(out),
+            rdepends_list=None, output_path_override_list=None,
+            compiler_requires_network_list=None, src_folder=None, src_files=None,
+            variables=None, patch_dir=None, pubvendor=False)
+        recipes = list(out.rglob('*.bb'))
+        assert len(recipes) == 1
+        return recipes[0].read_text()
+
+    assert f'\nS = "{common.GIT_S}"\n' in make()
+
+    monkeypatch.setattr(create_recipes, 'GIT_S', None)
+    assert '\nS = ' not in make()
