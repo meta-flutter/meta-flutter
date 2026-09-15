@@ -14,7 +14,7 @@ SECTION = "graphics"
 LICENSE = "Apache-2.0 & BSD-3-Clause & OFL-1.1"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=b7eeb61b41ae366e94383bca5e113fce"
 
-SRCREV = "1b147c6d3140afb65c713f34eddb1bf119d5f052"
+SRCREV = "aa0f1b4a9572dcb6fad4258061d2033ddda7fb65"
 SRC_URI = "git://github.com/flutter/games.git;lfs=1;branch=main;protocol=https"
 
 PUBSPEC_APPNAME = "endless_runner"
