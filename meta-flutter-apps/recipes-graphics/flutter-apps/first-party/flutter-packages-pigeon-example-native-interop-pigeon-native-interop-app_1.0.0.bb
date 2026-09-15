@@ -4,8 +4,8 @@
 # SPDX-License-Identifier: MIT
 #
 
-SUMMARY = "a11y_assessments"
-DESCRIPTION = "A new Flutter project"
+SUMMARY = "pigeon_native_interop_app"
+DESCRIPTION = "An example of using Pigeon with Native Interop in an application."
 AUTHOR = "Google"
 HOMEPAGE = "None"
 BUGTRACKER = "None"
@@ -17,9 +17,9 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=2b36ca50262dc615e560c27654badb26"
 SRCREV = "a3ffe32f5be70015c65cdfedf90377b2db34cd34"
 SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=https"
 
-PUBSPEC_APPNAME = "a11y_assessments"
-FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-material-ui-test-apps-a11y-assessments"
+PUBSPEC_APPNAME = "pigeon_native_interop_app"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-pigeon-example-native-interop-pigeon-native-interop-app"
 PUBSPEC_IGNORE_LOCKFILE = "1"
-FLUTTER_APPLICATION_PATH = "packages/material_ui/test_apps/a11y_assessments"
+FLUTTER_APPLICATION_PATH = "packages/pigeon/example/native_interop_app"
 
 inherit flutter-app
