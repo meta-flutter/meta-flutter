@@ -403,6 +403,13 @@ def detect_licenses(license_path: str) -> list:
 # commit that branches for a new release. See README.
 OVERRIDE_STYLE = 'new'
 
+# S for git-fetched app recipes. None here: from styhead on bitbake sets
+# BB_GIT_DEFAULT_DESTSUFFIX and the default S matches the git unpack dir.
+# scarthgap and older declare '${WORKDIR}/git'. Declared on every branch so the
+# generator stays identical across them; porting it without this constant is
+# how the release branches lost S. See #978.
+GIT_S = None
+
 LICENSE_OPERATOR = '&'
 _LICENSE_OPERATOR_OTHER = 'AND'
 
