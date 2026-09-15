@@ -9,6 +9,7 @@ import os
 import signal
 import sys
 
+from common import GIT_S
 from common import get_yaml_obj
 from common import make_sure_path_exists
 from common import print_banner
@@ -570,6 +571,10 @@ def create_recipe(directory,
         else:
             f.write(f'SRC_URI = "{fetcher}://{url};{lfs_option};{branch_option};protocol=https"\n')
         f.write('\n')
+
+        if GIT_S:
+            f.write(f'S = "{GIT_S}"\n')
+            f.write('\n')
 
         # detect melos
         if os.path.isfile(directory + '/melos.yaml'):
