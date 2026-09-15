@@ -12,45 +12,47 @@ inherit packagegroup
 
 RDEPENDS:${PN} += " \
     flutter-packages-third-party-packages-flutter-svg-example \
-    flutter-packages-vector-graphics-example \
+    flutter-packages-go-router-go-router-examples \
+    flutter-packages-interactive-media-ads-interactive-media-ads-example \
+    flutter-packages-two-dimensional-scrollables-two-dimensional-examples \
+    flutter-packages-in-app-purchase-in-app-purchase-in-app-purchase-example \
+    flutter-packages-google-sign-in-google-sign-in-google-sign-in-example \
     flutter-packages-pointer-interceptor-pointer-interceptor-pointer-interceptor-example \
-    flutter-packages-url-launcher-url-launcher-linux-url-launcher-example \
+    flutter-packages-quick-actions-quick-actions-quick-actions-example \
+    flutter-packages-camera-example \
+    flutter-packages-path-provider-path-provider-linux-pathproviderexample \
+    flutter-packages-google-fonts-google-fonts-tester \
+    flutter-packages-pigeon-example-native-interop-pigeon-native-interop-app \
     flutter-packages-pigeon-platform-tests-alternate-language-test-plugin-alternate-language-test-plugin-example \
     flutter-packages-pigeon-platform-tests-test-plugin-test-plugin-example \
-    flutter-packages-camera-example \
-    flutter-packages-google-fonts-google-fonts-tester \
-    flutter-packages-xdg-directories-xdg-directories-example \
-    flutter-packages-cross-file-cross-file-example \
+    flutter-packages-go-router-builder-go-router-builder-example \
     flutter-packages-image-picker-image-picker-image-picker-example \
     flutter-packages-image-picker-image-picker-linux-example \
-    flutter-packages-two-dimensional-scrollables-two-dimensional-examples \
-    flutter-packages-quick-actions-quick-actions-quick-actions-example \
-    flutter-packages-rfw-example-hello \
-    flutter-packages-rfw-example-local \
-    flutter-packages-rfw-example-remote \
-    flutter-packages-google-sign-in-google-sign-in-google-sign-in-example \
+    flutter-packages-shared-preferences-shared-preferences-linux-shared-preferences-linux-example \
+    flutter-packages-shared-preferences-shared-preferences-shared-preferences-tool \
     flutter-packages-local-auth-local-auth-darwin-local-auth-darwin-example \
     flutter-packages-local-auth-local-auth-local-auth-example \
     flutter-packages-google-adsense-google-adsense-example \
-    flutter-packages-go-router-go-router-examples \
-    flutter-packages-go-router-builder-go-router-builder-example \
-    flutter-packages-flutter-lints-example \
     flutter-packages-webview-flutter-webview-flutter-webview-flutter-example \
     flutter-packages-webview-flutter-webview-flutter-android-webview-flutter-android-example \
+    flutter-packages-cross-file-cross-file-example \
+    flutter-packages-espresso-example \
+    flutter-packages-material-ui-test-apps-a11y-assessments \
+    flutter-packages-material-ui-material-ui-examples \
+    flutter-packages-vector-graphics-example \
+    flutter-packages-google-maps-flutter-google-maps-flutter-ios-sdk9-google-maps-flutter-example \
+    flutter-packages-google-maps-flutter-google-maps-flutter-ios-sdk10-google-maps-flutter-example \
+    flutter-packages-google-maps-flutter-google-maps-flutter-ios-google-maps-flutter-example \
+    flutter-packages-google-maps-flutter-google-maps-flutter-google-maps-flutter-example \
     flutter-packages-google-maps-flutter-google-maps-flutter-web-example-google-maps-flutter-web-integration-tests \
     flutter-packages-google-maps-flutter-google-maps-flutter-web-example-3-google-maps-flutter-web-integration-tests \
-    flutter-packages-google-maps-flutter-google-maps-flutter-ios-sdk10-google-maps-flutter-example \
-    flutter-packages-google-maps-flutter-google-maps-flutter-google-maps-flutter-example \
-    flutter-packages-google-maps-flutter-google-maps-flutter-ios-sdk9-google-maps-flutter-example \
-    flutter-packages-google-maps-flutter-google-maps-flutter-ios-google-maps-flutter-example \
-    flutter-packages-animations-example \
-    flutter-packages-shared-preferences-shared-preferences-linux-shared-preferences-linux-example \
-    flutter-packages-shared-preferences-shared-preferences-shared-preferences-tool \
-    flutter-packages-cupertino-ui-cupertino-ui-examples \
-    flutter-packages-path-provider-path-provider-linux-pathproviderexample \
     flutter-packages-extension-google-sign-in-as-googleapis-auth-extension-google-sign-in-example \
-    flutter-packages-espresso-example \
-    flutter-packages-in-app-purchase-in-app-purchase-in-app-purchase-example \
-    flutter-packages-material-ui-material-ui-examples \
-    flutter-packages-interactive-media-ads-interactive-media-ads-example \
+    flutter-packages-rfw-example-local \
+    flutter-packages-rfw-example-remote \
+    flutter-packages-rfw-example-hello \
+    flutter-packages-animations-example \
+    flutter-packages-url-launcher-url-launcher-linux-url-launcher-example \
+    flutter-packages-xdg-directories-xdg-directories-example \
+    flutter-packages-cupertino-ui-cupertino-ui-examples \
+    flutter-packages-flutter-lints-example \
 "

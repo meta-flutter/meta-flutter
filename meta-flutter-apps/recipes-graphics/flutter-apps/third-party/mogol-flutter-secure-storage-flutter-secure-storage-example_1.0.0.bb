@@ -14,7 +14,7 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=ad4a5a1c16c771bac65521dacef3900e"
 
-SRCREV = "e144260cb3c05166d0db4322a46b4637e042351c"
+SRCREV = "7ee0d6733b3e5179f6874eff34f6d9756c44c16e"
 SRC_URI = "git://github.com/mogol/flutter_secure_storage.git;lfs=0;branch=develop;protocol=https"
 
 PUBSPEC_APPNAME = "flutter_secure_storage_example"

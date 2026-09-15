@@ -1,11 +1,51 @@
 {
   "base_url": "https://storage.googleapis.com/flutter_infra_release/releases",
   "current_release": {
-    "beta": "87af191112a7455b061449b773b2bff92ccdbcd0",
+    "beta": "c9306d5b2efe749ffd9450e838ba3399785a35e6",
     "dev": "13a2fb10b838971ce211230f8ffdd094c14af02c",
-    "stable": "d3b14c876900e553bc736ca19295fc09e3853e8e"
+    "stable": "9584c6713b324636289d067944a46fd6b49df14b"
   },
   "releases": [
+    {
+      "hash": "9584c6713b324636289d067944a46fd6b49df14b",
+      "channel": "stable",
+      "version": "3.47.4",
+      "dart_sdk_version": "3.13.3",
+      "dart_sdk_arch": "x64",
+      "release_date": "2026-09-11T20:58:20.370514Z",
+      "archive": "stable/linux/flutter_linux_3.47.4-stable.tar.xz",
+      "sha256": "5b45f0ceda99b9bebdc873e7e69f6450aeb4c30f454b505e2e62fc9255a907d3"
+    },
+    {
+      "hash": "c9306d5b2efe749ffd9450e838ba3399785a35e6",
+      "channel": "beta",
+      "version": "3.48.0-0.5.pre",
+      "dart_sdk_version": "3.14.0 (build 3.14.0-95.2.beta)",
+      "dart_sdk_arch": "x64",
+      "release_date": "2026-09-11T19:15:59.172172Z",
+      "archive": "beta/linux/flutter_linux_3.48.0-0.5.pre-beta.tar.xz",
+      "sha256": "3556a08b767bb711a4a388157988528c0a17f52d1a13a5e729fe7af493a3e3fd"
+    },
+    {
+      "hash": "e8113bf45620cbeb8aff64947ee4c93e16adb4cf",
+      "channel": "stable",
+      "version": "3.47.3",
+      "dart_sdk_version": "3.13.3",
+      "dart_sdk_arch": "x64",
+      "release_date": "2026-09-09T18:13:37.902677Z",
+      "archive": "stable/linux/flutter_linux_3.47.3-stable.tar.xz",
+      "sha256": "988665565cad9091db1baa54bf6d3868bb40e29719592f3c3a164deefd4208e1"
+    },
+    {
+      "hash": "e3005e3402d9cfa2043114c8bc53c59d12e9b98e",
+      "channel": "beta",
+      "version": "3.48.0-0.4.pre",
+      "dart_sdk_version": "3.14.0 (build 3.14.0-95.2.beta)",
+      "dart_sdk_arch": "x64",
+      "release_date": "2026-09-03T17:45:16.050797Z",
+      "archive": "beta/linux/flutter_linux_3.48.0-0.4.pre-beta.tar.xz",
+      "sha256": "4d001b2781b55f91b1fc8d152a8bd6d832b5f6c5ab0a3d6a897a5e39a5eb5d53"
+    },
     {
       "hash": "d3b14c876900e553bc736ca19295fc09e3853e8e",
       "channel": "stable",
