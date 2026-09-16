@@ -233,6 +233,40 @@ jobs:
           echo '***************************************'
           bitbake -e > bb.environment
 
+      # musl, parsed and resolved but never compiled.
+      #
+      # The layer carries musl overrides in flutter-engine, dart-sdk and
+      # pdfium, and nothing here ever read them: a stale override, a provider
+      # that does not exist on musl, or an override written in the other
+      # branch's syntax surfaced only when somebody built with TCLIBC=musl.
+      #
+      # Parse covers every recipe in the layer, including app recipes no
+      # target pulls in; the dry run covers the dependency graph of what
+      # people actually build. Neither compiles anything, so this is about a
+      # minute against a build dir whose layers are already set up. A musl
+      # compile tier is a separate question -- see #968.
+      #
+      # build/conf is reused so the layer list stays in one place. TMPDIR
+      # follows TOPDIR, so build-musl/tmp never collides with the glibc build,
+      # and DL_DIR and SSTATE_DIR come from ci-build.inc as usual.
+      - name: Parse and resolve for musl
+        shell: bash
+        working-directory: ../wrynose-linux-dummy
+        run: |
+          rm -rf build-musl
+          mkdir -p build-musl/conf
+          cp build/conf/bblayers.conf build/conf/local.conf build-musl/conf/
+          echo 'TCLIBC = "musl"' >> build-musl/conf/local.conf
+          . ./openembedded-core/oe-init-build-env build-musl > /dev/null
+          bitbake -p
+          bitbake -n \
+              dart-sdk \
+              flutter-engine \
+              pdfium \
+              flutter-pi \
+              ivi-homescreen \
+              flutter-wayland-client
+
       - name: Build ca-certificates
         shell: bash
         working-directory: ../wrynose-linux-dummy
