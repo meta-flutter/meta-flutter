@@ -49,10 +49,20 @@ require conf/include/gn-utils.inc
 GN_CUSTOM_VARS ?= '{"checkout_configuration": "small"}'
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 
-EXTRA_CXXFLAGS = ""
-EXTRA_CXXFLAGS_append_libc-musl = "\
-    -flax-vector-conversions \
-    "
+# cc here is a bare ${TARGET_SYS}-gcc, so nothing the distro puts on CC reaches
+# the compile lines gn bakes into build.ninja. TARGET_CC_ARCH carries the tune
+# and security flags. Later releases append the 64-bit time flags there too,
+# where their absence trips the 32bit-time QA check on arm. See #977.
+PDFIUM_TOOLCHAIN_FLAGS = "${TARGET_CC_ARCH}"
+
+EXTRA_CFLAGS = "${PDFIUM_TOOLCHAIN_FLAGS}"
+EXTRA_ASMFLAGS = "${PDFIUM_TOOLCHAIN_FLAGS}"
+
+# Substituted into extra_cxxflags. Before #977 this held a whole gn assignment
+# and was pasted in bare, so the musl value below emitted a stray flag as a
+# statement and gn could not parse the toolchain file.
+EXTRA_CXXFLAGS = "${PDFIUM_TOOLCHAIN_FLAGS}"
+EXTRA_CXXFLAGS_append_libc-musl = " -flax-vector-conversions"
 
 PACKAGECONFIG ??= "release"
 
@@ -92,7 +102,9 @@ do_configure() {
     sed -i "s|@GN_TARGET_ARCH_NAME@|${GN_TARGET_ARCH_NAME}|g" ${S}/build/toolchain/linux/BUILD.gn
     sed -i "s|@TARGET_SYS@|${TARGET_SYS}|g"                   ${S}/build/toolchain/linux/BUILD.gn
     sed -i "s|@LDFLAGS@|${LDFLAGS}|g"                         ${S}/build/toolchain/linux/BUILD.gn
+    sed -i "s|@EXTRA_CFLAGS@|${EXTRA_CFLAGS}|g"               ${S}/build/toolchain/linux/BUILD.gn
     sed -i "s|@EXTRA_CXXFLAGS@|${EXTRA_CXXFLAGS}|g"           ${S}/build/toolchain/linux/BUILD.gn
+    sed -i "s|@EXTRA_ASMFLAGS@|${EXTRA_ASMFLAGS}|g"           ${S}/build/toolchain/linux/BUILD.gn
 
     gn gen --args='${GN_ARGS}' "${B}"
 }
