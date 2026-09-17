@@ -76,6 +76,9 @@ EXTRA_ASMFLAGS = "${PDFIUM_TOOLCHAIN_FLAGS}"
 EXTRA_CXXFLAGS = "${PDFIUM_TOOLCHAIN_FLAGS}"
 EXTRA_CXXFLAGS:append:libc-musl = " -flax-vector-conversions"
 
+# current_cpu for the native toolchain in toolchain.gn.in.
+GN_HOST_ARCH = "${@gn_host_arch_name(d)}"
+
 PACKAGECONFIG ??= "release"
 
 PACKAGECONFIG[release] = "is_debug = false, is_debug = true"
@@ -102,6 +105,8 @@ GN_ARGS = '\
     target_cpu = "${GN_TARGET_ARCH_NAME}" \
     target_triple = "${TARGET_SYS}" \
     target_sysroot = "${STAGING_DIR_TARGET}" \
+    \
+    host_toolchain = "//build/toolchain/linux:native" \
 '
 
 do_configure() {
@@ -118,6 +123,17 @@ do_configure() {
     sed -i "s|@EXTRA_CXXFLAGS@|${EXTRA_CXXFLAGS}|g"           ${S}/build/toolchain/linux/BUILD.gn
     sed -i "s|@EXTRA_ASMFLAGS@|${EXTRA_ASMFLAGS}|g"           ${S}/build/toolchain/linux/BUILD.gn
 
+    # native toolchain
+    sed -i "s|@GN_HOST_ARCH@|${GN_HOST_ARCH}|g"               ${S}/build/toolchain/linux/BUILD.gn
+    sed -i "s|@BUILD_PREFIX@|${BUILD_PREFIX}|g"               ${S}/build/toolchain/linux/BUILD.gn
+    sed -i "s|@BUILD_CC@|${BUILD_CC}|g"                       ${S}/build/toolchain/linux/BUILD.gn
+    sed -i "s|@BUILD_CXX@|${BUILD_CXX}|g"                     ${S}/build/toolchain/linux/BUILD.gn
+    sed -i "s|@BUILD_AR@|${BUILD_AR}|g"                       ${S}/build/toolchain/linux/BUILD.gn
+    sed -i "s|@BUILD_NM@|${BUILD_NM}|g"                       ${S}/build/toolchain/linux/BUILD.gn
+    sed -i "s|@BUILD_CFLAGS@|${BUILD_CFLAGS}|g"               ${S}/build/toolchain/linux/BUILD.gn
+    sed -i "s|@BUILD_CXXFLAGS@|${BUILD_CXXFLAGS}|g"           ${S}/build/toolchain/linux/BUILD.gn
+    sed -i "s|@BUILD_LDFLAGS@|${BUILD_LDFLAGS}|g"             ${S}/build/toolchain/linux/BUILD.gn
+
     gn gen --args='${GN_ARGS}' "${B}"
 }
 
@@ -129,10 +145,12 @@ do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 do_install() {
     install -d ${D}${libdir}/pdfium
     install -m 0755 ${B}/libpdfium.so ${D}${libdir}/pdfium
-    install -m 0644 ${B}/icudtl.dat ${D}${libdir}/pdfium
     cp ${S}/LICENSE ${D}${libdir}/pdfium
 
     if ${@bb.utils.contains('PACKAGECONFIG', 'v8', 'true', 'false', d)}; then
+        # Only V8 loads ICU data. Core pdfium uses ICU character
+        # properties, which are built into libicuuc. See #991.
+        install -m 0644 ${B}/icudtl.dat ${D}${libdir}/pdfium
         install -m 0644 ${B}/snapshot_blob.bin ${D}${libdir}/pdfium/snapshot_blob.bin
     fi
 
