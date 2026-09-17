@@ -24,3 +24,38 @@ gcc_toolchain("@GN_TARGET_ARCH_NAME@") {
     is_clang = false
   }
 }
+
+# Toolchain for programs that run on the build machine. GN_ARGS points
+# host_toolchain here. Without it gn's default host toolchain for a gcc build
+# is //build/toolchain/linux:<host cpu>, which on an x86-64 target is the
+# target toolchain above -- so the nasm pdfium builds for libjpeg_turbo's SIMD
+# sources came out for the target and could not run. See #990.
+gcc_toolchain("native") {
+  cc = "@BUILD_CC@"
+  cxx = "@BUILD_CXX@"
+
+  readelf = "@BUILD_PREFIX@readelf"
+  nm = "@BUILD_NM@"
+  ar = "@BUILD_AR@"
+  ld = cxx
+
+  extra_cflags = "@BUILD_CFLAGS@"
+  extra_cxxflags = "@BUILD_CXXFLAGS@"
+  extra_asmflags = "@BUILD_CFLAGS@"
+  extra_ldflags = "@BUILD_LDFLAGS@"
+
+  toolchain_args = {
+    current_cpu = "@GN_HOST_ARCH@"
+    current_os = "linux"
+
+    use_remoteexec = false
+    is_clang = false
+
+    # build/config/sysroot.gni hands target_sysroot to any toolchain whose cpu
+    # and os match the target's, and otherwise asserts on chromium's prebuilt
+    # debian sysroot. Neither belongs in a native compile; BUILD_CFLAGS already
+    # points at recipe-sysroot-native.
+    target_sysroot = ""
+    use_sysroot = false
+  }
+}
