@@ -253,9 +253,10 @@ jobs:
           bitbake dart-sdk
 
       - name: Build pdfium
-        # pdfium was only ever built on arm64 and arm. Preserved as it was:
-        # widening it is a build-coverage decision, not part of this reshuffle.
-        if: matrix.machine == 'qemuarm64' || matrix.machine == 'qemuarm'
+        # arm and arm64 from the start. qemux86-64 added for #990: pdfium
+        # builds and runs its own nasm only on x86, so the host toolchain
+        # it needs was never exercised and the break went unnoticed.
+        if: matrix.machine == 'qemuarm64' || matrix.machine == 'qemuarm' || matrix.machine == 'qemux86-64'
         shell: bash
         working-directory: ../master-linux-dummy
         run: |
