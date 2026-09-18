@@ -173,3 +173,22 @@ def test_the_recipe_carries_the_branch_s(app, monkeypatch):
 
     monkeypatch.setattr(create_recipes, 'GIT_S', None)
     assert '\nS = ' not in make()
+
+
+def test_packagegroup_entries_come_out_sorted(tmp_path):
+    """Entry order used to follow glob's directory order, which is the
+    filesystem's. Every roll then produced a packagegroup diff that was pure
+    reordering and hid the real change. See #974."""
+    import create_recipes
+    out = tmp_path / 'pg'
+    out.mkdir()
+    create_recipes.create_package_group(
+        'acme', 'widgets',
+        [('acme-widgets-zebra', 'zebra'),
+         ('acme-widgets-alpha', 'alpha'),
+         ('acme-widgets-mango', 'mango')],
+        None, str(out))
+    text = (out / 'packagegroup-acme-widgets.bb').read_text()
+    entries = [l.strip().rstrip(' \\') for l in text.splitlines()
+               if l.startswith('    acme-')]
+    assert entries == sorted(entries)
