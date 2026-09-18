@@ -121,3 +121,32 @@ def test_license_operator_reads_the_generated_recipes(tmp_path):
     assert consistency.license_operator(str(tmp_path)) == '&'
     _write(tmp_path, 'a/x_1.0.bb', 'LICENSE = "MIT AND Apache-2.0"\n')
     assert consistency.license_operator(str(tmp_path)) == 'AND'
+
+
+def test_a_constant_common_py_does_not_use_is_reported(tmp_path):
+    """Carrying OVERRIDE_STYLE across branches emits fragments dunfell's
+    bitbake cannot parse. --constants only printed it; this fails."""
+    _write(tmp_path, 'conf/include/a.inc', 'FOO_append = " x"\n')
+    _write(tmp_path, 'tools/common.py',
+           "OVERRIDE_STYLE = 'new'\nLICENSE_OPERATOR = '&'\n")
+    hits = consistency.branch_constants(str(tmp_path))
+    assert len(hits) == 1 and 'OVERRIDE_STYLE' in hits[0]
+
+
+def test_constants_that_agree_are_not_reported(tmp_path):
+    _write(tmp_path, 'conf/include/a.inc', 'FOO_append = " x"\n')
+    _write(tmp_path, 'a/x_1.0.bb', 'LICENSE = "MIT & Apache-2.0"\n')
+    _write(tmp_path, 'tools/common.py',
+           "OVERRIDE_STYLE = 'old'\nLICENSE_OPERATOR = '&'\n")
+    assert consistency.branch_constants(str(tmp_path)) == []
+
+
+def test_undecidable_evidence_is_not_reported(tmp_path):
+    """Says nothing rather than guessing -- a tree with no conf/ or no
+    common.py is mid-port, not broken."""
+    _write(tmp_path, 'tools/common.py',
+           "OVERRIDE_STYLE = 'new'\nLICENSE_OPERATOR = 'AND'\n")
+    assert consistency.branch_constants(str(tmp_path)) == []
+    _write(tmp_path, 'conf/include/a.inc', 'FOO:append = " x"\n')
+    os.remove(tmp_path / 'tools' / 'common.py')
+    assert consistency.branch_constants(str(tmp_path)) == []
