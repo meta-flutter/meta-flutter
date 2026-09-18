@@ -640,8 +640,11 @@ def create_package_group(org, unit, recipes,
     print_banner("Creating Package Group recipe")
 
     recipe_name = get_recipe_name(org, unit, '', None)
-    filename = f'{output_path}/packagegroup-{recipe_name}.bb'
-    filename = filename.replace('_', '-')
+    # basename only: the replace used to run over the whole path, so an
+    # output_path with an underscore in it named a directory that does not
+    # exist. No path in the layer has one, so it never bit.
+    filename = os.path.join(
+        output_path, f'packagegroup-{recipe_name}.bb'.replace('_', '-'))
 
     with open(filename, "w") as f:
         f.write('#\n')
@@ -657,7 +660,10 @@ def create_package_group(org, unit, recipes,
         f.write('inherit packagegroup\n')
         f.write('\n')
         f.write('RDEPENDS:${PN} += " \\\n')
-        for item in recipes:
+        # sorted by recipe name rather than in traversal order: one obvious
+        # invariant a reader can check, and it holds however the caller found
+        # the apps. See #974.
+        for item in sorted(recipes, key=lambda i: i[0]):
             recipe = item[0]
 
             # don't include custom path based recipes in package recipe
@@ -722,7 +728,12 @@ def create_yocto_recipes(directory,
     pinned_flutter, pinned_dart = sdk_constraint.pinned_versions()
     incompatible = []
 
-    for filename in glob.iglob(directory + '**/pubspec.yaml', recursive=True):
+    # sorted: iglob returns directory order, which is the filesystem's and not
+    # stable between machines or after a re-clone. Recipe content does not
+    # depend on it, but the packagegroup's entry order did, so every roll
+    # produced a diff that was pure noise and hid the real one. See #974.
+    for filename in sorted(glob.iglob(directory + '**/pubspec.yaml',
+                                      recursive=True)):
 
         # handle invalid pubspec.yaml files
         yaml_obj = get_yaml_obj(filename)
