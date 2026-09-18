@@ -4,8 +4,8 @@
 # SPDX-License-Identifier: MIT
 #
 
-SUMMARY = "pointer_interceptor_example"
-DESCRIPTION = "An example app for the pointer_interceptor package."
+SUMMARY = "cross_file_example"
+DESCRIPTION = "Demonstrates how to use cross files."
 AUTHOR = "Google"
 HOMEPAGE = "None"
 BUGTRACKER = "None"
@@ -17,9 +17,9 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=2b36ca50262dc615e560c27654badb26"
 SRCREV = "ec1def9a98e566d39e092b82cab5669eca4c553f"
 SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=https"
 
-PUBSPEC_APPNAME = "pointer_interceptor_example"
-FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-pointer-interceptor-pointer-interceptor-pointer-interceptor-example"
+PUBSPEC_APPNAME = "cross_file_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-cross-file-cross-file-cross-file-example"
 PUBSPEC_IGNORE_LOCKFILE = "1"
-FLUTTER_APPLICATION_PATH = "packages/pointer_interceptor/pointer_interceptor/example"
+FLUTTER_APPLICATION_PATH = "packages/cross_file/cross_file/example"
 
 inherit flutter-app

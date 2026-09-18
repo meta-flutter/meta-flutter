@@ -14,7 +14,7 @@ SECTION = "graphics"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57"
 
-SRCREV = "84da53c391d3f79926ae701c59c67b6037308e0b"
+SRCREV = "eb0a2128fe35823038efe9bf81fedec19b08357a"
 SRC_URI = "git://github.com/firebase/FirebaseUI-Flutter;lfs=0;branch=main;protocol=https"
 
 PUBSPEC_APPNAME = "firebase_ui_auth_example"
