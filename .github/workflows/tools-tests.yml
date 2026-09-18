@@ -13,6 +13,13 @@ on:
     paths:
       - 'tools/**'
       - '.github/workflows/tools-tests.yml'
+      # the consistency job reads recipes, so it has to run when they change.
+      # These are cheap GitHub-hosted jobs; they do not touch the build runner.
+      - 'recipes-*/**'
+      - 'meta-flutter-apps/**'
+      - 'classes/**'
+      - 'conf/**'
+      - 'dynamic-layers/**'
   workflow_dispatch:
 
 jobs:
@@ -84,3 +91,27 @@ jobs:
         # Network populates the cache; the pub get itself is --offline and
         # fails if it reaches out.
         run: python tools/pubvendor/offline_check.py
+
+  consistency:
+
+    # Cheap text checks for defects that shipped on more than one branch and
+    # sat unnoticed: a patch no SRC_URI names, destsuffix on a fetcher that
+    # ignores it, a packagegroup naming a recipe that is gone. See #967.
+    #
+    # GitHub-hosted like the rest of this workflow -- it reads files and needs
+    # no bitbake, so it must not queue behind an hour-long build.
+    name: consistency
+    runs-on: ubuntu-24.04
+
+    steps:
+
+      - name: 📚 Git Checkout
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: 🔍 Layer consistency
+        run: python tools/consistency.py --path . --constants
