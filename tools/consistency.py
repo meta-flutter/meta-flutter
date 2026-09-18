@@ -194,6 +194,39 @@ def license_operator(root):
     return None
 
 
+def _declared_constant(root, name):
+    """The value tools/common.py declares for [name], or None."""
+    path = os.path.join(root, 'tools', 'common.py')
+    if not os.path.isfile(path):
+        return None
+    m = re.search(r"^%s\s*=\s*'([^']*)'" % re.escape(name), _read(path), re.M)
+    return m.group(1) if m else None
+
+
+def branch_constants(root):
+    """common.py disagreeing with what the branch's own metadata uses.
+
+    Both constants are correct on one branch and a regression on another, and
+    both have been carried across by a port before now. Reporting them under
+    --constants left the comparison to whoever remembered to look; this fails
+    instead.
+
+    Says nothing when the evidence is undecidable or common.py is absent: a
+    branch mid-port has neither, and guessing there is how a check earns its
+    way around a maintainer.
+    """
+    bad = []
+    for name, derived in (('OVERRIDE_STYLE', override_style(root)),
+                          ('LICENSE_OPERATOR', license_operator(root))):
+        declared = _declared_constant(root, name)
+        if derived is None or declared is None:
+            continue
+        if declared != derived:
+            bad.append('tools/common.py: %s is %r, this branch uses %r'
+                       % (name, declared, derived))
+    return bad
+
+
 CHECKS = (
     ('unwired patches', unwired_patches,
      'patch file no SRC_URI names -- dead, or a fix believed to be applied'),
@@ -203,6 +236,8 @@ CHECKS = (
      'packagegroup names a recipe of its own family that is not in the layer'),
     ('british spellings', british_spellings,
      'US English, identifiers included'),
+    ('branch constants', branch_constants,
+     'common.py declares a value this branch does not use'),
 )
 
 
