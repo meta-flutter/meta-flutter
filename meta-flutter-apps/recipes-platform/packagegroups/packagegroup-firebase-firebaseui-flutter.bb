@@ -11,11 +11,11 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 inherit packagegroup
 
 RDEPENDS:${PN} += " \
-    firebase-firebaseui-flutter-tests \
-    firebase-firebaseui-flutter-packages-firebase-ui-localizations-example \
     firebase-firebaseui-flutter-packages-firebase-ui-auth-example \
-    firebase-firebaseui-flutter-packages-firebase-ui-oauth-example \
-    firebase-firebaseui-flutter-packages-firebase-ui-storage-example \
     firebase-firebaseui-flutter-packages-firebase-ui-database-example \
     firebase-firebaseui-flutter-packages-firebase-ui-firestore-example \
+    firebase-firebaseui-flutter-packages-firebase-ui-localizations-example \
+    firebase-firebaseui-flutter-packages-firebase-ui-oauth-example \
+    firebase-firebaseui-flutter-packages-firebase-ui-storage-example \
+    firebase-firebaseui-flutter-tests \
 "
