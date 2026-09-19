@@ -268,8 +268,8 @@ do_configure() {
     #
     # The host consumer is impellerc, the Impeller shader compiler: it links
     # host skia, whose fontmgr_fontconfig port has
-    # public_deps = [ "//third_party:fontconfig" ]. impellerc ships under
-    # sdk/clang_${CLANG_BUILD_ARCH}/ and runs on the build host, so it needs
+    # public_deps = [ "//third_party:fontconfig" ]. impellerc is deployed for
+    # flutter-engine-sdk and runs on the build host, so it needs
     # fontconfig-native, not the target's fontconfig.
     #
     # Note the label: there is no //third_party/BUILD.gn at the engine root, so
@@ -441,7 +441,6 @@ do_install() {
         install -d ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/data
 
         install -d ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/lib
-        install -d ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}
         install -d ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/flutter_patched_sdk
 
         #
@@ -513,27 +512,16 @@ do_install() {
             done
         cd $cwd
 
-        # Host tools -- gen_snapshot and friends. These are build-machine
-        # binaries: they went into the target package because the zip hid them
-        # from every QA check, and unzipping showed what that was covering (a
-        # foreign ELF in a riscv64 package). They belong in the native and
-        # nativesdk variants of flutter-engine-sdk, which do_deploy below feeds.
+        # Host tools -- gen_snapshot and friends -- are not installed here at
+        # all. They are build-machine binaries linked against the build host's
+        # glibc, so a target package is wrong even when the architecture
+        # matches: kirkstone's glibc is 2.35 and the tools out of an Ubuntu 24
+        # container want GLIBC_2.38, which file-rdeps catches. Where the target
+        # glibc happens to be newer it passes, which makes the image contents
+        # depend on the builder rather than on anything declared.
         #
-        # Installed here only when the image runs the same architecture as the
-        # builder -- a desktop x86-64 image, where they are ordinary target
-        # binaries and useful on the device. See #1009.
-        if [ "${BUILD_ARCH}" = "${HOST_ARCH}" ]; then
-            # unstripped, like the shared modules above: bitbake strips what it
-            # packages and keeps the debug information. Copying the stripped
-            # variant is what made this an already-stripped QA error.
-            cd ${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped
-            for file in *; do
-                cp "$file" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/
-            done
-            cd $cwd
-        else
-            rmdir ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}
-        fi
+        # do_deploy below feeds flutter-engine-sdk, which stages them native
+        # for app builds and nativesdk for the SDK. See #1009.
 
         # include patched sdk for local-engine scenarios
         test -e ${BUILD_DIR}/flutter_patched_sdk && \
