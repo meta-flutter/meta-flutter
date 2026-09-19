@@ -14,7 +14,7 @@ SECTION = "graphics"
 LICENSE = "Apache-2.0 AND BSD-3-Clause AND OFL-1.1"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=b7eeb61b41ae366e94383bca5e113fce"
 
-SRCREV = "463e365e4842f252ffab9c6198594a504d69469f"
+SRCREV = "8a4cf1db16d52741f0e59e1bfe818723430c35bc"
 SRC_URI = "git://github.com/flutter/samples.git;lfs=1;branch=main;protocol=https"
 
 PUBSPEC_APPNAME = "form_app"
