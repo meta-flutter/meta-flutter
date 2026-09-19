@@ -69,7 +69,7 @@ SRC_URI_libc-musl += "\
     file://0011-build-Make-SDK-artifacts-independent-of-the-builder-s.patch;patchdir=engine/src/flutter/third_party/dart \
     "
 
-inherit gn-fetcher features_check pkgconfig
+inherit gn-fetcher features_check pkgconfig deploy
 
 # gn writes its output inside the sync directory; keep it out of the
 # cached tarball, which is also what a mirror would serve.
@@ -513,15 +513,27 @@ do_install() {
             done
         cd $cwd
 
-        # Host tools. Unstripped, like the shared modules above: bitbake strips
-        # what it packages and keeps the debug information. Taking the stripped
-        # copy one level up is what made this an already-stripped QA error once
-        # the files were visible at all.
-        cd ${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped
-        for file in *; do
-            cp "$file" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/
-        done
-        cd $cwd
+        # Host tools -- gen_snapshot and friends. These are build-machine
+        # binaries: they went into the target package because the zip hid them
+        # from every QA check, and unzipping showed what that was covering (a
+        # foreign ELF in a riscv64 package). They belong in the native and
+        # nativesdk variants of flutter-engine-sdk, which do_deploy below feeds.
+        #
+        # Installed here only when the image runs the same architecture as the
+        # builder -- a desktop x86-64 image, where they are ordinary target
+        # binaries and useful on the device. See #1009.
+        if [ "${BUILD_ARCH}" = "${HOST_ARCH}" ]; then
+            # unstripped, like the shared modules above: bitbake strips what it
+            # packages and keeps the debug information. Copying the stripped
+            # variant is what made this an already-stripped QA error.
+            cd ${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped
+            for file in *; do
+                cp "$file" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/
+            done
+            cd $cwd
+        else
+            rmdir ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}
+        fi
 
         # include patched sdk for local-engine scenarios
         test -e ${BUILD_DIR}/flutter_patched_sdk && \
@@ -534,10 +546,47 @@ do_install() {
 
         # args.gn is not installed: it records the gn invocation, absolute
         # TMPDIR paths and all, which is a buildpaths QA error the moment it
-        # is visible. The archive had been hiding it.
+        # is visible. It went unnoticed inside the zip. It stays in the
+        # deploy tree, where it is useful for inspection and ships to nobody.
 
     done
 }
+
+# The host tools, per runtime mode, for flutter-engine-sdk to stage into the
+# native and nativesdk sysroots. Deployed rather than packaged: they run on the
+# build machine, so a target package is the wrong home for them unless the
+# target happens to share its architecture. See #1009.
+#
+# DEPLOYDIR is per MACHINE and stays that way. These run on the build host but
+# they are not machine-independent: gen_snapshot emits code for the target, which
+# is why upstream publishes it per target architecture. They also come out of a
+# target-specific build tree (out/linux_<mode>_<target>/clang_<host>/). A shared
+# path also collides outright -- every machine in a multi-machine build writes
+# the same files, and sstate refuses that.
+do_deploy() {
+    # BUILD_DIR below is relative to the engine source root, the same as
+    # do_install's.
+    cd ${S}/engine/src
+
+    for MODE in ${FLUTTER_RUNTIME_MODES}; do
+
+        BUILD_DIR="$(echo ${TMP_OUT_DIR} | sed "s/_RUNTIME_/${MODE}/g")"
+
+        install -d ${DEPLOYDIR}/flutter-engine-sdk/${FLUTTER_SDK_VERSION}/${MODE}
+
+        cwd=$(pwd)
+        cd ${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped
+        for file in *; do
+            install -m 0755 "$file" ${DEPLOYDIR}/flutter-engine-sdk/${FLUTTER_SDK_VERSION}/${MODE}/
+        done
+        cd $cwd
+
+        cp "${BUILD_DIR}/args.gn" ${DEPLOYDIR}/flutter-engine-sdk/${FLUTTER_SDK_VERSION}/${MODE}/args.gn
+    done
+}
+addtask deploy after do_install before do_build
+
+FLUTTER_RUNTIME_MODES = "${@bb.utils.filter('PACKAGECONFIG', 'debug profile release jit_release', d)}"
 
 PACKAGES =+ "\
     ${PN}-desktop-embeddings \
