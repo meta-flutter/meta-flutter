@@ -16,7 +16,6 @@ LIC_FILES_CHKSUM = "file://engine/src/LICENSE;md5=537e0b52077bf0a616d0a0c8a79bc9
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 DEPENDS += "\
-    zip-native \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'libx11 libxcb', '', d)} \
     "
@@ -269,9 +268,9 @@ do_configure() {
     #
     # The host consumer is impellerc, the Impeller shader compiler: it links
     # host skia, whose fontmgr_fontconfig port has
-    # public_deps = [ "//third_party:fontconfig" ]. impellerc ships in
-    # engine_sdk.zip under sdk/clang_${CLANG_BUILD_ARCH}/ and runs on the build
-    # host, so it needs fontconfig-native, not the target's fontconfig.
+    # public_deps = [ "//third_party:fontconfig" ]. impellerc ships under
+    # sdk/clang_${CLANG_BUILD_ARCH}/ and runs on the build host, so it needs
+    # fontconfig-native, not the target's fontconfig.
     #
     # Note the label: there is no //third_party/BUILD.gn at the engine root, so
     # .gn's secondary_source sends it to flutter/build/secondary/. skia has its
@@ -514,11 +513,13 @@ do_install() {
             done
         cd $cwd
 
-        # cross canadian artifacts
+        # Host tools. Unstripped, like the shared modules above: bitbake strips
+        # what it packages and keeps the debug information. Taking the stripped
+        # copy one level up is what made this an already-stripped QA error once
+        # the files were visible at all.
         cd ${BUILD_DIR}/clang_${CLANG_BUILD_ARCH}/exe.unstripped
         for file in *; do
-            # copy the unstripped variant one up
-             cp "../$file" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/
+            cp "$file" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/clang_${CLANG_BUILD_ARCH}/
         done
         cd $cwd
 
@@ -531,17 +532,12 @@ do_install() {
         echo "${FLUTTER_SDK_VERSION}"      > ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/flutter_sdk.version
         echo "${MODE}"                     > ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/flutter.runtime
 
-        cp "${BUILD_DIR}/args.gn" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/sdk/args.gn
-
-        cwd=$(pwd)
-        cd ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/
-        zip -r engine_sdk.zip sdk
-        rm -rf sdk
-        cd $cwd
+        # args.gn is not installed: it records the gn invocation, absolute
+        # TMPDIR paths and all, which is a buildpaths QA error the moment it
+        # is visible. The archive had been hiding it.
 
     done
 }
-do_install[depends] += "zip-native:do_populate_sysroot"
 
 PACKAGES =+ "\
     ${PN}-desktop-embeddings \
@@ -626,7 +622,7 @@ FILES:${PN}-impeller = "\
     "
 
 FILES:${PN}-sdk-dev = "\
-    ${datadir}/flutter/${FLUTTER_SDK_TAG}/*/engine_sdk.zip \
+    ${datadir}/flutter/${FLUTTER_SDK_TAG}/*/sdk \
     "
 
 FILES:${PN}-test = "\
