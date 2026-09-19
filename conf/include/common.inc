@@ -718,21 +718,19 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
 
             bb.note(f'aot_elf_{runtime_mode}: Started')
 
-            #
-            # Extract Engine SDK
-            #
-            shutil.rmtree(f'{source_dir}/engine_sdk', ignore_errors=True)
-
-            staging_datadir = d.getVar('STAGING_DATADIR')
-            cmd = f'unzip {staging_datadir}/flutter/{flutter_sdk_version}/{runtime_mode}/engine_sdk.zip \
-                -d {source_dir}/engine_sdk'
-            run_command(d, cmd, source_root, env)
+            # gen_snapshot runs on the build machine, so it comes from the
+            # native sysroot by way of flutter-engine-sdk-native. It used to be
+            # unzipped out of the target sysroot into this app's WORKDIR, where
+            # uninative could not reach it and an sstate built on a newer glibc
+            # was unusable on an older one (#1009).
+            staging_bindir_native = d.getVar('STAGING_BINDIR_NATIVE')
+            engine_sdk = f'{staging_bindir_native}/flutter-engine-sdk/{flutter_sdk_version}/{runtime_mode}'
 
             #
             # Create libapp.so
             #
             app_gen_snapshot_flags = d.getVar("APP_GEN_SNAPSHOT_FLAGS")
-            cmd = f'{source_dir}/engine_sdk/sdk/clang_{clang_build_arch(d)}/gen_snapshot \
+            cmd = f'{engine_sdk}/gen_snapshot \
                 --deterministic \
                 --snapshot_kind=app-aot-elf \
                 --elf=libapp.so \
