@@ -16,6 +16,7 @@ require conf/include/gn-utils.inc
 
 DEPENDS += " \
     flutter-engine \
+    flutter-engine-sdk-native \
     "
 
 BUILD_TYPE = "app"
