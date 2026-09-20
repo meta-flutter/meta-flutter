@@ -27,7 +27,7 @@ RDEPENDS_dart-sdk_libc-musl = "\
 
 S = "${WORKDIR}/gn"
 
-SRCREV = "1d1a730ef918d602aedafc939a4cf5940e7589ab"
+SRCREV = "b530c21f7de367b94fb04787bfed9d8e989d75e8"
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI = " \
