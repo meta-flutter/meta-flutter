@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: MIT
 #
 
-FLUTTER_SDK_TAG ??= "3.47.4"
+FLUTTER_SDK_TAG ??= "3.47.5"
 
 # The package that ships libflutter_engine.so.
 #
