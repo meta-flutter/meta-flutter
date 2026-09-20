@@ -13,7 +13,9 @@ inherit packagegroup
 RDEPENDS:${PN} += " \
     flutter-packages-animations-example \
     flutter-packages-camera-example \
-    flutter-packages-cross-file-cross-file-example \
+    flutter-packages-cross-file-cross-file-android-cross-file-android-example \
+    flutter-packages-cross-file-cross-file-cross-file-example \
+    flutter-packages-cross-file-cross-file-io-cross-file-io-example \
     flutter-packages-cupertino-ui-cupertino-ui-examples \
     flutter-packages-espresso-example \
     flutter-packages-extension-google-sign-in-as-googleapis-auth-extension-google-sign-in-example \

@@ -4,8 +4,8 @@
 # SPDX-License-Identifier: MIT
 #
 
-SUMMARY = "pathproviderexample"
-DESCRIPTION = "Demonstrates how to use the path_provider_linux plugin."
+SUMMARY = "cross_file_example"
+DESCRIPTION = "Demonstrates how to use cross files."
 AUTHOR = "Google"
 HOMEPAGE = "None"
 BUGTRACKER = "None"
@@ -19,9 +19,9 @@ SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=http
 
 S = "${WORKDIR}/git"
 
-PUBSPEC_APPNAME = "pathproviderexample"
-FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-path-provider-path-provider-linux-pathproviderexample"
+PUBSPEC_APPNAME = "cross_file_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-cross-file-cross-file-cross-file-example"
 PUBSPEC_IGNORE_LOCKFILE = "1"
-FLUTTER_APPLICATION_PATH = "packages/path_provider/path_provider_linux/example"
+FLUTTER_APPLICATION_PATH = "packages/cross_file/cross_file/example"
 
 inherit flutter-app
