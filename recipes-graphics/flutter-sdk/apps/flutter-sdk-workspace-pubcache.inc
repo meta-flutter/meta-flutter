@@ -7,7 +7,7 @@
 # Lockfile: the SDK's own, as shipped in the release archive (pub workspace, all members)
 
 PUB_CACHE_LOCAL ?= "pub_cache"
-PUBSPEC_LOCK_SHA256 = "2cc7cf7a8b961803ef2738cf1c124f43e12635d0dac198dbfa647c1ecbb37ba8"
+PUBSPEC_LOCK_SHA256 = "3d87e1af1544de8682105570ed0e8e8744bd200846a35665242fe17724d88068"
 
 # Hosted packages
 SRC_URI:append = " https://pub.dev/api/archives/_discoveryapis_commons-1.0.7.tar.gz;name=_discoveryapis_commons;subdir=${PUB_CACHE_LOCAL}/hosted/pub.dev/_discoveryapis_commons-1.0.7;downloadfilename=pub-cache/_discoveryapis_commons-1.0.7.tar.gz"
@@ -70,12 +70,12 @@ SRC_URI:append = " https://pub.dev/api/archives/dart_style-3.1.7.tar.gz;name=dar
 SRC_URI[dart_style.sha256sum] = "29f7ecc274a86d32920b1d9cfc7502fa87220da41ec60b55f329559d5732e2b2"
 SRC_URI:append = " https://pub.dev/api/archives/data_assets-0.20.0.tar.gz;name=data_assets;subdir=${PUB_CACHE_LOCAL}/hosted/pub.dev/data_assets-0.20.0;downloadfilename=pub-cache/data_assets-0.20.0.tar.gz"
 SRC_URI[data_assets.sha256sum] = "8bfdbf25ec8a0f4b5a3c993042c4ab9996ba354f0b03d40f4e360f3730d71cae"
-SRC_URI:append = " https://pub.dev/api/archives/dds-5.3.0.tar.gz;name=dds;subdir=${PUB_CACHE_LOCAL}/hosted/pub.dev/dds-5.3.0;downloadfilename=pub-cache/dds-5.3.0.tar.gz"
-SRC_URI[dds.sha256sum] = "6673c5b29e502fd44dbf5836685e7c7c16b11c0fa7f91ef241e0cbf0638c8794"
+SRC_URI:append = " https://pub.dev/api/archives/dds-5.4.0.tar.gz;name=dds;subdir=${PUB_CACHE_LOCAL}/hosted/pub.dev/dds-5.4.0;downloadfilename=pub-cache/dds-5.4.0.tar.gz"
+SRC_URI[dds.sha256sum] = "f8e875dcd7b5e5073a7bfe54095144c70487f18e2f8e47fa51c09dd67eccfb0c"
 SRC_URI:append = " https://pub.dev/api/archives/dds_service_extensions-2.1.0.tar.gz;name=dds_service_extensions;subdir=${PUB_CACHE_LOCAL}/hosted/pub.dev/dds_service_extensions-2.1.0;downloadfilename=pub-cache/dds_service_extensions-2.1.0.tar.gz"
 SRC_URI[dds_service_extensions.sha256sum] = "afe0fce921953ac0c5bb276bccd7e36fa5035d7769567d122523fdd09beb4d03"
-SRC_URI:append = " https://pub.dev/api/archives/devtools_shared-12.1.0.tar.gz;name=devtools_shared;subdir=${PUB_CACHE_LOCAL}/hosted/pub.dev/devtools_shared-12.1.0;downloadfilename=pub-cache/devtools_shared-12.1.0.tar.gz"
-SRC_URI[devtools_shared.sha256sum] = "2daf7a9fba6a470668b26ecbd04200f7bf992aad81a2c31d12457c7791419dea"
+SRC_URI:append = " https://pub.dev/api/archives/devtools_shared-13.1.0.tar.gz;name=devtools_shared;subdir=${PUB_CACHE_LOCAL}/hosted/pub.dev/devtools_shared-13.1.0;downloadfilename=pub-cache/devtools_shared-13.1.0.tar.gz"
+SRC_URI[devtools_shared.sha256sum] = "13df2c17d5f21dd7c92d08145386d45e1153364c04e531e994afb0ee7b67554b"
 SRC_URI:append = " https://pub.dev/api/archives/dtd-4.0.0.tar.gz;name=dtd;subdir=${PUB_CACHE_LOCAL}/hosted/pub.dev/dtd-4.0.0;downloadfilename=pub-cache/dtd-4.0.0.tar.gz"
 SRC_URI[dtd.sha256sum] = "09ddb228b3d1478a093556357692a4c203ff4f9d5f8cda05dfdca0ff3fb7c5d3"
 SRC_URI:append = " https://pub.dev/api/archives/dwds-27.1.2.tar.gz;name=dwds;subdir=${PUB_CACHE_LOCAL}/hosted/pub.dev/dwds-27.1.2;downloadfilename=pub-cache/dwds-27.1.2.tar.gz"
