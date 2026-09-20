@@ -4,8 +4,8 @@
 # SPDX-License-Identifier: MIT
 #
 
-SUMMARY = "local"
-DESCRIPTION = "Example of new custom local widgets for RFW"
+SUMMARY = "cross_file_io_example"
+DESCRIPTION = "Demonstrates how to use cross files."
 AUTHOR = "Google"
 HOMEPAGE = "None"
 BUGTRACKER = "None"
@@ -17,9 +17,9 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=2b36ca50262dc615e560c27654badb26"
 SRCREV = "91322aca1b857cc6cdeb5f620f7d43bb7afc42b0"
 SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=https"
 
-PUBSPEC_APPNAME = "local"
-FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-rfw-example-local"
+PUBSPEC_APPNAME = "cross_file_io_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-cross-file-cross-file-io-cross-file-io-example"
 PUBSPEC_IGNORE_LOCKFILE = "1"
-FLUTTER_APPLICATION_PATH = "packages/rfw/example/local"
+FLUTTER_APPLICATION_PATH = "packages/cross_file/cross_file_io/example"
 
 inherit flutter-app
