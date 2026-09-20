@@ -4,8 +4,8 @@
 # SPDX-License-Identifier: MIT
 #
 
-SUMMARY = "two_dimensional_examples"
-DESCRIPTION = "A sample application that uses TableView and TreeView"
+SUMMARY = "cross_file_example"
+DESCRIPTION = "Demonstrates how to use cross files."
 AUTHOR = "Google"
 HOMEPAGE = "None"
 BUGTRACKER = "None"
@@ -19,9 +19,9 @@ SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=http
 
 S = "${WORKDIR}/git"
 
-PUBSPEC_APPNAME = "two_dimensional_examples"
-FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-two-dimensional-scrollables-two-dimensional-examples"
+PUBSPEC_APPNAME = "cross_file_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-cross-file-cross-file-cross-file-example"
 PUBSPEC_IGNORE_LOCKFILE = "1"
-FLUTTER_APPLICATION_PATH = "packages/two_dimensional_scrollables/example"
+FLUTTER_APPLICATION_PATH = "packages/cross_file/cross_file/example"
 
 inherit flutter-app
