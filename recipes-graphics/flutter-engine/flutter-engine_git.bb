@@ -588,7 +588,13 @@ INSANE_SKIP_${PN} += " libdir"
 INSANE_SKIP_${PN}-dbg += "libdir"
 INSANE_SKIP_${PN}-desktop-embeddings += "libdir"
 INSANE_SKIP_${PN}-impeller += " libdir"
-INSANE_SKIP_${PN}-test += " buildpaths libdir"
+# buildpaths was skipped here with no comment. Measured on 3.47.5: the engine
+# embeds no build path to suppress. gn compiles from the out dir with relative
+# source paths, so DW_AT_comp_dir is "out/linux_<mode>_<arch>" and strings over
+# every packaged and deployed binary finds no TMPDIR. If the test binaries ever
+# do build and do leak, the check should fire rather than sit suppressed. See
+# #961.
+INSANE_SKIP_${PN}-test += " libdir"
 
 #
 # Per-runtime-mode packaging
