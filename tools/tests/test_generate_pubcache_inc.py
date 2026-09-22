@@ -139,13 +139,12 @@ def test_vendor_only_leaves_the_recipe_alone(app, monkeypatch, tmp_path):
 
 
 def test_the_recipe_carries_the_branch_s(app, monkeypatch):
-    """S follows common.GIT_S.
+    """S follows common.GIT_S, whichever way this branch declares it.
 
-    The generator ported from wrynose never wrote S, so the 3.47.2 roll dropped
-    it from 149 recipes here and do_populate_lic could not find LICENSE in
-    ${WORKDIR}/${BP}. See #978.
+    The generator ported from wrynose never wrote S, so a roll on scarthgap
+    and older dropped it from 149 recipes and do_populate_lic could not find
+    LICENSE in ${WORKDIR}/${BP}. See #978.
     """
-    import common
     import create_recipes
     app_dir, out = app
     (app_dir / 'pubspec.yaml').write_text('name: probe\nversion: 1.0.0\n')
@@ -169,7 +168,8 @@ def test_the_recipe_carries_the_branch_s(app, monkeypatch):
         assert len(recipes) == 1
         return recipes[0].read_text()
 
-    assert f'\nS = "{common.GIT_S}"\n' in make()
+    monkeypatch.setattr(create_recipes, 'GIT_S', '${WORKDIR}/git')
+    assert '\nS = "${WORKDIR}/git"\n' in make()
 
     monkeypatch.setattr(create_recipes, 'GIT_S', None)
     assert '\nS = ' not in make()
