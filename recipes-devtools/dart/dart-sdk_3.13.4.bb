@@ -174,6 +174,19 @@ FILES:${PN} += "${datadir}"
 # no clang_ subdirectory then, since the binaries in the mode root already run
 # on the builder.
 do_deploy() {
+    # Target builds only. The native and nativesdk variants build for the host,
+    # so they have no cross tools to offer, and deploying from them writes the
+    # same files as this recipe's target build -- which sstate refuses:
+    #
+    #   dart-sdk-native do_deploy: trying to install files into a shared area
+    #   when those files already exist
+    case "${PN}" in
+        *-native|nativesdk-*)
+            bbnote "host build: no cross tools to deploy"
+            return 0
+            ;;
+    esac
+
     BUILD_DIR="${OUT_DIR}/$(ls ${OUT_DIR})"
     host_dir="${BUILD_DIR}/clang_${GN_HOST_ARCH}"
 
