@@ -42,7 +42,7 @@ PREFERRED_PROVIDER_llvm-native = "clang-native"
 PREFERRED_PROVIDER_libgcc = "compiler-rt"
 LIBCPLUSPLUS = "-stdlib=libc++"
 
-inherit gn-fetcher pkgconfig
+inherit gn-fetcher pkgconfig deploy
 
 # gn writes its output inside the sync directory; keep it out of the
 # cached tarball, which is also what a mirror would serve.
@@ -155,5 +155,57 @@ do_install() {
 INSANE_SKIP:${PN} = "already-stripped ldflags"
 
 FILES:${PN} += "${datadir}"
+
+# The cross gen_snapshot, for dart-sdk-tools to stage.
+#
+# The build produces two sets: the target binaries in the mode root, and the
+# host ones under clang_${GN_HOST_ARCH}/. The host gen_snapshot runs on the
+# build machine and emits code for the target --
+#
+#   $ out/ProductXARM64_X64/clang_x64/gen_snapshot --version
+#   Dart SDK version: 3.13.4 (stable) on "linux_simarm64"
+#
+# -- which is what building a Dart executable for the target needs, and it was
+# discarded at the end of the build until now. Deployed rather than packaged:
+# a build-machine binary has no business in a target package, as #1009 worked
+# out the hard way. Per MACHINE, because it is built for one target.
+#
+# Nothing here on a build where host and target share an architecture: gn emits
+# no clang_ subdirectory then, since the binaries in the mode root already run
+# on the builder.
+do_deploy() {
+    # Target builds only. The native and nativesdk variants build for the host,
+    # so they have no cross tools to offer, and deploying from them writes the
+    # same files as this recipe's target build -- which sstate refuses:
+    #
+    #   dart-sdk-native do_deploy: trying to install files into a shared area
+    #   when those files already exist
+    case "${PN}" in
+        *-native|nativesdk-*)
+            bbnote "host build: no cross tools to deploy"
+            return 0
+            ;;
+    esac
+
+    BUILD_DIR="${OUT_DIR}/$(ls ${OUT_DIR})"
+    host_dir="${BUILD_DIR}/clang_${GN_HOST_ARCH}"
+
+    if [ ! -d "$host_dir" ]; then
+        bbnote "no $host_dir: host and target share an architecture"
+        install -d ${DEPLOYDIR}/dart-sdk-tools
+        cd ${BUILD_DIR}
+        for f in gen_snapshot gen_snapshot_product; do
+            test -f "$f" && install -m 0755 "$f" ${DEPLOYDIR}/dart-sdk-tools/
+        done
+        return 0
+    fi
+
+    install -d ${DEPLOYDIR}/dart-sdk-tools
+    cd "$host_dir"
+    for f in gen_snapshot gen_snapshot_product; do
+        test -f "$f" && install -m 0755 "$f" ${DEPLOYDIR}/dart-sdk-tools/
+    done
+}
+addtask deploy after do_install before do_build
 
 BBCLASSEXTEND = "native nativesdk"
