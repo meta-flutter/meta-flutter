@@ -69,6 +69,17 @@ BBMASK += "meta-openembedded/meta-oe/recipes-benchmark/"
 BBMASK += "meta-openembedded/meta-oe/recipes-connectivity/zabbix/"
 BBMASK += "meta-openembedded/meta-oe/recipes-kernel/turbostat/"
 BBMASK += "meta-openembedded/meta-oe/recipes-support/vboxguestdrivers/"
+#
+#   floret               PV carries no SRCREV pin, so parsing it runs
+#                        git ls-remote. Harmless normally; fatal in the SDK
+#                        example-apps step, which parses with BB_NO_NETWORK=1
+#                        after pre-fetching:
+#
+#                          Failure expanding fetcher_hashes_dummyfunc[vardepvalue]
+#                          NetworkAccess: ... git ls-remote https://github.com/explosion/floret.git
+#
+#                        Nothing here uses it.
+BBMASK += "meta-openembedded/meta-oe/recipes-support/floret/"
 
 PREFERRED_PROVIDER_virtual/kernel = "linux-dummy"
 
