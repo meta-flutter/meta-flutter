@@ -1,0 +1,6 @@
+name: dart_example_hello
+description: Minimal Dart executable, cross-compiled by the dart-app class.
+version: 1.0.0
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
