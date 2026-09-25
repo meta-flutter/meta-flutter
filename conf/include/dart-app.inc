@@ -35,6 +35,11 @@ DART_APP_ENTRY ??= "bin/main.dart"
 DART_APP_NAME ??= "${BPN}"
 DART_APP_LIBDIR ??= "${libdir}/${DART_APP_NAME}"
 
+# Extra arguments for the kernel step. dart-app-pub sets this to point
+# gen_kernel at the package config pub writes, which an app with no pub
+# dependencies does not have.
+DART_APP_KERNEL_ARGS ??= ""
+
 DART_SDK_NATIVE = "${STAGING_DATADIR_NATIVE}/dart-sdk"
 DART_CROSS_GEN_SNAPSHOT = "${STAGING_BINDIR_NATIVE}/dart-sdk-tools/gen_snapshot"
 
@@ -58,6 +63,7 @@ do_compile() {
         --aot --tfa \
         --filesystem-root ${S} \
         --filesystem-scheme ${DART_APP_SCHEME} \
+        ${DART_APP_KERNEL_ARGS} \
         -o ${B}/${DART_APP_NAME}.dill \
         ${DART_APP_SCHEME}:///${DART_APP_ENTRY}
 
