@@ -281,6 +281,53 @@ def update_flutter_version_inc(include_path, flutter_sdk_version):
             f.write(line)
 
 
+def update_pub_cache_fragment(root_path: str, flutter_sdk_version: str):
+    """Regenerate flutter-sdk-pubcache.inc for the SDK being rolled to.
+
+    flutter-sdk_git.bb stages its pub cache from this fragment, so it is only
+    valid for the tag it was generated from. Leaving it behind on a roll stages
+    the previous release's packages; the recipe catches that by checking the
+    archive's pubspec.lock against PUBSPEC_LOCK_SHA256, but the fix belongs
+    here so the failure never happens. See #711.
+
+    The lockfile is taken from the tag rather than the release archive: they
+    are byte-identical (verified at 3.47.5) and this is a few kB instead of
+    1.5 GB.
+    """
+    import urllib.request
+    from common import OVERRIDE_STYLE
+
+    fragment = os.path.join(root_path, 'recipes-graphics', 'flutter-sdk',
+                            'flutter-sdk-pubcache.inc')
+    if not os.path.exists(fragment):
+        print(f'No {fragment}, skipping pub cache fragment')
+        return
+
+    url = (f'https://raw.githubusercontent.com/flutter/flutter/'
+           f'{flutter_sdk_version}/pubspec.lock')
+    print(f'Fetching {url}')
+    tmp_lock = os.path.join(root_path, '.flutter-pubspec.lock')
+    try:
+        with urllib.request.urlopen(url) as response:
+            if response.status != 200:
+                raise RollError(f'{url} returned {response.status}')
+            with open(tmp_lock, 'wb') as f:
+                f.write(response.read())
+
+        pubvendor = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                 'pubvendor', 'pubvendor.py')
+        cmd = [sys.executable, pubvendor,
+               '-i', tmp_lock,
+               '-o', fragment,
+               '--style', OVERRIDE_STYLE,
+               '--provenance',
+               f'flutter/pubspec.lock at {flutter_sdk_version}']
+        subprocess.check_call(cmd)
+    finally:
+        if os.path.exists(tmp_lock):
+            os.remove(tmp_lock)
+
+
 def get_dart_sdk_version(root_path: str, flutter_sdk_version: str) -> str:
     import re
     dart_revision = os.path.join(root_path, 'conf', 'include', 'dart-revision.json')
@@ -479,6 +526,9 @@ def main():
             sys.exit(f'Flutter SDK version not found in release for channel {args.channel}')
 
     update_flutter_version_inc(include_path, flutter_sdk_version)
+
+    print_banner('Updating flutter-sdk pub cache fragment')
+    update_pub_cache_fragment(args.path, flutter_sdk_version)
 
     print_banner(f'Updating dart-sdk recipe')
     update_dart_recipe(args.path, flutter_sdk_version)
