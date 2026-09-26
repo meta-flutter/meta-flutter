@@ -43,7 +43,7 @@ SRC_URI = "\
     git://github.com/toyota-connected/ihs_wl_server.git;protocol=https;branch=main \
     git://github.com/jwinarske/smithay;protocol=https;nobranch=1;name=smithay;destsuffix=smithay \
 "
-SRCREV = "7f76ba9645510a13c9c9238408b95b622529ecac"
+SRCREV = "c3c2ecca02b5a6509ee83e08bfb2fc66e7b2d9ff"
 SRCREV_smithay = "e722af8222c1f9f81942af5c8cbeeb9387bf431f"
 SRCREV_FORMAT = "default_smithay"
 
