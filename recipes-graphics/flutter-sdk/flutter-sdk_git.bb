@@ -242,8 +242,18 @@ python do_unpack:append() {
     # file's checksum -- they fail do_check_pubspec_lock against a lockfile this
     # task quietly rewrote.
     env['PUB_CACHE'] = sdk_cache
-    run_command(d, f'{source_dir}/bin/cache/dart-sdk/bin/dart pub get --offline '
-                '--enforce-lockfile', source_dir, env)
+    dart = f'{source_dir}/bin/cache/dart-sdk/bin/dart'
+    run_command(d, f'{dart} pub get --offline --enforce-lockfile', source_dir, env)
+
+    # packages/flutter_tools needs its own resolution, not just the workspace's.
+    # bin/internal/shared.sh compiles the tool snapshot with
+    # --packages="$FLUTTER_TOOLS_DIR/.dart_tool/package_config.json", and a
+    # consumer whose `flutter pub get` finds that file missing resolves the tool
+    # itself -- without --offline, so it waits on pub.dev until the task's
+    # timeout. The archive does not ship it and `flutter update-packages` used
+    # to leave one behind; this is the offline equivalent.
+    run_command(d, f'{dart} pub get --offline --enforce-lockfile '
+                '--directory packages/flutter_tools', source_dir, env)
 
     # The lockfile is an input to other recipes, so leaving it as the archive
     # shipped it is part of the contract, not a detail.
@@ -257,12 +267,17 @@ python do_unpack:append() {
     # The resolve either rewrote every bot path or it did not work. An invalid
     # package_config.json does not fail any command here -- it just sends the
     # next pub invocation to the network -- so check rather than hope.
-    package_config = f'{source_dir}/.dart_tool/package_config.json'
-    with open(package_config) as f:
-        contents = f.read()
-    if '/b/s/w/ir' in contents:
-        bb.fatal('%s still names the build bot pub cache after pub get --offline'
-                 % package_config)
+    for package_config in (f'{source_dir}/.dart_tool/package_config.json',
+                           f'{source_dir}/packages/flutter_tools/.dart_tool/'
+                           'package_config.json'):
+        if not os.path.exists(package_config):
+            bb.fatal('%s was not written; a consumer will resolve it over the '
+                     'network' % package_config)
+        with open(package_config) as f:
+            contents = f.read()
+        if '/b/s/w/ir' in contents:
+            bb.fatal('%s still names the build machine pub cache after '
+                     'pub get --offline' % package_config)
 
     # Not `flutter doctor`: it runs `dart pub --directory packages/flutter_tools
     # get` without --offline, so it reaches the network. Measured at 3.47.5 that
@@ -282,7 +297,25 @@ do_install() {
 
     install -d ${D}${datadir}/flutter/sdk
 
-    cp -rTv ${S}/. ${D}${datadir}/flutter/sdk
+    # -a, so mtimes survive. bin/internal/shared.sh rebuilds the flutter tool
+    # snapshot when packages/flutter_tools/pubspec.yaml is newer than its
+    # pubspec.lock, and a copy that assigns fresh mtimes in traversal order puts
+    # the yaml 6ms ahead of the lock every time -- alphabetically the lock goes
+    # first. Every consumer of the staged SDK then re-bootstraps, which means
+    # `pub upgrade` and the network. See #711.
+    cp -a ${S}/. ${D}${datadir}/flutter/sdk
+
+    # The point of the above, asserted: a consumer must not re-bootstrap.
+    tools=${D}${datadir}/flutter/sdk/packages/flutter_tools
+    if [ "$tools/pubspec.yaml" -nt "$tools/pubspec.lock" ]; then
+        bbfatal "pubspec.yaml is newer than pubspec.lock in the staged SDK; \
+bin/internal/shared.sh will rebuild the flutter tool in every consumer"
+    fi
+    if [ ! -s ${D}${datadir}/flutter/sdk/bin/cache/flutter_tools.stamp ] || \
+       [ ! -f ${D}${datadir}/flutter/sdk/bin/cache/flutter_tools.snapshot ]; then
+        bbfatal "the staged SDK has no flutter tool snapshot or stamp; \
+bin/internal/shared.sh will rebuild it in every consumer"
+    fi
 }
 
 do_install:append:class-target () {
