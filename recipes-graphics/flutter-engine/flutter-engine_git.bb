@@ -154,7 +154,6 @@ PACKAGECONFIG[static-analyzer] = "--clang-static-analyzer,--no-clang-static-anal
 PACKAGECONFIG[tsan] = "--tsan"
 PACKAGECONFIG[trace-gn] = "--trace-gn"
 PACKAGECONFIG[ubsan] = "--ubsan"
-PACKAGECONFIG[unittests] = "--enable-unittests,--no-enable-unittests, glib-2.0 gtk+3 xinerama"
 PACKAGECONFIG[unoptimized] = "--unoptimized"
 PACKAGECONFIG[verbose] = "--verbose"
 PACKAGECONFIG[vulkan] = "--enable-vulkan"
@@ -497,22 +496,6 @@ do_install() {
         test -e ${BUILD_DIR}/flutter_linux && \
             cp -r ${BUILD_DIR}/flutter_linux ${D}${includedir}/flutter_linux
 
-        #
-        # Executables
-        #
-        test -e ${BUILD_DIR}/exe.unstripped && \
-            cd ${BUILD_DIR}/exe.unstripped && \
-            # Conditionally install only selected test executables when present
-            for pat in *_benchmarks *_unittests *_rendertests *_example_gl *_example_vk *_testrunner; do
-                for file in ${pat}; do
-                    # Skip if glob didn't match anything
-                    [ -e "$file" ] || continue
-                    # Move unstripped executable into bin
-                    cp "$file" ${D}${FLUTTER_ENGINE_INSTALL_PREFIX}/${MODE}/bin/
-                done
-            done
-        cd $cwd
-
         # Host tools -- gen_snapshot and friends -- are not installed here at
         # all. They are build-machine binaries linked against the build host's
         # glibc, so a target package is wrong even when the architecture
@@ -581,20 +564,12 @@ PACKAGES =+ "\
     ${PN}-desktop-embeddings \
     ${PN}-impeller \
     ${PN}-sdk-dev \
-    ${PN}-test \
     "
 
 INSANE_SKIP_${PN} += " libdir"
 INSANE_SKIP_${PN}-dbg += "libdir"
 INSANE_SKIP_${PN}-desktop-embeddings += "libdir"
 INSANE_SKIP_${PN}-impeller += " libdir"
-# buildpaths was skipped here with no comment. Measured on 3.47.5: the engine
-# embeds no build path to suppress. gn compiles from the out dir with relative
-# source paths, so DW_AT_comp_dir is "out/linux_<mode>_<arch>" and strings over
-# every packaged and deployed binary finds no TMPDIR. If the test binaries ever
-# do build and do leak, the check should fire rather than sit suppressed. See
-# #961.
-INSANE_SKIP_${PN}-test += " libdir"
 
 #
 # Per-runtime-mode packaging
@@ -606,7 +581,7 @@ INSANE_SKIP_${PN}-test += " libdir"
 # runs -- flutter-engine-release, etc.
 #
 # These go in PACKAGE_BEFORE_PN, not PACKAGES =+, so they are matched AFTER the
-# specific packages (-dbg, -dev, -impeller, -desktop-embeddings, -sdk-dev, -test)
+# specific packages (-dbg, -dev, -impeller, -desktop-embeddings, -sdk-dev)
 # and do not swallow the files those claim, while still winning over ${PN}.
 PACKAGE_BEFORE_PN += "\
     ${PN}-debug \
@@ -667,18 +642,6 @@ FILES_${PN}-impeller = "\
 
 FILES_${PN}-sdk-dev = "\
     ${datadir}/flutter/${FLUTTER_SDK_TAG}/*/sdk \
-    "
-
-FILES_${PN}-test = "\
-    ${@bb.utils.contains('PACKAGECONFIG', 'unittests', '${FLUTTER_ENGINE_INSTALL_PREFIX}/*/bin/*_benchmarks', '', d)} \
-    ${@bb.utils.contains('PACKAGECONFIG', 'unittests', '${FLUTTER_ENGINE_INSTALL_PREFIX}/*/bin/*_unittests', '', d)} \
-    ${@bb.utils.contains('PACKAGECONFIG', 'unittests', '${FLUTTER_ENGINE_INSTALL_PREFIX}/*/bin/*_rendertests', '', d)} \
-    ${@bb.utils.contains('PACKAGECONFIG', 'unittests', '${FLUTTER_ENGINE_INSTALL_PREFIX}/*/bin/*_example_*', '', d)} \
-    ${@bb.utils.contains('PACKAGECONFIG', 'unittests', '${FLUTTER_ENGINE_INSTALL_PREFIX}/*/bin/*_testrunner', '', d)} \
-    ${@bb.utils.contains('PACKAGECONFIG', 'unittests', '${FLUTTER_ENGINE_INSTALL_PREFIX}/*/lib/*_icd.so', '', d)} \
-    ${@bb.utils.contains('PACKAGECONFIG', 'unittests', '${FLUTTER_ENGINE_INSTALL_PREFIX}/*/lib/*_icd.json', '', d)} \
-    ${@bb.utils.contains('PACKAGECONFIG', 'unittests', '${FLUTTER_ENGINE_INSTALL_PREFIX}/*/lib/*_swiftshader.so', '', d)} \
-    ${@bb.utils.contains('PACKAGECONFIG', 'unittests', '${FLUTTER_ENGINE_INSTALL_PREFIX}/*/lib/libvulkan.so.1', '', d)} \
     "
 
 python () {
