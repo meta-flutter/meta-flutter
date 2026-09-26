@@ -202,9 +202,57 @@ python do_unpack:append() {
                  'expects %s. Regenerate with tools/pubvendor.'
                  % (f'{source_dir}/pubspec.lock', lock_sha256, expected))
 
+    # pub keeps a content hash per archive in
+    # hosted-hashes/pub.dev/<pkg>-<ver>.sha256, and SRC_URI cannot stage those --
+    # but pubspec.lock already carries the same digest for every hosted package
+    # (all 165 verified identical against a cache pub populated itself), so write
+    # them from the lock. Without them --enforce-lockfile has nothing to check
+    # against and reports the lockfile corrupted.
+    import re
+    hashes_dir = os.path.join(sdk_cache, 'hosted-hashes', 'pub.dev')
+    bb.utils.mkdirhier(hashes_dir)
+    with open(f'{source_dir}/pubspec.lock') as f:
+        lock_text = f.read()
+    package = None
+    fields = {}
+    written = 0
+    for line in lock_text.splitlines():
+        match = re.match(r'^  ([A-Za-z0-9_]+):$', line)
+        if match:
+            package, fields = match.group(1), {}
+            continue
+        if package is None:
+            continue
+        for key, pattern in (('source', r'^    source: (\S+)'),
+                             ('version', r'^    version: "(.*)"'),
+                             ('sha256', r'^      sha256: "?([0-9a-f]{64})"?')):
+            match = re.match(pattern, line)
+            if match:
+                fields[key] = match.group(1)
+        if fields.get('source') == 'hosted' and 'version' in fields and 'sha256' in fields:
+            name = f"{package}-{fields['version']}.sha256"
+            with open(os.path.join(hashes_dir, name), 'w') as f:
+                f.write(fields['sha256'])
+            written += 1
+            fields = {}
+    bb.note(f'wrote {written} pub content hashes from pubspec.lock')
+
+    # --enforce-lockfile so pub may not rewrite pubspec.lock. Without it the
+    # resolve strips the sha256 lines, and the SDK example app recipes pin that
+    # file's checksum -- they fail do_check_pubspec_lock against a lockfile this
+    # task quietly rewrote.
     env['PUB_CACHE'] = sdk_cache
-    run_command(d, f'{source_dir}/bin/cache/dart-sdk/bin/dart pub get --offline',
-                source_dir, env)
+    run_command(d, f'{source_dir}/bin/cache/dart-sdk/bin/dart pub get --offline '
+                '--enforce-lockfile', source_dir, env)
+
+    # The lockfile is an input to other recipes, so leaving it as the archive
+    # shipped it is part of the contract, not a detail.
+    with open(f'{source_dir}/pubspec.lock', 'rb') as f:
+        after = hashlib.sha256(f.read()).hexdigest()
+    if after != expected:
+        bb.fatal('%s was rewritten by the resolve: sha256 %s, expected %s. The SDK '
+                 'example app recipes pin this checksum.'
+                 % (f'{source_dir}/pubspec.lock', after, expected))
 
     # The resolve either rewrote every bot path or it did not work. An invalid
     # package_config.json does not fail any command here -- it just sends the
