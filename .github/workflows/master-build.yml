@@ -303,6 +303,15 @@ jobs:
           . ./openembedded-core/oe-init-build-env
           bitbake flutter-auto
 
+      # The Rust module ivi-homescreen apps load over Dart FFI; the only cargo
+      # recipe here.
+      - name: Build ihs-wl-server
+        shell: bash
+        working-directory: ../master-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake ihs-wl-server
+
       - name: Build flutter-pi
         id: base
         shell: bash
