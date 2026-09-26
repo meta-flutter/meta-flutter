@@ -98,7 +98,15 @@ class GN(FetchMethod):
         # The gclient config and sync args change what ends up in the tree, so
         # they have to be part of the cache key -- otherwise two recipes (or one
         # recipe before and after a config change) collide on the same tarball.
-        config_key = f"{gclient_config}\n{sync_opt}\n{deps_sed_patches}\n{' '.join(pack_excludes)}"
+        #
+        # FETCHER_REVISION covers changes to how this fetcher builds the tree
+        # rather than to what the recipe asked for. Bump it when a change alters
+        # the tarball's contents for an unchanged config, or every DL_DIR and
+        # premirror already holding a tarball keeps serving the old tree and the
+        # change never takes effect. v2: the DEPS patch commit's dates come from
+        # the upstream commit instead of the clock (#271).
+        fetcher_revision = "v2"
+        config_key = f"{fetcher_revision}\n{gclient_config}\n{sync_opt}\n{deps_sed_patches}\n{' '.join(pack_excludes)}"
         config_hash = hashlib.sha256(config_key.encode("utf-8")).hexdigest()[:12]
 
         ud.localfile = d.getVar("PN") + '-' + d.getVar("PV") + "-" + srcrev + "-" + config_hash + ".tar.bz2"
@@ -137,10 +145,20 @@ class GN(FetchMethod):
                     f"PATCHEOF\n)"
                 )
             patch_cmds = " && ".join(heredoc_cmds)
+            # The commit's dates are taken from the upstream commit we just
+            # checked out, not from the clock. flutter/tools/gn passes
+            # "git rev-parse HEAD" to gn as engine_version, which the engine
+            # compiles in as FLUTTER_ENGINE_VERSION, so a clock-dependent SHA
+            # here makes the engine binary clock-dependent too: two hosts that
+            # fetch at different times produce different libflutter_engine.so.
+            # Measured on 3.47.5, that was the only thing standing between two
+            # machines and a byte-identical engine. See #271.
             patch_and_commit = (
                 f" && {patch_cmds} "
                 f"&& git add DEPS "
-                f"&& git -c user.email=\"yocto@build\" -c user.name=\"yocto\" "
+                f"&& GIT_AUTHOR_DATE=\"$(git log -1 --format=%cd --date=raw FETCH_HEAD)\" "
+                f"GIT_COMMITTER_DATE=\"$(git log -1 --format=%cd --date=raw FETCH_HEAD)\" "
+                f"git -c user.email=\"yocto@build\" -c user.name=\"yocto\" "
                 f"commit -m \"fix: restore DEPS condition for cross-compile host\" "
             )
             # Use HEAD as the gclient revision so it doesn't reset the change.
