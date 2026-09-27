@@ -2,15 +2,20 @@ name: runner-maintenance
 
 # Manual maintenance for the persistent self-hosted runner.
 #
-# The build tree at ../master-linux-dummy survives between jobs, so state can
-# drift out of step with the layers -- orphaned entries in
-# build/tmp/sysroots-components ("trying to install files into a shared area
-# when those files already exist ... not matched to any task"), or a partially
-# written sstate manifest left by an interrupted build.
+# Each branch's build tree at ../<branch>-linux-dummy survives between jobs, so
+# state can drift out of step with the layers -- orphaned entries in
+# sysroots-components ("trying to install files into a shared area when those
+# files already exist ... not matched to any task"), a file a newer dependency
+# now stages where an older one did not (FileExistsError from
+# staging_copyfile), or a partially written sstate manifest left by an
+# interrupted build.
 #
-# Removing build/tmp clears that. It is regenerable: the shared sstate mount is
-# untouched, so anything whose signature is still valid is re-extracted rather
-# than rebuilt. The first build afterwards is slow.
+# Removing the tmp dir clears that. It is regenerable: the shared sstate mount
+# is untouched, so anything whose signature is still valid is re-extracted
+# rather than rebuilt. The first build afterwards is slow.
+#
+# Pick the tree with the 'tree' input. It is a choice rather than free text
+# because the wipe is destructive and a typo would silently match nothing.
 #
 # Defaults to report so the workflow is safe to run for a look at the state.
 
@@ -30,6 +35,17 @@ on:
         required: false
         default: ''
         type: string
+      tree:
+        description: 'which branch tree to act on'
+        required: true
+        default: 'master'
+        type: choice
+        options:
+          - master
+          - wrynose
+          - scarthgap
+          - kirkstone
+          - dunfell
 
 jobs:
 
@@ -43,21 +59,51 @@ jobs:
 
     steps:
 
+      - name: Resolve the tree
+        id: tree
+        shell: bash
+        run: |
+          # TMPDIR is build/tmp on master and wrynose and build/tmp-glibc on
+          # scarthgap, kirkstone and dunfell, so the name has to be discovered
+          # rather than assumed -- this workflow used to hardcode
+          # master-linux-dummy/build/tmp, which matched exactly one of the five
+          # trees.
+          BUILD="${GITHUB_WORKSPACE}/../${{ inputs.tree }}-linux-dummy/build"
+          echo "build=$BUILD" >> "$GITHUB_OUTPUT"
+          echo "runner user: $(id -un) ($(id -u)), tree: ${{ inputs.tree }}"
+          if [ ! -d "$BUILD" ]; then
+            echo "::notice::$BUILD does not exist, nothing to do"
+            echo "tmpdirs=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          tmpdirs=$(find "$BUILD" -maxdepth 1 -mindepth 1 -type d \
+                      \( -name tmp -o -name 'tmp-*' \) -printf '%p ')
+          echo "tmpdirs=$tmpdirs" >> "$GITHUB_OUTPUT"
+          echo "tmp dirs: ${tmpdirs:-none}"
+
+          # Refuse to touch a tree a build is using. bitbake holds an flock on
+          # build/bitbake.lock for the life of the cooker, so taking it without
+          # blocking is the test. Deleting from under a running build leaves it
+          # failing on files that vanished, and rm itself fails with ENOTEMPTY
+          # because the build keeps recreating what it just removed.
+          LOCK="$BUILD/bitbake.lock"
+          if [ -e "$LOCK" ] && ! flock -n "$LOCK" true; then
+            echo "::error::a build holds $LOCK; wait for it to finish"
+            exit 1
+          fi
+
       - name: Report
         shell: bash
         run: |
-          BUILD="${GITHUB_WORKSPACE}/../master-linux-dummy/build"
-          echo "runner user: $(id -un) ($(id -u))"
-          if [ ! -d "$BUILD" ]; then
-            echo "::notice::$BUILD does not exist, nothing to do"
-            exit 0
-          fi
+          BUILD="${{ steps.tree.outputs.build }}"
+          [ -d "$BUILD" ] || exit 0
           echo "--- sizes"
-          du -sh "$BUILD/tmp" 2>/dev/null || echo "  build/tmp absent"
+          for t in ${{ steps.tree.outputs.tmpdirs }}; do du -sh "$t"; done
+          [ -n "${{ steps.tree.outputs.tmpdirs }}" ] || echo "  no tmp dir"
           du -sh /home/dev/sstate 2>/dev/null || true
           du -sh /home/dev/dl 2>/dev/null || true
           echo "--- sysroots-components age spread"
-          C="$BUILD/tmp/sysroots-components"
+          C="$(echo ${{ steps.tree.outputs.tmpdirs }} | awk '{print $1}')/sysroots-components"
           if [ -d "$C" ]; then
             echo "  total component dirs: $(find "$C" -maxdepth 2 -mindepth 2 | wc -l)"
             echo "  untouched in 30d:     $(find "$C" -maxdepth 2 -mindepth 2 -mtime +30 | wc -l)"
@@ -71,15 +117,17 @@ jobs:
             echo "::error::action=wipe-tmp requires confirm=wipe; nothing removed"
             exit 1
           fi
-          BUILD="${GITHUB_WORKSPACE}/../master-linux-dummy/build"
-          if [ ! -d "$BUILD/tmp" ]; then
-            echo "::notice::build/tmp already absent"
+          TMPDIRS="${{ steps.tree.outputs.tmpdirs }}"
+          if [ -z "$TMPDIRS" ]; then
+            echo "::notice::no tmp dir in ${{ inputs.tree }}, already absent"
             exit 0
           fi
-          echo "removing $(du -sh "$BUILD/tmp" | cut -f1) from $BUILD/tmp"
-          rm -rf "$BUILD/tmp"
-          if [ -e "$BUILD/tmp" ]; then
-            echo "::error::build/tmp still present after removal"
-            exit 1
-          fi
-          echo "::notice::build/tmp removed; the shared sstate mount was not touched"
+          for t in $TMPDIRS; do
+            echo "removing $(du -sh "$t" | cut -f1) from $t"
+            rm -rf "$t"
+            if [ -e "$t" ]; then
+              echo "::error::$t still present after removal"
+              exit 1
+            fi
+          done
+          echo "::notice::removed: $TMPDIRS -- the shared sstate mount was not touched"
