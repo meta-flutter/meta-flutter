@@ -262,11 +262,27 @@ python do_archive_pub_cache() {
     # if no pubspec.lock, create it
     pubspec_lock = os.path.join(pub_root, 'pubspec.lock')
     if not os.path.exists(pubspec_lock):
-        run_command(d, 'dart pub --suppress-analytics --directory . get --example', pub_root, env)
+        # Create and enforce have to agree about examples. pub writes a lockfile
+        # only on a plain get -- enforceLockfile skips the write
+        # (pub entrypoint.dart) -- and every example/ is a separate entrypoint
+        # with its own pubspec.lock. So resolving with --example and then
+        # enforcing with it demands a lockfile that only a get with --example
+        # would have written, and enforcing with --no-example makes creating one
+        # pointless. We enforce with --no-example below, so create without it.
+        #
+        # --example is needed in both places only when pub resolves at a package
+        # root and the app being built is that package's example/ -- what
+        # FLUTTER_PUB_ROOT exists for. Nothing sets it: it defaults to
+        # FLUTTER_APPLICATION_PATH and no recipe overrides it, so pub always
+        # resolves in the app directory, and for the plugin-example recipes the
+        # app directory is already the example. pub also skips examples that are
+        # workspace members. If a recipe ever points FLUTTER_PUB_ROOT above its
+        # app, --example has to come back here and on the enforcing calls
+        # together.
         run_command(d, 'dart pub --suppress-analytics --directory . get', pub_root, env)
 
     run_command(d, 'flutter pub get --enforce-lockfile', pub_root, env)
-    run_command(d, 'flutter pub get --enforce-lockfile --offline', pub_root, env)
+    run_command(d, 'flutter pub get --enforce-lockfile --no-example --offline', pub_root, env)
 
     # The resolution artifacts (.dart_tool and friends) are written where pub
     # ran, which for a workspace member is the root rather than the member.
@@ -338,6 +354,7 @@ python do_restore_pub_cache() {
         f'mv .project/.flutter-plugins-dependencies {pub_root}/ | true; ' \
         f'mv .project/.metadata {pub_root}/ | true; ' \
         f'mv .project/.packages {pub_root}/ | true; ' \
+        f'mv .project/pubspec.lock {pub_root}/ | true; ' \
         'rm -rf .project'
     bb.note(f'Running [{cmd}] in {unpackdir}')
     ret = subprocess.call(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir)
@@ -407,7 +424,21 @@ python do_compile() {
 
     run_command(d, 'flutter config --no-analytics', source_root, env)
     run_command(d, 'flutter config --no-cli-animations', source_root, env)
-    run_command(d, 'flutter pub get --enforce-lockfile --offline -v', source_root, env)
+
+    # --enforce-lockfile needs a lockfile, and pub's complaint about not having
+    # one arrives here rather than at the task that was supposed to supply it.
+    # do_archive_pub_cache writes pubspec.lock as a side effect of resolving,
+    # but only when it actually resolves: with the archive already in DL_DIR it
+    # returns early, and do_restore_pub_cache has to put the lockfile back out
+    # of the archive's .project/. Name that here so the next occurrence is one
+    # line to read instead of a three-task trail.
+    if not os.path.exists(os.path.join(source_root, 'pubspec.lock')):
+        bb.fatal('%s has no pubspec.lock, so flutter pub get --enforce-lockfile '
+                 'cannot run. It comes either from do_archive_pub_cache resolving '
+                 'or from do_restore_pub_cache restoring .project/pubspec.lock out '
+                 'of %s.' % (source_root, d.getVar('PUB_CACHE_ARCHIVE') or 'the pub cache archive'))
+
+    run_command(d, 'flutter pub get --enforce-lockfile --no-example --offline -v', source_root, env)
 
     build_type = d.getVar('BUILD_TYPE')
 
