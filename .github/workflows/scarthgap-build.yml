@@ -70,6 +70,9 @@ jobs:
       # thing to track there.
       DRM_BRANCH: scarthgap
       VULKAN_BRANCH: scarthgap
+      # scarthgap's Rust (1.75.0) cannot build ihs-wl-server; the mixin brings
+      # 1.98.1, and the recipe is a dynamic layer on it. No GitHub mirror.
+      RUST_MIXIN_BRANCH: scarthgap/rust
 
     runs-on: [self-hosted, linux]
 
@@ -130,7 +133,8 @@ jobs:
           # every layer cloned below must be listed here: this is a persistent
           # self-hosted runner and 'git clone' into an existing directory fails.
           rm -rf poky bitbake openembedded-core meta-yocto \
-                 meta-openembedded meta-clang meta-drm meta-vulkan
+                 meta-openembedded meta-clang meta-drm meta-vulkan \
+                 meta-lts-mixins
           # 'wait' with no operands always returns 0, so collect the pids and
           # wait on each to see a failed clone.
           pids=""
@@ -141,7 +145,8 @@ jobs:
               "${{ env.YOCTO_BRANCH }}|https://github.com/openembedded/meta-openembedded.git" \
               "${{ env.CLANG_BRANCH }}|https://github.com/kraj/meta-clang.git" \
               "${{ env.DRM_BRANCH }}|https://github.com/jwinarske/meta-drm.git" \
-              "${{ env.VULKAN_BRANCH }}|https://github.com/jwinarske/meta-vulkan.git" ; do
+              "${{ env.VULKAN_BRANCH }}|https://github.com/jwinarske/meta-vulkan.git" \
+              "${{ env.RUST_MIXIN_BRANCH }}|https://git.yoctoproject.org/meta-lts-mixins" ; do
               branch=${spec%%|*}
               repo=${spec#*|}
               git clone -b "$branch" --single-branch "$repo" &
@@ -203,6 +208,7 @@ jobs:
               ../meta-openembedded/meta-networking \
               ../meta-openembedded/meta-python \
               ../meta-clang \
+              ../meta-lts-mixins \
               ../meta-drm \
               ../meta-vulkan \
               ../../meta-flutter \
@@ -314,6 +320,15 @@ jobs:
         run: |
           . ./openembedded-core/oe-init-build-env
           bitbake flutter-auto
+
+      # The Rust module ivi-homescreen apps load over Dart FFI; the only cargo
+      # recipe here.
+      - name: Build ihs-wl-server
+        shell: bash
+        working-directory: ../scarthgap-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake ihs-wl-server
 
       - name: Build flutter-pi
         id: base
