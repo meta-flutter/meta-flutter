@@ -37,7 +37,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=39ae29158ce710399736340c60147314"
 
 # Must stay in lock-step with the embedder recipes: the .so they link at build
 # time and the one this package installs have to be the same library.
-HOMESCREEN_COMMIT ??= "131cbc37a1248f394978b408d4c02f1ea7eee6c3"
+HOMESCREEN_COMMIT ??= "3d7a967134cd9384d7f9a40d2de7531abcdaf425"
 
 # gitsm: the MCP provider compiles against third_party/rapidjson, which is a
 # submodule. The other submodules are unused here but the fetch is shared with
@@ -64,8 +64,8 @@ DEPENDS += "compiler-rt libcxx"
 inherit cmake pkgconfig
 
 #
-# These three options change what is compiled into the library, so they must
-# match the embedder that links it: a shell built with accessibility or MCP
+# These options change what is compiled into the library, so they must match
+# the embedder that links it: a shell built with accessibility, MCP or OSGi
 # expects those symbols to be present in the .so shipped here.
 #
 PACKAGECONFIG ??= ""
@@ -73,6 +73,8 @@ PACKAGECONFIG ??= ""
 PACKAGECONFIG[dlt] = "-DENABLE_DLT=ON,-DENABLE_DLT=OFF,,dlt-daemon"
 PACKAGECONFIG[accessibility] = "-DBUILD_ACCESSIBILITY=ON,-DBUILD_ACCESSIBILITY=OFF"
 PACKAGECONFIG[mcp] = "-DBUILD_MCP=ON,-DBUILD_MCP=OFF"
+# The ihs_osgi_* forwarders; ihs_osgi.h is only installed with them.
+PACKAGECONFIG[osgi] = "-DENABLE_OSGI=ON,-DENABLE_OSGI=OFF"
 
 python () {
     pc = set((d.getVar('PACKAGECONFIG') or '').split())
