@@ -460,11 +460,18 @@ python do_compile() {
     # returns early, and do_restore_pub_cache has to put the lockfile back out
     # of the archive's .project/. Name that here so the next occurrence is one
     # line to read instead of a three-task trail.
-    if not os.path.exists(os.path.join(source_root, 'pubspec.lock')):
-        bb.fatal('%s has no pubspec.lock, so flutter pub get --enforce-lockfile '
-                 'cannot run. It comes either from do_archive_pub_cache resolving '
-                 'or from do_restore_pub_cache restoring .project/pubspec.lock out '
-                 'of %s.' % (source_root, d.getVar('PUB_CACHE_ARCHIVE') or 'the pub cache archive'))
+    # Either location counts. A third-party app keeps its lockfile beside its
+    # pubspec, but an SDK app is a pub workspace member and resolves against the
+    # workspace root's -- conf/include/flutter-sdk-app.inc copies that one in
+    # through SDK_WORKSPACE_PATHS and no per-member lockfile exists.
+    if not any(os.path.exists(os.path.join(root, 'pubspec.lock'))
+               for root in (source_root, source_dir)):
+        bb.fatal('neither %s nor the workspace root %s has a pubspec.lock, so '
+                 'flutter pub get --enforce-lockfile cannot run. It comes either '
+                 'from do_archive_pub_cache resolving, or from '
+                 'do_restore_pub_cache restoring .project/pubspec.lock out of %s.'
+                 % (source_root, source_dir,
+                    d.getVar('PUB_CACHE_ARCHIVE') or 'the pub cache archive'))
 
     run_command(d, 'flutter pub get --enforce-lockfile --no-example --offline -v', source_root, env)
 
