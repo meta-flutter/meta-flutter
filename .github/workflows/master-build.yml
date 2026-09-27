@@ -383,6 +383,18 @@ jobs:
             exit 1
           fi
 
+      # The ihs_wayland_server example: an FFI app whose build hook takes the
+      # library ihs-wl-server installs (system_library) instead of running cargo.
+      - name: Build ihs-wl-server-example
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        shell: bash
+        working-directory: ../master-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake ihs-wl-server-example
+
       # The FFI applications. All three inherit flutter-app-native, so their
       # Dart packages carry hook/build.dart and compile native code during
       # `flutter build bundle` -- the path the integration tests above never
