@@ -205,4 +205,178 @@ do_compile[cleandirs] += "${S}/${FLUTTER_APPLICATION_PATH}/.dart_tool/hooks_runn
 # Quiet QA warnings about debug libraries under /usr/share/flutter/.../lib/.debug
 INSANE_SKIP:${PN}-dbg += " libdir"
 
+# Cargo hooks.
+#
+# A hook that builds with cargo runs `cargo` from PATH, as a CMake hook runs
+# cmake, and the hook's filtered environment keeps OE's out of it. With
+# FLUTTER_NATIVE_CARGO = "1":
+#   - do_archive_pub_cache vendors the crates of every hook package that has a
+#     Cargo.lock (at its root or up to two directories above it) into the pub
+#     cache archive, while it has the network; git dependencies included
+#   - a cargo wrapper beside the cmake one points cargo at those crates and
+#     sets the OE target, linkers, pkg-config and bindgen settings
+# The library goes into the bundle like any other native asset, so its version
+# is the one the app's pubspec.lock pins.
+FLUTTER_NATIVE_CARGO ??= "0"
+
+# rust-common for the target specs (do_rust_gen_targets) and the linker
+# wrappers (do_rust_create_wrappers), without cargo.bbclass's tasks.
+inherit_defer ${@'rust-common' if d.getVar('FLUTTER_NATIVE_CARGO') == '1' else ''}
+
+DEPENDS:append = "${@' cargo-native rust-native libstd-rs clang-native' if d.getVar('FLUTTER_NATIVE_CARGO') == '1' else ''}"
+
+python () {
+    if d.getVar('FLUTTER_NATIVE_CARGO') != '1':
+        return
+    # rust-target-config prepends shell to do_compile, which is python here;
+    # the wrapper exports CRATE_CC_NO_DEFAULTS instead.
+    prepends = d.getVarFlag('do_compile', ':prepend', False) or []
+    d.setVarFlag('do_compile', ':prepend',
+                 [p for p in prepends if 'CRATE_CC_NO_DEFAULTS' not in p[0]])
+    # cargo vendor runs from the recipe's native sysroot.
+    bb.build.addtask('do_archive_pub_cache', None, 'do_prepare_recipe_sysroot', d)
+    d.appendVarFlag('do_archive_pub_cache', 'depends',
+                    ' cargo-native:do_populate_sysroot')
+    bb.build.addtask('do_flutter_cargo_setup', 'do_compile',
+                     'do_restore_pub_cache do_rust_gen_targets do_rust_create_wrappers', d)
+}
+
+FLUTTER_CARGO_HOME = "${WORKDIR}/flutter-cargo-home"
+FLUTTER_CARGO_VENDOR = "${PUB_CACHE}/.cargo-vendor"
+
+def flutter_cargo_manifests(d, pub_root):
+    """Cargo.toml of each hook package with a Cargo.lock beside it."""
+    import json
+    import urllib.parse
+
+    dart_tool = os.path.join(pub_root, '.dart_tool')
+    with open(os.path.join(dart_tool, 'package_config.json')) as f:
+        packages = json.load(f)['packages']
+
+    manifests = set()
+    for p in packages:
+        uri = p['rootUri']
+        if uri.startswith('file://'):
+            root = urllib.parse.unquote(uri[len('file://'):])
+        else:
+            root = os.path.normpath(os.path.join(dart_tool, urllib.parse.unquote(uri)))
+        if not os.path.isfile(os.path.join(root, 'hook', 'build.dart')):
+            continue
+        crate = root
+        for _ in range(3):
+            if all(os.path.isfile(os.path.join(crate, n))
+                   for n in ('Cargo.toml', 'Cargo.lock')):
+                manifests.add(os.path.join(crate, 'Cargo.toml'))
+                break
+            crate = os.path.dirname(crate)
+    return sorted(manifests)
+
+# Called by do_archive_pub_cache once pub has resolved.
+def flutter_cargo_vendor(d, pub_root, env):
+    import subprocess
+
+    manifests = flutter_cargo_manifests(d, pub_root)
+    if not manifests:
+        bb.note('no hook package with a Cargo.lock; nothing to vendor')
+        return
+    bb.note(f'vendoring crates for: {" ".join(manifests)}')
+
+    vendor = d.getVar('FLUTTER_CARGO_VENDOR')
+    cenv = dict(env)
+    cenv['CARGO_HOME'] = os.path.join(d.getVar('WORKDIR'), 'cargo-vendor-home')
+    cenv['CARGO_HTTP_CAINFO'] = os.path.join(
+        d.getVar('STAGING_ETCDIR_NATIVE'), 'ssl/certs/ca-certificates.crt')
+    cmd = [os.path.join(d.getVar('STAGING_BINDIR_NATIVE'), 'cargo'), 'vendor',
+           '--locked', '--versioned-dirs', '--manifest-path', manifests[0]]
+    for m in manifests[1:]:
+        cmd += ['--sync', m]
+    cmd.append(vendor)
+    # The source replacement goes to stdout, progress to stderr.
+    r = subprocess.run(cmd, env=cenv, cwd=pub_root, capture_output=True, text=True)
+    bb.note(r.stderr)
+    if r.returncode:
+        bb.fatal(f'cargo vendor failed: {r.returncode}\n{r.stderr[-4000:]}')
+    with open(vendor + '.toml', 'w') as f:
+        f.write(r.stdout)
+
+python do_flutter_cargo_setup() {
+    import re
+    import stat
+
+    vendor = d.getVar('FLUTTER_CARGO_VENDOR')
+    home = d.getVar('FLUTTER_CARGO_HOME')
+    bb.utils.remove(home, recurse=True)
+    bb.utils.mkdirhier(home)
+
+    host = d.getVar('RUST_HOST_SYS')
+    build = d.getVar('RUST_BUILD_SYS')
+    config = ''
+    if os.path.exists(vendor + '.toml'):
+        # The archive is shared between machines, and the path in it is the
+        # WORKDIR of whichever built it.
+        with open(vendor + '.toml') as f:
+            config = re.sub(r'^directory = .*$', f'directory = "{vendor}"',
+                            f.read(), flags=re.M)
+    config += f'\n[target.{host}]\nlinker = "{d.getVar("RUST_TARGET_CCLD")}"\n'
+    if build != host:
+        config += f'\n[target.{build}]\nlinker = "{d.getVar("RUST_BUILD_CCLD")}"\n'
+    config += '\n[net]\noffline = true\n'
+    with open(os.path.join(home, 'config.toml'), 'w') as f:
+        f.write(config)
+
+    env = {
+        'CARGO_HOME': home,
+        'RUST_TARGET_PATH': d.getVar('RUST_TARGET_PATH'),
+        'RUSTFLAGS': d.getVar('RUSTFLAGS'),
+        'RUST_BACKTRACE': '1',
+        'CRATE_CC_NO_DEFAULTS': '1',
+        'CC': d.getVar('RUST_TARGET_CC'),
+        'CXX': d.getVar('RUST_TARGET_CXX'),
+        'AR': d.getVar('AR'),
+        'CFLAGS': d.getVar('CFLAGS'),
+        'CXXFLAGS': d.getVar('CXXFLAGS'),
+        'TARGET_CC': d.getVar('RUST_TARGET_CC'),
+        'TARGET_CXX': d.getVar('RUST_TARGET_CXX'),
+        'TARGET_AR': d.getVar('AR'),
+        'TARGET_CFLAGS': d.getVar('CFLAGS'),
+        'TARGET_CXXFLAGS': d.getVar('CXXFLAGS'),
+        'HOST_CC': d.getVar('RUST_BUILD_CC'),
+        'HOST_CXX': d.getVar('RUST_BUILD_CXX'),
+        'HOST_AR': d.getVar('BUILD_AR'),
+        'HOST_CFLAGS': d.getVar('BUILD_CFLAGS'),
+        'HOST_CXXFLAGS': d.getVar('BUILD_CXXFLAGS'),
+        'PKG_CONFIG': os.path.join(d.getVar('STAGING_BINDIR_NATIVE'), 'pkg-config'),
+        'PKG_CONFIG_ALLOW_CROSS': '1',
+        'LIBCLANG_PATH': d.getVar('STAGING_LIBDIR_NATIVE'),
+        'BINDGEN_EXTRA_CLANG_ARGS':
+            f'--sysroot={d.getVar("STAGING_DIR_TARGET")} {d.getVar("TUNE_CCARGS")}',
+    }
+    for v in ('PKG_CONFIG_PATH', 'PKG_CONFIG_LIBDIR', 'PKG_CONFIG_SYSROOT_DIR',
+              'PKG_CONFIG_DISABLE_UNINSTALLED', 'PKG_CONFIG_SYSTEM_LIBRARY_PATH',
+              'PKG_CONFIG_SYSTEM_INCLUDE_PATH'):
+        env[v] = d.getVar(v) or ''
+
+    # The hook passes the stock Rust triple for the target architecture; OE's
+    # std is built for its own.
+    wrapper = os.path.join(d.getVar('WORKDIR'), 'cargo')
+    cargo = os.path.join(d.getVar('STAGING_BINDIR_NATIVE'), 'cargo')
+    with open(wrapper, 'w') as f:
+        f.write(f'''#!/usr/bin/env python3
+import os, sys
+os.environ.update({env!r})
+out = []
+args = iter(sys.argv[1:])
+for a in args:
+    if a == '--target':
+        next(args, None)
+        a = '--target={host}'
+    elif a.startswith('--target='):
+        a = '--target={host}'
+    out.append(a)
+os.execv({cargo!r}, [{cargo!r}] + out)
+''')
+    os.chmod(wrapper, os.stat(wrapper).st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+}
+do_flutter_cargo_setup[doc] = "Write the cargo wrapper and config a cargo build hook uses"
+
 inherit flutter-app
