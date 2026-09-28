@@ -178,6 +178,20 @@ def get_pub_cache_archive_name(d, app_root):
     Returns unique pub cache archive name
     """
     app_root_md5 = md5_dir(app_root)
+    # Vendored crates follow the Cargo.lock files in the source, which a
+    # path dependency can keep outside app_root.
+    if d.getVar('FLUTTER_NATIVE_CARGO') == '1':
+        import hashlib
+        h = hashlib.md5(app_root_md5.encode())
+        locks = []
+        for root, dirs, files in os.walk(d.getVar('S')):
+            dirs[:] = [x for x in dirs if not x.startswith('.')]
+            if 'Cargo.lock' in files:
+                locks.append(os.path.join(root, 'Cargo.lock'))
+        for lock in sorted(locks):
+            with open(lock, 'rb') as f:
+                h.update(f.read())
+        app_root_md5 = h.hexdigest()
     pn = d.getVar('PN')
     flutter_sdk_tag = d.getVar('FLUTTER_SDK_TAG')
     pub_cache_archive = f'flutter-pub-cache-{pn}-{app_root_md5}-{flutter_sdk_tag}.tar.bz2'
@@ -352,6 +366,11 @@ python do_archive_pub_cache() {
 
     run_command(d, 'flutter pub get --enforce-lockfile', pub_root, env)
     run_command(d, 'flutter pub get --enforce-lockfile --no-example --offline', pub_root, env)
+
+    # flutter-app-native with FLUTTER_NATIVE_CARGO: the crates of cargo hooks,
+    # while there is network.
+    if d.getVar('FLUTTER_NATIVE_CARGO') == '1':
+        flutter_cargo_vendor(d, pub_root, env)
 
     # The resolution artifacts (.dart_tool and friends) are written where pub
     # ran, which for a workspace member is the root rather than the member.
