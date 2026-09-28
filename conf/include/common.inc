@@ -442,6 +442,7 @@ python do_restore_pub_cache() {
         f'mv .project/.flutter-plugins-dependencies {pub_root}/ | true; ' \
         f'mv .project/.metadata {pub_root}/ | true; ' \
         f'mv .project/.packages {pub_root}/ | true; ' \
+        f'mv .project/pubspec.lock {pub_root}/ | true; ' \
         'rm -rf .project'
     bb.note(f'Running [{cmd}] in {unpackdir}')
     ret = subprocess.call(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir)
@@ -511,6 +512,26 @@ python do_compile() {
 
     run_command(d, 'flutter config --no-analytics', source_root, env)
     run_command(d, 'flutter config --no-cli-animations', source_root, env)
+    # --enforce-lockfile needs a lockfile, and pub's complaint about not having
+    # one arrives here rather than at the task that was supposed to supply it.
+    # do_archive_pub_cache writes pubspec.lock as a side effect of resolving,
+    # but only when it actually resolves: with the archive already in DL_DIR it
+    # returns early, and do_restore_pub_cache has to put the lockfile back out
+    # of the archive's .project/. Name that here so the next occurrence is one
+    # line to read instead of a three-task trail.
+    # Either location counts. A third-party app keeps its lockfile beside its
+    # pubspec, but an SDK app is a pub workspace member and resolves against the
+    # workspace root's -- conf/include/flutter-sdk-app.inc copies that one in
+    # through SDK_WORKSPACE_PATHS and no per-member lockfile exists.
+    if not any(os.path.exists(os.path.join(root, 'pubspec.lock'))
+               for root in (source_root, source_dir)):
+        bb.fatal('neither %s nor the workspace root %s has a pubspec.lock, so '
+                 'flutter pub get --enforce-lockfile cannot run. It comes either '
+                 'from do_archive_pub_cache resolving, or from '
+                 'do_restore_pub_cache restoring .project/pubspec.lock out of %s.'
+                 % (source_root, source_dir,
+                    d.getVar('PUB_CACHE_ARCHIVE') or 'the pub cache archive'))
+
     run_command(d, 'flutter pub get --enforce-lockfile --no-example --offline -v', source_root, env)
 
     build_type = d.getVar('BUILD_TYPE')
