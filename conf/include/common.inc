@@ -40,6 +40,71 @@ PUBSPEC_IGNORE_LOCKFILE ??= "0"
 
 FLUTTER_SDK = "${STAGING_DIR_NATIVE}/usr/share/flutter/sdk"
 
+# The flutter tool re-runs `pub get` on a package whose package_config.json does
+# not look newer than the pubspec beside it. That resolve carries no --offline,
+# so in a task with no network it hangs until something kills it.
+#
+# flutter-sdk stamps the staged SDK so the resolution wins that comparison, but
+# the stamp cannot be relied on to arrive: mtimes are part of a task's output
+# hash only for do_package (see include_timestamps in oe/sstatesig.py), so an
+# mtime-only change to the SDK's do_install produces an identical output hash,
+# hash equivalence calls the task equivalent, and a builder with warm sstate
+# restores the object built before the stamp existed.
+#
+# So stamp it again here, on the way in, where it always runs.
+python flutter_stamp_sdk_resolution() {
+    import os
+
+    sdk_root = d.getVar('FLUTTER_SDK')
+    if not sdk_root or not os.path.isdir(sdk_root):
+        return
+
+    def restamp(path, when):
+        # STAGING_DIR_NATIVE is hardlinked from the sysroot-components tree, so
+        # utime() here would also move the mtime of a file shared with every
+        # other recipe staging this SDK. Break the link first.
+        try:
+            if os.stat(path).st_nlink > 1:
+                tmp = path + '.stamp.tmp'
+                with open(path, 'rb') as src, open(tmp, 'wb') as dst:
+                    dst.write(src.read())
+                os.chmod(tmp, os.stat(path).st_mode & 0o7777)
+                os.replace(tmp, path)
+            os.utime(path, (when, when))
+        except OSError as e:
+            bb.warn('could not stamp %s: %s' % (path, e))
+            return False
+        return True
+
+    stamped = 0
+    for root, dirs, files in os.walk(sdk_root):
+        if 'package_config.json' not in files:
+            continue
+
+        cfg = os.path.join(root, 'package_config.json')
+        pubspecs = [os.path.join(root, os.pardir, n)
+                    for n in ('pubspec.yaml', 'pubspec.lock')]
+        pubspecs = [p for p in pubspecs if os.path.isfile(p)]
+        if not pubspecs:
+            continue
+
+        newest = max(os.stat(p).st_mtime for p in pubspecs)
+        if os.stat(cfg).st_mtime > newest:
+            continue
+
+        when = newest + 2
+        if restamp(cfg, when):
+            stamped += 1
+        graph = os.path.join(root, 'package_graph.json')
+        if os.path.isfile(graph):
+            restamp(graph, when)
+
+    if stamped:
+        bb.note('stamped %d package_config.json file(s) in the staged SDK '
+                'as newer than their pubspec' % stamped)
+}
+do_prepare_recipe_sysroot[postfuncs] += "flutter_stamp_sdk_resolution"
+
 require conf/include/clang-utils.inc
 
 python () {
@@ -202,21 +267,44 @@ python do_archive_pub_cache() {
     import shutil
     from bb.fetch2 import FetchError
 
-    workspace = d.getVar('WORKDIR')
-    pub_cache_archive_file = os.path.join(workspace, 'PUB_CACHE_ARCHIVE')
-    if os.path.exists(pub_cache_archive_file):
-        with open(pub_cache_archive_file, 'r') as f:
-            localfile = f.read()
-            if os.path.exists(localfile):
-                return
-
     app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
     # pub runs here; for a workspace member this is the workspace root rather
     # than the application. The cache is still keyed on the application, since
     # that identifies what is being built -- one pub root can host several.
     pub_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_PUB_ROOT"))
+
+    # Skipping needs two things to be true, and the original code checked only
+    # the first: the marker has to name what this WORKDIR already built, and
+    # that archive has to still be there.
+    #
+    # Trusting the marker alone was the bug in #653. It records a name from an
+    # earlier build, so a bumped SRCREV returned here before the md5 of the new
+    # source was ever computed, and the app then built against the previous
+    # run's pub cache. Recomputing the name first is what detects that.
+    #
+    # Trusting the archive alone is wrong the other way. DL_DIR outlives
+    # WORKDIR -- it is a shared, persistent mount in CI, while rm_work and
+    # cleansstate wipe WORKDIR every build -- so the archive is routinely
+    # present when this recipe has done no work at all. Returning there skips
+    # the pub cache population below, and do_compile then fails on
+    # "flutter config --no-analytics". The name carries PN, the source md5 and
+    # the SDK tag but no architecture, so one machine populating DL_DIR was
+    # enough to break the rest.
+    marker = os.path.join(d.getVar('WORKDIR'), 'PUB_CACHE_ARCHIVE')
+    previous = None
+    if os.path.exists(marker):
+        with open(marker, 'r') as f:
+            previous = f.read().strip()
+
+    # Writes the marker as a side effect, so it has to come after the read.
     localfile = get_pub_cache_archive_name(d, app_root)
     localpath = os.path.join(d.getVar("DL_DIR"), localfile)
+
+    # localpath, not the bare name: the original resolved against the cwd and
+    # only worked because do_archive_pub_cache[dirs] leaves bitbake in DL_DIR.
+    if previous == localfile and os.path.exists(localpath):
+        bb.note(f'pub cache already archived for this source: {localfile}')
+        return
 
     pub_cache = d.getVar("PUB_CACHE")
     flutter_sdk = os.path.join(d.getVar("STAGING_DATADIR_NATIVE"), 'flutter/sdk')
@@ -505,6 +593,18 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
         build_folder = os.path.join(source_root, 'build')
         if os.path.exists(build_folder):
             run_command(d, 'flutter clean -v', source_root, env)
+            # `flutter clean` removes .dart_tool, and the build below carries
+            # --no-pub whenever do_compile has no network, so nothing puts the
+            # resolution back. The snapshot is then handed a package_config.json
+            # that was deleted moments after do_compile resolved it. Resolve
+            # again -- offline, against the cache the earlier get populated.
+            #
+            # Only visible on a rebuild, since a first build has no build/ for
+            # the clean to trigger on. It bites hardest on a pub workspace,
+            # where .dart_tool/pub/workspace_ref.json goes with it and the
+            # snapshot silently falls back to a member package_config.json that
+            # a workspace member never has.
+            run_command(d, 'flutter pub get --offline', source_root, env)
 
         if runtime_mode == 'jit_release':
             cmd = (f'flutter build {flutter_build_args} --local-engine -v')

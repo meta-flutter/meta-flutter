@@ -367,6 +367,27 @@ jobs:
                   flutter-drm-gbm-backend \
                   flutter-drm-eglstream-backend
 
+      - name: Build the Flutter SDK example apps
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        shell: bash
+        working-directory: ../dunfell-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          # hello_world proves the shape; flutter_gallery proves it holds for an
+          # app with real dependencies. These are also the only recipes that
+          # inherit pub-cache, so without them the class and the timeout
+          # hosttool it needs are never executed.
+          APPS="flutter-sdk-examples-hello-world \
+                flutter-sdk-dev-integration-tests-flutter-gallery"
+
+          # Fetch first, then build with the network off: anything the workspace
+          # pub cache fragment failed to declare cannot be fetched and fails here
+          # rather than working quietly on a machine that happens to be online.
+          bitbake --runall=fetch $APPS
+          BB_NO_NETWORK=1 bitbake $APPS
+
       # The ivi-homescreen v3 integration tests. All ten come from one upstream
       # tree at HOMESCREEN_COMMIT through ivi-homescreen-test.inc, so they share
       # a source revision and stand or fall together far more often than not.
