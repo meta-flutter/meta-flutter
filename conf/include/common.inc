@@ -10,6 +10,13 @@ DEPENDS += " \
     "
 
 FLUTTER_APPLICATION_PATH ??= ""
+
+# Directory pub resolves from, relative to S. Defaults to the application, which
+# is where a standalone package resolves. A pub workspace member resolves from
+# the workspace root instead -- its own directory has no lockfile and pub
+# refuses to operate there -- so such a recipe points this at the root and
+# leaves FLUTTER_APPLICATION_PATH on the member.
+FLUTTER_PUB_ROOT ??= "${FLUTTER_APPLICATION_PATH}"
 FLUTTER_PREBUILD_CMD ??= ""
 
 PUB_CACHE_EXTRA_ARCHIVE_CMD ??= ""
@@ -169,6 +176,20 @@ def get_pub_cache_archive_name(d, app_root):
     Returns unique pub cache archive name
     """
     app_root_md5 = md5_dir(app_root)
+    # Vendored crates follow the Cargo.lock files in the source, which a
+    # path dependency can keep outside app_root.
+    if d.getVar('FLUTTER_NATIVE_CARGO') == '1':
+        import hashlib
+        h = hashlib.md5(app_root_md5.encode())
+        locks = []
+        for root, dirs, files in os.walk(d.getVar('S')):
+            dirs[:] = [x for x in dirs if not x.startswith('.')]
+            if 'Cargo.lock' in files:
+                locks.append(os.path.join(root, 'Cargo.lock'))
+        for lock in sorted(locks):
+            with open(lock, 'rb') as f:
+                h.update(f.read())
+        app_root_md5 = h.hexdigest()
     pn = d.getVar('PN')
     flutter_sdk_tag = d.getVar('FLUTTER_SDK_TAG')
     pub_cache_archive = f'flutter-pub-cache-{pn}-{app_root_md5}-{flutter_sdk_tag}.tar.bz2'
@@ -256,17 +277,44 @@ python do_archive_pub_cache() {
     import shutil
     from bb.fetch2 import FetchError
 
-    workspace = d.getVar('WORKDIR')
-    pub_cache_archive_file = os.path.join(workspace, 'PUB_CACHE_ARCHIVE')
-    if os.path.exists(pub_cache_archive_file):
-        with open(pub_cache_archive_file, 'r') as f:
-            localfile = f.read()
-            if os.path.exists(localfile):
-                return
-
     app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
+    # pub runs here; for a workspace member this is the workspace root rather
+    # than the application. The cache is still keyed on the application, since
+    # that identifies what is being built -- one pub root can host several.
+    pub_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_PUB_ROOT"))
+
+    # Skipping needs two things to be true, and the original code checked only
+    # the first: the marker has to name what this WORKDIR already built, and
+    # that archive has to still be there.
+    #
+    # Trusting the marker alone was the bug in #653. It records a name from an
+    # earlier build, so a bumped SRCREV returned here before the md5 of the new
+    # source was ever computed, and the app then built against the previous
+    # run's pub cache. Recomputing the name first is what detects that.
+    #
+    # Trusting the archive alone is wrong the other way. DL_DIR outlives
+    # WORKDIR -- it is a shared, persistent mount in CI, while rm_work and
+    # cleansstate wipe WORKDIR every build -- so the archive is routinely
+    # present when this recipe has done no work at all. Returning there skips
+    # the pub cache population below, and do_compile then fails on
+    # "flutter config --no-analytics". The name carries PN, the source md5 and
+    # the SDK tag but no architecture, so one machine populating DL_DIR was
+    # enough to break the rest.
+    marker = os.path.join(d.getVar('WORKDIR'), 'PUB_CACHE_ARCHIVE')
+    previous = None
+    if os.path.exists(marker):
+        with open(marker, 'r') as f:
+            previous = f.read().strip()
+
+    # Writes the marker as a side effect, so it has to come after the read.
     localfile = get_pub_cache_archive_name(d, app_root)
     localpath = os.path.join(d.getVar("DL_DIR"), localfile)
+
+    # localpath, not the bare name: the original resolved against the cwd and
+    # only worked because do_archive_pub_cache[dirs] leaves bitbake in DL_DIR.
+    if previous == localfile and os.path.exists(localpath):
+        bb.note(f'pub cache already archived for this source: {localfile}')
+        return
 
     pub_cache = d.getVar("PUB_CACHE")
     flutter_sdk = os.path.join(d.getVar("STAGING_DATADIR_NATIVE"), 'flutter/sdk')
@@ -282,10 +330,10 @@ python do_archive_pub_cache() {
     # Remove pubspec.lock file if present
     #
     if d.getVar("PUBSPEC_IGNORE_LOCKFILE") == "1":
-        pubspec_lock = os.path.join(app_root, 'pubspec.lock')
+        pubspec_lock = os.path.join(pub_root, 'pubspec.lock')
         if os.path.exists(pubspec_lock):
             bb.note('Deleting the pubspec.lock due to PUBSPEC_IGNORE_LOCKFILE = "1"')
-            run_command(d, 'rm -rf pubspec.lock', app_root, env)
+            run_command(d, 'rm -rf pubspec.lock', pub_root, env)
         else:
             bb.note('The pubspec.lock file is not present')
 
@@ -305,20 +353,27 @@ python do_archive_pub_cache() {
     #
     # go online to fetch, then mark offline
     #
-    run_command(d, 'flutter config --no-analytics', app_root, env)
-    run_command(d, 'flutter config --no-cli-animations', app_root, env)
-    run_command(d, 'flutter clean', app_root, env)
+    run_command(d, 'flutter config --no-analytics', pub_root, env)
+    run_command(d, 'flutter config --no-cli-animations', pub_root, env)
+    run_command(d, 'flutter clean', pub_root, env)
 
     # if no pubspec.lock, create it
-    pubspec_lock = os.path.join(app_root, 'pubspec.lock')
+    pubspec_lock = os.path.join(pub_root, 'pubspec.lock')
     if not os.path.exists(pubspec_lock):
-        run_command(d, 'dart pub --suppress-analytics --directory . get', app_root, env)
+        run_command(d, 'dart pub --suppress-analytics --directory . get', pub_root, env)
 
-    run_command(d, 'flutter pub get --enforce-lockfile', app_root, env)
-    run_command(d, 'flutter pub get --enforce-lockfile --no-example --offline', app_root, env)
+    run_command(d, 'flutter pub get --enforce-lockfile', pub_root, env)
+    run_command(d, 'flutter pub get --enforce-lockfile --no-example --offline', pub_root, env)
 
+    # flutter-app-native with FLUTTER_NATIVE_CARGO: the crates of cargo hooks,
+    # while there is network.
+    if d.getVar('FLUTTER_NATIVE_CARGO') == '1':
+        flutter_cargo_vendor(d, pub_root, env)
+
+    # The resolution artifacts (.dart_tool and friends) are written where pub
+    # ran, which for a workspace member is the root rather than the member.
     cp_cmd = f'mkdir -p {pub_cache}/.project | true; cp -rT . {pub_cache}/.project/ | true;'
-    run_command(d, cp_cmd, app_root, env)
+    run_command(d, cp_cmd, pub_root, env)
 
     bb_number_threads = d.getVar("BB_NUMBER_THREADS", multiprocessing.cpu_count()).strip()
     pack_cmd = f'tar -I \"pbzip2 -p{bb_number_threads}\" -cf {localpath} ./'
@@ -351,6 +406,8 @@ python do_restore_pub_cache() {
     from   bb.fetch2 import UnpackError
 
     app_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_APPLICATION_PATH"))
+    # Mirrors the archive side: the resolution tree goes back where pub ran.
+    pub_root = os.path.join(d.getVar("S"), d.getVar("FLUTTER_PUB_ROOT"))
 
     workspace = d.getVar('WORKDIR')
     file = os.path.join(workspace, 'PUB_CACHE_ARCHIVE')
@@ -376,14 +433,14 @@ python do_restore_pub_cache() {
 
     # restore flutter pub get artifacts
     cmd = \
-        f'mv .project/.dart_tool {app_root}/ | true; ' \
-        f'mv .project/.packages {app_root}/ | true; ' \
-        f'mv .project/.dart_tool {app_root}/ | true; ' \
-        f'mv .project/.flutter-plugins {app_root}/ | true; ' \
-        f'mv .project/.flutter-plugins-dependencies {app_root}/ | true; ' \
-        f'mv .project/.metadata {app_root}/ | true; ' \
-        f'mv .project/.packages {app_root}/ | true; ' \
-        f'mv .project/pubspec.lock {app_root}/ | true; ' \
+        f'mv .project/.dart_tool {pub_root}/ | true; ' \
+        f'mv .project/.packages {pub_root}/ | true; ' \
+        f'mv .project/.dart_tool {pub_root}/ | true; ' \
+        f'mv .project/.flutter-plugins {pub_root}/ | true; ' \
+        f'mv .project/.flutter-plugins-dependencies {pub_root}/ | true; ' \
+        f'mv .project/.metadata {pub_root}/ | true; ' \
+        f'mv .project/.packages {pub_root}/ | true; ' \
+        f'mv .project/pubspec.lock {pub_root}/ | true; ' \
         'rm -rf .project'
     bb.note(f'Running [{cmd}] in {unpackdir}')
     ret = subprocess.call(cmd, preexec_fn=subprocess_setup, shell=True, cwd=unpackdir)

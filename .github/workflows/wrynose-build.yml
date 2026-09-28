@@ -330,15 +330,6 @@ jobs:
           . ./openembedded-core/oe-init-build-env
           bitbake flutter-auto
 
-      # The Rust module ivi-homescreen apps load over Dart FFI; the only cargo
-      # recipe here.
-      - name: Build ihs-wl-server
-        shell: bash
-        working-directory: ../wrynose-linux-dummy
-        run: |
-          . ./openembedded-core/oe-init-build-env
-          bitbake ihs-wl-server
-
       - name: Build flutter-pi
         id: base
         shell: bash
@@ -416,6 +407,23 @@ jobs:
           done
           if [ -n "$failed" ]; then
             echo "::error::integration tests failed:$failed"
+            exit 1
+          fi
+
+      # ihs_wayland_server's example: an FFI app whose build hook builds its
+      # Rust library with cargo (flutter-app-native, FLUTTER_NATIVE_CARGO).
+      - name: Build ihs-wl-server-example
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        shell: bash
+        working-directory: ../wrynose-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake ihs-wl-server-example
+          # The hook's library has to reach the package, not just build.
+          if ! oe-pkgdata-util list-pkg-files ihs-wl-server-example | grep -q '/libihs_wl_server\.so$'; then
+            echo "::error::libihs_wl_server.so is not in the ihs-wl-server-example package"
             exit 1
           fi
 
