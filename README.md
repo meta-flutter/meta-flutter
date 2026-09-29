@@ -34,6 +34,10 @@ Yocto Layer for Google Flutter related projects.
 | `PUBSPEC_IGNORE_LOCKFILE`            | Deletes pubspec.lock file if present.  Used in case where lock file does not build.|
 | `APP_CONFIG`                         | toml file to install into bundle folder.  File will be installed as config.toml in the bundle root.|
 
+The environment the recipes hand to `flutter`, `dart` and `pub` -- what we
+pin, what those tools read, and what a bitbake task can see at all -- is in
+[docs/environment-variables.md](docs/environment-variables.md).
+
 ### Supported Engine Variants
 
 * debug
