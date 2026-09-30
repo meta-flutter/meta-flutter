@@ -121,6 +121,13 @@ Note: when using SDK you may need to add the following after installation:
     $ export SDK_ROOT=<install folder>/sysroots/x86_64-nodistrosdk-linux/usr/share/flutter/sdk
     $ git config --global --add safe.directory $SDK_ROOT
 
+## Flutter custom devices
+
+`flutter run -d <device>` against a board over ssh, with the callbacks generated
+by the recipe that builds the embedder and merged into your
+`custom_devices.json` from the SDK:
+[docs/custom-devices.md](docs/custom-devices.md).
+
 ## General Yocto Notes
 
 * When building on systems with GCC version > than uninative in Yocto distro add the following to conf/local.conf
