@@ -28,5 +28,3 @@ PACKAGECONFIG ??= "\
     go_router \
     url_launcher \
     "
-
-EXTRA_OECMAKE += "-D EXE_OUTPUT_NAME=${PN}"
