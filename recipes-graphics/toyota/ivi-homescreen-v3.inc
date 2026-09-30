@@ -529,7 +529,22 @@ python () {
 IVI_WL_BACKENDS = "backend-wayland-egl backend-wayland-vulkan backend-wayland-leased-drm"
 EXTRA_OECMAKE += "${@bb.utils.contains_any('PACKAGECONFIG', d.getVar('IVI_WL_BACKENDS'), '-D IVI_WL_CORE_XML=' + d.getVar('STAGING_DATADIR') + '/wayland/wayland.xml', '', d)}"
 
+# The installed binary's name. ivi-homescreen ships it as 'homescreen', the AGL
+# variant as 'flutter-auto'; both are this same build.
+IVI_HOMESCREEN_EXE_NAME ?= "${PN}"
+
+#
+# Flutter custom device
+#
+# Lets a developer with the matching SDK run "flutter run -d <id>" at the board.
+# Only the launch command is embedder-specific: -b takes a bundle directory.
+#
+FLUTTER_CUSTOM_DEVICE_EXEC ?= "${bindir}/${IVI_HOMESCREEN_EXE_NAME} -b ${FLUTTER_CUSTOM_DEVICE_APP_DIR}"
+
+require conf/include/flutter-custom-device.inc
+
 EXTRA_OECMAKE += "\
+    -D EXE_OUTPUT_NAME=${IVI_HOMESCREEN_EXE_NAME} \
     -D LLVM_CONFIG=${STAGING_BINDIR_NATIVE}/llvm-config \
     -D PLUGINS_DIR=${S}/ivi-homescreen-plugins/plugins \
     -D WAYLAND_CXX_SCANNER_EXECUTABLE=${STAGING_BINDIR_NATIVE}/wayland-cxx-scanner \

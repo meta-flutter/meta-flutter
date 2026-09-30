@@ -29,7 +29,7 @@ PACKAGECONFIG ??= "\
     desktop_window_linux \
     "
 
-EXTRA_OECMAKE += "-D EXE_OUTPUT_NAME=homescreen"
+IVI_HOMESCREEN_EXE_NAME = "homescreen"
 
 RDEPENDS_${PN} += "\
     wayland \
