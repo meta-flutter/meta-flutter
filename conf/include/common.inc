@@ -626,10 +626,28 @@ def build_app(d, source_dir, flutter_sdk, pubspec_appname, flutter_application_p
                 flutter_source_package = '--source package:flutter/src/dart_plugin_registrant.dart'
                 flutter_source_defines = f'-Dflutter.dart_plugin_registrant={registrant_uri}'
 
+            # native_assets.json, not .yaml. flutter_tools writes
+            # <buildDir>/native_assets.json and copies it into the bundle as
+            # NativeAssetsManifest.json (build_system/targets/linux.dart); the
+            # string "native_assets.yaml" survives only in a flutter_tools test.
+            # It was already .json in 3.32.5, so this glob has matched nothing
+            # for as long as anyone is likely to care, and --native-assets has
+            # silently not been passed. The content is what changed name, not
+            # the format: pkg/vm/lib/native_assets/synthesizer.dart still reads
+            # the same "native-assets" map and still calls its variable
+            # nativeAssetsYaml.
+            #
+            # .yaml stays in the glob so a recipe pinned to an SDK old enough to
+            # write one keeps working.
             flutter_native_assets = ''
-            yaml_path = glob.glob(f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/native_assets.yaml')
-            if yaml_path and os.path.isfile(yaml_path[0]):
-                flutter_native_assets = f'--native-assets {yaml_path[0]}'
+            na_glob = f'{source_dir}/{flutter_application_path}/.dart_tool/flutter_build/*/native_assets'
+            na_path = glob.glob(f'{na_glob}.json') or glob.glob(f'{na_glob}.yaml')
+            if na_path and os.path.isfile(na_path[0]):
+                flutter_native_assets = f'--native-assets {na_path[0]}'
+                bb.note(f'native assets mapping: {na_path[0]}')
+            else:
+                bb.note('no native assets mapping found; '
+                        '--native-assets not passed')
 
             app_aot_extra = d.getVar("APP_AOT_EXTRA")
             app_aot_entry_file = d.getVar("APP_AOT_ENTRY_FILE")
