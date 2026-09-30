@@ -1,0 +1,341 @@
+#!/usr/bin/env python3
+#
+# Copyright (c) 2026 Joel Winarske
+#
+# SPDX-License-Identifier: MIT
+#
+"""Merge the Flutter custom-device configs shipped in a Yocto SDK into the
+developer's custom_devices.json.
+
+The SDK carries one JSON file per device under
+
+    $SDKTARGETSYSROOT/usr/share/flutter/custom-devices/
+
+written by conf/include/flutter-custom-device.inc. This merges one or all of
+them into the host config, replacing entries with the same id and leaving every
+other entry alone.
+
+    flutter-custom-devices list
+    flutter-custom-devices merge --all --host root@192.168.1.50
+    flutter-custom-devices remove ivi-homescreen
+"""
+
+import argparse
+import json
+import os
+import re
+import shutil
+import sys
+import tempfile
+
+CONFIG_KEY = 'custom-devices'
+CONFIG_NAME = 'custom_devices.json'
+SETTINGS_NAME = 'settings'
+CONFIG_DIR_NAME = 'flutter'
+
+# Keys flutter_tools refuses to revive as null, and the ones it allows.
+REQUIRED = ('id', 'label', 'sdkNameAndVersion', 'enabled', 'ping', 'install',
+            'uninstall', 'runDebug')
+OPTIONAL = ('platform', 'pingSuccessRegex', 'postBuild', 'forwardPort',
+            'forwardPortSuccessRegex', 'screenshot', 'readLogs')
+COMMANDS = ('ping', 'postBuild', 'install', 'uninstall', 'runDebug',
+            'forwardPort', 'screenshot', 'readLogs')
+
+
+def die(message):
+    sys.stderr.write('flutter-custom-devices: %s\n' % message)
+    raise SystemExit(1)
+
+
+def host_config_path():
+    """Where flutter_tools looks for custom_devices.json.
+
+    Mirrors Config._configPath in packages/flutter_tools/lib/src/base/config.dart:
+    the legacy dotfile wins if it exists, otherwise XDG_CONFIG_HOME verbatim --
+    upstream does not append 'flutter' to it -- falling back to ~/.config/flutter.
+    """
+    home = os.environ.get('HOME') or '.'
+    legacy = os.path.join(home, '.%s_%s' % (CONFIG_DIR_NAME, CONFIG_NAME))
+    if os.path.isfile(legacy):
+        return legacy
+    config_dir = os.environ.get('XDG_CONFIG_HOME') or os.path.join(
+        home, '.config', CONFIG_DIR_NAME)
+    return os.path.join(config_dir, CONFIG_NAME)
+
+
+def custom_devices_enabled():
+    """True when 'flutter config --enable-custom-devices' has been run."""
+    settings = os.path.join(os.path.dirname(host_config_path()), SETTINGS_NAME)
+    legacy = os.path.join(os.environ.get('HOME') or '.',
+                          '.%s_%s' % (CONFIG_DIR_NAME, SETTINGS_NAME))
+    for path in (legacy, settings):
+        if os.path.isfile(path):
+            try:
+                with open(path, encoding='utf-8') as handle:
+                    if json.load(handle).get('enable-custom-devices') is True:
+                        return True
+            except (OSError, ValueError):
+                pass
+    return False
+
+
+def sdk_paths(args):
+    """(sdk_dir, target_sysroot), from the arguments or the SDK environment."""
+    sysroot = args.target_sysroot or os.environ.get('SDKTARGETSYSROOT') \
+        or os.environ.get('OECORE_TARGET_SYSROOT')
+    native = os.environ.get('OECORE_NATIVE_SYSROOT')
+
+    root = args.sdk_dir
+    if not root:
+        # <sdk>/sysroots/<machine> for both sysroots, so two levels up either way.
+        anchor = native or sysroot
+        if anchor:
+            root = os.path.dirname(os.path.dirname(os.path.abspath(anchor)))
+    return root, sysroot
+
+
+def load_json(path, what):
+    try:
+        with open(path, encoding='utf-8') as handle:
+            return json.load(handle)
+    except ValueError as error:
+        die('invalid JSON in %s: %s' % (path, error))
+    except OSError as error:
+        die('cannot read %s (%s): %s' % (what, path, error))
+
+
+def substitute(value, tokens):
+    if isinstance(value, str):
+        for name, replacement in tokens.items():
+            value = value.replace('@%s@' % name, replacement)
+        return value
+    if isinstance(value, list):
+        return [substitute(item, tokens) for item in value]
+    if isinstance(value, dict):
+        return {key: substitute(item, tokens) for key, item in value.items()}
+    return value
+
+
+def unexpanded(device):
+    """The @TOKEN@ names left in a device config, in order of appearance."""
+    found = []
+    for name in re.findall('@([A-Z][A-Z0-9_]*)@', json.dumps(device)):
+        if name not in found:
+            found.append(name)
+    return found
+
+
+def validate(device, source):
+    if not isinstance(device, dict):
+        die('%s: expected a JSON object' % source)
+    for key in REQUIRED:
+        if device.get(key) in (None, '', []):
+            die('%s: missing required key %r' % (source, key))
+    for key in COMMANDS:
+        value = device.get(key)
+        if value is None:
+            continue
+        if not isinstance(value, list) or not value or \
+                not all(isinstance(word, str) for word in value):
+            die('%s: %r must be a non-empty array of strings' % (source, key))
+    if device.get('forwardPort') and not device.get('forwardPortSuccessRegex'):
+        die('%s: forwardPort needs forwardPortSuccessRegex' % source)
+    platform = device.get('platform')
+    if platform is not None and platform not in ('linux-arm64', 'linux-x64'):
+        die('%s: platform must be null, linux-arm64 or linux-x64' % source)
+    unknown = set(device) - set(REQUIRED) - set(OPTIONAL)
+    if unknown:
+        die('%s: unknown key(s) %s' % (source, ', '.join(sorted(unknown))))
+
+
+def available(config_dir):
+    """The device configs the SDK ships, keyed by id."""
+    if not os.path.isdir(config_dir):
+        die('no custom-device configs at %s\n'
+            '  Source the SDK environment first, or pass --from.' % config_dir)
+    devices = {}
+    for name in sorted(os.listdir(config_dir)):
+        if not name.endswith('.json'):
+            continue
+        path = os.path.join(config_dir, name)
+        device = load_json(path, 'device config')
+        validate(device, path)
+        devices[device['id']] = (path, device)
+    return devices
+
+
+def read_host_config(path):
+    if not os.path.exists(path):
+        return {}
+    config = load_json(path, 'host config')
+    if not isinstance(config, dict):
+        die('%s: expected a JSON object' % path)
+    entries = config.get(CONFIG_KEY, [])
+    if not isinstance(entries, list):
+        die("%s: '%s' is not a JSON array" % (path, CONFIG_KEY))
+    return config
+
+
+def write_host_config(path, config, dry_run):
+    text = json.dumps(config, indent=2) + '\n'
+    if dry_run:
+        sys.stdout.write(text)
+        return
+    directory = os.path.dirname(path) or '.'
+    os.makedirs(directory, exist_ok=True)
+    if os.path.exists(path):
+        shutil.copy2(path, path + '.bak')
+    handle = tempfile.NamedTemporaryFile('w', encoding='utf-8', dir=directory,
+                                         prefix='.custom_devices.', delete=False)
+    try:
+        handle.write(text)
+        handle.close()
+        os.replace(handle.name, path)
+    except BaseException:
+        os.unlink(handle.name)
+        raise
+
+
+def cmd_list(args):
+    _, sysroot = sdk_paths(args)
+    devices = available(args.source or default_source(sysroot))
+    installed = {device.get('id') for device
+                 in read_host_config(args.config).get(CONFIG_KEY, [])
+                 if isinstance(device, dict)}
+    for device_id in sorted(devices):
+        path, device = devices[device_id]
+        mark = '*' if device_id in installed else ' '
+        tokens = unexpanded(device)
+        suffix = '  [needs %s]' % ', '.join(tokens) if tokens else ''
+        print('%s %-32s %s%s' % (mark, device_id, device['label'], suffix))
+    if installed & set(devices):
+        print('\n* already in %s' % args.config)
+    return 0
+
+
+def cmd_merge(args):
+    root, sysroot = sdk_paths(args)
+    devices = available(args.source or default_source(sysroot))
+
+    if args.all:
+        wanted = sorted(devices)
+    else:
+        wanted = args.ids
+        unknown = [device_id for device_id in wanted if device_id not in devices]
+        if unknown:
+            die('no such device config: %s\n  Available: %s'
+                % (', '.join(unknown), ', '.join(sorted(devices)) or 'none'))
+    if not wanted:
+        die('nothing to merge; name a device id or pass --all')
+
+    host = args.host or os.environ.get('FLUTTER_TARGET_HOST') or ''
+    if host and '@' not in host:
+        host = 'root@' + host
+    tokens = {
+        'HOST': host,
+        'HOSTNAME': host.split('@', 1)[1] if host else '',
+        'SDK_DIR': root or '',
+        'SDK_SYSROOT': sysroot or '',
+    }
+    tokens = {name: value for name, value in tokens.items() if value}
+
+    config = read_host_config(args.config)
+    entries = list(config.get(CONFIG_KEY, []))
+    added, replaced = [], []
+
+    for device_id in wanted:
+        path, device = devices[device_id]
+        device = substitute(device, tokens)
+        missing = unexpanded(device)
+        if missing:
+            die('%s still needs %s.\n'
+                '  --host supplies HOST and HOSTNAME; SDK_DIR and SDK_SYSROOT\n'
+                '  come from the SDK environment or --sdk-dir/--target-sysroot.'
+                % (os.path.basename(path), ', '.join(missing)))
+        validate(device, path)
+
+        for index, existing in enumerate(entries):
+            if isinstance(existing, dict) and existing.get('id') == device_id:
+                entries[index] = device
+                replaced.append(device_id)
+                break
+        else:
+            entries.append(device)
+            added.append(device_id)
+
+    config[CONFIG_KEY] = entries
+    write_host_config(args.config, config, args.dry_run)
+
+    for device_id in added:
+        print('added    %s' % device_id)
+    for device_id in replaced:
+        print('replaced %s' % device_id)
+    if not args.dry_run:
+        print('wrote    %s' % args.config)
+        if not custom_devices_enabled():
+            print('\nCustom devices are not enabled yet. Run:\n'
+                  '  flutter config --enable-custom-devices')
+    return 0
+
+
+def cmd_remove(args):
+    config = read_host_config(args.config)
+    entries = config.get(CONFIG_KEY, [])
+    keep = [device for device in entries
+            if not (isinstance(device, dict) and device.get('id') in args.ids)]
+    removed = len(entries) - len(keep)
+    if not removed:
+        die('no entry with id %s in %s' % (', '.join(args.ids), args.config))
+    config[CONFIG_KEY] = keep
+    write_host_config(args.config, config, args.dry_run)
+    print('removed  %d entr%s' % (removed, 'y' if removed == 1 else 'ies'))
+    return 0
+
+
+def default_source(sysroot):
+    if not sysroot:
+        die('no SDK target sysroot. Source the SDK environment script, or pass\n'
+            '  --target-sysroot or --from.')
+    return os.path.join(sysroot, 'usr', 'share', 'flutter', 'custom-devices')
+
+
+def main(argv):
+    parser = argparse.ArgumentParser(
+        prog='flutter-custom-devices',
+        description=__doc__.split('\n\n')[0],
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('--from', dest='source', metavar='DIR',
+                        help='directory of device configs (default: the SDK target sysroot)')
+    parser.add_argument('--config', metavar='PATH', default=host_config_path(),
+                        help='host custom_devices.json (default: %(default)s)')
+    parser.add_argument('--sdk-dir', metavar='DIR', help='expands @SDK_DIR@')
+    parser.add_argument('--target-sysroot', metavar='DIR', help='expands @SDK_SYSROOT@')
+    parser.add_argument('-n', '--dry-run', action='store_true',
+                        help='print the merged config instead of writing it')
+
+    sub = parser.add_subparsers(dest='command')
+
+    listing = sub.add_parser('list', help='list the device configs the SDK ships')
+    listing.set_defaults(func=cmd_list)
+
+    merge = sub.add_parser('merge', help='merge device configs into the host config')
+    merge.add_argument('ids', nargs='*', metavar='ID')
+    merge.add_argument('--all', action='store_true', help='merge every config the SDK ships')
+    merge.add_argument('--host', metavar='[USER@]HOST',
+                       help='board address; expands @HOST@ and @HOSTNAME@ '
+                            '(default: $FLUTTER_TARGET_HOST, user root)')
+    merge.set_defaults(func=cmd_merge)
+
+    remove = sub.add_parser('remove', help='remove entries from the host config')
+    remove.add_argument('ids', nargs='+', metavar='ID')
+    remove.set_defaults(func=cmd_remove)
+
+    args = parser.parse_args(argv)
+    if not getattr(args, 'func', None):
+        parser.print_help()
+        return 2
+    return args.func(args)
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))
