@@ -50,7 +50,10 @@ LIC_FILES_CHKSUM = "\
 #
 # They are applied in filename order, which is the order they were cut in: a
 # later patch's hunks assume the earlier ones are in. 0006 is macOS-only and is
-# not here. 0010 is ours.
+# not here. 0010 and 0011 are ours.
+#
+# The boringssl- one is apply=no: it belongs to a staged dependency rather
+# than to ${S}, so patch_externals applies it and do_patch does not.
 #
 SRC_URI = "\
     git://github.com/firebase/firebase-cpp-sdk.git;protocol=https;nobranch=1;name=sdk;destsuffix=firebase-cpp-sdk \
@@ -64,6 +67,7 @@ SRC_URI = "\
     file://0009-Do-not-abandon-Repo-setup-over-a-persistence-cache.patch \
     file://0010-external-let-leveldb-use-a-local-source-tree.patch \
     file://0011-Recognize-riscv-on-desktop-Linux.patch \
+    file://boringssl-0001-generate-err_data-without-go-module-mode.patch;apply=no \
     "
 
 #
@@ -221,10 +225,12 @@ do_configure:prepend() {
 # skip their PATCH_COMMAND, and three of them carry one the SDK needs. Applied
 # here with patch(1) rather than `git apply`: these trees are checked out
 # without their .git.
+#
+# Ours for a dependency go in the same pass, named <dep>-*.patch in SRC_URI.
 do_patch[postfuncs] += "patch_externals"
 patch_externals() {
     for dep in boringssl flatbuffers uWebSockets; do
-        for p in ${S}/scripts/git/patches/$dep/*.patch; do
+        for p in ${S}/scripts/git/patches/$dep/*.patch ${UNPACKDIR}/$dep-*.patch; do
             [ -e "$p" ] || continue
             # Stamped: do_patch re-runs whenever the task signature changes, and
             # these trees are not cleaned in between, so a second pass would
