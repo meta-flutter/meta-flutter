@@ -19,7 +19,8 @@
 #     which must run on the build host -- hence wayland-cxx-scanner-native.
 #   * The crash handler DSN now comes from the SENTRY_DSN environment variable
 #     at runtime; CRASH_HANDLER_DSN no longer exists.
-#   * filament-view was removed from the plugins repo.
+#   * filament-view was removed from the plugins repo, as were the four
+#     firebase plugins; gamepads_linux (SDL3) was added.
 #
 
 DESCRIPTION = "Toyota's Flutter Embedder that communicates with AGL-compositor/Wayland compositors"
@@ -69,7 +70,7 @@ REQUIRED_DISTRO_FEATURES = "\
     ${@bb.utils.contains_any('PACKAGECONFIG', 'backend-wayland-egl backend-drm-kms-egl backend-headless-egl', 'opengl', '', d)} \
 "
 
-HOMESCREEN_COMMIT ??= "3d7a967134cd9384d7f9a40d2de7531abcdaf425"
+HOMESCREEN_COMMIT ??= "b7646dc04c404375deed2d3d91ab1322be2cb554"
 PLUGINS_COMMIT ??= "19f03e2d36faea4a64167d4dbd913e296f878eca"
 # v4l2-webrtc-codec supplies the V4L2 M2M encoder sources the embedder compiles
 # in directly (it installs nothing, so it is consumed as a source tree via
@@ -313,28 +314,16 @@ PACKAGECONFIG[audioplayer_linux] = "\
 PACKAGECONFIG[camera] = "-DBUILD_PLUGIN_CAMERA=ON,-DBUILD_PLUGIN_CAMERA=OFF,libcamera"
 PACKAGECONFIG[camera-pipewire] = "-DBUILD_PLUGIN_CAMERA_PIPEWIRE=ON -DBUILD_PLUGIN_CAMERA=OFF,\
     -DBUILD_PLUGIN_CAMERA_PIPEWIRE=OFF,pipewire jpeg glib-2.0"
-PACKAGECONFIG[cloud_firestore] = "\
-    -DBUILD_PLUGIN_CLOUD_FIRESTORE=ON \
-    -DFIREBASE_CPP_SDK_DIR=${STAGING_INCDIR}/firebase-cpp-sdk \
-    -DFIREBASE_SDK_LIBDIR=${STAGING_LIBDIR}/firebase-cpp-sdk, \
-    -DBUILD_PLUGIN_CLOUD_FIRESTORE=OFF \
-    "
 PACKAGECONFIG[desktop_window_linux] = "-DBUILD_PLUGIN_DESKTOP_WINDOW_LINUX=ON,\
     -DBUILD_PLUGIN_DESKTOP_WINDOW_LINUX=OFF"
 PACKAGECONFIG[file_selector] = "-DBUILD_PLUGIN_FILE_SELECTOR=ON,-DBUILD_PLUGIN_FILE_SELECTOR=OFF,,zenity"
-PACKAGECONFIG[firebase_auth] = "\
-    -DBUILD_PLUGIN_FIREBASE_AUTH=ON \
-    -DFIREBASE_CPP_SDK_DIR=${STAGING_INCDIR}/firebase-cpp-sdk \
-    -DFIREBASE_SDK_LIBDIR=${STAGING_LIBDIR}/firebase-cpp-sdk, \
-    -DBUILD_PLUGIN_FIREBASE_AUTH=OFF, \
-    libsecret \
-"
-PACKAGECONFIG[firebase_storage] = "\
-    -DBUILD_PLUGIN_FIREBASE_STORAGE=ON \
-    -DFIREBASE_CPP_SDK_DIR=${STAGING_INCDIR}/firebase-cpp-sdk \
-    -DFIREBASE_SDK_LIBDIR=${STAGING_LIBDIR}/firebase-cpp-sdk, \
-    -DBUILD_PLUGIN_FIREBASE_STORAGE=OFF"
 PACKAGECONFIG[flatpak] = "-DBUILD_PLUGIN_FLATPAK=ON,-DBUILD_PLUGIN_FLATPAK=OFF,flatpak libxml2 zlib,flatpak"
+# Gamepad input over the gamepads package's channel, backed by SDL3. The
+# shell's own libinput path deliberately ignores joysticks and gamepads, and
+# Wayland has no gamepad protocol, so this is the only route for one. libsdl3 is
+# meta-oe, and only the release branches that carry it can enable this.
+PACKAGECONFIG[gamepads_linux] = "-DBUILD_PLUGIN_GAMEPADS_LINUX=ON,\
+    -DBUILD_PLUGIN_GAMEPADS_LINUX=OFF,libsdl3"
 PACKAGECONFIG[go_router] = "-DBUILD_PLUGIN_GO_ROUTER=ON,-DBUILD_PLUGIN_GO_ROUTER=OFF"
 # The 'common' plugin is upstream-default ON and is what pulls in the vendored
 # sdbus-c++ (and so the sd-bus provider dependency). Disabling it is the
@@ -342,10 +331,6 @@ PACKAGECONFIG[go_router] = "-DBUILD_PLUGIN_GO_ROUTER=ON,-DBUILD_PLUGIN_GO_ROUTER
 # plugin_common / plugin_common_glib / plugin_common_curl, so it can only be
 # turned off when no other plugin is enabled.
 PACKAGECONFIG[plugin-common] = "-DBUILD_PLUGIN_COMMON=ON,-DBUILD_PLUGIN_COMMON=OFF"
-# firebase_core is declared by the plugins tree only when a firebase plugin is
-# enabled, and defaults ON there. Deliberately no disable value: forcing OFF
-# would break those plugins, so absence leaves upstream's own logic in charge.
-PACKAGECONFIG[firebase_core] = "-DBUILD_PLUGIN_FIREBASE_CORE=ON,,"
 # Developer target that re-runs Pigeon over the video_player_linux Dart IDL.
 # Needs dart, clang-format and sed on PATH plus VIDEO_PLAYER_LINUX_PIGEON_DIR.
 PACKAGECONFIG[video-player-pigeon-regen] = "\
@@ -476,8 +461,7 @@ python () {
                 % (pn, ', '.join(sorted(egl_opts))))
     if 'plugin-common' not in pc and 'disable-plugins' not in pc:
         others = pc & {'audioplayer_linux', 'camera', 'camera-pipewire',
-                       'cloud_firestore', 'desktop_window_linux', 'file_selector',
-                       'firebase_auth', 'firebase_storage', 'go_router',
+                       'desktop_window_linux', 'file_selector', 'go_router',
                        'google_sign_in', 'integration_test', 'layer-playground-view',
                        'nav_render_view', 'pdf', 'rive-text', 'secure-storage',
                        'url_launcher', 'video-player', 'webview_flutter_view'}
@@ -492,12 +476,11 @@ python () {
                 "enabling both is redundant" % pn)
     if 'disable-plugins' in pc:
         plugins = pc & {'audioplayer_linux', 'camera', 'camera-pipewire',
-                        'cloud_firestore', 'desktop_window_linux', 'file_selector',
-                        'firebase_auth', 'firebase_storage', 'go_router',
-                        'google_sign_in', 'integration_test', 'layer-playground-view',
-                        'nav_render_view', 'pdf', 'rive-text', 'secure-storage',
-                        'url_launcher', 'video-player',
-                        'webview_flutter_view'}
+                        'desktop_window_linux', 'file_selector', 'gamepads_linux',
+                        'go_router', 'google_sign_in', 'integration_test',
+                        'layer-playground-view', 'nav_render_view', 'pdf',
+                        'rive-text', 'secure-storage', 'url_launcher',
+                        'video-player', 'webview_flutter_view'}
         if plugins:
             bb.warn("%s: 'disable-plugins' overrides the enabled plugins: %s"
                     % (pn, ', '.join(sorted(plugins))))
