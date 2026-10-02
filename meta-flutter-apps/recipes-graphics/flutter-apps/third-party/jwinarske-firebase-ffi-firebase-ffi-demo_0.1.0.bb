@@ -168,10 +168,25 @@ firebase_ffi_assert_linked() {
     for lib in $(find ${D} -name 'libfirebase_ffi.so' 2>/dev/null); do
         found="yes"
         if ! ${NM} -D --defined-only "$lib" 2>/dev/null | grep -q '_ZN8firebase'; then
-            bbfatal "$lib has no firebase:: symbols -- the hook built the \
-transport-only library, so find_package did not resolve the SDK. Check that \
-firebase-cpp-sdk staged its headers (SYSROOT_DIRS) and that \
-FIREBASE_FFI_PRODUCTS is a subset of its PACKAGECONFIG."
+            # Say why, not just that. The hook's cmake output is captured by the
+            # native-assets builder and its own task log is not printed by CI, so
+            # a bare assertion sends you back for another two-hour build.
+            bbwarn "no firebase:: symbols in $lib. What the sysroot has:"
+            for probe in \
+                ${STAGING_DIR_HOST}${libdir}/cmake/firebase_cpp_sdk/firebase_cpp_sdk-config.cmake \
+                ${STAGING_DIR_HOST}${prefix}/src/firebase-cpp-sdk/app/src/include/firebase/app.h \
+                ${STAGING_DIR_HOST}${libdir}/firebase-cpp-sdk/app/libfirebase_app.a; do
+                if [ -e "$probe" ]; then bbwarn "  present: $probe"; else bbwarn "  MISSING: $probe"; fi
+            done
+            bbwarn "what the hook's cmake said about it:"
+            find ${S}/${FLUTTER_APPLICATION_PATH}/.dart_tool/native_assets_builder -type f 2>/dev/null |
+            while read -r hooklog; do
+                grep -hiE "firebase|CMAKE_PREFIX_PATH|Could NOT find" "$hooklog" 2>/dev/null |
+                    sed 's/^/    /' | head -20
+            done | while read -r line; do bbwarn "$line"; done
+            bbfatal "$lib is the transport-only library: find_package did not \
+resolve the SDK. See the probes above -- a missing header path means \
+firebase-cpp-sdk did not stage it (SYSROOT_DIRS)."
         fi
         bbnote "$(basename $lib): firebase symbols present"
     done
