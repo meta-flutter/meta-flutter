@@ -178,11 +178,13 @@ firebase_ffi_assert_linked() {
                 ${STAGING_DIR_HOST}${libdir}/firebase-cpp-sdk/app/libfirebase_app.a; do
                 if [ -e "$probe" ]; then bbwarn "  present: $probe"; else bbwarn "  MISSING: $probe"; fi
             done
-            bbwarn "what the hook's cmake said about it:"
-            find ${S}/${FLUTTER_APPLICATION_PATH}/.dart_tool/native_assets_builder -type f 2>/dev/null |
-            while read -r hooklog; do
-                grep -hiE "firebase|CMAKE_PREFIX_PATH|Could NOT find" "$hooklog" 2>/dev/null |
-                    sed 's/^/    /' | head -20
+            # The hook's own CMakeCache.txt is the answer: firebase_cpp_sdk_DIR
+            # is either the directory find_package resolved or NOTFOUND.
+            find ${S}/${FLUTTER_APPLICATION_PATH}/.dart_tool -name CMakeCache.txt 2>/dev/null |
+            while read -r cache; do
+                bbwarn "  cache: $cache"
+                grep -E "^(firebase_cpp_sdk_DIR|CMAKE_PREFIX_PATH|CMAKE_SYSROOT|CMAKE_FIND_ROOT_PATH|FDB_WITH_FIREBASE)" \
+                    "$cache" 2>/dev/null | sed 's/^/    /'
             done | while read -r line; do bbwarn "$line"; done
             bbfatal "$lib is the transport-only library: find_package did not \
 resolve the SDK. See the probes above -- a missing header path means \
