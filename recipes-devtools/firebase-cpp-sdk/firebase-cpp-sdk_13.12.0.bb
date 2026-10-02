@@ -272,6 +272,14 @@ FILES:${PN}-dev += "\
     "
 FILES:${PN}-staticdev += "${libdir}/firebase-cpp-sdk"
 
+# The headers live under ${prefix}/src, which SYSROOT_DIRS does not cover:
+# /usr/include /usr/lib /usr/share /sysroot-only. Without this a consumer's
+# sysroot gets the CMake package config and none of the headers, and
+# find_package(firebase_cpp_sdk CONFIG QUIET) quietly comes up empty -- which
+# builds firebase_ffi's transport-only library instead of failing, and that is
+# the thing upstream's --no-undefined exists to catch.
+SYSROOT_DIRS += "${prefix}/src/firebase-cpp-sdk"
+
 # The package config is in -dev and names archives in -staticdev, so a consumer
 # that has only one of them gets a config that resolves to nothing.
 RDEPENDS:${PN}-dev += "${PN}-staticdev"

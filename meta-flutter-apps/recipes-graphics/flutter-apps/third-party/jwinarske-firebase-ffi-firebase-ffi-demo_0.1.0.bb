@@ -127,5 +127,33 @@ do_install:append() {
     done
 }
 
+# Assert the library actually has Firebase in it.
+#
+# find_package(firebase_cpp_sdk CONFIG QUIET) is quiet, so a sysroot missing the
+# SDK does not fail the build -- it produces the transport-only library, which
+# fails on the target at the first call as "build has no Firebase SDK". That is
+# exactly what a missing ${prefix}/src in the SDK recipe's SYSROOT_DIRS did.
+#
+# Checked on the installed copy, so it covers the install path too, and by
+# symbol rather than by size: the archives are static, so the Firebase entry
+# points this binds are defined in the library or they are not there at all.
+do_install[postfuncs] += "firebase_ffi_assert_linked"
+firebase_ffi_assert_linked() {
+    found=""
+    for lib in $(find ${D} -name 'libfirebase_ffi.so' 2>/dev/null); do
+        found="yes"
+        if ! ${NM} -D --defined-only "$lib" 2>/dev/null | grep -q '_ZN8firebase'; then
+            bbfatal "$lib has no firebase:: symbols -- the hook built the \
+transport-only library, so find_package did not resolve the SDK. Check that \
+firebase-cpp-sdk staged its headers (SYSROOT_DIRS) and that \
+FIREBASE_FFI_PRODUCTS is a subset of its PACKAGECONFIG."
+        fi
+        bbnote "$(basename $lib): firebase symbols present"
+    done
+    if [ -z "$found" ]; then
+        bbfatal "no libfirebase_ffi.so was installed; the native-assets hook did not produce one"
+    fi
+}
+
 # The SDK's secure store and installation id, at runtime as well as link time.
 RDEPENDS:${PN} += "libsecret util-linux-libuuid"
