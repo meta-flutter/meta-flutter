@@ -458,12 +458,16 @@ python () {
     if egl_opts and 'backend-wayland-egl' not in pc:
         bb.warn("%s: %s only apply to backend-wayland-egl, which is not enabled"
                 % (pn, ', '.join(sorted(egl_opts))))
+    # The set below is every plugin that links plugin_common, plugin_common_glib
+    # or plugin_common_curl, read from each plugin's own CMakeLists at
+    # PLUGINS_COMMIT -- not a guess. Getting it wrong is silent either way: a
+    # name that does not belong fails a build that would have worked, and a
+    # missing one lets a build through that fails at link on plugin_common
+    # symbols.
     if 'plugin-common' not in pc and 'disable-plugins' not in pc:
         others = pc & {'audioplayer_linux', 'camera', 'camera-pipewire',
-                       'desktop_window_linux', 'file_selector', 'go_router',
-                       'google_sign_in', 'integration_test', 'layer-playground-view',
-                       'nav_render_view', 'pdf', 'rive-text', 'secure-storage',
-                       'url_launcher', 'video-player', 'webview_flutter_view'}
+                       'flatpak', 'google_sign_in', 'integration_test', 'pdf',
+                       'rive-text', 'video-player'}
         if others:
             bb.fatal("%s: the plugins below link plugin_common, so 'plugin-common' "
                      "cannot be disabled while they are enabled: %s"
@@ -475,11 +479,11 @@ python () {
                 "enabling both is redundant" % pn)
     if 'disable-plugins' in pc:
         plugins = pc & {'audioplayer_linux', 'camera', 'camera-pipewire',
-                        'desktop_window_linux', 'file_selector', 'gamepads_linux',
-                        'go_router', 'google_sign_in', 'integration_test',
-                        'layer-playground-view', 'nav_render_view', 'pdf',
-                        'rive-text', 'secure-storage', 'url_launcher',
-                        'video-player', 'webview_flutter_view'}
+                        'desktop_window_linux', 'file_selector', 'flatpak',
+                        'gamepads_linux', 'go_router', 'google_sign_in',
+                        'integration_test', 'layer-playground-view',
+                        'nav_render_view', 'pdf', 'rive-text', 'secure-storage',
+                        'url_launcher', 'video-player', 'webview_flutter_view'}
         if plugins:
             bb.warn("%s: 'disable-plugins' overrides the enabled plugins: %s"
                     % (pn, ', '.join(sorted(plugins))))
