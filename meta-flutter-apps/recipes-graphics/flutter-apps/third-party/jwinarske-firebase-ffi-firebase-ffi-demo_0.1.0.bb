@@ -29,6 +29,31 @@ DEPENDS += "firebase-cpp-sdk"
 
 inherit flutter-app-native
 
+# The unwinder.
+#
+# flutter-app-native asks for -rtlib=compiler-rt -unwindlib=libunwind, but the
+# libunwind staged here is nongnu's (libunwind-aarch64.h, libunwind-generic.so),
+# not LLVM's, and there is no libunwind.so for -lunwind to find. Checked the
+# sysroot: libc++abi.so exports no _Unwind_Resume and libgcc_s.so.1 exports it --
+# the one unwinder present is the one that flag excludes.
+#
+# The other hook-building apps never notice, because a shared library links with
+# the symbol unresolved and the embedder supplies it at runtime. This one sets
+# -Wl,--no-undefined, deliberately, so it fails at link:
+#
+#   ld.lld: error: undefined symbol: _Unwind_Resume
+#   >>> referenced by lock_guard.h (libc++)
+#
+# Dropping the request leaves -unwindlib=platform, which is libgcc_s. Mixing it
+# with compiler-rt builtins is supported and is what resolves the symbol.
+CFLAGS:remove = "-unwindlib=libunwind"
+CXXFLAGS:remove = "-unwindlib=libunwind"
+
+# This hook is the most involved in the layer and its cmake output is otherwise
+# captured by the native-assets builder, which is how a quiet find_package
+# failure hid as an unwinder error. Keep the hook log in the task log.
+FLUTTER_NATIVE_VERBOSE = "1"
+
 #
 # What the build hook is told.
 #
