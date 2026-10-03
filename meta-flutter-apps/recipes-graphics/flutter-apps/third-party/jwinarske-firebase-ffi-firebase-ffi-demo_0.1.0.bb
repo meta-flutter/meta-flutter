@@ -108,14 +108,20 @@ python firebase_ffi_write_user_defines() {
     with open(pubspec, 'w') as handle:
         handle.write(text[:text.index(marker)] + block)
 
-    bb.note('firebase_ffi_demo: products %s, SDK at %s'
-            % (' '.join(products), d.getVar('FIREBASE_FFI_SDK_PREFIX')))
+    # Warn, not note: a note lands in the task log, which CI prints only for
+    # logs that contain an error. This is the one line that says whether the
+    # hook will see with_firebase at all.
+    bb.warn('firebase_ffi_demo: wrote into %s:%s'
+            % (pubspec, block.replace('\n', ' ')))
 }
 firebase_ffi_write_user_defines[vardeps] += "\
     FIREBASE_FFI_PRODUCTS \
     FIREBASE_FFI_SDK_PREFIX \
     "
-do_configure[prefuncs] += "firebase_ffi_write_user_defines"
+# do_compile, not do_configure: the hook reads the pubspec when flutter build
+# runs, and anything between the two tasks that restores project files would
+# undo an earlier rewrite. This is the last point before the hook sees it.
+do_compile[prefuncs] += "firebase_ffi_write_user_defines"
 
 # google-services.json
 #
