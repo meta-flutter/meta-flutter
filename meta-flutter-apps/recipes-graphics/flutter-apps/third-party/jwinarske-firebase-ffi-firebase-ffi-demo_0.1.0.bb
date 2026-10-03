@@ -19,6 +19,12 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=46382638866a5bb9f04134b101d78fb2"
 SRCREV = "c205ef08bb48728ebf4f3665abbee966a9647ab4"
 SRC_URI = "git://github.com/jwinarske/firebase_ffi.git;branch=main;protocol=https"
 
+# The git fetcher unpacks to ${WORKDIR}/git on this release while the default S
+# is ${WORKDIR}/${BP}; BB_GIT_DEFAULT_DESTSUFFIX, which lines them up, arrives
+# later. Without this LIC_FILES_CHKSUM resolves to nothing and do_populate_lic
+# fails before anything is built.
+S = "${WORKDIR}/git"
+
 FLUTTER_APPLICATION_PATH = "example"
 PUBSPEC_APPNAME = "firebase_ffi_demo"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "firebase-ffi-demo"
