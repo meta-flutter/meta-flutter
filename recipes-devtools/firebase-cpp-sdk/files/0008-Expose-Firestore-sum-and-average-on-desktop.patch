@@ -1,0 +1,425 @@
+From: Joel Winarske <joel.winarske@linux.com>
+Subject: [PATCH] Expose Firestore sum and average on desktop
+
+Query::Count() is the only aggregation the C++ SDK offers, so a caller who
+wants a sum has to download every document and add them up.
+
+The vendored Firestore core already does the rest. api::Query::Aggregate takes
+a vector of model::AggregateField, model::AggregateField::OpKind is
+{Sum, Avg, Count}, and FirestoreClient::RunAggregateQuery and the serializer
+carry it to the wire. Nothing calls any of it: QueryInternal::Count() reaches
+for query_.Count(), and query_.Aggregate() has no caller at all.
+
+So this is exposure, not implementation, and it does not touch the vendored
+library.
+
+Query::Sum and Query::Average take a dot-separated field path and return an
+AggregateQuery. AggregateQuerySnapshot::value() answers for all three kinds --
+the count for a count, the computed number otherwise -- so there is no way to
+ask a snapshot for a result it does not hold. count() on a sum returns zero
+rather than the sum truncated to an integer, which would look like a count
+that worked.
+
+A sum comes back as an integer when every input was an integer and as a double
+otherwise, so both proto types are read. A missing alias means the aggregation
+had nothing to work on and reads as zero.
+
+Desktop only, guarded by FIREBASE_PLATFORM_DESKTOP: the Android and iOS
+implementations have their own aggregate paths and this does not touch them.
+
+Upstream has firebase/firebase-cpp-sdk#1703 asking for SUM and #1705 as a WIP
+PR. That PR does not implement the desktop path -- its QueryInternal::Aggregate
+is a TODO that falls off the end of a non-void function -- and it has been
+conflicting since April 2025. AVERAGE has neither an issue nor a PR.
+
+diff --git a/firestore/src/common/aggregate_query_snapshot.cc b/firestore/src/common/aggregate_query_snapshot.cc
+index 0c8f9b1..18fca5e 100644
+Upstream-Status: Pending
+
+Carried by firebase_ffi, where the set is maintained:
+https://github.com/jwinarske/firebase_ffi/tree/main/packages/firebase_ffi/patches/firebase-cpp-sdk
+---
+--- a/firestore/src/common/aggregate_query_snapshot.cc
++++ b/firestore/src/common/aggregate_query_snapshot.cc
+@@ -104,6 +104,13 @@ int64_t AggregateQuerySnapshot::count() const {
+   return internal_->count();
+ }
+ 
++#if defined(FIREBASE_PLATFORM_DESKTOP)
++double AggregateQuerySnapshot::value() const {
++  if (!internal_) return 0.0;
++  return internal_->value();
++}
++#endif  // defined(FIREBASE_PLATFORM_DESKTOP)
++
+ bool operator==(const AggregateQuerySnapshot& lhs,
+                 const AggregateQuerySnapshot& rhs) {
+   return EqualityCompare(lhs.internal_, rhs.internal_);
+diff --git a/firestore/src/common/query.cc b/firestore/src/common/query.cc
+index 33a6f39..a595681 100644
+--- a/firestore/src/common/query.cc
++++ b/firestore/src/common/query.cc
+@@ -114,6 +114,18 @@ AggregateQuery Query::Count() const {
+   return internal_->Count();
+ }
+ 
++#if defined(FIREBASE_PLATFORM_DESKTOP)
++AggregateQuery Query::Sum(const std::string& field) const {
++  if (!internal_) return {};
++  return internal_->Sum(field);
++}
++
++AggregateQuery Query::Average(const std::string& field) const {
++  if (!internal_) return {};
++  return internal_->Average(field);
++}
++#endif  // defined(FIREBASE_PLATFORM_DESKTOP)
++
+ Query Query::Where(const Filter& filter) const {
+   if (!internal_) return {};
+   if (filter.IsEmpty()) {
+diff --git a/firestore/src/include/firebase/firestore/aggregate_query_snapshot.h b/firestore/src/include/firebase/firestore/aggregate_query_snapshot.h
+index bc1810c..c031174 100644
+--- a/firestore/src/include/firebase/firestore/aggregate_query_snapshot.h
++++ b/firestore/src/include/firebase/firestore/aggregate_query_snapshot.h
+@@ -20,6 +20,8 @@
+ #include <cstddef>
+ #include <cstdint>
+ 
++#include "firebase/internal/platform.h"
++
+ namespace firebase {
+ namespace firestore {
+ 
+@@ -108,6 +110,20 @@ class AggregateQuerySnapshot {
+    */
+   virtual int64_t count() const;
+ 
++#if defined(FIREBASE_PLATFORM_DESKTOP) || defined(DOXYGEN)
++  /**
++   * @brief The numeric result of the aggregation this snapshot came from.
++   *
++   * For a Sum or Average query this is the computed value. For a Count query
++   * it is the count, so that one accessor answers for every aggregation and
++   * there is no way to ask a snapshot for a result it does not hold.
++   *
++   * Zero when the aggregation had nothing to work on: an empty result set, or
++   * one where no document had the field as a number.
++   */
++  virtual double value() const;
++#endif  // defined(FIREBASE_PLATFORM_DESKTOP) || defined(DOXYGEN)
++
+   /**
+    * @brief Returns true if this `AggregateQuerySnapshot` is valid, false if it
+    * is not valid. An invalid `AggregateQuerySnapshot` could be the result of:
+diff --git a/firestore/src/include/firebase/firestore/query.h b/firestore/src/include/firebase/firestore/query.h
+index 9cc7d5f..b266536 100644
+--- a/firestore/src/include/firebase/firestore/query.h
++++ b/firestore/src/include/firebase/firestore/query.h
+@@ -24,6 +24,7 @@
+ #include <vector>
+ 
+ #include "firebase/internal/common.h"
++#include "firebase/internal/platform.h"
+ 
+ #include "firebase/firestore/firestore_errors.h"
+ #include "firebase/firestore/metadata_changes.h"
+@@ -160,6 +161,35 @@ class Query {
+    */
+   virtual AggregateQuery Count() const;
+ 
++#if defined(FIREBASE_PLATFORM_DESKTOP) || defined(DOXYGEN)
++  /**
++   * @brief Returns a query that sums `field` over the result set.
++   *
++   * The sum is computed by the server; the documents are not downloaded. An
++   * empty result set sums to zero, and documents where the field is absent or
++   * not a number are skipped rather than counted as zero.
++   *
++   * @param[in] field A dot-separated field path, as `FieldPath` spells it.
++   *
++   * @return An aggregate query whose snapshot carries the sum in `value()`.
++   */
++  virtual AggregateQuery Sum(const std::string& field) const;
++
++  /**
++   * @brief Returns a query that averages `field` over the result set.
++   *
++   * As with Sum, documents where the field is absent or not a number are
++   * skipped -- they do not pull the average toward zero. An empty result set
++   * has no average, and the snapshot's `value()` is zero.
++   *
++   * @param[in] field A dot-separated field path, as `FieldPath` spells it.
++   *
++   * @return An aggregate query whose snapshot carries the average in
++   * `value()`.
++   */
++  virtual AggregateQuery Average(const std::string& field) const;
++#endif  // defined(FIREBASE_PLATFORM_DESKTOP) || defined(DOXYGEN)
++
+   /**
+    * @brief Creates and returns a new Query with the additional filter.
+    *
+diff --git a/firestore/src/main/aggregate_query_main.cc b/firestore/src/main/aggregate_query_main.cc
+index 3250f7d..0cae667 100644
+--- a/firestore/src/main/aggregate_query_main.cc
++++ b/firestore/src/main/aggregate_query_main.cc
+@@ -36,6 +36,37 @@ AggregateQueryInternal::AggregateQueryInternal(
+     : aggregate_query_{std::move(aggregate_query)},
+       promise_factory_{PromiseFactory<AsyncApis>::Create(this)} {}
+ 
++AggregateQueryInternal::AggregateQueryInternal(
++    api::AggregateQuery&& aggregate_query, std::string alias)
++    : aggregate_query_{std::move(aggregate_query)},
++      promise_factory_{PromiseFactory<AsyncApis>::Create(this)},
++      alias_{std::move(alias)} {}
++
++namespace {
++
++// Reads one aggregation out of the response.
++//
++// The backend answers a sum with an integer when every input was an integer
++// and a double otherwise, so both have to be accepted -- taking only the
++// double would read an integer sum as zero. Anything else, including a missing
++// alias, is an empty result set: there was nothing to aggregate, not a
++// value of zero that someone stored.
++double ReadAggregate(const model::ObjectValue& fields,
++                     const std::string& alias) {
++  const absl::optional<google_firestore_v1_Value> value = fields.Get(alias);
++  if (!value.has_value()) return 0.0;
++  switch (value->which_value_type) {
++    case google_firestore_v1_Value_integer_value_tag:
++      return static_cast<double>(value->integer_value);
++    case google_firestore_v1_Value_double_value_tag:
++      return value->double_value;
++    default:
++      return 0.0;
++  }
++}
++
++}  // namespace
++
+ FirestoreInternal* AggregateQueryInternal::firestore_internal() {
+   return GetFirestoreInternal(&aggregate_query_.query());
+ }
+@@ -53,6 +84,27 @@ Future<AggregateQuerySnapshot> AggregateQueryInternal::Get(
+   api::AggregateQuery aggregate_query = aggregate_query_;
+   auto promise =
+       promise_factory_.CreatePromise<AggregateQuerySnapshot>(AsyncApis::kGet);
++
++  // A named aggregation reads its result out of the response by alias. Count
++  // keeps the core's count-specific path, which is the one the SDK has always
++  // used and the one its tests cover.
++  if (!alias_.empty()) {
++    const std::string alias = alias_;
++    aggregate_query_.GetAggregate(
++        [aggregate_query, promise,
++         alias](const util::StatusOr<model::ObjectValue>& maybe_value) mutable {
++          if (!maybe_value.ok()) {
++            promise.SetError(maybe_value.status());
++            return;
++          }
++          AggregateQuerySnapshotInternal internal{
++              std::move(aggregate_query),
++              ReadAggregate(maybe_value.ValueOrDie(), alias)};
++          promise.SetValue(MakePublic(std::move(internal)));
++        });
++    return promise.future();
++  }
++
+   // TODO(C++14)
+   // https://en.wikipedia.org/wiki/C%2B%2B14#Lambda_capture_expressions
+   aggregate_query_.Get(
+diff --git a/firestore/src/main/aggregate_query_main.h b/firestore/src/main/aggregate_query_main.h
+index 3fb47cb..d131cc3 100644
+--- a/firestore/src/main/aggregate_query_main.h
++++ b/firestore/src/main/aggregate_query_main.h
+@@ -17,6 +17,9 @@
+ #ifndef FIREBASE_FIRESTORE_SRC_MAIN_AGGREGATE_QUERY_MAIN_H_
+ #define FIREBASE_FIRESTORE_SRC_MAIN_AGGREGATE_QUERY_MAIN_H_
+ 
++#include <string>
++#include <utility>
++
+ #include "Firestore/core/src/api/aggregate_query.h"
+ #include "firestore/src/include/firebase/firestore/aggregate_source.h"
+ #include "firestore/src/main/firestore_main.h"
+@@ -34,6 +37,12 @@ class AggregateQueryInternal {
+  public:
+   explicit AggregateQueryInternal(api::AggregateQuery&& aggregate_query);
+ 
++  // Count keeps the empty alias and the core's count-specific result path.
++  // Anything else names the alias it asked for and reads that key out of the
++  // aggregation response.
++  AggregateQueryInternal(api::AggregateQuery&& aggregate_query,
++                         std::string alias);
++
+   FirestoreInternal* firestore_internal();
+   const FirestoreInternal* firestore_internal() const;
+ 
+@@ -54,6 +63,9 @@ class AggregateQueryInternal {
+ 
+   friend class AggregateQuerySnapshotTest;
+ 
++  // Empty for a count query.
++  std::string alias_;
++
+   api::AggregateQuery aggregate_query_;
+   PromiseFactory<AsyncApis> promise_factory_;
+ };
+diff --git a/firestore/src/main/aggregate_query_snapshot_main.cc b/firestore/src/main/aggregate_query_snapshot_main.cc
+index ff98e5d..e54cb2f 100644
+--- a/firestore/src/main/aggregate_query_snapshot_main.cc
++++ b/firestore/src/main/aggregate_query_snapshot_main.cc
+@@ -27,7 +27,17 @@ namespace firestore {
+ AggregateQuerySnapshotInternal::AggregateQuerySnapshotInternal(
+     api::AggregateQuery&& aggregate_query, int64_t count_result)
+     : aggregate_query_(std::move(aggregate_query)),
+-      count_result_(count_result) {}
++      count_result_(count_result),
++      value_result_(static_cast<double>(count_result)) {}
++
++AggregateQuerySnapshotInternal::AggregateQuerySnapshotInternal(
++    api::AggregateQuery&& aggregate_query, double value_result)
++    : aggregate_query_(std::move(aggregate_query)),
++      // count() on a sum or an average would be a category error, and
++      // returning the sum truncated to an integer would look like one that
++      // worked. Zero is what a caller gets for asking the wrong question.
++      count_result_(0),
++      value_result_(value_result) {}
+ 
+ FirestoreInternal* AggregateQuerySnapshotInternal::firestore_internal() {
+   return GetFirestoreInternal(&aggregate_query_.query());
+@@ -44,6 +54,8 @@ AggregateQuery AggregateQuerySnapshotInternal::query() const {
+ 
+ int64_t AggregateQuerySnapshotInternal::count() const { return count_result_; }
+ 
++double AggregateQuerySnapshotInternal::value() const { return value_result_; }
++
+ bool operator==(const AggregateQuerySnapshotInternal& lhs,
+                 const AggregateQuerySnapshotInternal& rhs) {
+   return lhs.aggregate_query_ == rhs.aggregate_query_ &&
+diff --git a/firestore/src/main/aggregate_query_snapshot_main.h b/firestore/src/main/aggregate_query_snapshot_main.h
+index d25febe..73f509f 100644
+--- a/firestore/src/main/aggregate_query_snapshot_main.h
++++ b/firestore/src/main/aggregate_query_snapshot_main.h
+@@ -37,12 +37,20 @@ class AggregateQuerySnapshotInternal {
+   explicit AggregateQuerySnapshotInternal(api::AggregateQuery&& aggregate_query,
+                                           int64_t count);
+ 
++  // A sum or an average, which is not a count and is not always an integer.
++  AggregateQuerySnapshotInternal(api::AggregateQuery&& aggregate_query,
++                                 double value);
++
+   FirestoreInternal* firestore_internal();
+   const FirestoreInternal* firestore_internal() const;
+ 
+   AggregateQuery query() const;
+   int64_t count() const;
+ 
++  // The count for a count query, the computed value for the others, so one
++  // accessor answers for every aggregation.
++  double value() const;
++
+   std::size_t Hash() const {
+     return util::Hash(aggregate_query_.query().Hash(), count_result_);
+   }
+@@ -53,6 +61,7 @@ class AggregateQuerySnapshotInternal {
+  private:
+   api::AggregateQuery aggregate_query_;
+   int64_t count_result_ = 0;
++  double value_result_ = 0.0;
+ };
+ 
+ inline bool operator!=(const AggregateQuerySnapshotInternal& lhs,
+diff --git a/firestore/src/main/converter_main.h b/firestore/src/main/converter_main.h
+index a4f1146..c02f026 100644
+--- a/firestore/src/main/converter_main.h
++++ b/firestore/src/main/converter_main.h
+@@ -93,6 +93,13 @@ inline AggregateQuery MakePublic(api::AggregateQuery&& from) {
+   return ConverterImpl::MakePublicFromCore<AggregateQuery>(std::move(from));
+ }
+ 
++// The overload above builds the internal from the core object alone, which is
++// all a count needs. A named aggregation has already built its internal, with
++// the alias it asked the backend for.
++inline AggregateQuery MakePublic(AggregateQueryInternal&& from) {
++  return ConverterImpl::MakePublicFromInternal<AggregateQuery>(std::move(from));
++}
++
+ inline CollectionReference MakePublic(api::CollectionReference&& from) {
+   return ConverterImpl::MakePublicFromCore<CollectionReference>(
+       std::move(from));
+diff --git a/firestore/src/main/query_main.cc b/firestore/src/main/query_main.cc
+index 21ccc72..b69bc75 100644
+--- a/firestore/src/main/query_main.cc
++++ b/firestore/src/main/query_main.cc
+@@ -15,8 +15,11 @@
+  */
+ 
+ #include "firestore/src/main/query_main.h"
++
+ #include <cassert>
+ #include <cstdint>
++#include "Firestore/core/src/model/aggregate_alias.h"
++#include "Firestore/core/src/model/aggregate_field.h"
+ 
+ #include <utility>
+ 
+@@ -101,6 +104,36 @@ Future<QuerySnapshot> QueryInternal::Get(Source source) {
+ 
+ AggregateQuery QueryInternal::Count() { return MakePublic(query_.Count()); }
+ 
++namespace {
++
++// Builds the one-aggregation query the public Sum and Average return.
++//
++// The core already carries aggregations end to end -- api::Query::Aggregate,
++// FirestoreClient::RunAggregateQuery and the serializer all take a vector of
++// model::AggregateField. Only the public API was missing.
++AggregateQuery MakeAggregate(const api::Query& query,
++                             model::AggregateField::OpKind op,
++                             const char* alias,
++                             const std::string& field) {
++  std::vector<model::AggregateField> fields;
++  fields.emplace_back(op, model::AggregateAlias(alias),
++                      model::FieldPath::FromDotSeparatedString(field));
++  AggregateQueryInternal internal{query.Aggregate(std::move(fields)), alias};
++  return MakePublic(std::move(internal));
++}
++
++}  // namespace
++
++AggregateQuery QueryInternal::Sum(const std::string& field) {
++  return MakeAggregate(query_, model::AggregateField::OpKind::Sum, kSumAlias,
++                       field);
++}
++
++AggregateQuery QueryInternal::Average(const std::string& field) {
++  return MakeAggregate(query_, model::AggregateField::OpKind::Avg,
++                       kAverageAlias, field);
++}
++
+ Query QueryInternal::Where(const Filter& filter) const {
+   SIMPLE_HARD_ASSERT(!filter.IsEmpty());
+   core::Filter core_filter =
+diff --git a/firestore/src/main/query_main.h b/firestore/src/main/query_main.h
+index ddf773f..92df8d4 100644
+--- a/firestore/src/main/query_main.h
++++ b/firestore/src/main/query_main.h
+@@ -60,6 +60,15 @@ class QueryInternal {
+ 
+   AggregateQuery Count();
+ 
++  // The alias each aggregation is requested under. The backend echoes it in
++  // the response, and the snapshot reads the result back by the same name, so
++  // the two have to agree and nothing else may use them.
++  static constexpr const char* kSumAlias = "fdb_sum";
++  static constexpr const char* kAverageAlias = "fdb_avg";
++
++  AggregateQuery Sum(const std::string& field);
++  AggregateQuery Average(const std::string& field);
++
+   ListenerRegistration AddSnapshotListener(
+       MetadataChanges metadata_changes, EventListener<QuerySnapshot>* listener);
+ 
