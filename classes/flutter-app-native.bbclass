@@ -11,7 +11,10 @@
 # Inherit this INSTEAD OF flutter-app.
 #
 
-TOOLCHAIN = "clang"
+# TOOLCHAIN, TC_CXX_RUNTIME and -stdlib=libc++ come from here, shared with
+# firebase-cpp-sdk, whose archives link into the libraries this class builds.
+require conf/include/flutter-clang-toolchain.inc
+
 # Required to make dart happy
 DEPENDS:append = " lld-native"
 
@@ -24,10 +27,6 @@ DEPENDS:append = " libunwind"
 CFLAGS += "-rtlib=compiler-rt -unwindlib=libunwind -fuse-ld=lld"
 CXXFLAGS += "-rtlib=compiler-rt -unwindlib=libunwind -fuse-ld=lld"
 
-# Force libc++ instead of the default libstdc++, which is what upstream
-# expects. TOOLCHAIN = "clang" alone does not get there: oe-core only selects
-# libc++ when TC_CXX_RUNTIME is overridden for the whole toolchain build.
-CXXFLAGS += "-stdlib=libc++"
 
 # NOTE: conf/include/flutter-app.inc already requires gn-utils.inc and appends
 # "--target-platform linux-${@gn_target_arch_name(d)}" to FLUTTER_BUILD_ARGS.

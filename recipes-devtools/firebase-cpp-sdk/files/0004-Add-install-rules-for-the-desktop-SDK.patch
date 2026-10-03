@@ -1,0 +1,456 @@
+From 5945c809616dd25691a1e9a4579226c1b4ba1087 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Thu, 27 Aug 2026 18:16:17 -0700
+Subject: [PATCH] Add install rules for the desktop SDK
+
+The SDK ships no install() rules: a consumer is expected to name the source
+tree and the build tree and reach into both. That works for a build you own and
+not at all for a cross build, where the SDK is compiled once, staged into a
+sysroot, and consumed by a different project on a different machine that cannot
+know either path.
+
+Under FIREBASE_CPP_INSTALL, stage both trees into the install prefix keeping
+the layout the in-place arrangement already expects, and add a relocatable
+package config plus a pkg-config file describing them. The library list is
+collected from the build tree at install time rather than hard-coded, so it
+follows whatever the version and feature selection actually produced.
+Upstream-Status: Pending
+
+Carried by firebase_ffi, where the set is maintained:
+https://github.com/jwinarske/firebase_ffi/tree/main/packages/firebase_ffi/patches/firebase-cpp-sdk
+---
+ CMakeLists.txt                       |   4 +
+ cmake/install_package_files.cmake.in | 174 +++++++++++++++++++++++++++
+ cmake/install_rules.cmake            | 110 +++++++++++++++++
+ 3 files changed, 288 insertions(+)
+ create mode 100644 cmake/install_package_files.cmake.in
+ create mode 100644 cmake/install_rules.cmake
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index bfd9306..55c733a 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -668,6 +668,10 @@ if (FIREBASE_INCLUDE_STORAGE)
+   add_subdirectory(storage)
+ endif()
+ 
++# Install rules for a desktop build (opt-in, FIREBASE_CPP_INSTALL). Included
++# last: they describe the targets every add_subdirectory() above declared.
++include(install_rules)
++
+ # Place the CMake and gradle build files provided to easily link against the
+ # prebuilt libraries at the root of the package.
+ cpp_pack_dir(
+diff --git a/cmake/install_package_files.cmake.in b/cmake/install_package_files.cmake.in
+new file mode 100644
+index 0000000..23bee9e
+--- /dev/null
++++ b/cmake/install_package_files.cmake.in
+@@ -0,0 +1,193 @@
++# Copyright 2026 Google
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#      http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++# Runs as the last install step (see cmake/install_rules.cmake) and writes the
++# package config and the pkg-config file. It runs last on purpose: the library
++# list it publishes is read back out of the staged prefix, so it describes what
++# was installed rather than what the build was expected to produce.
++#
++# Bracket-quoted blocks below hold text destined for the generated files, where
++# ${...} must survive untouched -- those are resolved by whoever consumes the
++# config, not here.
++
++set(_fb_version "@FIREBASE_INSTALL_VERSION@")
++set(_fb_src_rel "@FIREBASE_INSTALL_SRC_DIR@")
++set(_fb_lib_rel "@FIREBASE_INSTALL_LIB_DIR@")
++set(_fb_prefix "@CMAKE_INSTALL_PREFIX@")
++set(_fb_root "$ENV{DESTDIR}${_fb_prefix}")
++set(_fb_libroot "${_fb_root}/${_fb_lib_rel}")
++
++set(_fb_archive_glob "@FIREBASE_INSTALL_ARCHIVE_GLOB@")
++file(GLOB_RECURSE _fb_archives RELATIVE "${_fb_libroot}" "${_fb_libroot}/${_fb_archive_glob}")
++list(SORT _fb_archives)
++
++if(NOT _fb_archives)
++  message(FATAL_ERROR
++          "firebase-cpp-sdk install: no static libraries under ${_fb_libroot}. "
++          "The install ran before the build produced them.")
++endif()
++
++# The SDK's own archives first, its vendored dependencies after. The consumer is
++# expected to link the set as a group -- there are cycles between firebase_app
++# and firebase_rest_lib, and throughout the gRPC/protobuf/abseil set, that no
++# single ordering resolves -- so this is for legibility, not correctness.
++set(_fb_own "")
++set(_fb_ext "")
++foreach(_a IN LISTS _fb_archives)
++  if(_a MATCHES "^external/")
++    list(APPEND _fb_ext "${_a}")
++  else()
++    list(APPEND _fb_own "${_a}")
++  endif()
++endforeach()
++set(_fb_ordered ${_fb_own} ${_fb_ext})
++
++list(LENGTH _fb_ordered _fb_count)
++message(STATUS
++        "firebase-cpp-sdk ${_fb_version}: publishing ${_fb_count} static "
++        "libraries from ${_fb_lib_rel}")
++
++# Include roots, filtered to the ones this feature selection actually installed.
++set(_fb_include_rel "${_fb_src_rel}")
++foreach(_m IN ITEMS app auth firestore database storage functions messaging
++                    analytics remote_config installations app_check gma
++                    dynamic_links)
++  if(IS_DIRECTORY "${_fb_root}/${_fb_src_rel}/${_m}/src/include")
++    list(APPEND _fb_include_rel "${_fb_src_rel}/${_m}/src/include")
++  endif()
++endforeach()
++if(IS_DIRECTORY "${_fb_libroot}/external/src/firestore/Firestore/core/include")
++  list(APPEND _fb_include_rel
++       "${_fb_lib_rel}/external/src/firestore/Firestore/core/include")
++endif()
++
++# --- <prefix>/lib/cmake/firebase_cpp_sdk/firebase_cpp_sdk-config.cmake -------
++
++set(_fb_config [==[
++# Generated by firebase-cpp-sdk's install rules. Do not edit.
++#
++# Relocatable by construction: every path is derived from this file's own
++# location, so a prefix that moves -- a sysroot mounted somewhere else on a
++# build machine, an image unpacked at a different root -- needs no
++# regeneration.
++get_filename_component(_firebase_cpp_sdk_prefix
++                       "${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE)
++
++# The two roots a consumer written against an in-place SDK already knows: a
++# source tree to include from, and a tree of built archives to link. Set only
++# if the consumer has not named its own, so pointing a build at a local SDK
++# keeps overriding an installed one.
++]==])
++
++string(APPEND _fb_config
++  "if(NOT DEFINED FIREBASE_CPP_SDK_DIR)\n"
++  "  set(FIREBASE_CPP_SDK_DIR \"\${_firebase_cpp_sdk_prefix}/${_fb_src_rel}\")\n"
++  "endif()\n"
++  "if(NOT DEFINED FIREBASE_SDK_LIBDIR)\n"
++  "  set(FIREBASE_SDK_LIBDIR \"\${_firebase_cpp_sdk_prefix}/${_fb_lib_rel}\")\n"
++  "endif()\n"
++  "\nset(firebase_cpp_sdk_VERSION \"${_fb_version}\")\n")
++
++string(APPEND _fb_config "\nset(firebase_cpp_sdk_INCLUDE_DIRS\n")
++foreach(_d IN LISTS _fb_include_rel)
++  string(APPEND _fb_config "    \"\${_firebase_cpp_sdk_prefix}/${_d}\"\n")
++endforeach()
++string(APPEND _fb_config ")\n")
++
++string(APPEND _fb_config "\nset(firebase_cpp_sdk_LIBRARIES\n")
++foreach(_a IN LISTS _fb_ordered)
++  string(APPEND _fb_config "    \"\${FIREBASE_SDK_LIBDIR}/${_a}\"\n")
++endforeach()
++string(APPEND _fb_config ")\n")
++
++string(APPEND _fb_config [==[
++
++# An imported target for consumers that would rather link one thing. The group
++# wrapper is part of the target: without it the archives above do not resolve in
++# any single pass.
++if(NOT TARGET firebase::sdk)
++  add_library(firebase::sdk INTERFACE IMPORTED)
++  set_target_properties(firebase::sdk PROPERTIES
++    INTERFACE_INCLUDE_DIRECTORIES "${firebase_cpp_sdk_INCLUDE_DIRS}")
++  # --start-group is GNU ld only. ld64 does not accept it and resolves the
++  # archive cycles between firebase_app, firebase_rest_lib and the
++  # gRPC/protobuf/abseil set without help, so Apple links the plain list.
++  if(APPLE OR MSVC)
++    target_link_libraries(firebase::sdk INTERFACE
++      ${firebase_cpp_sdk_LIBRARIES} ${firebase_cpp_sdk_SYSTEM_LIBS})
++  else()
++    target_link_libraries(firebase::sdk INTERFACE
++      -Wl,--start-group ${firebase_cpp_sdk_LIBRARIES} -Wl,--end-group
++      ${firebase_cpp_sdk_SYSTEM_LIBS})
++  endif()
++endif()
++
++set(firebase_cpp_sdk_FOUND TRUE)
++]==])
++
++# The platform libraries the SDK itself needs, published so a consumer links
++# them through firebase::sdk instead of rediscovering them from linker errors.
++string(APPEND _fb_config
++  "\nset(firebase_cpp_sdk_SYSTEM_LIBS @FIREBASE_SYSTEM_LIBS_QUOTED@)\n")
++
++# Empty off Windows, where there is no such choice to record.
++string(APPEND _fb_config
++  "set(firebase_cpp_sdk_MSVC_RUNTIME_LIBRARY \"@FIREBASE_MSVC_RUNTIME_LIBRARY@\")\n")
++
++file(WRITE "${_fb_root}/lib/cmake/firebase_cpp_sdk/firebase_cpp_sdk-config.cmake"
++     "${_fb_config}")
++
++set(_fb_config_version "")
++string(APPEND _fb_config_version
++  "# Generated by firebase-cpp-sdk's install rules. Do not edit.\n"
++  "set(PACKAGE_VERSION \"${_fb_version}\")\n")
++string(APPEND _fb_config_version [==[
++if(PACKAGE_VERSION VERSION_LESS PACKAGE_FIND_VERSION)
++  set(PACKAGE_VERSION_COMPATIBLE FALSE)
++else()
++  set(PACKAGE_VERSION_COMPATIBLE TRUE)
++  if(PACKAGE_VERSION VERSION_EQUAL PACKAGE_FIND_VERSION)
++    set(PACKAGE_VERSION_EXACT TRUE)
++  endif()
++endif()
++]==])
++file(WRITE
++     "${_fb_root}/lib/cmake/firebase_cpp_sdk/firebase_cpp_sdk-config-version.cmake"
++     "${_fb_config_version}")
++
++# --- <prefix>/lib/pkgconfig/firebase-cpp-sdk.pc ------------------------------
++#
++# The SDK is consumed through CMake, so this exists mainly to answer "is a new
++# enough SDK already staged in this prefix?" without configuring anything --
++# which is how a build system decides whether it has to spend an hour building
++# one. The flags are complete enough to be usable directly.
++set(_fb_pc_cflags "")
++foreach(_d IN LISTS _fb_include_rel)
++  string(APPEND _fb_pc_cflags " -I\${prefix}/${_d}")
++endforeach()
++set(_fb_pc_libs "")
++foreach(_a IN LISTS _fb_ordered)
++  string(APPEND _fb_pc_libs " \${libdir}/${_a}")
++endforeach()
++
++file(WRITE "${_fb_root}/lib/pkgconfig/firebase-cpp-sdk.pc"
++"prefix=${_fb_prefix}
++libdir=\${prefix}/${_fb_lib_rel}
++
++Name: firebase-cpp-sdk
++Description: Firebase C++ SDK, built for @FIREBASE_INSTALL_PLATFORM@
++Version: ${_fb_version}
++Cflags:${_fb_pc_cflags}
++Libs:@FIREBASE_PC_LINK_PREFIX@${_fb_pc_libs}@FIREBASE_PC_LINK_SUFFIX@
++")
+diff --git a/cmake/install_rules.cmake b/cmake/install_rules.cmake
+new file mode 100644
+index 0000000..2ded2b0
+--- /dev/null
++++ b/cmake/install_rules.cmake
+@@ -0,0 +1,208 @@
++# Copyright 2026 Google
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#      http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++
++# Install rules for a desktop (Linux) build of the SDK.
++#
++# The SDK ships no install() rules: a consumer is expected to name the source
++# tree and the build tree and reach into both. That works for a build you own
++# and not at all for a cross build, where the SDK is compiled once, staged into
++# a sysroot, and consumed by a different project on a different machine that
++# cannot know either path.
++#
++# So stage both trees under the install prefix, keeping the layout the in-place
++# arrangement already expects, and add a package config that reports where they
++# landed:
++#
++#   <prefix>/src/firebase-cpp-sdk/          the FIREBASE_CPP_SDK_DIR shape
++#   <prefix>/lib/firebase-cpp-sdk/          the FIREBASE_SDK_LIBDIR shape
++#   <prefix>/lib/cmake/firebase_cpp_sdk/    find_package(firebase_cpp_sdk CONFIG)
++#   <prefix>/lib/pkgconfig/firebase-cpp-sdk.pc
++#
++# Nothing here hard-codes a library list. The archives are collected from the
++# build tree at install time, so the set follows whatever this version and this
++# feature selection actually produced -- which is the part that keeps moving.
++
++option(FIREBASE_CPP_INSTALL
++       "Generate install rules for the built desktop SDK" OFF)
++
++if(NOT FIREBASE_CPP_INSTALL)
++  return()
++endif()
++
++if(NOT DESKTOP)
++  message(WARNING
++          "FIREBASE_CPP_INSTALL is implemented for desktop builds only; "
++          "no install rules were generated.")
++  return()
++endif()
++
++# What the SDK needs from the platform beyond its own archives, and how the
++# archive list has to be decorated for the platform's linker.
++#
++# Linux stores credentials through libsecret, which reports failures as a GError
++# and so needs glib, and derives an installation id through libuuid; macOS uses
++# the Keychain, in Security, which pulls in CoreFoundation, and reaches
++# Foundation for its own bookkeeping. These are link-time requirements of the
++# SDK: a consumer linking only the archives is left with undefined symbols.
++if(MSVC)
++  set(FIREBASE_INSTALL_PLATFORM "Windows")
++  # Credentials go through wincred (CredRead/CredWrite), which lives in
++  # advapi32 -- already in CMake's default MSVC libraries, but named here so the
++  # dependency is explicit rather than inherited. The rest are what the SDK's
++  # networking stack reaches: sockets, certificate handling and the interface
++  # table.
++  # psapi: libuv's uv_getrusage calls GetProcessMemoryInfo, and libuv arrives
++  # through the Realtime Database stack.
++  # icu: app/src/locale.cc includes <icu.h> on Windows and GetTimezone calls
++  # ucal_getTimeZoneIDForWindowsID. Remote Config is the only caller, so this
++  # goes unnoticed until a build asks for that product and the link fails on
++  # two ICU symbols. Shipped with Windows 10 1703 and later.
++  set(FIREBASE_SYSTEM_LIBS advapi32 crypt32 ws2_32 iphlpapi userenv secur32
++                           bcrypt psapi icu)
++  # Which C runtime these archives were compiled against. A consumer that picks
++  # the other one fails at link with LNK2038 naming every object file, so the
++  # choice is published rather than left for both sides to guess consistently.
++  if(MSVC_RUNTIME_LIBRARY_STATIC)
++    set(FIREBASE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
++  else()
++    set(FIREBASE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
++  endif()
++  # MSVC's linker makes repeated passes over the libraries it is given, so
++  # archive cycles need no group directive -- there is no --start-group here to
++  # replace.
++  set(FIREBASE_PC_LINK_PREFIX "")
++  set(FIREBASE_PC_LINK_SUFFIX "")
++elseif(APPLE)
++  set(FIREBASE_INSTALL_PLATFORM "macOS")
++  set(FIREBASE_SYSTEM_LIBS "-framework CoreFoundation" "-framework Security"
++                           "-framework Foundation" "-framework SystemConfiguration")
++  # ld64 has no --start-group and does not need one.
++  set(FIREBASE_PC_LINK_PREFIX "")
++  set(FIREBASE_PC_LINK_SUFFIX " -framework CoreFoundation -framework Security -framework Foundation -framework SystemConfiguration -lpthread")
++else()
++  set(FIREBASE_INSTALL_PLATFORM "desktop Linux")
++  set(FIREBASE_SYSTEM_LIBS secret-1 uuid pthread glib-2.0)
++
++  # Firestore's abseil, whichever one this build actually used.
++  #
++  # find_package(absl REQUIRED) inside Firestore's tree takes an installed
++  # abseil when the host has one, and then no vendored archives are built. A
++  # consumer linking only the SDK's archives gets undefined absl symbols at
++  # dlopen, visible only once Firestore is bound. Publishing what was used means
++  # the consumer follows this build rather than deciding for itself -- and on a
++  # host without abseil, absl_DIR points inside the build tree, the archives are
++  # installed with everything else, and nothing is added here.
++  if(FIREBASE_INCLUDE_FIRESTORE AND absl_DIR AND
++     NOT absl_DIR MATCHES "^${PROJECT_BINARY_DIR}")
++    get_filename_component(_fb_absl_libdir "${absl_DIR}/../.." ABSOLUTE)
++    file(GLOB _fb_absl "${_fb_absl_libdir}/libabsl_*.so")
++    if(_fb_absl)
++      list(APPEND FIREBASE_SYSTEM_LIBS ${_fb_absl})
++      message(STATUS "firebase-cpp-sdk install: publishing the system abseil "
++                     "this build linked (${_fb_absl_libdir})")
++    endif()
++    # gRPC's socket activation, on a host that has libsystemd.
++    find_package(PkgConfig QUIET)
++    if(PkgConfig_FOUND)
++      pkg_check_modules(_FB_SYSTEMD libsystemd)
++      if(_FB_SYSTEMD_FOUND)
++        list(APPEND FIREBASE_SYSTEM_LIBS ${_FB_SYSTEMD_LIBRARIES})
++      endif()
++    endif()
++  endif()
++  set(FIREBASE_PC_LINK_PREFIX " -Wl,--start-group")
++  set(FIREBASE_PC_LINK_SUFFIX " -Wl,--end-group -lsecret-1 -luuid -lpthread -lglib-2.0")
++endif()
++
++# MSVC names static archives .lib; everything else uses .a.
++if(MSVC)
++  set(FIREBASE_INSTALL_ARCHIVE_GLOB "*.lib")
++else()
++  set(FIREBASE_INSTALL_ARCHIVE_GLOB "*.a")
++endif()
++
++set(FIREBASE_INSTALL_SRC_DIR "src/firebase-cpp-sdk")
++set(FIREBASE_INSTALL_LIB_DIR "lib/firebase-cpp-sdk")
++
++# The version the package config and the .pc file report. It is the one fact a
++# consumer probes before it decides whether it needs to build this at all.
++set(FIREBASE_INSTALL_VERSION "0.0.0")
++if(EXISTS ${PROJECT_SOURCE_DIR}/cpp_sdk_version.json)
++  file(READ ${PROJECT_SOURCE_DIR}/cpp_sdk_version.json _fb_version_json)
++  if(_fb_version_json MATCHES "\"released\"[ \t]*:[ \t]*\"([0-9.]+)\"")
++    set(FIREBASE_INSTALL_VERSION "${CMAKE_MATCH_1}")
++  endif()
++endif()
++
++# 1. Public headers, in the source layout the SDK's include paths expect
++#    (<module>/src/include/firebase/...).
++foreach(module IN ITEMS
++        app analytics app_check auth database dynamic_links firestore
++        functions gma installations messaging remote_config storage)
++  if(IS_DIRECTORY ${PROJECT_SOURCE_DIR}/${module}/src/include)
++    install(DIRECTORY ${PROJECT_SOURCE_DIR}/${module}/src/include/
++            DESTINATION ${FIREBASE_INSTALL_SRC_DIR}/${module}/src/include)
++  endif()
++endforeach()
++
++# version.h is generated into the build tree, so the source layout alone is an
++# incomplete include root.
++if(IS_DIRECTORY ${FIREBASE_GEN_FILE_DIR}/app/src/include)
++  install(DIRECTORY ${FIREBASE_GEN_FILE_DIR}/app/src/include/
++          DESTINATION ${FIREBASE_INSTALL_SRC_DIR}/app/src/include)
++endif()
++
++# 2. Every static archive the build produced, at its build-tree-relative path,
++#    so a consumer written against the build tree keeps working unchanged.
++#
++#    Two exclusions. The host flatc build, because when cross-compiling it is
++#    deliberately built for the build machine and its archives are the wrong
++#    architecture for anything linking this prefix. And boringssl's ar test
++#    fixtures, which are hand-written malformed archives -- linking one is a
++#    hard error, and a glob is otherwise happy to pick them up.
++install(DIRECTORY ${PROJECT_BINARY_DIR}/
++        DESTINATION ${FIREBASE_INSTALL_LIB_DIR}
++        FILES_MATCHING
++        REGEX "flatbuffers-build-flatc/" EXCLUDE
++        REGEX "util/ar/testdata/" EXCLUDE
++        PATTERN "${FIREBASE_INSTALL_ARCHIVE_GLOB}")
++
++# 3. Firestore's core headers are a source checkout that lives inside the build
++#    tree, so they are part of the lib-side layout rather than the source one.
++if(IS_DIRECTORY ${PROJECT_BINARY_DIR}/external/src/firestore/Firestore/core/include)
++  install(DIRECTORY ${PROJECT_BINARY_DIR}/external/src/firestore/Firestore/core/include
++          DESTINATION ${FIREBASE_INSTALL_LIB_DIR}/external/src/firestore/Firestore/core)
++endif()
++
++# 4. The package config and the .pc file, written by a script that runs after
++#    the steps above so it can describe what actually landed rather than what
++#    was expected to.
++# Quoted for embedding in the generated config: a framework flag is two words
++# and would otherwise arrive as two list entries.
++#
++# The quotes are escaped because this value is substituted into a CMake string
++# literal. Unescaped, they close that literal early: the generated config comes
++# out as -frameworkCoreFoundation" "-frameworkSecurity, which the compiler
++# rejects as one unknown argument.
++set(FIREBASE_SYSTEM_LIBS_QUOTED "")
++foreach(_lib IN LISTS FIREBASE_SYSTEM_LIBS)
++  string(APPEND FIREBASE_SYSTEM_LIBS_QUOTED " \\\"${_lib}\\\"")
++endforeach()
++string(STRIP "${FIREBASE_SYSTEM_LIBS_QUOTED}" FIREBASE_SYSTEM_LIBS_QUOTED)
++
++configure_file(
++  ${CMAKE_CURRENT_LIST_DIR}/install_package_files.cmake.in
++  ${PROJECT_BINARY_DIR}/firebase_cpp_sdk_install_package_files.cmake
++  @ONLY)
++install(SCRIPT ${PROJECT_BINARY_DIR}/firebase_cpp_sdk_install_package_files.cmake)

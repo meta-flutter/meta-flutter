@@ -1,0 +1,62 @@
+From 35106820b8abd59a9aa15b8daa0659fda2c08d5d Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Thu, 27 Aug 2026 18:10:22 -0700
+Subject: [PATCH 2/4] leveldb: do not inherit another dependency's patch file
+
+The external rules are all included into one directory scope, so `patch_file`
+is not empty when leveldb.cmake declines to set it -- it still holds whatever
+the previously included dependency put there. flatbuffers sets it to its own
+error-macro patch, so on any non-MSVC desktop build leveldb's PATCH_COMMAND
+applies flatbuffers' patch to the leveldb tree and fails:
+
+    error: patch failed: CMakeLists.txt:197
+    error: CMakeLists.txt: patch does not apply
+
+Scope the variable explicitly and drop the patch step when there is nothing to
+apply.
+Upstream-Status: Pending
+
+Carried by firebase_ffi, where the set is maintained:
+https://github.com/jwinarske/firebase_ffi/tree/main/packages/firebase_ffi/patches/firebase-cpp-sdk
+---
+ cmake/external/leveldb.cmake | 19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
+
+diff --git a/cmake/external/leveldb.cmake b/cmake/external/leveldb.cmake
+index bb6763a..5049efd 100644
+--- a/cmake/external/leveldb.cmake
++++ b/cmake/external/leveldb.cmake
+@@ -19,8 +19,21 @@ if(TARGET leveldb)
+ endif()
+ 
+ if (DESKTOP AND MSVC)
+-set(patch_file 
+-  ${CMAKE_CURRENT_LIST_DIR}/../../scripts/git/patches/leveldb/0001-leveldb-1.23-windows-paths.patch)
++  set(patch_file
++    ${CMAKE_CURRENT_LIST_DIR}/../../scripts/git/patches/leveldb/0001-leveldb-1.23-windows-paths.patch)
++else()
++  # Every external rule is included into the same directory scope, so an unset
++  # `patch_file` here is not empty -- it still holds whatever the dependency
++  # included before this one left in it (flatbuffers sets it to its own
++  # error-macro patch). leveldb then tries to apply that patch to its own tree
++  # and the patch step fails, taking the whole download build with it.
++  set(patch_file "")
++endif()
++
++if (patch_file)
++  set(leveldb_patch_command git apply ${patch_file} && git gc --aggressive)
++else()
++  set(leveldb_patch_command "")
+ endif()
+ 
+ # This version must be kept in sync with the version in firestore.patch.txt.
+@@ -42,5 +55,5 @@ ExternalProject_Add(
+   INSTALL_COMMAND   ""
+   TEST_COMMAND      ""
+   HTTP_HEADER "${EXTERNAL_PROJECT_HTTP_HEADER}"
+-  PATCH_COMMAND git apply ${patch_file} && git gc --aggressive
++  PATCH_COMMAND ${leveldb_patch_command}
+ )
+-- 
+2.55.0
+

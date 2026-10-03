@@ -1,0 +1,47 @@
+From: Joel Winarske <joel.winarske@linux.com>
+Subject: [PATCH] Drop git gc from the boringssl patch step
+
+The patch step chains a repack onto the thing it is actually there to do:
+
+    PATCH_COMMAND git apply ${patch_file} && git gc --aggressive
+
+boringssl is fetched at --depth=1 into a build directory that is thrown away,
+so there is nothing for an aggressive repack to save. It is housekeeping on a
+tree with no history to keep.
+
+It also fails. On a macOS runner:
+
+    fatal: packfile .git/objects/pack/pack-4313fd03....pack cannot be mapped:
+           Value too large to be stored in data type
+    fatal: failed to run repack
+    make[2]: *** [src/boringssl-stamp/boringssl-patch] Error 128
+
+and because the stamp never lands, the half-prepared tree is what the compiler
+then reads:
+
+    crypto/fipsmodule/aes/aes.c:53:10: fatal error: cannot open file
+      '.../crypto/fipsmodule/aes/internal.h': Illegal byte sequence
+
+The second error is the one that gets reported, and it points at boringssl
+rather than at the repack that caused it.
+
+Removing the repack leaves the patch step doing only what it is named for. It
+is in common/ rather than macos/ because the command has no build purpose on
+any platform, not because the other two were observed to fail -- they were not.
+
+Upstream-Status: Pending
+
+Carried by firebase_ffi, where the set is maintained:
+https://github.com/jwinarske/firebase_ffi/tree/main/packages/firebase_ffi/patches/firebase-cpp-sdk
+---
+--- a/cmake/external/boringssl.cmake
++++ b/cmake/external/boringssl.cmake
+@@ -29,7 +29,7 @@ ExternalProject_Add(
+     COMMAND git init boringssl
+     COMMAND cd boringssl && git fetch --depth=1 https://github.com/google/boringssl.git ${boringssl_commit_tag} && git reset --hard FETCH_HEAD
+ 
+-  PATCH_COMMAND git apply ${patch_file} && git gc --aggressive
++  PATCH_COMMAND git apply ${patch_file}
+   PREFIX ${PROJECT_BINARY_DIR}
+   CONFIGURE_COMMAND ""
+   BUILD_COMMAND     ""
