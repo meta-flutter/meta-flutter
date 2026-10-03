@@ -19,6 +19,12 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=46382638866a5bb9f04134b101d78fb2"
 SRCREV = "c205ef08bb48728ebf4f3665abbee966a9647ab4"
 SRC_URI = "git://github.com/jwinarske/firebase_ffi.git;branch=main;protocol=https"
 
+# The git fetcher unpacks to ${WORKDIR}/git on this release while the default S
+# is ${WORKDIR}/${BP}; BB_GIT_DEFAULT_DESTSUFFIX, which lines them up, arrives
+# later. Without this LIC_FILES_CHKSUM resolves to nothing and do_populate_lic
+# fails before anything is built.
+S = "${WORKDIR}/git"
+
 FLUTTER_APPLICATION_PATH = "example"
 PUBSPEC_APPNAME = "firebase_ffi_demo"
 FLUTTER_APPLICATION_INSTALL_SUFFIX = "firebase-ffi-demo"
@@ -28,6 +34,17 @@ FLUTTER_APPLICATION_INSTALL_SUFFIX = "firebase-ffi-demo"
 DEPENDS += "firebase-cpp-sdk"
 
 inherit flutter-app-native
+
+# The standard library, stated here rather than in the class.
+#
+# This library links firebase-cpp-sdk's static archives, so the two have to
+# agree. On the newer branches flutter-app-native requires this include and
+# every hook app gets it; this branch's class sets only TOOLCHAIN = "clang"
+# and leaves the runtime at the default, and changing that would flip four
+# apps that build today onto libc++ without the DEPENDS to match -- meta-clang
+# appends LIBCPLUSPLUS to the flags but does not add libcxx for
+# TC_CXX_RUNTIME. So scope it to the recipe that needs it.
+require conf/include/flutter-clang-toolchain.inc
 
 # The unwinder.
 #
