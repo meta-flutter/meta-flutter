@@ -49,6 +49,29 @@ inherit flutter-app-native
 CFLAGS:remove = "-unwindlib=libunwind"
 CXXFLAGS:remove = "-unwindlib=libunwind"
 
+# The C++ runtime.
+#
+# This library links the Firebase C++ SDK, which firebase-cpp-sdk builds with
+# the default toolchain: gcc and libstdc++. flutter-app-native forces
+# -stdlib=libc++, and the two mangle std:: differently, so every entry point
+# that takes one goes unresolved:
+#
+#   ld.lld: error: undefined symbol: std::__cxx11::basic_string<...>::reserve(unsigned long)
+#   ld.lld: error: undefined symbol: firebase::auth::User::uid() const
+#
+# which is the mismatch native/CMakeLists.txt added -Wl,--no-undefined to catch.
+#
+# Matching the SDK rather than the embedder is the right way round: this library
+# talks to Dart over a flat C ABI -- dart_api_dl plus the fdb_* entry points --
+# so no C++ object crosses into the engine and it does not need to share a
+# runtime with it. What it does need is to agree with what it links.
+#
+# The other way to settle it is to build firebase-cpp-sdk with clang and libc++
+# to match the class. That aligns with the rest of the layer's embedder
+# toolchain, but it rebuilds the SDK and its seven vendored dependencies on a
+# toolchain upstream does not test.
+CXXFLAGS:remove = "-stdlib=libc++"
+
 # This hook is the most involved in the layer and its cmake output is otherwise
 # captured by the native-assets builder, which is how a quiet find_package
 # failure hid as an unwinder error. Keep the hook log in the task log.
