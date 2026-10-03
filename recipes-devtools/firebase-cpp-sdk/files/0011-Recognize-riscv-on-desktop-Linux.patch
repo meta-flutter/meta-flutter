@@ -1,0 +1,25 @@
+From: Joel Winarske <joel.winarske@linux.com>
+Subject: [PATCH] Recognize riscv on desktop Linux
+
+kCpuArchitecture is a telemetry string, and the ladder that sets it ends in
+#error, so an architecture it does not name cannot build at all. Same shape as
+the arm patch before it.
+
+__riscv_xlen separates the two: the toolchain defines __riscv for both.
+
+Upstream-Status: Pending
+Signed-off-by: Joel Winarske <joel.winarske@linux.com>
+---
+--- a/app/src/app_common.cc
++++ b/app/src/app_common.cc
+@@ -159,6 +159,10 @@
+ const char* kCpuArchitecture = "arm64";
+ #elif __arm__
+ const char* kCpuArchitecture = "arm";
++#elif defined(__riscv) && __riscv_xlen == 64
++const char* kCpuArchitecture = "riscv64";
++#elif defined(__riscv) && __riscv_xlen == 32
++const char* kCpuArchitecture = "riscv32";
+ #else
+ #error Unknown Linux architecture.
+ #endif  // Architecture
