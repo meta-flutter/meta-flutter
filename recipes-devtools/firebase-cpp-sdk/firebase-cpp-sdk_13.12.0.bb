@@ -142,6 +142,10 @@ inherit cmake pkgconfig python3native
 # they go through the toolchain file itself, which every sub-build inherits.
 CFLAGS += "-w"
 CXXFLAGS += "-w -include cstdint -include cstring -include algorithm"
+# ctime and cerrno are libc++'s: the SDK's own date_provider.cc reaches
+# std::time_t and std::gmtime, and filesystem_desktop_linux.cc reaches EINTR
+# and errno, neither of which libc++ pulls in transitively.
+CXXFLAGS += "-include ctime -include cerrno"
 
 # app/CMakeLists.txt's version_header.py and cmake/binary_to_array.cmake's
 # binary_to_array.py both import absl. Without it the failure is a
