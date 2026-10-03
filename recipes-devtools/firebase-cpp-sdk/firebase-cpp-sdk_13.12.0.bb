@@ -122,6 +122,12 @@ S = "${UNPACKDIR}/firebase-cpp-sdk"
 # go-native and perl: boringssl generates sources with both and its CMake
 # hard-errors "Could not find Go" without them. perl is a host tool already.
 DEPENDS = "libsecret util-linux python3-native python3-absl-native go-native"
+DEPENDS += "compiler-rt libcxx"
+
+# Built with the same standard library its consumers link against: these are
+# static archives, so the runtime is part of their interface, not an
+# implementation detail. flutter-app-native builds hook libraries the same way.
+require conf/include/flutter-clang-toolchain.inc
 
 inherit cmake pkgconfig python3native
 
