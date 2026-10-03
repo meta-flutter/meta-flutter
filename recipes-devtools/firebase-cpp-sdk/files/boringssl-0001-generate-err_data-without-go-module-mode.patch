@@ -1,0 +1,32 @@
+From: Joel Winarske <joel.winarske@linux.com>
+Subject: [PATCH] Generate err_data.c without Go module mode
+
+err_data_generate.go imports nothing but the standard library, but `go run`
+resolves go.mod first, and go.mod requires golang.org/x/crypto and
+golang.org/x/net for the test tooling. So generating one C file reaches for the
+module proxy and the build fails without network:
+
+    go: golang.org/x/crypto@v0.0.0-20210513164829-c07d793c2f9a:
+        dial tcp: lookup proxy.golang.org: network is unreachable
+
+GO111MODULE=off skips go.mod entirely, which is correct for a file that needs
+none of it.
+
+Only this call site: the others run test and fuzzer tooling that is not built
+here, and would need the modules if it were.
+
+Upstream-Status: Inappropriate [applies to a vendored dependency of firebase-cpp-sdk]
+Signed-off-by: Joel Winarske <joel.winarske@linux.com>
+---
+--- a/crypto/CMakeLists.txt
++++ b/crypto/CMakeLists.txt
+@@ -169,7 +169,8 @@
+ 
+ add_custom_command(
+   OUTPUT err_data.c
+-  COMMAND ${GO_EXECUTABLE} run err_data_generate.go > ${CMAKE_CURRENT_BINARY_DIR}/err_data.c
++  COMMAND ${CMAKE_COMMAND} -E env GO111MODULE=off
++          ${GO_EXECUTABLE} run err_data_generate.go > ${CMAKE_CURRENT_BINARY_DIR}/err_data.c
+   DEPENDS
+   err/err_data_generate.go
+   err/asn1.errordata

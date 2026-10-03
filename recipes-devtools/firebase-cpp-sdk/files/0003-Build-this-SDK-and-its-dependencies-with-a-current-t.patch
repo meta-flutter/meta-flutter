@@ -1,0 +1,207 @@
+From 3b0bf8c7f68ec5d61beca485dcb97282401109f8 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Thu, 27 Aug 2026 18:16:17 -0700
+Subject: [PATCH 3/4] Build this SDK and its dependencies with a current
+ toolchain
+
+The pinned dependencies are several years older than a current compiler and
+CMake, and three separate things stop them building.
+
+CMake 4 removed compatibility with cmake_minimum_required(VERSION < 3.5), and
+dependencies as deep as c-ares -- three superbuilds down, through Firestore --
+still declare one. The nested builds start from an empty environment (`env -i`)
+and their own cache, so nothing the outer build was configured with reaches
+them; forwarding CMAKE_POLICY_VERSION_MINIMUM through the environment covers
+them all, including the ones this file never names. Firestore's own superbuild
+additionally asks for CMP0058 OLD, which CMake 4 refuses outright, so that
+request is rewritten in the downloaded tree next to the boringssl header fixups
+already done there.
+
+Several dependencies build with -Werror and fail on warnings that did not exist
+when their revision was pinned (gcc 15 rejects boringssl's crypto/fipsmodule on
+-Wdiscarded-qualifiers). They are not our sources to fix, so build them
+warning-silent and -Werror has nothing left to promote.
+
+libstdc++ has also tightened its transitive includes since the pins, which -w
+cannot help with: gRPC's glob.cc reaches std::any_of with no <algorithm> and
+protobuf's utf8_validity.cc reaches memcpy with no <cstring>, both hard errors.
+The compatibility flags for that are appended to CMAKE_<LANG>_FLAGS rather than
+left to the caller to pass in, because passing them as -DCMAKE_CXX_FLAGS
+replaces a cross toolchain file's own flags and the build then fails to find
+crt1.o.
+Upstream-Status: Pending
+
+Carried by firebase_ffi, where the set is maintained:
+https://github.com/jwinarske/firebase_ffi/tree/main/packages/firebase_ffi/patches/firebase-cpp-sdk
+---
+ CMakeLists.txt             | 28 +++++++++++++-
+ cmake/external_rules.cmake | 79 ++++++++++++++++++++++++++++++++++----
+ 2 files changed, 98 insertions(+), 9 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index d19532e..18ef15c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -188,6 +188,32 @@ if(DESKTOP AND NOT MSVC AND NOT APPLE)
+   endif()
+ endif()
+ 
++# Compatibility flags for building this SDK and its pinned dependencies with a
++# toolchain newer than the pins. Appended rather than set, so a caller supplying
++# a toolchain file keeps whatever that file put in the flags -- passing these in
++# as -DCMAKE_CXX_FLAGS from outside silently drops the cross sysroot's -B/-L/-I
++# and the build then fails to find crt1.o.
++#
++# -w because several dependencies build with -Werror and predate the warnings a
++# current compiler emits. The -include flags are not cosmetic: libstdc++
++# tightened its transitive includes, so gRPC's glob.cc reaches std::any_of with
++# no <algorithm> and protobuf's utf8_validity.cc reaches memcpy with no
++# <cstring>. Both are hard errors that -w cannot silence.
++#
++# These reach the dependency builds because Firestore's superbuild forwards the
++# effective CMAKE_<LANG>_FLAGS to the projects it configures. Set either to ""
++# to build with the dependencies' own flags.
++set(FIREBASE_COMPAT_C_FLAGS "-w"
++    CACHE STRING "Compatibility C flags for this SDK and its dependencies")
++set(FIREBASE_COMPAT_CXX_FLAGS "-w -include cstdint -include cstring -include algorithm"
++    CACHE STRING "Compatibility C++ flags for this SDK and its dependencies")
++if(FIREBASE_COMPAT_C_FLAGS)
++  string(APPEND CMAKE_C_FLAGS " ${FIREBASE_COMPAT_C_FLAGS}")
++endif()
++if(FIREBASE_COMPAT_CXX_FLAGS)
++  string(APPEND CMAKE_CXX_FLAGS " ${FIREBASE_COMPAT_CXX_FLAGS}")
++endif()
++
+ if(FIREBASE_GITHUB_ACTION_BUILD)
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFIREBASE_GITHUB_ACTION_BUILD=1")
+ else()
+@@ -561,7 +587,7 @@ else()
+     set(ENV_COMMAND "")
+   else()
+     set(COMMAND_CONCAT &&)
+-    set(ENV_COMMAND env -i PATH=${firebase_command_line_path})
++    firebase_subbuild_env(ENV_COMMAND)
+   endif()
+ 
+   # The cmake executable to use when compiling flatc. Normally, the default
+diff --git a/cmake/external_rules.cmake b/cmake/external_rules.cmake
+index 4a3d846..8b16d1e 100644
+--- a/cmake/external_rules.cmake
++++ b/cmake/external_rules.cmake
+@@ -12,6 +12,30 @@
+ # See the License for the specific language governing permissions and
+ # limitations under the License.
+ 
++# Extra compiler flags for the vendored external dependency builds. See the use
++# site in build_external_dependencies(); set to "" to build them with their own
++# warning settings.
++set(FIREBASE_EXTERNAL_SUBBUILD_FLAGS "-w" CACHE STRING
++    "Extra compiler flags applied to the vendored external dependency builds")
++
++# The nested CMake invocations below start from an empty environment (`env -i`)
++# and their own cache, so nothing the outer build was configured with reaches
++# them. CMake 4 removed compatibility with cmake_minimum_required(VERSION < 3.5)
++# and several of the pinned dependencies -- c-ares, reached three superbuilds
++# down through Firestore -- still declare one. Passing the escape hatch through
++# the environment rather than on each command line is what makes it reach them:
++# CMAKE_POLICY_VERSION_MINIMUM initializes the cache of every *new* build tree,
++# however deeply nested, so one variable covers dependencies this file never
++# names. Expands to nothing when the outer build did not set it.
++function(firebase_subbuild_env out_var)
++  set(env_command env -i "PATH=$ENV{PATH}" ${ARGN})
++  if(CMAKE_POLICY_VERSION_MINIMUM)
++    list(APPEND env_command
++         "CMAKE_POLICY_VERSION_MINIMUM=${CMAKE_POLICY_VERSION_MINIMUM}")
++  endif()
++  set(${out_var} ${env_command} PARENT_SCOPE)
++endfunction()
++
+ # Executes a CMake build of the external dependencies, which will pull them
+ # as ExternalProjects, under an "external" subdirectory.
+ function(download_external_sources)
+@@ -25,8 +49,7 @@ function(download_external_sources)
+     # Windows doesn't have an 'env' command
+     set(ENV_COMMAND "")
+   else()
+-    set(firebase_command_line_path "$ENV{PATH}")
+-    set(ENV_COMMAND env -i PATH=${firebase_command_line_path})
++    firebase_subbuild_env(ENV_COMMAND)
+   endif()
+ 
+   if(IOS)
+@@ -126,6 +149,28 @@ function(download_external_sources)
+         "\n#include <stdlib.h>\n")
+       endif()
+     endif()
++
++    # Firestore's superbuild pins CMP0058 to OLD because its own dependencies
++    # do not declare custom-command BYPRODUCTS. CMake 4 removed OLD for that
++    # policy and hard-errors on the request, which kills the configure before
++    # Firestore is reached. CMAKE_POLICY_VERSION_MINIMUM cannot help here -- it
++    # raises the floor, it does not grant a removed OLD -- so condition the
++    # request on a CMake that still honors it. Below 4.0 nothing changes; at
++    # 4.0+ the policy keeps its default (NEW), which only constrains Ninja.
++    set(firestore_cmakelists
++        ${PROJECT_BINARY_DIR}/external/src/firestore/CMakeLists.txt)
++    if(EXISTS ${firestore_cmakelists})
++      file(READ ${firestore_cmakelists} TMP_FIRESTORE_CMAKE_CONTENTS)
++      if(TMP_FIRESTORE_CMAKE_CONTENTS MATCHES
++         "if\\(POLICY CMP0058\\)\n  cmake_policy\\(SET CMP0058 OLD\\)")
++        string(REPLACE
++          "if(POLICY CMP0058)\n  cmake_policy(SET CMP0058 OLD)"
++          "if(POLICY CMP0058 AND CMAKE_VERSION VERSION_LESS 4.0)\n  cmake_policy(SET CMP0058 OLD)"
++          TMP_FIRESTORE_CMAKE_CONTENTS "${TMP_FIRESTORE_CMAKE_CONTENTS}")
++        file(WRITE ${firestore_cmakelists} "${TMP_FIRESTORE_CMAKE_CONTENTS}")
++        message(STATUS "Patched Firestore's CMP0058 request for CMake 4.")
++      endif()
++    endif()
+   endif()
+ endfunction()
+ 
+@@ -139,9 +184,7 @@ function(build_external_dependencies)
+     # Windows doesn't have an 'env' command
+     set(ENV_COMMAND "")
+   else()
+-    set(firebase_command_line_path "$ENV{PATH}")
+-    set(firebase_command_line_home "$ENV{HOME}")
+-    set(ENV_COMMAND env -i PATH=${firebase_command_line_path} HOME=${firebase_command_line_home} )
++    firebase_subbuild_env(ENV_COMMAND "HOME=$ENV{HOME}")
+   endif()
+ 
+   message(STATUS "CMake generator: ${CMAKE_GENERATOR}")
+@@ -228,9 +271,29 @@ function(build_external_dependencies)
+     else()
+       set(SUBBUILD_USE_CXX11_ABI 1)
+     endif()
+-    set(CMAKE_SUB_CONFIGURE_OPTIONS ${CMAKE_SUB_CONFIGURE_OPTIONS}
+-          -DCMAKE_C_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=${SUBBUILD_USE_CXX11_ABI}"
+-          -DCMAKE_CXX_FLAGS="-D_GLIBCXX_USE_CXX11_ABI=${SUBBUILD_USE_CXX11_ABI}")
++    # Flags for the dependency builds, handed over as CFLAGS/CXXFLAGS in the
++    # environment rather than as -DCMAKE_<LANG>_FLAGS on the command line. The
++    # distinction matters when a toolchain file is in play: CMake *appends* the
++    # environment to the toolchain's CMAKE_<LANG>_FLAGS_INIT, while a -D
++    # replaces it outright. Replacing it drops whatever the cross toolchain put
++    # there -- for a Debian multiarch sysroot that includes the -B naming
++    # usr/lib/<triple>, without which the very first link fails on
++    # "cannot find crt1.o".
++    #
++    # The C++ ABI has to match what the SDK itself was built with, and the
++    # compatibility flags are there because the pinned revisions predate the
++    # compiler: several build with -Werror and fail on warnings that did not
++    # exist when they were pinned (gcc 15 rejects boringssl's crypto/fipsmodule
++    # on -Wdiscarded-qualifiers). Building them warning-silent leaves -Werror
++    # nothing to promote; the flags each project adds afterwards still apply.
++    set(subbuild_flags "-D_GLIBCXX_USE_CXX11_ABI=${SUBBUILD_USE_CXX11_ABI}")
++    if(FIREBASE_EXTERNAL_SUBBUILD_FLAGS)
++      set(subbuild_flags "${subbuild_flags} ${FIREBASE_EXTERNAL_SUBBUILD_FLAGS}")
++    endif()
++    firebase_subbuild_env(ENV_COMMAND
++                          "HOME=$ENV{HOME}"
++                          "CFLAGS=${subbuild_flags}"
++                          "CXXFLAGS=${subbuild_flags}")
+     if(CMAKE_TOOLCHAIN_FILE)
+       set(CMAKE_SUB_CONFIGURE_OPTIONS ${CMAKE_SUB_CONFIGURE_OPTIONS}
+           -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE})
+-- 
+2.55.0
+

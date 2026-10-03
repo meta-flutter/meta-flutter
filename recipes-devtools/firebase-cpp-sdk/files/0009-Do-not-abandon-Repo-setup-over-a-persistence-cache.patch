@@ -1,0 +1,131 @@
+From: Joel Winarske <joel.winarske@linux.com>
+Subject: [PATCH] Do not abandon Repo setup over a persistence cache
+
+Repo's constructor works out where an on-disk persistence cache would go, and
+returns early if it cannot place one:
+
+    std::string app_data_path = AppDataDir(database_path.c_str(), true, &err);
+    if (app_data_path.empty()) {
+      logger_->LogError("Could not initialize persistence: ...");
+      return;
+    }
+
+The return is before server_sync_tree_ is constructed, and nothing else sets
+it. Repo stays alive with a null member, DatabaseInternal::initialized() is
+app_ != nullptr so the Database is handed out as usable, and the first write
+dereferences it:
+
+    Repo::SetValue
+      mov 0x108(%rsi),%rcx     ; this->server_sync_tree_
+      mov (%rcx),%rax          ; access violation
+      call *0x58(%rax)         ; SyncTree::ApplyUserOverwrite
+
+Reached on Windows against the Realtime Database emulator. The url there is
+http://127.0.0.1:9000/?ns=<project>, so database_path ends in the segments
+"127.0.0.1:9000" and "?ns=<project>". AppDataDir creates each one under
+%LOCALAPPDATA%, and ':' and '?' are reserved in NTFS paths, so the create
+fails. Linux and macOS allow both characters in a filename and never notice.
+
+The directory is only read by CreatePersistenceManager a few lines later,
+under if (persistence_enabled_). With persistence off -- the default -- setup
+is abandoned over a path nothing goes on to use.
+
+So work it out only when there is a cache to put there, and let a cache that
+cannot be placed fall back to keeping none. Every path through the block now
+constructs the sync tree. The two earlier returns in the same block, for a
+missing package_name and an empty url, left the same null member and are
+folded into the same fallback.
+
+Upstream-Status: Pending
+
+Carried by firebase_ffi, where the set is maintained:
+https://github.com/jwinarske/firebase_ffi/tree/main/packages/firebase_ffi/patches/firebase-cpp-sdk
+---
+--- a/database/src/desktop/core/repo.cc	2026-09-07 09:00:45.496194360 -0700
++++ b/database/src/desktop/core/repo.cc	2026-09-07 09:01:15.576509913 -0700
+@@ -474,48 +474,49 @@
+ 
+   // Set up server sync tree.
+   {
+-    // The path path to the on-disk persistence cache, relative to the
+-    // per-application data directory.
+-    std::string database_path;
+-
+-    const char* package_name = database_->GetApp()->options().package_name();
+-    if (!package_name) {
+-      logger_->LogError("Could not initialize persistence: No package_name.");
+-      return;
+-    }
+-
+-    if (url_.empty()) {
+-      logger_->LogError("Could not initialize persistence: No database url.");
+-      return;
+-    }
+-
+-    // Skip past the https:// or http://
+-    auto start = url_.find("//") + strlen("//");
+-    std::string url_domain = url_.substr(start);
+-
+-    database_path += package_name;
+-    database_path += "/";
+-    database_path += url_domain;
+-
+-    std::string app_data_path_error;
+-    std::string app_data_path =
+-        AppDataDir(database_path.c_str(),
+-                   /* should_create = */ true, &app_data_path_error);
+-    if (app_data_path.empty()) {
+-      logger_->LogError(
+-          "Could not initialize persistence: App data directory error: %s",
+-          app_data_path_error.c_str());
+-      return;
++    // Where the on-disk persistence cache goes, relative to the
++    // per-application data directory. Only worked out when there is a cache to
++    // put there: with persistence off nothing below reads this, and failing to
++    // place a directory no one uses is not a reason to abandon setup.
++    std::string app_data_path;
++    if (persistence_enabled_) {
++      std::string database_path;
++      const char* package_name = database_->GetApp()->options().package_name();
++      if (!package_name) {
++        logger_->LogError("Could not initialize persistence: No package_name.");
++      } else if (url_.empty()) {
++        logger_->LogError("Could not initialize persistence: No database url.");
++      } else {
++        // Skip past the https:// or http://
++        auto start = url_.find("//") + strlen("//");
++        std::string url_domain = url_.substr(start);
++
++        database_path += package_name;
++        database_path += "/";
++        database_path += url_domain;
++
++        std::string app_data_path_error;
++        app_data_path = AppDataDir(database_path.c_str(),
++                                   /* should_create = */ true,
++                                   &app_data_path_error);
++        if (app_data_path.empty()) {
++          logger_->LogError(
++              "Could not initialize persistence: App data directory error: %s",
++              app_data_path_error.c_str());
++        } else {
++          logger_->LogDebug("app_data_path: %s", app_data_path.c_str());
++        }
++      }
+     }
+ 
+-    logger_->LogDebug("app_data_path: %s", app_data_path.c_str());
+-
+     // Set up write tree.
+     auto pending_write_tree = std::make_unique<WriteTree>();
+ 
+-    // Set up persistence manager
++    // Set up persistence manager. A cache that could not be placed falls back
++    // to keeping none: the error above says why, and returning instead would
++    // leave server_sync_tree_ null for every later call to dereference.
+     std::unique_ptr<PersistenceManagerInterface> persistence_manager;
+-    if (persistence_enabled_) {
++    if (persistence_enabled_ && !app_data_path.empty()) {
+       persistence_manager =
+           CreatePersistenceManager(app_data_path.c_str(), logger_);
+     } else {
