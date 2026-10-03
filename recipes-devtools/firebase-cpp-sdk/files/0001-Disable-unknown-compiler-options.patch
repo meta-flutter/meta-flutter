@@ -1,0 +1,30 @@
+From cb4d81f5b1118afb2ab5db3163ced0d0ddb51fae Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@toyotaconnected.com>
+Date: Tue, 21 Jan 2025 11:11:23 -0800
+Subject: [PATCH] Disable unknown compiler options
+
+Signed-off-by: Joel Winarske <joel.winarske@toyotaconnected.com>
+Upstream-Status: Pending
+
+Carried by firebase_ffi, where the set is maintained:
+https://github.com/jwinarske/firebase_ffi/tree/main/packages/firebase_ffi/patches/firebase-cpp-sdk
+---
+ CMakeLists.txt | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 439ea7d5..969aad65 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -158,8 +158,6 @@ endif()
+ 
+ if(DESKTOP AND NOT MSVC AND NOT APPLE)
+   # Linux-specific option.
+-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-maybe-uninitialized")
+-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-maybe-uninitialized")
+   if (FIREBASE_LINUX_USE_CXX11_ABI)
+     add_definitions(-D_GLIBCXX_USE_CXX11_ABI=1)
+     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=1")
+-- 
+2.25.1
+
