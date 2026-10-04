@@ -13,7 +13,7 @@
 
 # TOOLCHAIN, TC_CXX_RUNTIME and -stdlib=libc++ come from here, shared with
 # firebase-cpp-sdk, whose archives link into the libraries this class builds.
-require conf/include/flutter-clang-toolchain.inc
+require conf/include/flutter-clang-libcxx.inc
 
 # Required to make dart happy
 DEPENDS:append = " lld-native"

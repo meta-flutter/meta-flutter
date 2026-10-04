@@ -127,7 +127,7 @@ DEPENDS += "compiler-rt libcxx"
 # Built with the same standard library its consumers link against: these are
 # static archives, so the runtime is part of their interface, not an
 # implementation detail. flutter-app-native builds hook libraries the same way.
-require conf/include/flutter-clang-toolchain.inc
+require conf/include/flutter-clang-libcxx.inc
 
 inherit cmake pkgconfig python3native
 
@@ -142,6 +142,11 @@ inherit cmake pkgconfig python3native
 # they go through the toolchain file itself, which every sub-build inherits.
 CFLAGS += "-w"
 CXXFLAGS += "-w -include cstdint -include cstring -include algorithm"
+# ctime and cerrno are libc++'s, and which of them a given clang needs varies:
+# this branch builds without them and master's newer libc++ does not, where the
+# SDK's own date_provider.cc reaches std::time_t and filesystem_desktop_linux.cc
+# reaches EINTR. Carried on every branch so a clang bump is not a build break.
+CXXFLAGS += "-include ctime -include cerrno"
 
 # app/CMakeLists.txt's version_header.py and cmake/binary_to_array.cmake's
 # binary_to_array.py both import absl. Without it the failure is a
