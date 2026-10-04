@@ -129,7 +129,7 @@ VIDEO_PLAYER_LINUX_PIGEON_DIR ??= ""
 LIBWEBRTC_DIR ??= "${STAGING_DATADIR}/libwebrtc"
 LIBWEBRTC_SO ??= "${STAGING_LIBDIR}/libwebrtc.so"
 
-TOOLCHAIN = "clang"
+require conf/include/flutter-clang-toolchain.inc
 TOOLCHAIN_NATIVE = "clang"
 TC_CXX_RUNTIME = "llvm"
 PREFERRED_PROVIDER_llvm = "clang"
