@@ -480,6 +480,22 @@ jobs:
           . ./openembedded-core/oe-init-build-env
           bitbake jwinarske-bluez-native-flutter-ble-scanner
 
+      - name: Build jwinarske-firebase-ffi-firebase-ffi-demo
+        # flutter build bundle has no linux-arm target platform,
+        # so the app recipes do not parse for a 32-bit machine
+        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        shell: bash
+        working-directory: ../master-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake jwinarske-firebase-ffi-firebase-ffi-demo
+          # The hook's library has to reach the package, not just build.
+          if ! oe-pkgdata-util list-pkg-files jwinarske-firebase-ffi-firebase-ffi-demo \
+              | grep -q '/libfirebase_ffi\.so$'; then
+            echo "::error::libfirebase_ffi.so is not in the firebase-ffi-demo package"
+            exit 1
+          fi
+
       # Only reached when every step above succeeded; a failed or cancelled run
       # leaves the marker behind for the next one to act on.
       - name: Mark the build complete
