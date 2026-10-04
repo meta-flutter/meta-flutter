@@ -51,13 +51,11 @@ OECMAKE_SOURCEPATH = "${S}/shared"
 
 # Match the embedder's stdlib selection so the C++ runtime under the C ABI is
 # the same one the shell was linked against.
-TOOLCHAIN = "clang"
+require conf/include/flutter-clang-libcxx.inc
 TOOLCHAIN_NATIVE = "clang"
-TC_CXX_RUNTIME = "llvm"
 PREFERRED_PROVIDER_llvm = "clang"
 PREFERRED_PROVIDER_llvm-native = "clang-native"
 PREFERRED_PROVIDER_libgcc = "compiler-rt"
-LIBCPLUSPLUS = "-stdlib=libc++"
 
 DEPENDS += "compiler-rt libcxx"
 
