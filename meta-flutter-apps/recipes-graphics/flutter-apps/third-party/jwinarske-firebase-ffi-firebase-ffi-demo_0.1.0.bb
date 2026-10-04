@@ -60,10 +60,19 @@ require conf/include/flutter-clang-toolchain.inc
 # and the clang bbappend beside it makes clang-native the provider. So the flag
 # is all that is missing.
 #
-# Deliberately not -rtlib=compiler-rt with it: the default libgcc is what
-# provides _Unwind_Resume here, and asking for compiler-rt would reopen #1119.
-CFLAGS += "-fuse-ld=lld"
-CXXFLAGS += "-fuse-ld=lld"
+# compiler-rt with it, for the builtins. On riscv64 clang emits calls to the
+# half-precision conversions and this branch's libgcc does not define them:
+#
+#   ld.lld: error: undefined symbol: __extendhfsf2
+#   ld.lld: error: undefined symbol: __truncsfhf2
+#
+# Still no -unwindlib: -rtlib=compiler-rt leaves --unwindlib=platform, so the
+# builtins come from compiler-rt and the unwinder stays libgcc_s, which is the
+# one that defines _Unwind_Resume here. That is the same pairing the newer
+# branches' hook libraries link with, and it keeps #1119 shut rather than
+# reopening it.
+CFLAGS += "-fuse-ld=lld -rtlib=compiler-rt"
+CXXFLAGS += "-fuse-ld=lld -rtlib=compiler-rt"
 
 # The unwinder.
 #
