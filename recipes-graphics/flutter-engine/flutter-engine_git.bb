@@ -24,7 +24,7 @@ DEPENDS:aarch64 += "\
     freetype \
     "
 
-TOOLCHAIN = "clang"
+require conf/include/flutter-clang-toolchain.inc
 TOOLCHAIN_NATIVE = "clang"
 TC_CXX_RUNTIME = "llvm"
 PREFERRED_PROVIDER_llvm = "clang"
