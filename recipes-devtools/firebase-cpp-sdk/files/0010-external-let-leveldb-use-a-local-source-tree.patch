@@ -1,0 +1,44 @@
+From: Joel Winarske <joel.winarske@linux.com>
+Subject: [PATCH] external: let leveldb use a local source tree
+
+check_use_local_directory() turns DOWNLOAD_<NAME> off when <NAME>_SOURCE_DIR
+exists, and the rule then returns before declaring its ExternalProject. leveldb
+is not in that list, so it clones from git even though add_external_library()
+honors LEVELDB_SOURCE_DIR and the main build compiles the local tree.
+
+So the build needs network with every dependency already on disk, and fetches a
+leveldb nothing afterwards compiles.
+
+Upstream-Status: Pending
+Signed-off-by: Joel Winarske <joel.winarske@linux.com>
+
+---
+--- a/cmake/external_rules.cmake
++++ b/cmake/external_rules.cmake
+@@ -72,6 +72,7 @@
+   check_use_local_directory(BORINGSSL)
+   check_use_local_directory(CURL)
+   check_use_local_directory(FLATBUFFERS)
++  check_use_local_directory(LEVELDB)
+   check_use_local_directory(LIBUV)
+   check_use_local_directory(UWEBSOCKETS)
+   check_use_local_directory(ZLIB)
+@@ -106,6 +107,7 @@
+       -DDOWNLOAD_CURL=${DOWNLOAD_CURL}
+       -DDOWNLOAD_FLATBUFFERS=${DOWNLOAD_FLATBUFFERS}
+       -DDOWNLOAD_GOOGLETEST=${FIREBASE_DOWNLOAD_GTEST}
++      -DDOWNLOAD_LEVELDB=${DOWNLOAD_LEVELDB}
+       -DDOWNLOAD_LIBUV=${DOWNLOAD_LIBUV}
+       -DDOWNLOAD_UWEBSOCKETS=${DOWNLOAD_UWEBSOCKETS}
+       -DDOWNLOAD_ZLIB=${DOWNLOAD_ZLIB}
+--- a/cmake/external/leveldb.cmake
++++ b/cmake/external/leveldb.cmake
+@@ -14,7 +14,7 @@
+ 
+ include(ExternalProject)
+ 
+-if(TARGET leveldb)
++if(TARGET leveldb OR NOT DOWNLOAD_LEVELDB)
+   return()
+ endif()
+ 
