@@ -33,7 +33,7 @@ EXTERNAL_SRC = "${B}/external/src"
 # OpenSSL with ISC on its newer files; leveldb is BSD-3-Clause; libuv MIT;
 # uWebSockets and zlib are Zlib, and zlib states its terms in README, which is
 # why that is the file named.
-LICENSE = "Apache-2.0 & OpenSSL & ISC & curl & BSD-3-Clause & MIT & Zlib"
+LICENSE = "Apache-2.0 AND BSD-3-Clause AND ISC AND MIT AND OpenSSL AND Zlib AND curl"
 LIC_FILES_CHKSUM = "\
     file://LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57 \
     file://${EXTERNALS}/boringssl/LICENSE;md5=9b082148f9953258347788edb83e401b \
