@@ -34,7 +34,7 @@ SRC_URI = " \
     file://0001-build-Make-SDK-artifacts-independent-of-the-builder-s.patch;patchdir=${S}/sdk \
 "
 
-TOOLCHAIN = "clang"
+require conf/include/flutter-clang-toolchain.inc
 TOOLCHAIN_NATIVE = "clang"
 TC_CXX_RUNTIME = "llvm"
 PREFERRED_PROVIDER_llvm = "clang"

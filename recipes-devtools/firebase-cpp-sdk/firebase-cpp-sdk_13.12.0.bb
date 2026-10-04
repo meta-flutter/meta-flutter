@@ -127,7 +127,7 @@ DEPENDS += "compiler-rt libcxx"
 # Built with the same standard library its consumers link against: these are
 # static archives, so the runtime is part of their interface, not an
 # implementation detail. flutter-app-native builds hook libraries the same way.
-require conf/include/flutter-clang-toolchain.inc
+require conf/include/flutter-clang-libcxx.inc
 
 inherit cmake pkgconfig python3native
 
