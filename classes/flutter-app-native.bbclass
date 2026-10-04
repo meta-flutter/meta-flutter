@@ -11,7 +11,7 @@
 # Inherit this INSTEAD OF flutter-app.
 #
 
-TOOLCHAIN = "clang"
+require conf/include/flutter-clang-toolchain.inc
 # Required to make dart happy
 DEPENDS:append = " lld-native"
 

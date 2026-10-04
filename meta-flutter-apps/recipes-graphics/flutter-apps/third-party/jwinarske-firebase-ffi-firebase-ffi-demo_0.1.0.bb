@@ -39,12 +39,12 @@ inherit flutter-app-native
 #
 # This library links firebase-cpp-sdk's static archives, so the two have to
 # agree. On the newer branches flutter-app-native requires this include and
-# every hook app gets it; this branch's class sets only TOOLCHAIN = "clang"
+# every hook app gets it; this branch's class takes the compiler include only
 # and leaves the runtime at the default, and changing that would flip four
 # apps that build today onto libc++ without the DEPENDS to match -- meta-clang
 # appends LIBCPLUSPLUS to the flags but does not add libcxx for
 # TC_CXX_RUNTIME. So scope it to the recipe that needs it.
-require conf/include/flutter-clang-toolchain.inc
+require conf/include/flutter-clang-libcxx.inc
 
 # Link with lld.
 #
