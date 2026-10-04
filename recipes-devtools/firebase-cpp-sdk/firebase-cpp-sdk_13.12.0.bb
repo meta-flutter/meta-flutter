@@ -123,6 +123,14 @@ S = "${WORKDIR}/firebase-cpp-sdk"
 # hard-errors "Could not find Go" without them. perl is a host tool already.
 DEPENDS = "libsecret util-linux python3-native python3-absl-native go-native"
 
+# absl-py 1.x still imports six and 2.x does not, and this branch's
+# meta-python carries 1.0.0 without declaring the dependency. Without it the
+# generated version header fails and takes the build with it:
+#
+#   FAILED: generated/app/src/include/firebase/version.h
+#   ModuleNotFoundError: No module named 'six'
+DEPENDS += "python3-six-native"
+
 # Built with the same standard library its consumers link against: these are
 # static archives, so the runtime is part of their interface, not an
 # implementation detail. flutter-app-native builds hook libraries the same way.
