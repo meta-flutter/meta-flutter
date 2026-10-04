@@ -46,6 +46,25 @@ inherit flutter-app-native
 # TC_CXX_RUNTIME. So scope it to the recipe that needs it.
 require conf/include/flutter-clang-toolchain.inc
 
+# Link with lld.
+#
+# This branch's binutils cannot read the debug info the clang that built the
+# SDK's archives emits, and the link dies on the DWARF rather than on anything
+# about the code:
+#
+#   ld: error: invalid or unhandled FORM value: 0x22
+#   error: linker command failed with exit code 1
+#
+# The newer branches carry -fuse-ld=lld in flutter-app-native for this kind of
+# reason; this branch's class does not, though it already DEPENDS on lld-native
+# and the clang bbappend beside it makes clang-native the provider. So the flag
+# is all that is missing.
+#
+# Deliberately not -rtlib=compiler-rt with it: the default libgcc is what
+# provides _Unwind_Resume here, and asking for compiler-rt would reopen #1119.
+CFLAGS += "-fuse-ld=lld"
+CXXFLAGS += "-fuse-ld=lld"
+
 # The unwinder.
 #
 # flutter-app-native asks for -rtlib=compiler-rt -unwindlib=libunwind, but the
