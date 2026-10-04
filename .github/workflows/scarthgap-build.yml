@@ -510,8 +510,8 @@ jobs:
           . ./openembedded-core/oe-init-build-env
           bitbake jwinarske-firebase-ffi-firebase-ffi-demo
           # The hook's library has to reach the package, not just build.
-          if ! oe-pkgdata-util list-pkg-files jwinarske-firebase-ffi-firebase-ffi-demo \\
-              | grep -q '/libfirebase_ffi\\.so$'; then
+          if ! oe-pkgdata-util list-pkg-files jwinarske-firebase-ffi-firebase-ffi-demo \
+              | grep -q '/libfirebase_ffi\.so$'; then
             echo "::error::libfirebase_ffi.so is not in the firebase-ffi-demo package"
             exit 1
           fi
