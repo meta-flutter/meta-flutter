@@ -30,3 +30,29 @@ TC_CXX_RUNTIME = "llvm"
 # LIBCPLUSPLUS alone, 506 std::__cxx11 symbols and no std::__1; with the flag
 # here, 668 std::__1 and no __cxx11. See meta-flutter#1124.
 CXXFLAGS += "-stdlib=libc++"
+
+# Say so when clang is not actually there.
+#
+# TOOLCHAIN = "clang" only takes effect where something activates the
+# toolchain-clang override: oe-core on the newer branches, meta-clang on this
+# one. Without that layer the variable is set and ignored, CXX stays gcc, and
+# the -stdlib=libc++ above reaches a compiler with no such option:
+#
+#   gcc: error: unrecognized command-line option '-stdlib=libc++'
+#
+# which is a poor way to learn that a layer is missing. The DEPENDS that would
+# have failed loudly live in dynamic-layers/clang-layer, so they are absent too
+# and nothing else complains.
+#
+# SkipRecipe rather than bb.fatal: a parse-time fatal in a recipe halts the
+# whole parse, so a configuration that never builds these would stop working
+# over a layer it does not need. Skipping makes the recipe unavailable with a
+# reason instead, which is what bitbake prints when something asks for it.
+python () {
+    cxx = (d.getVar('CXX') or '').split()
+    if cxx and 'clang' not in cxx[0]:
+        raise bb.parse.SkipRecipe(
+            "requires clang, and TOOLCHAIN = \"%s\" did not take effect: CXX is "
+            "%s. On this release clang comes from meta-clang -- add that layer."
+            % (d.getVar('TOOLCHAIN'), cxx[0]))
+}
