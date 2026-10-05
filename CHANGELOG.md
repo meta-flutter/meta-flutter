@@ -1,5 +1,243 @@
 # Changelog
 
+October 4, 2026
+1. one place for the clang toolchain: conf/include/flutter-clang-toolchain.inc
+   and conf/include/flutter-clang-libcxx.inc
+   - five recipes and classes each set TOOLCHAIN = "clang"; they require an
+     include instead. Compiler and standard library are separate includes
+     because they are separate decisions
+   - which one goes where is the other way round from the newer branches.
+     There LIBCPLUSPLUS is inert, since oe-core carries clang and nothing
+     consumes the variable, so recipes setting it were compiling against
+     libstdc++ while saying otherwise. Here clang is meta-clang's and
+     meta-clang does consume it, so flutter-engine, ivi-homescreen-shared and
+     ivi-homescreen-v3.inc build against libc++ today and take the libcxx
+     include, which sets TC_CXX_RUNTIME and LIBCPLUSPLUS in place of their own
+     lines. The two classes build against neither and take the compiler alone
+   - the libcxx include also puts -stdlib=libc++ in CXXFLAGS, so here the flag
+     lands twice, which is harmless
+   - without meta-clang the guarded recipes are skipped with a reason rather
+     than quietly building with gcc, which here also covers the three apps
+     inheriting flutter-app-native. SkipRecipe rather than bb.fatal, so a
+     configuration that never builds these still parses
+   - the dynamic-layers/clang-layer bbappends keep their own TOOLCHAIN and
+     LIBCPLUSPLUS -- #1124
+
+October 2, 2026
+1. ivi-homescreen: the plugin-common set matches the plugins tree. The
+   parse-time check for disabling plugin-common was wrong in both directions;
+   the set is now read from each plugin's own CMakeLists at PLUGINS_COMMIT
+
+October 1, 2026
+1. roll ivi-homescreen v3 to b7646dc and the plugins tree to 19f03e2
+   - 82 commits on the v3.0 branch. The shell's CMake option surface is
+     unchanged, diffed across the roll
+   - the four firebase plugins are gone from the plugins tree and their
+     PACKAGECONFIGs with them; gamepads_linux is added, which needs libsdl3
+
+September 30, 2026
+1. generate the custom-devices config from the recipe that builds the embedder
+   (closes #522)
+   - one upstream device object per recipe, written to
+     ${datadir}/flutter/custom-devices/<id>.json and packaged in -dev, so
+     flutter run -d <device> no longer needs a hand-written custom_devices.json
+   - every knob is ?=, so a bbappend can override one without restating the
+     object, and nothing is opinionated about the callbacks
+   - flutter-custom-devices merges one or all of the shipped configs into the
+     developer's custom_devices.json, preserving the entries already there
+
+September 29, 2026
+1. pass the native assets mapping that actually exists: flutter_tools writes
+   native_assets.json, and do_compile was globbing for native_assets.yaml
+2. docs: record the environment the Flutter tooling reads
+
+September 28, 2026
+1. flutter-app: key the pub cache skip on the source and the build tree, so
+   do_archive_pub_cache stops doing nothing when SRCREV moves (#653), and stamp
+   the SDK resolution on the way in as well as out -- flutter re-runs pub get
+   when package_config.json does not look newer than the pubspec beside it, and
+   that resolve carries no --offline
+2. common: re-resolve after flutter clean, which deletes .dart_tool under a
+   build that then carries --no-pub
+
+September 27, 2026
+1. flutter-sdk: build the SDK example apps on this branch too
+2. layer.conf: declare the timeout hosttool. pub-cache.bbclass bounds its
+   offline resolve with timeout(1) and this release's oe-core does not list it
+   in HOSTTOOLS, so do_pub_get_offline failed with 127
+3. common: restore pubspec.lock from the pub cache archive, accept a workspace
+   root in the guard, and enforce lockfiles with --no-example as the other
+   branches do
+
+September 26, 2026
+1. flutter-sdk: fetch the pub cache declaratively and unpack it with no network
+
+September 25, 2026
+1. flutter-engine: drop the unittests PACKAGECONFIG. It cannot configure in a
+   cross build, so the -test package it feeds has never been produced
+2. gn: take the DEPS patch commit's dates from upstream rather than the clock
+
+September 24, 2026
+1. add dart-app: standalone Dart executables for the target (closes #428). Two
+   steps, because nothing in the SDK cross-compiles in one -- the AOT kernel on
+   the build machine with gen_kernel_aot out of dart-sdk-native, then the target
+   snapshot
+2. add dart-app-pub: pub dependencies for Dart apps, arriving through a
+   pubvendor fragment, so every package comes via SRC_URI with a checksum
+   bitbake verifies and pub resolves against the staged cache offline
+3. port pub-cache.bbclass to this release
+
+September 23, 2026
+1. dart-sdk deploys and stages the cross gen_snapshot, which the dart-sdk build
+   produces and threw away
+
+September 20, 2026
+1. flutter-engine: stop suppressing buildpaths on the -test package
+
+September 19, 2026
+1. roll Flutter SDK to 3.47.5 (Dart 3.13.4)
+2. flutter-engine: keep the host tools out of the target package entirely. They
+   link against the build host's glibc, so a matching architecture says nothing
+   about whether the image can run them
+3. flutter-engine: do not treat warnings as errors. The engine builds its host
+   side with the clang in its own tree, which probes the build host for a GCC
+   installation to locate libstdc++ headers the build never uses
+
+September 18, 2026
+1. flutter-engine: split the host tools into their own recipe. gen_snapshot and
+   friends were installed into the target package and reached apps through the
+   target sysroot, which is why uninative never relocated them -- its hook skips
+   target recipes, so sstate built on a newer glibc was unusable on an older
+   host
+2. flutter-engine: stage the engine SDK unzipped. In the zip nothing could see
+   inside it: not sstate, not the buildpaths or reproducibility checks, and not
+   uninative
+3. maintainers: correct the spelling of my name, and use the linux.com address
+   I sign off with
+
+September 17, 2026
+1. pdfium: give gn a native toolchain. On x86 targets pdfium builds its own nasm
+   and ran it on libjpeg_turbo's SIMD sources, having built it for the target
+2. pdfium: install icudtl.dat only with v8. Nothing loads ICU data unless V8 is
+   initialized, so this saves about 10 MB in the default configuration. Patch by
+   Harry Bock (fixes #991)
+3. tools: check the layer for the defects that keep shipping -- an unwired patch,
+   an ineffective destsuffix, a dangling packagegroup, British spelling -- and
+   fail when common.py disagrees with the branch
+4. roll: emit packagegroup entries in a stable order
+
+September 16, 2026
+1. ci: parse and resolve the layer for musl. flutter-engine, dart-sdk and pdfium
+   all carry libc-musl overrides and nothing ever read them
+2. pdfium: pass the distro toolchain flags to gn, so libpdfium.so stops tripping
+   the 32bit-time QA check on arm
+
+September 15, 2026
+1. restore S on generated app recipes. The git fetcher unpacks to ${WORKDIR}/git
+   here and the default S is ${WORKDIR}/${BP}; BB_GIT_DEFAULT_DESTSUFFIX lines
+   them up from styhead on only. The generator ported from wrynose never wrote
+   S, so a roll dropped it and do_populate_lic could not find LICENSE
+
+September 14, 2026
+1. roll Flutter SDK to 3.47.4 (Dart 3.13.3)
+
+September 9, 2026
+1. flutter-sdk: drop the dead material fonts fetch. destsuffix is implemented by
+   the git, hg, npm and npmsw fetchers; wget inherits the generic unpack, which
+   honors subdir alone and silently ignores an unknown parameter
+
+September 8, 2026
+1. roll Flutter SDK to 3.47.2 (Dart 3.13.2), and port the roll tooling from
+   wrynose
+2. flutter-elinux: migrate off the sony upstream. None of the four embedders
+   compiled: the pinned source uses uint8_t in the client_wrapper headers
+   without including <cstdint>. S is kept for this release's fetcher layout, and
+   DRM_MODE_CONNECTOR_SPI is guarded -- upstream guards the USB connector so it
+   builds against mesa < 21 and uses the SPI one unguarded a line later, and
+   this release's libdrm is 2.4.101, which defines neither (fixes #951)
+3. ci: build only the client embedders on this release, since
+   flutter-drm-gbm-backend and flutter-drm-eglstream-backend do not compile
+   against libdrm 2.4.101
+4. flutter-engine: give consumers a package name to depend on (fixes #887)
+5. dart: stop baking the builder's path into the snapshots. Backport of dart
+   CL 543800
+6. drop sourcya-playx-3d-scene
+
+August 29, 2026
+1. keep TMPDIR out of the AOT image, which every release libapp.so of an app
+   with plugins was carrying
+
+August 28, 2026
+1. run the frontend server snapshot that matches the host. Building on an arm64
+   host failed before compiling anything, on an architecture mismatch loading
+   the VM isolate snapshot
+2. replace the rights reservation with an SPDX identifier, and emit SPDX headers
+   from the generators (#283)
+
+August 27, 2026
+1. drop qemuriscv64 from CI. This release pins clang 14, whose lld cannot link
+   RISC-V: the embedder fails before any meta-flutter code is reached, on
+   Scrt1.o needing R_RISCV_ALIGN linker relaxation that ld.lld does not
+   implement there
+2. take the core wayland.xml from the sysroot, which the scanner needs to
+   generate bindings that match this release's wayland
+3. drop the flutter_tools patch, which never ran. bin/flutter runs a prebuilt
+   flutter_tools.snapshot and only recompiles under conditions this build never
+   meets
+4. ci: clean after an interrupted run rather than before every build, and keep
+   the trees that fit
+
+August 26, 2026
+1. roll ivi-homescreen v3 to 131cbc37 and restore the wayland-cxx-scanner
+   lock-step. This branch was still on the pin from before any of the v3 fixes
+   kirkstone picked up
+2. provide pugixml-native, and a static libc++ ABI, both real gaps rather than
+   anything to work around -- qemuarm64 could not resolve ivi-homescreen at all
+3. build code-asset hooks with the target toolchain, and give the cmake-driven
+   ones a toolchain of their own
+4. build the integration tests and FFI apps in CI, let each app step report on
+   its own, and keep the steps running past a sibling's failure
+5. packagekit-catalog builds only for x64 and arm64: its hook refuses other
+   architectures outright
+6. drop flathub-catalog from CI -- appstream is not in this release
+7. fix the four things kirkstone needed before spending CI rounds rediscovering
+   each one, --target-platform for flutter build bundle among them: without it
+   the flutter tool defaults to Android, and a Linux bundle builds an
+   AndroidAssetTarget that throws for a missing Android SDK
+8. common: report the output of a failed command. run_command logged it with
+   bb.note(), which reaches only log.do_* on the builder
+
+August 24, 2026
+1. use underscore override syntax throughout. The layer used colon overrides,
+   which bitbake 1.46 -- the version this release requires -- cannot parse
+2. set S explicitly for the git- and gitsm-fetched recipes, and for the
+   integration-test include. The git fetcher unpacks to ${WORKDIR}/git on this
+   release while the default S is ${WORKDIR}/${BP}
+3. join license names with "&" rather than AND, which is this release's syntax;
+   name DejaVu's license BitstreamVera as this release's common-licenses spells
+   it; and keep ped on GPL-3.0, the name this release has -- the cleanup had
+   renamed it GPL-3.0-or-later, which oe-core master wants and this release does
+   not carry at all. A license expression naming a file that is not there fails
+   license-no-generic, which is an error rather than a warning
+4. add recipes for the ivi-homescreen v3.0 integration tests: ten Flutter
+   applications, each driving one embedder subsystem through its platform
+   channels, sharing ivi-homescreen-test.inc
+5. license: fix the QA warnings and check declarations against source
+6. flutter-app: let pub resolve from a workspace root, and skip app recipes on
+   32-bit targets -- flutter build bundle accepts only 64-bit Linux target
+   platforms
+7. build the engine with its own clang on riscv64 too, and apply the fixes
+   scarthgap's first CI run found
+8. gn-fetcher: keep build output out of the cached tarball, since the sync
+   directory is also the build directory; key the fetch on the gclient config so
+   a retry is usable; and cap the LLVM builds' parallelism
+9. flutter-engine: resolve host fontconfig from fontconfig-native, scope the ABI
+   gate's unwinder rule to the bundled clang, and fold the JDK gate into
+   upstream's DEPS condition
+10. dart-sdk: drop the gn.py options removed in 3.13.1
+11. ci: build this branch on demand on its own tree and without meta-drm, and
+    clone openembedded-core, bitbake and meta-yocto from GitHub
+
 August 19, 2026
 1. roll Flutter SDK to 3.47.1 (Dart 3.13.1)
    - dart-sdk recipe 3.10.1 -> 3.13.1
