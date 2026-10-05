@@ -8,5 +8,5 @@ DEPENDS += " \
     "
 
 RUNTIME = "llvm"
-TOOLCHAIN = "clang"
+require conf/include/flutter-clang-toolchain.inc
 PREFERRED_PROVIDER_libgcc = "compiler-rt"
