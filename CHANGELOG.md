@@ -1,5 +1,19 @@
 # Changelog
 
+October 5, 2026
+1. remove flutter-desktop.bbclass
+   - nothing ever inherited it: no commit in the history adds "inherit
+     flutter-desktop", and no file in the layer referenced it
+   - it was flutter-app plus cmake-native, ninja-native, compiler-rt and libcxx
+     and a clang toolchain switch, none of which could act on anything. The
+     build it inherited is "flutter build bundle", which compiles no C++, so
+     CMake was never invoked
+   - apps with native code use flutter-app-native, which carries the cmake
+     wrapper that injects OE's toolchain file and pkg-config settings. A desktop
+     app would need that plus FLUTTER_BUILD_ARGS = "linux" and the engine's
+     desktop-embeddings PACKAGECONFIG, which is a feature to build rather than a
+     class to keep
+
 October 4, 2026
 1. one place for the clang toolchain: conf/include/flutter-clang-toolchain.inc
    and conf/include/flutter-clang-libcxx.inc
