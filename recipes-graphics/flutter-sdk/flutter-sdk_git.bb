@@ -301,7 +301,7 @@ do_install() {
     # the yaml 6ms ahead of the lock every time -- alphabetically the lock goes
     # first. Every consumer of the staged SDK then re-bootstraps, which means
     # `pub upgrade` and the network. See #711.
-    cp -a ${S}/. ${D}${datadir}/flutter/sdk
+    cp -a --no-preserve=ownership ${S}/. ${D}${datadir}/flutter/sdk
 
     # The point of the above, asserted: a consumer must not re-bootstrap.
     tools=${D}${datadir}/flutter/sdk/packages/flutter_tools
