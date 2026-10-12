@@ -128,13 +128,11 @@ VIDEO_PLAYER_LINUX_PIGEON_DIR ??= ""
 LIBWEBRTC_DIR ??= "${STAGING_DATADIR}/libwebrtc"
 LIBWEBRTC_SO ??= "${STAGING_LIBDIR}/libwebrtc.so"
 
-require conf/include/flutter-clang-toolchain.inc
+require conf/include/flutter-clang-libcxx.inc
 TOOLCHAIN_NATIVE = "clang"
-TC_CXX_RUNTIME = "llvm"
 PREFERRED_PROVIDER_llvm = "clang"
 PREFERRED_PROVIDER_llvm-native = "clang-native"
 PREFERRED_PROVIDER_libgcc = "compiler-rt"
-LIBCPLUSPLUS = "-stdlib=libc++"
 
 inherit cmake features_check pkgconfig
 
