@@ -1,5 +1,15 @@
 # Changelog
 
+October 6, 2026
+1. flutter-sdk: do not preserve ownership when staging the SDK. cp -a implies
+   --preserve=all, and do_install runs under pseudo, so every staged file took
+   the build user's uid and do_package could not resolve it against the target
+   passwd:
+     Path .../usr/share/flutter/sdk is owned by uid 30000, gid 30000, which
+     doesn't match any user/group on target
+   Mode, links and timestamps are still preserved, so the mtime ordering the
+   resolve step depends on (#711) is unchanged. Patch by BoergeSt (#1145)
+
 October 5, 2026
 1. remove flutter-desktop.bbclass
    - nothing ever inherited it: no commit in the history adds "inherit
