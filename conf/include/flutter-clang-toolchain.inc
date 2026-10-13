@@ -40,14 +40,20 @@ TOOLCHAIN = "clang"
 # whole parse, so a configuration that never builds these would stop working
 # over a layer it does not need. Skipping makes the recipe unavailable with a
 # reason instead, which is what bitbake prints when something asks for it.
+# The override is what to test, not CXX. oe-core's classes/toolchain/clang.bbclass
+# sets TCOVERRIDE = "toolchain-clang", which lands in OVERRIDES; meta-clang
+# appends toolchain-${TOOLCHAIN} from inside its own class, so on the older
+# branches it is present only when that layer is. Either way the override says
+# whether a clang toolchain is in effect.
+#
+# Reading CXX instead was wrong twice over: it is a string assembled from a
+# wrapper, a prefix, the compiler and flags, so "ccache clang++" made the first
+# word ccache and skipped every recipe here (#1155), and icecc, distcc or a
+# hand-set CXX would each have done it again.
 python () {
-    cxx_command = d.getVar('CXX') or ''
-    ccache = d.getVar('CCACHE') or ''
-    cxx = cxx_command.removeprefix(ccache).split()
-
-    if not cxx or 'clang' not in cxx[0]:
+    if 'toolchain-clang' not in (d.getVar('OVERRIDES') or '').split(':'):
         raise bb.parse.SkipRecipe(
             "requires clang, and TOOLCHAIN = \"%s\" did not take effect: CXX is "
             "%s. On this release clang may come from meta-clang -- check that "
-            "layer is present." % (d.getVar('TOOLCHAIN'), cxx_command))
+            "layer is present." % (d.getVar('TOOLCHAIN'), d.getVar('CXX')))
 }
