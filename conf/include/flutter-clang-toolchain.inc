@@ -41,10 +41,13 @@ TOOLCHAIN = "clang"
 # over a layer it does not need. Skipping makes the recipe unavailable with a
 # reason instead, which is what bitbake prints when something asks for it.
 python () {
-    cxx = (d.getVar('CXX') or '').split()
-    if cxx and 'clang' not in cxx[0]:
+    cxx_command = d.getVar('CXX') or ''
+    ccache = d.getVar('CCACHE') or ''
+    cxx = cxx_command.removeprefix(ccache).split()
+
+    if not cxx or 'clang' not in cxx[0]:
         raise bb.parse.SkipRecipe(
             "requires clang, and TOOLCHAIN = \"%s\" did not take effect: CXX is "
             "%s. On this release clang may come from meta-clang -- check that "
-            "layer is present." % (d.getVar('TOOLCHAIN'), cxx[0]))
+            "layer is present." % (d.getVar('TOOLCHAIN'), cxx_command))
 }
