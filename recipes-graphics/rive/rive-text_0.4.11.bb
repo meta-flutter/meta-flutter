@@ -25,7 +25,7 @@ DEPENDS += "\
     libcxx \
 "
 
-SRCREV = "4e7699cb628276ec118eac1150cf7d1b34c18c14"
+SRCREV = "6fe7e9d584d963012a8e121a34dbe218f8e29eb5"
 SRC_URI = "git://github.com/meta-flutter/rive-common.git;protocol=https;lfs=0;nobranch=1"
 
 require conf/include/flutter-clang-libcxx.inc
