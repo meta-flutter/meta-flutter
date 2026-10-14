@@ -63,19 +63,32 @@ def host_config_path():
     return os.path.join(config_dir, CONFIG_NAME)
 
 
+def host_settings_path():
+    """Where flutter_tools looks for its settings file.
+
+    Same rule as host_config_path(), for the other name flutter_tools keeps
+    there. Not dirname(host_config_path()) + 'settings': when the legacy
+    custom_devices dotfile exists that dirname is $HOME, and the legacy settings
+    file is ~/.flutter_settings rather than $HOME/settings.
+    """
+    home = os.environ.get('HOME') or '.'
+    legacy = os.path.join(home, '.%s_%s' % (CONFIG_DIR_NAME, SETTINGS_NAME))
+    if os.path.isfile(legacy):
+        return legacy
+    config_dir = os.environ.get('XDG_CONFIG_HOME') or os.path.join(
+        home, '.config', CONFIG_DIR_NAME)
+    return os.path.join(config_dir, SETTINGS_NAME)
+
+
 def custom_devices_enabled():
     """True when 'flutter config --enable-custom-devices' has been run."""
-    settings = os.path.join(os.path.dirname(host_config_path()), SETTINGS_NAME)
-    legacy = os.path.join(os.environ.get('HOME') or '.',
-                          '.%s_%s' % (CONFIG_DIR_NAME, SETTINGS_NAME))
-    for path in (legacy, settings):
-        if os.path.isfile(path):
-            try:
-                with open(path, encoding='utf-8') as handle:
-                    if json.load(handle).get('enable-custom-devices') is True:
-                        return True
-            except (OSError, ValueError):
-                pass
+    path = host_settings_path()
+    if os.path.isfile(path):
+        try:
+            with open(path, encoding='utf-8') as handle:
+                return json.load(handle).get('enable-custom-devices') is True
+        except (OSError, ValueError):
+            pass
     return False
 
 
@@ -176,7 +189,7 @@ def read_host_config(path):
     return config
 
 
-def write_host_config(path, config, dry_run):
+def write_host_config(path, config, dry_run, prefix='.custom_devices.'):
     text = json.dumps(config, indent=2) + '\n'
     if dry_run:
         sys.stdout.write(text)
@@ -186,7 +199,7 @@ def write_host_config(path, config, dry_run):
     if os.path.exists(path):
         shutil.copy2(path, path + '.bak')
     handle = tempfile.NamedTemporaryFile('w', encoding='utf-8', dir=directory,
-                                         prefix='.custom_devices.', delete=False)
+                                         prefix=prefix, delete=False)
     try:
         handle.write(text)
         handle.close()
@@ -273,8 +286,70 @@ def cmd_merge(args):
     if not args.dry_run:
         print('wrote    %s' % args.config)
         if not custom_devices_enabled():
-            print('\nCustom devices are not enabled yet. Run:\n'
-                  '  flutter config --enable-custom-devices')
+            print('\nCustom devices are not enabled yet. Run either:\n'
+                  '  flutter config --enable-custom-devices\n'
+                  '  flutter-custom-devices settings')
+    return 0
+
+
+def default_settings(args, sysroot):
+    """The settings template flutter-sdk ships."""
+    if args.settings:
+        return args.settings
+    for base in (sysroot, args.sdk_dir):
+        if base:
+            path = os.path.join(base, 'usr', 'share', 'flutter', SETTINGS_NAME)
+            if os.path.isfile(path):
+                return path
+    die('no settings template found. Source the SDK environment script, or pass\n'
+        '  --settings, --target-sysroot or --sdk-dir.')
+
+
+def cmd_settings(args):
+    _, sysroot = sdk_paths(args)
+    source = default_settings(args, sysroot)
+    shipped = load_json(source, 'settings template')
+    if not isinstance(shipped, dict):
+        die('%s: expected a JSON object' % source)
+
+    path = host_settings_path()
+    current = {}
+    if os.path.isfile(path):
+        current = load_json(path, 'host settings')
+        if not isinstance(current, dict):
+            die('%s: expected a JSON object' % path)
+
+    added, kept, overwritten = [], [], []
+    merged = dict(current)
+    for key, value in shipped.items():
+        if key not in current:
+            merged[key] = value
+            added.append(key)
+        elif current[key] == value:
+            kept.append(key)
+        elif args.overwrite:
+            merged[key] = value
+            overwritten.append('%s: %s -> %s' % (key, json.dumps(current[key]),
+                                                  json.dumps(value)))
+        else:
+            kept.append('%s (yours: %s, SDK: %s)'
+                        % (key, json.dumps(current[key]), json.dumps(value)))
+
+    if not added and not overwritten:
+        print('nothing to do; %s already matches the SDK' % path)
+        for item in kept:
+            print('kept     %s' % item)
+        return 0
+
+    write_host_config(path, merged, args.dry_run, prefix='.settings.')
+    for key in added:
+        print('added    %s' % key)
+    for item in overwritten:
+        print('set      %s' % item)
+    for item in kept:
+        print('kept     %s' % item)
+    if not args.dry_run:
+        print('wrote    %s' % path)
     return 0
 
 
@@ -325,6 +400,14 @@ def main(argv):
                        help='board address; expands @HOST@ and @HOSTNAME@ '
                             '(default: $FLUTTER_TARGET_HOST, user root)')
     merge.set_defaults(func=cmd_merge)
+
+    settings = sub.add_parser('settings',
+                              help="apply the SDK's flutter config settings to the host")
+    settings.add_argument('--settings', metavar='PATH',
+                          help='settings template (default: from the SDK sysroot)')
+    settings.add_argument('--overwrite', action='store_true',
+                          help='replace keys you have set to something else')
+    settings.set_defaults(func=cmd_settings)
 
     remove = sub.add_parser('remove', help='remove entries from the host config')
     remove.add_argument('ids', nargs='+', metavar='ID')
