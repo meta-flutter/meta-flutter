@@ -18,14 +18,27 @@ require conf/include/flutter-clang-libcxx.inc
 # Required to make dart happy
 DEPENDS:append = " lld-native"
 
-# Force lld use and using compiler-rt and libunwind instead of libgcc.
+# Force lld and compiler-rt's builtins. The unwinder stays the platform one,
+# which is libgcc_s.
+#
+# -unwindlib=libunwind used to be here too, and named an unwinder that is not
+# staged. oe-core's libunwind is nongnu's -- libunwind-generic.so and friends,
+# no plain libunwind.so for -lunwind to find -- and its libcxx recipe builds
+# LLVM's only for libc-musl, to avoid colliding with that recipe. libc++abi
+# exports no _Unwind_Resume; libgcc_s does. So the flag excluded the only
+# unwinder present, and every hook library here was linking with the symbol
+# unresolved for the embedder to supply at runtime. See #1119.
+#
+# Mixing libgcc_s's unwinder with compiler-rt builtins is supported, and it is
+# what ivi-homescreen v3 ends up with as well, despite TC_CXX_RUNTIME = "llvm":
+# libihs_shared.so needs libgcc_s.so.1 for a single _Unwind_Resume.
+#
 # Ideally these could just be added to LDFLAGS, but they have to go into the
 # general flags variables: the resulting CMAKE_<LANG>_LINK_FLAGS in the
 # toolchain.cmake that cmake.bbclass writes do not appear to be used, perhaps
 # from behavior changes in cmake 4.3.
-DEPENDS:append = " libunwind"
-CFLAGS += "-rtlib=compiler-rt -unwindlib=libunwind -fuse-ld=lld"
-CXXFLAGS += "-rtlib=compiler-rt -unwindlib=libunwind -fuse-ld=lld"
+CFLAGS += "-rtlib=compiler-rt -fuse-ld=lld"
+CXXFLAGS += "-rtlib=compiler-rt -fuse-ld=lld"
 
 
 # NOTE: conf/include/flutter-app.inc already requires gn-utils.inc and appends
