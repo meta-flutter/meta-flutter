@@ -38,7 +38,12 @@ From an installed SDK:
       flutter-auto      flutter-auto (poky)    [needs HOSTNAME, HOST]
       ivi-homescreen    ivi-homescreen (poky)  [needs HOSTNAME, HOST]
 
-    $ flutter config --enable-custom-devices
+    $ flutter-custom-devices settings
+    added    enable-linux-desktop
+    added    enable-custom-devices
+    added    enable-web
+    wrote    /home/you/.config/flutter/settings
+
     $ flutter-custom-devices merge --all --host root@192.168.1.50
     added    flutter-auto
     added    ivi-homescreen
@@ -51,6 +56,23 @@ From an installed SDK:
 file alone, so an SDK merge never eats a hand-written device. The previous file
 is kept as `custom_devices.json.bak`. `-n` prints the merged result instead of
 writing it, and `remove <id>` drops entries again.
+
+`settings` applies the `flutter config` values the SDK build already decided --
+linux-desktop, custom-devices and web enabled -- which otherwise have to be set
+by hand, five commands at a time. The recipe runs them at build time to configure
+the tool for the build, but flutter_tools resolves that file from your own `HOME`
+at run time, so the SDK ships it as a template and this copies it across.
+
+It adds only keys you do not have. A value you set yourself is reported and left
+alone:
+
+    $ flutter-custom-devices settings
+    added    enable-linux-desktop
+    kept     enable-web (yours: false, SDK: true)
+
+`--overwrite` takes the SDK's value instead, `-n` prints without writing, and the
+previous file is kept as `settings.bak`. The template is read from the SDK
+sysroot; `--settings` points at another one.
 
 The config path is the one flutter_tools itself resolves:
 `~/.flutter_custom_devices.json` if it exists, else `$XDG_CONFIG_HOME`
