@@ -289,6 +289,8 @@ python do_unpack_append() {
     run_command(d, 'flutter --version', source_dir, env)
 }
 
+FLUTTER_SETTINGS_NAME = "settings"
+
 do_install() {
 
     chmod a+rw ${S} -R
@@ -302,6 +304,17 @@ do_install() {
     # first. Every consumer of the staged SDK then re-bootstraps, which means
     # `pub upgrade` and the network. See #711.
     cp -a --no-preserve=ownership ${S}/. ${D}${datadir}/flutter/sdk
+
+    # The settings the config calls in do_unpack wrote. XDG_CONFIG_HOME points at
+    # ${WORKDIR} there and Config._configPath uses it verbatim, so the file lands
+    # beside ${S} rather than in it and the cp above never sees it. Shipping it
+    # gives a consumer of the staged SDK the values this build already decided,
+    # rather than five flutter config calls to repeat by hand. See #1107.
+    #
+    # Not a drop-in replacement for the consumer's own file: flutter_tools
+    # resolves that path from their HOME at run time, so this is a template and
+    # flutter-custom-devices settings is what merges it.
+    install -m 0644 ${WORKDIR}/${FLUTTER_SETTINGS_NAME} ${D}${datadir}/flutter/${FLUTTER_SETTINGS_NAME}
 
     # The point of the above, asserted: a consumer must not re-bootstrap.
     tools=${D}${datadir}/flutter/sdk/packages/flutter_tools
@@ -327,7 +340,7 @@ python () {
 
 ALLOW_EMPTY_${PN} = "1"
 
-FILES_${PN} = "${datadir}/flutter/sdk"
+FILES_${PN} = "${datadir}/flutter/sdk ${datadir}/flutter/${FLUTTER_SETTINGS_NAME}"
 
 INSANE_SKIP_${PN} += "already-stripped file-rdeps libdir"
 INSANE_SKIP_${PN}-dbg += "libdir"
