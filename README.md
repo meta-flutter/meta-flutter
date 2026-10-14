@@ -113,6 +113,12 @@ by the recipe that builds the embedder and merged into your
 `custom_devices.json` from the SDK:
 [docs/custom-devices.md](docs/custom-devices.md).
 
+## Shader cache on a read-only image
+
+Where each embedder puts the engine's persistent cache, what happens when that
+path is not writable, and the two ways an image can arrange one:
+[docs/shader-cache.md](docs/shader-cache.md).
+
 ## General Yocto Notes
 
 * When building on systems with GCC version > than uninative in Yocto distro add the following to conf/local.conf
