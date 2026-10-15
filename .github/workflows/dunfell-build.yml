@@ -267,8 +267,16 @@ jobs:
           echo 'TCLIBC = "musl"' >> build-musl/conf/local.conf
           . ./openembedded-core/oe-init-build-env build-musl > /dev/null
           bitbake -p
+          # dart-example-hello and dart-example-pub are the only targets that
+          # resolve dart-sdk-tools-native, which conf/include/dart-app.inc
+          # depends on. A roll deleted that recipe and the whole matrix stayed
+          # green: bitbake -p parses, and a missing provider only shows up in a
+          # taskgraph. See #1175. Resolved, not built -- two more -n targets
+          # cost nothing.
           bitbake -n \
               dart-sdk \
+              dart-example-hello \
+              dart-example-pub \
               flutter-engine \
               pdfium \
               flutter-pi \
