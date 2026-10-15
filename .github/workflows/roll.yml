@@ -4,6 +4,13 @@
 # version changes, or by hand. Never merges anything: the pull request is the
 # deliverable, CI is the gate, a person merges.
 #
+# Rolls whichever branch it is told to, master by default. The roll runs with
+# the checked-out branch's own tools/, which is what makes a release branch
+# roll correctly: LICENSE_OPERATOR and OVERRIDE_STYLE in tools/common.py are
+# branch-specific facts, and a roll generated on master would carry master's
+# into it. A workflow is only dispatchable from the default branch, so this
+# file lives on master and is not ported.
+#
 # Runs on a GitHub-hosted runner on purpose. A roll clones repositories and
 # generates recipes; it builds nothing, so it has no business queueing behind
 # the self-hosted matrix -- which is where every hour of this project's CI
@@ -20,9 +27,15 @@ on:
         description: 'Flutter version to roll to (blank = current stable)'
         required: false
         type: string
+      branch:
+        description: 'Branch to roll (wrynose, master, scarthgap, ...)'
+        required: false
+        default: master
+        type: string
 
+# Per branch: rolling wrynose has no reason to queue behind a master roll.
 concurrency:
-  group: roll
+  group: roll-${{ github.event.client_payload.branch || inputs.branch || 'master' }}
   cancel-in-progress: false
 
 permissions:
@@ -34,8 +47,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Work out which branch to roll
+        id: branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          WANT: ${{ github.event.client_payload.branch || inputs.branch }}
+        run: |
+          set -euo pipefail
+          branch="${WANT:-master}"
+          # Checked before anything is checked out: this value becomes a ref,
+          # a branch name and a pull request base.
+          if ! printf '%s' "$branch" | grep -Eq '^[A-Za-z0-9][A-Za-z0-9._-]*$'; then
+            echo "::error::not a branch name: $branch"
+            exit 1
+          fi
+          if ! gh api "repos/${{ github.repository }}/branches/$branch" \
+              --silent 2>/dev/null; then
+            echo "::error::no such branch: $branch"
+            exit 1
+          fi
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          echo "rolling $branch"
+
       - uses: actions/checkout@v5
         with:
+          ref: ${{ steps.branch.outputs.branch }}
           fetch-depth: 0
 
       - name: Work out which version to roll to
@@ -120,6 +156,7 @@ jobs:
         run: |
           set -euo pipefail
           v="${{ steps.version.outputs.want }}"
+          b="${{ steps.branch.outputs.branch }}"
           if git diff --quiet && git diff --cached --quiet; then
             echo "the roll produced no changes"
             echo "staged=false" >> "$GITHUB_OUTPUT"
@@ -127,15 +164,15 @@ jobs:
           fi
           git config user.name "meta-flutter roll"
           git config user.email "noreply@meta-flutter.dev"
-          git checkout -B "auto/roll-$v"
+          git checkout -B "auto/roll-$v-$b"
           git add -A
           # Two -m flags rather than a multi-line string: everything inside a
           # run: | block has to stay indented, and an unindented continuation
           # line ends the block scalar.
           git commit \
-            -m "master: roll to Flutter $v" \
+            -m "$b: roll to Flutter $v" \
             -m "Rolled by .github/workflows/roll.yml. The job log carries what the roll reported: repositories that failed, apps skipped because the pinned SDK is outside their declared environment, and where each vendored lockfile came from."
-          git push -f origin "auto/roll-$v"
+          git push -f origin "auto/roll-$v-$b"
           echo "staged=true" >> "$GITHUB_OUTPUT"
 
       - name: Open a pull request
@@ -145,11 +182,12 @@ jobs:
         run: |
           set -euo pipefail
           v="${{ steps.version.outputs.want }}"
+          b="${{ steps.branch.outputs.branch }}"
           run="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           # Draft: a roll is generated content and wants reading before it wants
           # reviewers. Whoever picks it up marks it ready.
-          if gh pr view "auto/roll-$v" --json number >/dev/null 2>&1; then
-            echo "pull request already open for $v; the branch was updated"
+          if gh pr view "auto/roll-$v-$b" --json number >/dev/null 2>&1; then
+            echo "pull request already open for $v on $b; the branch was updated"
             exit 0
           fi
           body=$(printf '%s\n' \
@@ -163,6 +201,6 @@ jobs:
             "" \
             "Mark ready when it has been looked at.")
           gh pr create --draft \
-            --base master --head "auto/roll-$v" \
-            --title "master: roll to Flutter $v" \
+            --base "$b" --head "auto/roll-$v-$b" \
+            --title "$b: roll to Flutter $v" \
             --body "$body"
