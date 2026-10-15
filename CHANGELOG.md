@@ -1,5 +1,128 @@
 # Changelog
 
+October 15, 2026
+1. roll: pick the dart-sdk recipe by version, not by prefix
+   - update_dart_recipe globbed dart-sdk*.bb and took element 0 of an unsorted
+     list. dart-sdk-tools_git.bb matches that glob, so the 3.47.7 roll copied
+     the tools recipe to dart-sdk_3.13.5.bb and deleted it: no provider for the
+     dart-sdk-tools-native that conf/include/dart-app.inc depends on, a recipe
+     pinning nothing because the tools recipe has no SRCREV line to rewrite,
+     and the real dart-sdk_3.13.4.bb left in place. The bad recipe set reached
+     master in #1176; #1178 restores it there
+   - matches dart-sdk_<version>.bb, requires exactly one match, and fails when
+     the source recipe has no SRCREV to rewrite or the dart tag does not
+     resolve. The silent no-op on a missing SRCREV is what let a recipe pinning
+     nothing reach a pull request (#1177)
+2. ci: resolve the dart apps
+   - dart-example-hello and dart-example-pub are the only targets that resolve
+     dart-sdk-tools-native. The roll deleted that recipe and the full matrix
+     stayed green: bitbake -p parses, and a missing provider only shows up in a
+     taskgraph. bitbake dart-sdk does not cover it, the tools recipe being
+     separate and native-only, and only a dart app pulls it in
+   - added to the existing bitbake -n list in the musl resolve step. Resolved,
+     not built, so this costs a dependency resolve and no build time (#1185)
+
+October 14, 2026
+1. flutter-app-native: drop -unwindlib=libunwind
+   - the flag named an unwinder that is not staged. oe-core's libunwind is
+     nongnu's, with no plain libunwind.so for -lunwind to resolve, and oe-core's
+     libcxx recipe builds LLVM's only for libc-musl. libc++abi exports no
+     _Unwind_Resume and libgcc_s exports two, so the flag excluded the only
+     unwinder present. Fixes #1119
+   - nothing failed before, because a shared library links with the symbol
+     unresolved and the embedder supplies it at runtime. It surfaced where a
+     hook links strictly: firebase_ffi sets -Wl,--no-undefined and hit
+     "undefined symbol: _Unwind_Resume" referenced by libc++'s lock_guard.h. It
+     carried a CFLAGS:remove for the flag, which this removes
+   - dropping the request leaves -unwindlib=platform, which is libgcc_s. Mixing
+     that with compiler-rt builtins is supported, and it is where
+     ivi-homescreen v3 ends up as well despite TC_CXX_RUNTIME = "llvm"
+   - the DEPENDS on libunwind goes with the flag; nothing here uses that
+     library's API. Keeps -rtlib=compiler-rt and -fuse-ld=lld (#1161)
+2. flutter-sdk: ship the config settings, and apply them with one command
+   - do_unpack runs five flutter config calls with XDG_CONFIG_HOME at
+     ${WORKDIR}. Config._configPath uses that verbatim, so the file landed at
+     ${WORKDIR}/settings, beside ${S}, and do_install copies ${S}/. and nothing
+     else. It never shipped, so anyone using the staged SDK had linux-desktop,
+     custom-devices and web all disabled and had to repeat the calls by hand.
+     Fixes #1107
+   - installing the file is not the whole fix, since flutter_tools resolves the
+     path from the consumer's own HOME at run time. The recipe ships it as a
+     template at ${datadir}/flutter/settings, and flutter-custom-devices gains
+     a settings subcommand that merges it into wherever that consumer's file
+     lives. Only keys they do not have are added; a value they set is reported
+     and kept, --overwrite takes the SDK's instead, the previous file is kept as
+     settings.bak, and -n prints without writing
+   - also fixes a latent bug in custom_devices_enabled(): it derived the
+     settings path as dirname(host_config_path()) + 'settings', which is
+     $HOME/settings when the legacy custom_devices dotfile exists, where
+     flutter_tools looks for ~/.flutter_settings. Both now go through
+     host_settings_path() (#1165)
+3. docs: the layer's position on the shader cache and read-only images
+   - the engine's persistent cache is a runtime write, and the three embedders
+     here disagree about where it goes. Nothing said so anywhere, so an
+     integrator building a read-only image had to read three sources. Fixes
+     #1072
+   - two deployments are supported and the doc says so: mount something
+     writable over the directory the embedder resolves, or ship a cache warmed
+     in advance and let the engine read it. The second works because
+     ivi-homescreen and flutter-auto pass is_persistent_cache_read_only when
+     the directory is not writable, which is in the b7646dc pin all five
+     branches carry
+   - written down because they are easy to assume otherwise: flutter-pi points
+     the cache at the asset bundle and sets is_persistent_cache_read_only =
+     false, so on a read-only image it warns once per store and caches nothing;
+     flutter-elinux never sets a path, so there is no cache at all; and
+     Impeller's pipeline cache needs ContextVK::Settings::cache_directory,
+     which only the Android embedder assigns
+   - the warm-cache path is documented with its cost rather than as a recipe:
+     the engine writes the cache while the application runs, so capture it from
+     a run and install it in a bbappend. No recipe changes (#1170)
+
+October 13, 2026
+1. flutter-clang-toolchain: test the override, not CXX
+   - the guard read CXX and compared its first word against clang. With ccache
+     that word is "ccache", so every recipe requiring the include was skipped.
+     Found by FredeHoey in #1155, which fixed it on master by stripping the
+     CCACHE prefix; icecc, distcc or a hand-set CXX would each have broken it
+     again
+   - CXX is a string assembled from a wrapper, a prefix, the compiler and its
+     flags, so it was never the thing to test. The override is, and the comment
+     above the guard already said so: oe-core's classes/toolchain/clang.bbclass
+     sets TCOVERRIDE = "toolchain-clang", which lands in OVERRIDES, and
+     meta-clang appends toolchain-${TOOLCHAIN} from inside its own class, so on
+     the older branches it is there exactly when that layer is
+   - measured with INHERIT += "ccache": ivi-homescreen-shared and rive-text
+     both resolve with TOOLCHAIN=clang, where both were skipped before. The
+     message still prints the whole CXX, as #1155 made it do, which is more use
+     than the first word alone (#1156)
+
+October 12, 2026
+1. ivi-homescreen, rive-text: take the libc++ include
+   - v3.inc, ivi-homescreen-shared and rive-text asked for libc++ with
+     TC_CXX_RUNTIME and LIBCPLUSPLUS, and got libstdc++. LIBCPLUSPLUS is
+     meta-clang's, and oe-core, which carries clang on this branch, does not
+     consume it. conf/include/flutter-clang-libcxx.inc sets that variable and
+     CXXFLAGS += "-stdlib=libc++", so the choice holds on either branch family.
+     See #1124
+   - measured on qemuarm64, same build tree and sstate, the include being the
+     only change:
+
+       libihs_shared   libstdc++.so.6, 12 __cxx11  ->  libc++.so.1, 42 __1
+       librive_text    libstdc++.so.6              ->  libc++.so.1, 11 __1
+
+     992 tasks, no errors. rive-text had not been built against libc++ on this
+     branch before, which was the risk
+   - the three move together because the embedder links libihs_shared and
+     librive_text; moving v3.inc alone would put a libc++ consumer against
+     libstdc++ libraries, which is worse than the state it replaces
+   - libihs_shared keeps libgcc_s.so.1 in NEEDED, before and after, for a
+     single _Unwind_Resume. PREFERRED_PROVIDER_libgcc = "compiler-rt" picks the
+     provider recipe and does not decide which unwinder the link uses, which
+     was #1119
+   - the v2 pair, flutter-engine and dart-sdk stay on the compiler-only include
+     (#1151)
+
 October 11, 2026
 1. drop the capnproto PIC bbappend (capnproto_%.bbappend)
    - added on 31 August as a stand-in for the meta-oe fix. meta-oe now sets
