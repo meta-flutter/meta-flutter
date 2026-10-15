@@ -14,7 +14,7 @@ SECTION = "graphics"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=5335066555b14d832335aa4660d6c376"
 
-SRCREV = "1ce3ee24331df4345952d4104cde1852f12a7090"
+SRCREV = "b97c4a63dce824422b7dd5a74158e40bc2d9beea"
 SRC_URI = "git://github.com/DavBfr/dart_pdf.git;lfs=0;branch=master;protocol=https"
 
 PUBSPEC_APPNAME = "printing_demo"
