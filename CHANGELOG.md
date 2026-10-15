@@ -1,5 +1,106 @@
 # Changelog
 
+October 15, 2026
+1. roll: pick the dart-sdk recipe by version, not by prefix (#1181)
+   - update_dart_recipe globbed dart-sdk*.bb and took element 0 of an unsorted
+     list. dart-sdk-tools_git.bb matches that glob, so the 3.47.7 roll copied
+     the tools recipe to dart-sdk_3.13.5.bb and deleted it: no provider for the
+     dart-sdk-tools-native that conf/include/dart-app.inc depends on, a recipe
+     pinning nothing because the tools recipe has no SRCREV line to rewrite,
+     and the real dart-sdk_3.13.4.bb left in place
+   - matches dart-sdk_<version>.bb, requires exactly one match, and fails when
+     the source recipe has no SRCREV to rewrite or the dart tag does not
+     resolve. The silent no-op on a missing SRCREV is what let a recipe pinning
+     nothing reach a pull request
+   - #1176 rolled master to 3.47.7 and the bad recipe set landed there; this
+     branch was not rolled
+
+October 14, 2026
+1. flutter-app-native: drop -unwindlib=libunwind (#1163)
+   - the flag named an unwinder that is not staged. oe-core's libunwind is
+     nongnu's, with no plain libunwind.so for -lunwind to resolve, and oe-core's
+     libcxx recipe builds LLVM's only for libc-musl. libc++abi exports no
+     _Unwind_Resume and libgcc_s exports two, so the flag excluded the only
+     unwinder present. Fixes #1119
+   - nothing failed before, because a shared library links with the symbol
+     unresolved and the embedder supplies it at runtime. Dropping the request
+     leaves -unwindlib=platform, which is libgcc_s, a supported pairing with
+     compiler-rt builtins and what every hook library here effectively used
+     already. firebase_ffi's CFLAGS:remove for the same flag becomes redundant
+     and goes with it
+   - the DEPENDS on libunwind goes with the flag; nothing here uses that
+     library's API. Keeps -rtlib=compiler-rt and -fuse-ld=lld
+2. flutter-sdk: ship the config settings, and apply them with one command
+   (#1167)
+   - do_unpack runs five flutter config calls with XDG_CONFIG_HOME at
+     ${WORKDIR}. Config._configPath uses that verbatim, so the file landed at
+     ${WORKDIR}/settings, beside ${S}, and do_install copies ${S}/. and nothing
+     else. It never shipped, so anyone using the staged SDK had linux-desktop,
+     custom-devices and web all disabled and had to repeat the calls by hand.
+     Fixes #1107
+   - installing the file is not the whole fix, since flutter_tools resolves the
+     path from the consumer's own HOME at run time. The recipe ships it as a
+     template at ${datadir}/flutter/settings, and flutter-custom-devices gains
+     a settings subcommand that merges it into wherever that consumer's file
+     lives. Only keys they do not have are added; a value they set is reported
+     and kept, --overwrite takes the SDK's instead, the previous file is kept as
+     settings.bak, and -n prints without writing
+   - also fixes a latent bug in custom_devices_enabled(): it derived the
+     settings path as dirname(host_config_path()) + 'settings', which is
+     $HOME/settings when the legacy custom_devices dotfile exists, where
+     flutter_tools looks for ~/.flutter_settings. Both now go through
+     host_settings_path()
+3. docs: the layer's position on the shader cache and read-only images
+   (#1172)
+   - the engine's persistent cache is a runtime write, and the three embedders
+     here disagree about where it goes. Nothing said so anywhere, so an
+     integrator building a read-only image had to read three sources. Fixes
+     #1072
+   - two deployments are supported and the doc says so: mount something
+     writable over the directory the embedder resolves, or ship a cache warmed
+     in advance and let the engine read it. The second works because
+     ivi-homescreen and flutter-auto pass is_persistent_cache_read_only when
+     the directory is not writable, which is in the b7646dc pin all five
+     branches carry
+   - written down because they are easy to assume otherwise: flutter-pi points
+     the cache at the asset bundle and sets is_persistent_cache_read_only =
+     false, so on a read-only image it warns once per store and caches nothing;
+     flutter-elinux never sets a path, so there is no cache at all; and
+     Impeller's pipeline cache needs ContextVK::Settings::cache_directory,
+     which only the Android embedder assigns
+   - the warm-cache path is documented with its cost rather than as a recipe:
+     the engine writes the cache while the application runs, so capture it from
+     a run and install it in a bbappend. No recipe changes
+
+October 13, 2026
+1. flutter-clang-toolchain: test the override, not CXX (#1158)
+   - the guard read CXX and compared its first word against clang. With ccache
+     that word is "ccache", so every recipe requiring the include was skipped.
+     Found by FredeHoey in #1155
+   - CXX is a string assembled from a wrapper, a prefix, the compiler and its
+     flags, so it was never the thing to test. The override is: oe-core's
+     classes/toolchain/clang.bbclass sets TCOVERRIDE = "toolchain-clang", which
+     lands in OVERRIDES, and meta-clang appends toolchain-${TOOLCHAIN} from
+     inside its own class, so on this release it is present exactly when that
+     layer is
+   - verified both ways here, this being the branch that can show both: with
+     meta-clang, ivi-homescreen-shared and flutter-engine resolve with
+     TOOLCHAIN=clang; without it, both are skipped with the reason and the
+     parse still completes over 3321 recipes with no errors
+
+October 12, 2026
+1. ivi-homescreen: take the libc++ include (#1153)
+   - a no-op for the output here: clang comes from meta-clang on this branch
+     and meta-clang does consume LIBCPLUSPLUS, so these two already built
+     against libc++. The include sets the same variable plus
+     CXXFLAGS += "-stdlib=libc++", so the flag lands twice, harmlessly, and the
+     duplicated TC_CXX_RUNTIME and LIBCPLUSPLUS lines go away. Where wrynose
+     and master needed this to fix the runtime, here it stops the ABI contract
+     being restated per recipe. See #1124
+   - rive-text is left alone: its clang and libc++ come from
+     dynamic-layers/clang-layer, not from the recipe, which is the right place
+     on a branch where the toolchain is meta-clang's
+
 October 6, 2026
 1. flutter-sdk: do not preserve ownership when staging the SDK. cp -a implies
    --preserve=all, and do_install runs under pseudo, so every staged file took
