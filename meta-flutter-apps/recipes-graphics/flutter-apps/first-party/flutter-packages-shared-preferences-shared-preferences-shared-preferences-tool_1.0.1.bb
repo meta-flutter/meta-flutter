@@ -14,7 +14,7 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=2b36ca50262dc615e560c27654badb26"
 
-SRCREV = "ec1def9a98e566d39e092b82cab5669eca4c553f"
+SRCREV = "8bd95a51c12c6f7e5e62d24cce5422599dd5b565"
 SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=https"
 
 PUBSPEC_APPNAME = "shared_preferences_tool"
