@@ -356,6 +356,7 @@ def get_release(root_path: str, commit_hash: str) -> dict:
 
 def update_dart_recipe(root_path: str, flutter_sdk_version: str):
     import glob
+    import re
 
     from create_recipes import get_git_commit_hash_for_tag
 
@@ -367,9 +368,22 @@ def update_dart_recipe(root_path: str, flutter_sdk_version: str):
     new_dart_recipe_path = os.path.join(root_path, 'recipes-devtools', 'dart', f'dart-sdk_{dart_sdk_version}.bb')
 
     dart_recipe_path_root = os.path.join(root_path, 'recipes-devtools', 'dart')
-    dart_recipe_path = glob.glob(f'{dart_recipe_path_root}/dart-sdk*.bb')
 
-    if new_dart_recipe_path == dart_recipe_path[0]:
+    # dart-sdk_<version>.bb only. dart-sdk*.bb also matches
+    # dart-sdk-tools_git.bb, and glob order is the filesystem's, so the 3.47.7
+    # roll took the tools recipe, copied it to dart-sdk_3.13.5.bb and deleted
+    # it -- dropping the recipe every dart app depends on. See #1175.
+    candidates = sorted(
+        path for path in glob.glob(f'{dart_recipe_path_root}/dart-sdk_*.bb')
+        if re.fullmatch(r'\d+(\.\d+)*',
+                        os.path.basename(path)[len('dart-sdk_'):-len('.bb')]))
+    if len(candidates) != 1:
+        raise RuntimeError(
+            f'expected one dart-sdk_<version>.bb in {dart_recipe_path_root}, '
+            f'found {candidates}')
+    dart_recipe_path = candidates[0]
+
+    if new_dart_recipe_path == dart_recipe_path:
         print_banner("Skipping Dart SDK update: version already exists")
         return
 
@@ -383,16 +397,26 @@ def update_dart_recipe(root_path: str, flutter_sdk_version: str):
     cmd = ['git', 'clone', 'https://github.com/dart-lang/sdk', '.dart']
     subprocess.check_call(cmd, cwd=root_path)
     commit_hash = get_git_commit_hash_for_tag(tmp_path, dart_sdk_version)
+    if not commit_hash:
+        raise RuntimeError(f'dart-lang/sdk has no tag {dart_sdk_version}')
 
     # create new recipe updating SRCREV
 
-    with open(dart_recipe_path[0], 'r') as fi, open(new_dart_recipe_path, 'w') as fo:
+    wrote_srcrev = False
+    with open(dart_recipe_path, 'r') as fi, open(new_dart_recipe_path, 'w') as fo:
         for line in fi:
             if 'SRCREV =' in line:
                 line = f'SRCREV = "{commit_hash}"\n'
+                wrote_srcrev = True
             fo.write(line)
 
-    os.remove(dart_recipe_path[0])
+    # The recipe the glob wrongly picked had no SRCREV, which is why a recipe
+    # pinning nothing went out and nobody noticed.
+    if not wrote_srcrev:
+        os.remove(new_dart_recipe_path)
+        raise RuntimeError(f'{dart_recipe_path} has no SRCREV to update')
+
+    os.remove(dart_recipe_path)
 
     report_removed_gn_options(root_path, new_dart_recipe_path, tmp_path, commit_hash)
 
