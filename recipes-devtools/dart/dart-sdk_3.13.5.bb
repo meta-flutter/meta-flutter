@@ -1,57 +1,211 @@
 #
-# Copyright (c) 2026 Joel Winarske
+# Copyright (c) 2020-2023 Joel Winarske
 #
 # SPDX-License-Identifier: MIT
 #
 
-SUMMARY = "Dart SDK cross tools"
-DESCRIPTION = "gen_snapshot, built to run on the build machine and emit code \
-for the target. The dart-sdk build produces it as a by-product and deploys it; \
-this recipe is the common place a dart-app build pulls it from. See \
-meta-flutter#428."
-AUTHOR = "Joel Winarske"
+SUMMARY = "Dart SDK"
+DESCRIPTION = "The Dart SDK, including the VM, dart2js, core libraries, and more."
+AUTHOR = "Dart Team"
 HOMEPAGE = "https://github.com/dart-lang/sdk"
+BUGTRACKER = "https://github.com/dart-lang/sdk/issues"
 SECTION = "devtools"
 LICENSE = "BSD-3-Clause"
-LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/BSD-3-Clause;md5=550794465ba0ec5312d6919e203a55f9"
+LIC_FILES_CHKSUM = "file://sdk/LICENSE;md5=29b4ad63b1f1509efea6629404336393"
 
-# No version in the path or the recipe name: these tools come out of whatever
-# dart-sdk this configuration built, and pairing a snapshot with a different
-# SDK's runtime does not work anyway. One dart-sdk per build, one set here.
-PV = "1.0"
 
-INHIBIT_DEFAULT_DEPS = "1"
+DEPENDS += "\
+    curl-native \
+    depot-tools-native \
+    ninja-native \
+    xz-native \
+    compiler-rt \
+    libcxx \
+    "
 
-# Nothing to fetch or build: dart-sdk's do_deploy is the source.
-do_fetch[noexec] = "1"
-do_unpack[noexec] = "1"
-do_patch[noexec] = "1"
-do_configure[noexec] = "1"
-do_compile[noexec] = "1"
+S = "${UNPACKDIR}/gn"
 
-# The tools are built for one target, so the set staged here is the one
-# dart-sdk built for this machine. MACHINE in the signature keeps sstate from
-# handing back another machine's copy.
-do_install[vardeps] += "MACHINE"
-do_install[depends] += "dart-sdk:do_deploy"
+SRCREV = "04bcd1036cdc799ac6564988f159ee454d42c822"
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-DART_SDK_TOOLS_DIR = "${bindir}/dart-sdk-tools"
+SRC_URI = " \
+    gn://github.com/dart-lang/sdk.git;gn_name=sdk \
+    file://gcc_toolchain.gni.in \
+    file://0001-build-Make-SDK-artifacts-independent-of-the-builder-s.patch;patchdir=${S}/sdk \
+"
+
+require conf/include/flutter-clang-toolchain.inc
+TOOLCHAIN_NATIVE = "clang"
+TC_CXX_RUNTIME = "llvm"
+PREFERRED_PROVIDER_llvm = "clang"
+PREFERRED_PROVIDER_llvm-native = "clang-native"
+PREFERRED_PROVIDER_libgcc = "compiler-rt"
+LIBCPLUSPLUS = "-stdlib=libc++"
+
+inherit gn-fetcher pkgconfig deploy
+
+# gn writes its output inside the sync directory; keep it out of the
+# cached tarball, which is also what a mirror would serve.
+GN_PACK_EXCLUDES = "./sdk/out"
+
+require conf/include/gn-utils.inc
+
+# For gn.bbclass
+EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
+
+
+# Dart 3.13.1's tools/gn.py dropped --platform-sdk and --use-mallinfo2. argparse
+# exits 2 on an unrecognized option, so leaving them here fails do_configure
+# immediately. The PACKAGECONFIG entries are removed rather than defaulted off,
+# since enabling them could only ever break the build.
+PACKAGECONFIG ??= "verify-sdk-hash dynamic-modules"
+
+PACKAGECONFIG[verify-sdk-hash] = "--verify-sdk-hash"
+PACKAGECONFIG[use-crashpad] = "--use-crashpad"
+PACKAGECONFIG[use-qemu] = "--use-qemu"
+PACKAGECONFIG[exclude-kernel-service] = "--exclude-kernel-service"
+PACKAGECONFIG[verbose] = "--verbose"
+PACKAGECONFIG[git-version] = "--git-version"
+PACKAGECONFIG[dynamic-modules] = "--dart-dynamic-modules"
+PACKAGECONFIG[codesigning-identity] = "--codesigning-identity ${CODESIGNING_IDENTITY}"
+
+GN_ARGS = "${PACKAGECONFIG_CONFARGS} --no-rbe --clang"
+
+# all, debug, release, product
+GN_ARGS:append = " --mode product"
+
+GN_HOST_ARCH = "${@gn_host_arch_name(d)}"
+
+# available architectures
+# all,ia32,x64,
+# arm,arm64,arm_x64,arm_arm64,
+# simarm,simarm64,simarm_x64,simarm_arm64,x64c,arm64c,simarm64c,
+# simriscv32,simriscv64,simx64,simx64c,riscv32,riscv64
+
+# --arm-float-abi [soft,softfp,hard]
+
+GN_ARGS:append:armv7 = " -a arm_${GN_HOST_ARCH} --arm-float-abi ${TARGET_FPU}"
+GN_ARGS:append:armv7a = " -a arm_${GN_HOST_ARCH} --arm-float-abi ${TARGET_FPU}"
+GN_ARGS:append:armv7ve = " -a arm_${GN_HOST_ARCH} --arm-float-abi ${TARGET_FPU}"
+GN_ARGS:append:aarch64 = " -a arm64_${GN_HOST_ARCH}"
+GN_ARGS:append:x86-64 = " -a x64_${GN_HOST_ARCH}"
+GN_ARGS:append:riscv32 = " -a riscv32_${GN_HOST_ARCH}"
+GN_ARGS:append:riscv64 = " -a riscv64_${GN_HOST_ARCH}"
+
+OUT_DIR = "${S}/sdk/out"
+
+do_configure() {
+
+    cd ${S}
+
+    # prevent tmp path warning
+    cp ${UNPACKDIR}/gcc_toolchain.gni.in sdk/build/toolchain/gcc_toolchain.gni
+    sed -i "s|@DEBUG_FLAGS@|${DEBUG_FLAGS}|g" sdk/build/toolchain/gcc_toolchain.gni
+
+    # we only build one mode type
+    rm -rf "${OUT_DIR}" || true
+
+    export DART_USE_SYSROOT="${TARGET_SYSROOT}"
+    export DART_USE_TOOLCHAIN="${STAGING_DIR_NATIVE}/usr/bin"
+
+    #
+    # additional flags that may be useful:
+    #
+    # --debug-opt-level
+    # --gn-args
+
+    bbnote "GN_ARGS: ${GN_ARGS}"
+    python3 ./sdk/tools/gn.py ${GN_ARGS}
+}
+do_configure[depends] += " \
+    depot-tools-native:do_populate_sysroot \
+    "
+
+do_compile() {
+
+    cd ${S}/sdk
+
+    export DART_USE_SYSROOT="${TARGET_SYSROOT}"
+    export DART_USE_TOOLCHAIN="${STAGING_DIR_NATIVE}/usr/bin"
+
+    BUILD_DIR="${OUT_DIR}/$(ls ${OUT_DIR})"
+
+    bbnote "$(cat "${BUILD_DIR}/args.gn")"
+
+    ninja -C "${BUILD_DIR}" create_sdk $PARALLEL_MAKE
+}
+do_compile[depends] += " \
+    depot-tools-native:do_populate_sysroot \
+    "
+do_compile[progress] = "outof:^\[(\d+)/(\d+)\]\s+"
 
 do_install() {
-    src="${DEPLOY_DIR_IMAGE}/dart-sdk-tools"
 
-    if [ ! -d "$src" ]; then
-        bbfatal "dart-sdk deployed no cross tools at $src"
-    fi
+    BUILD_DIR="${OUT_DIR}/$(ls ${OUT_DIR})"
 
-    install -d ${D}${DART_SDK_TOOLS_DIR}
-    install -m 0755 "$src"/* ${D}${DART_SDK_TOOLS_DIR}/
+    install -d ${D}${datadir}/dart-sdk
+
+    cp -R ${BUILD_DIR}/dart-sdk/* ${D}${datadir}/dart-sdk/
 }
 
-FILES:${PN} = "${DART_SDK_TOOLS_DIR}"
+# buildpaths: gen_kernel_aot.dart.snapshot embeds a build path. It comes out
+# of the SDK's own `ninja create_sdk`, so it is not ours to construct and not
+# yet fixed -- see #827. The skip arrived here undocumented with the 3.47.1
+# roll; it is a known defect being hidden, not a check that does not apply.
+INSANE_SKIP:${PN} = "already-stripped ldflags"
 
-# Build-machine binaries. A target variant would put a foreign ELF in an image
-# -- the mistake #1009 caught on kirkstone.
-COMPATIBLE_HOST:class-target = "null"
+FILES:${PN} += "${datadir}"
+
+# The cross gen_snapshot, for dart-sdk-tools to stage.
+#
+# The build produces two sets: the target binaries in the mode root, and the
+# host ones under clang_${GN_HOST_ARCH}/. The host gen_snapshot runs on the
+# build machine and emits code for the target --
+#
+#   $ out/ProductXARM64_X64/clang_x64/gen_snapshot --version
+#   Dart SDK version: 3.13.4 (stable) on "linux_simarm64"
+#
+# -- which is what building a Dart executable for the target needs, and it was
+# discarded at the end of the build until now. Deployed rather than packaged:
+# a build-machine binary has no business in a target package, as #1009 worked
+# out the hard way. Per MACHINE, because it is built for one target.
+#
+# Nothing here on a build where host and target share an architecture: gn emits
+# no clang_ subdirectory then, since the binaries in the mode root already run
+# on the builder.
+do_deploy() {
+    # Target builds only. The native and nativesdk variants build for the host,
+    # so they have no cross tools to offer, and deploying from them writes the
+    # same files as this recipe's target build -- which sstate refuses:
+    #
+    #   dart-sdk-native do_deploy: trying to install files into a shared area
+    #   when those files already exist
+    case "${PN}" in
+        *-native|nativesdk-*)
+            bbnote "host build: no cross tools to deploy"
+            return 0
+            ;;
+    esac
+
+    BUILD_DIR="${OUT_DIR}/$(ls ${OUT_DIR})"
+    host_dir="${BUILD_DIR}/clang_${GN_HOST_ARCH}"
+
+    if [ ! -d "$host_dir" ]; then
+        bbnote "no $host_dir: host and target share an architecture"
+        install -d ${DEPLOYDIR}/dart-sdk-tools
+        cd ${BUILD_DIR}
+        for f in gen_snapshot gen_snapshot_product; do
+            test -f "$f" && install -m 0755 "$f" ${DEPLOYDIR}/dart-sdk-tools/
+        done
+        return 0
+    fi
+
+    install -d ${DEPLOYDIR}/dart-sdk-tools
+    cd "$host_dir"
+    for f in gen_snapshot gen_snapshot_product; do
+        test -f "$f" && install -m 0755 "$f" ${DEPLOYDIR}/dart-sdk-tools/
+    done
+}
+addtask deploy after do_install before do_build
 
 BBCLASSEXTEND = "native nativesdk"
