@@ -4,7 +4,7 @@
 # cache staged by do_unpack. Consume via pub-cache.bbclass, which points
 # PUB_CACHE at it and runs `pub get --offline --enforce-lockfile`.
 #
-# Lockfile: flutter/pubspec.lock from flutter_linux_3.47.5-stable.tar.xz
+# Lockfile: flutter/pubspec.lock at 3.47.7
 
 PUB_CACHE_LOCAL ?= "pub_cache"
 PUBSPEC_LOCK_SHA256 = "3d87e1af1544de8682105570ed0e8e8744bd200846a35665242fe17724d88068"

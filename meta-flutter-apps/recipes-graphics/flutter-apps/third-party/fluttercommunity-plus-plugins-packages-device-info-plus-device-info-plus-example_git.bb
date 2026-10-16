@@ -14,7 +14,7 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=aaa4daf7a83c6896af2c007b59db56e4"
 
-SRCREV = "13e170479b3c66c890fa401f5fdb3af141faf67a"
+SRCREV = "907994b0e52c2c11ae2f2ccc08d0658e1c73dbaf"
 SRC_URI = "git://github.com/fluttercommunity/plus_plugins.git;lfs=1;branch=main;protocol=https"
 
 PUB_CACHE_EXTRA_ARCHIVE_PATH = "${WORKDIR}/pub_cache/bin"

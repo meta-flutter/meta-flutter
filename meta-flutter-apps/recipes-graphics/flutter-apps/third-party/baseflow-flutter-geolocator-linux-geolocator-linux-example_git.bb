@@ -14,7 +14,7 @@ SECTION = "graphics"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=eb51e6812edbf587a5462bf17f2692a2"
 
-SRCREV = "209f35634ec7616cf822f8854a109b1f7782941a"
+SRCREV = "196a3b5dfdacd78c08ba301a3b08e03916e0ae42"
 SRC_URI = "git://github.com/Baseflow/flutter-geolocator.git;lfs=1;branch=main;protocol=https"
 
 PUBSPEC_APPNAME = "geolocator_linux_example"

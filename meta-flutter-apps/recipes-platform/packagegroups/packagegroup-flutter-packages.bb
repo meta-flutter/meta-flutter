@@ -15,11 +15,14 @@ RDEPENDS:${PN} += " \
     flutter-packages-camera-example \
     flutter-packages-cross-file-cross-file-android-cross-file-android-example \
     flutter-packages-cross-file-cross-file-cross-file-example \
+    flutter-packages-cross-file-cross-file-darwin-cross-file-darwin-example \
     flutter-packages-cross-file-cross-file-io-cross-file-io-example \
+    flutter-packages-cross-file-cross-file-web-cross-file-web-example \
     flutter-packages-cupertino-ui-cupertino-ui-examples \
     flutter-packages-espresso-example \
     flutter-packages-extension-google-sign-in-as-googleapis-auth-extension-google-sign-in-example \
     flutter-packages-flutter-lints-example \
+    flutter-packages-flutter-shaders-example \
     flutter-packages-go-router-builder-go-router-builder-example \
     flutter-packages-go-router-go-router-examples \
     flutter-packages-google-adsense-google-adsense-example \
