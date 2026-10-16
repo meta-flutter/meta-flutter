@@ -1,5 +1,23 @@
 # Changelog
 
+October 16, 2026
+1. roll to Flutter 3.47.7 (#1184)
+   - FLUTTER_SDK_TAG 3.47.5 -> 3.47.7, the dart, engine and release revision
+     files, 121 app SRCREVs, and dart-sdk 3.13.4 -> 3.13.5. Staged by
+     .github/workflows/roll.yml, which took a branch input for this (#1179 on
+     master), so the roll ran with this branch's own tools/ and generated the
+     conventions this branch uses
+   - 3.47.6 and 3.47.7 were released with no roll dispatched. The watcher
+     recorded the version before dispatching, so a failed dispatch lost the
+     signal and every later run saw no change:
+     meta-flutter/flutter-channel-watch#5. Reported as #1175
+   - the engine prebuilts for deb28748 were missing for both releases and were
+     built for x86_64, arm64 and armv7hf before this landed
+   - all four machines built it, which includes flutter-engine from source at
+     the new revision. qemuarm64 failed once on a single-bit corruption of a
+     checked-out dart source file on the runner -- memberKind read as
+     membmrKind, one bit -- and passed on rerun
+
 October 15, 2026
 1. roll: pick the dart-sdk recipe by version, not by prefix
    - update_dart_recipe globbed dart-sdk*.bb and took element 0 of an unsorted
