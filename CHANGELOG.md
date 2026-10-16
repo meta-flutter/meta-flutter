@@ -1,5 +1,22 @@
 # Changelog
 
+October 16, 2026
+1. dart-sdk: bump to 3.13.5, restore dart-sdk-tools (#1178)
+   - repairs what the 3.47.7 roll did here: dart-sdk_3.13.5.bb is now
+     dart-sdk_3.13.4.bb with SRCREV at the dart 3.13.5 tag, 04bcd10, which is
+     what conf/include/dart-revision.json records for 3.47.6 and 3.47.7, and
+     dart-sdk-tools_git.bb is back as it was. dart-sdk_3.13.4.bb is removed
+   - sdk/LICENSE is unchanged between the two dart tags, so LIC_FILES_CHKSUM
+     stands. SRCREV is the only version-derived line in the recipe
+2. ci: resolve the dart apps (#1194)
+   - dart-example-hello and dart-example-pub are the only targets that resolve
+     dart-sdk-tools-native. The roll deleted that recipe and the full matrix
+     stayed green: bitbake -p parses, and a missing provider only shows up in a
+     taskgraph. bitbake dart-sdk does not cover it, the tools recipe being
+     separate and native-only, and only a dart app pulls it in
+   - added to the existing bitbake -n list in the musl resolve step. Resolved,
+     not built, so this costs a dependency resolve and no build time
+
 October 15, 2026
 1. roll to Flutter 3.47.7 (#1176)
    - FLUTTER_SDK_TAG 3.47.5 -> 3.47.7, the dart, engine and release revision
