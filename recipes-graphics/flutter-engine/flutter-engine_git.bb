@@ -541,6 +541,8 @@ do_install() {
 # target-specific build tree (out/linux_<mode>_<target>/clang_<host>/). A shared
 # path also collides outright -- every machine in a multi-machine build writes
 # the same files, and sstate refuses that.
+DEPLOY_DIR_IMAGE:forcevariable = "${DEPLOY_DIR}/flutter-engine-host-tools/${MACHINE}"
+
 do_deploy() {
     # BUILD_DIR below is relative to the engine source root, the same as
     # do_install's.

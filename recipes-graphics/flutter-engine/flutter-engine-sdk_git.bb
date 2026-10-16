@@ -42,7 +42,7 @@ do_install[depends] += "flutter-engine:do_deploy"
 FLUTTER_SDK_TOOLS_DIR = "${bindir}/flutter-engine-sdk/${PV}"
 
 do_install() {
-    src="${DEPLOY_DIR_IMAGE}/flutter-engine-sdk/${PV}"
+    src="${DEPLOY_DIR}/flutter-engine-host-tools/${MACHINE}/flutter-engine-sdk/${PV}"
 
     if [ ! -d "$src" ]; then
         bbfatal "flutter-engine deployed no host tools at $src"
@@ -67,5 +67,9 @@ FILES:${PN} = "${FLUTTER_SDK_TOOLS_DIR}"
 # may not share the builder's architecture, which is the bug this recipe
 # exists to fix; flutter-engine itself ships them on a matching-arch image.
 COMPATIBLE_HOST:class-target = "null"
+
+# Pre-built x86-64 host binaries that link against libc/libm from the build
+# host, not a packaged nativesdk dep.
+INSANE_SKIP:class-nativesdk:append = " file-rdeps"
 
 BBCLASSEXTEND = "native nativesdk"
