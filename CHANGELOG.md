@@ -1,5 +1,16 @@
 # Changelog
 
+October 16, 2026
+1. ci: resolve the dart apps (#1187)
+   - dart-example-hello and dart-example-pub are the only targets that resolve
+     dart-sdk-tools-native, which conf/include/dart-app.inc depends on. A roll
+     deleted that recipe on master and the full matrix stayed green: bitbake -p
+     parses, and a missing provider only shows up in a taskgraph. bitbake
+     dart-sdk does not cover it, the tools recipe being separate and
+     native-only, and only a dart app pulls it in
+   - added to the existing bitbake -n list in the musl resolve step. Resolved,
+     not built, so this costs a dependency resolve and no build time
+
 October 15, 2026
 1. roll: pick the dart-sdk recipe by version, not by prefix (#1182)
    - update_dart_recipe globbed dart-sdk*.bb and took element 0 of an unsorted
