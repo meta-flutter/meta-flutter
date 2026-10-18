@@ -1,5 +1,18 @@
 # Changelog
 
+October 18, 2026
+1. roll to Flutter 3.47.7 (#1200)
+   - FLUTTER_SDK_TAG 3.47.5 -> 3.47.7, the dart, engine and release revision
+     files, 121 app SRCREVs, and dart-sdk 3.13.4 -> 3.13.5 with SRCREV at the
+     dart 3.13.5 tag
+   - rolled by .github/workflows/roll.yml with the branch input added on master
+     for this (#1179), so it ran with this branch's own tools/ and generated
+     this branch's conventions rather than master's. No LICENSE operator moved
+     in either direction, and dart-sdk-tools_git.bb survived, which is what
+     #1183 fixed the recipe glob for
+   - all three machines built it, flutter-engine from source at the new engine
+     revision included
+
 October 16, 2026
 1. ci: resolve the dart apps (#1188)
    - dart-example-hello and dart-example-pub are the only targets that resolve
