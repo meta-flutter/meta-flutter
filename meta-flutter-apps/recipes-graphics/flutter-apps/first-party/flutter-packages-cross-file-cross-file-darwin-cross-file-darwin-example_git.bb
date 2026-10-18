@@ -1,0 +1,27 @@
+#
+# Copyright (c) 2020-2025 Joel Winarske
+#
+# SPDX-License-Identifier: MIT
+#
+
+SUMMARY = "cross_file_darwin_example"
+DESCRIPTION = "Demonstrates how to use the cross_file_darwin plugin."
+AUTHOR = "Google"
+HOMEPAGE = "None"
+BUGTRACKER = "None"
+SECTION = "graphics"
+
+LICENSE = "BSD-3-Clause"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=2b36ca50262dc615e560c27654badb26"
+
+SRCREV = "0259ad7e515b74f6855c4c72d81abe2231fe31d3"
+SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=https"
+
+S = "${WORKDIR}/git"
+
+PUBSPEC_APPNAME = "cross_file_darwin_example"
+FLUTTER_APPLICATION_INSTALL_SUFFIX = "flutter-packages-cross-file-cross-file-darwin-cross-file-darwin-example"
+PUBSPEC_IGNORE_LOCKFILE = "1"
+FLUTTER_APPLICATION_PATH = "packages/cross_file/cross_file_darwin/example"
+
+inherit flutter-app
