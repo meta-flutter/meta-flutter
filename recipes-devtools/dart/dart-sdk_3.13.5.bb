@@ -49,6 +49,7 @@ inherit gn-fetcher pkgconfig deploy
 GN_PACK_EXCLUDES = "./sdk/out"
 
 require conf/include/gn-utils.inc
+require conf/include/host-tools.inc
 
 # For gn.bbclass
 EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
@@ -173,6 +174,12 @@ FILES:${PN} += "${datadir}"
 # Nothing here on a build where host and target share an architecture: gn emits
 # no clang_ subdirectory then, since the binaries in the mode root already run
 # on the builder.
+#
+# The path is conf/include/host-tools.inc's so this and dart-sdk-tools cannot
+# disagree about it, and the layout token is in vardeps so moving it re-runs
+# this task.
+do_deploy[sstate-outputdirs] = "${DART_SDK_HOST_TOOLS_DIR}"
+do_deploy[vardeps] += "FLUTTER_HOST_TOOLS_LAYOUT"
 do_deploy() {
     # Target builds only. The native and nativesdk variants build for the host,
     # so they have no cross tools to offer, and deploying from them writes the
