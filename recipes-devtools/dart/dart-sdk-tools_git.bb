@@ -22,6 +22,8 @@ PV = "1.0"
 
 INHIBIT_DEFAULT_DEPS = "1"
 
+require conf/include/host-tools.inc
+
 # Nothing to fetch or build: dart-sdk's do_deploy is the source.
 do_fetch[noexec] = "1"
 do_unpack[noexec] = "1"
@@ -32,13 +34,13 @@ do_compile[noexec] = "1"
 # The tools are built for one target, so the set staged here is the one
 # dart-sdk built for this machine. MACHINE in the signature keeps sstate from
 # handing back another machine's copy.
-do_install[vardeps] += "MACHINE"
+do_install[vardeps] += "MACHINE FLUTTER_HOST_TOOLS_LAYOUT"
 do_install[depends] += "dart-sdk:do_deploy"
 
 DART_SDK_TOOLS_DIR = "${bindir}/dart-sdk-tools"
 
 do_install() {
-    src="${DEPLOY_DIR_IMAGE}/dart-sdk-tools"
+    src="${DART_SDK_HOST_TOOLS_DIR}/dart-sdk-tools"
 
     if [ ! -d "$src" ]; then
         bbfatal "dart-sdk deployed no cross tools at $src"
