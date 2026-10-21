@@ -490,6 +490,20 @@ jobs:
           bitbake --runall=fetch $APPS
           BB_NO_NETWORK=1 bitbake $APPS
 
+      # The only dart-app in CI, and the only thing that runs dart-sdk-tools'
+      # do_install -- which stages gen_snapshot out of dart-sdk's deploy tree.
+      # The musl resolve above only resolves it, and a missing or misplaced
+      # deploy shows up at do_install, not in a taskgraph. See #1197.
+      - name: Build a dart app
+        # Off for qemuarm like the app builds below. Whether a 32-bit arm dart
+        # target works here is untested, and not what this step is for.
+        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        shell: bash
+        working-directory: ../wrynose-linux-dummy
+        run: |
+          . ./openembedded-core/oe-init-build-env
+          bitbake dart-example-hello
+
       - name: Build jwinarske-bluez-native-flutter-ble-scanner
         # flutter build bundle has no linux-arm target platform,
         # so the app recipes do not parse for a 32-bit machine
