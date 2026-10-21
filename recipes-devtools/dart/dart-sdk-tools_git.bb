@@ -52,6 +52,11 @@ do_install() {
 
 FILES:${PN} = "${DART_SDK_TOOLS_DIR}"
 
+# Same as flutter-engine-sdk: built by dart-sdk's target build against the
+# build host's libc, so the nativesdk package's ELF requirements have to come
+# from the SDK's glibc rather than be skipped. Not exercised in CI either.
+RDEPENDS:${PN}:class-nativesdk = "nativesdk-glibc"
+
 # Build-machine binaries. A target variant would put a foreign ELF in an image
 # -- the mistake #1009 caught on kirkstone.
 COMPATIBLE_HOST:class-target = "null"

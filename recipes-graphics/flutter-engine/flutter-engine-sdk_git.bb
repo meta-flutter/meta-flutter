@@ -64,6 +64,16 @@ do_install() {
 
 FILES:${PN} = "${FLUTTER_SDK_TOOLS_DIR}"
 
+# These come out of the engine's own build and link the build host's libc, so
+# the nativesdk package's ELF requirements -- libm.so.6(GLIBC_2.29) and the
+# rest -- have to be satisfied by the SDK's glibc. Declaring it is the fix.
+# INSANE_SKIP for file-rdeps would only move the failure from the build to an
+# SDK user's machine, and uninative does not help: it rewrites interpreters for
+# native, cross and crosssdk only. Not exercised here, since nothing in CI
+# builds a nativesdk package -- it wants a populate_sdk and an install to
+# confirm the binaries run under the SDK's loader. See #1197.
+RDEPENDS:${PN}:class-nativesdk = "nativesdk-glibc"
+
 # Build-machine binaries. The target variant would put them in an image that
 # may not share the builder's architecture, which is the bug this recipe
 # exists to fix; flutter-engine itself ships them on a matching-arch image.
