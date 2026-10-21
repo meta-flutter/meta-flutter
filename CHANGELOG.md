@@ -2,33 +2,27 @@
 
 October 21, 2026
 1. host tools: one deploy path, owned by the layer (#1206)
-   - flutter-engine deploys build-machine tools for flutter-engine-sdk to
-     stage, and dart-sdk does the same for dart-sdk-tools. Both pairs agreed on
-     the location by each reading DEPLOY_DIR_IMAGE, which cannot hold: the
-     producer is a target recipe, the consumer is native, and native.bbclass
-     and nativesdk.bbclass both set MACHINEOVERRIDES = "", so a machine-scoped
-     redirect of that variable reaches one half of the handoff and not the
-     other
-   - meta-ti does exactly that. meta-ti-bsp/conf/layer.conf sets
-     DEPLOY_DIR_IMAGE:ti-soc = "${TI_COMMON_DEPLOY}/images/${MACHINE}", so on a
-     TI machine the engine deploys to ${TOPDIR}/deploy-ti/images/${MACHINE}
-     while flutter-engine-sdk-native looks in ${DEPLOY_DIR}/images/${MACHINE}
-     and finds nothing. Reported and diagnosed by thorstenl312 in #1197
-   - conf/include/host-tools.inc owns both paths now, derived from DEPLOY_DIR,
-     which no layer here redirects. MACHINE is untouched in the native and
-     nativesdk contexts, so the value holds in all three variants
-   - FLUTTER_HOST_TOOLS_LAYOUT is in each producer's do_deploy[vardeps] and
-     each consumer's do_install[vardeps]. Moving a deploy path does not change
-     do_deploy's signature on its own: DEPLOY_DIR is in BB_HASHEXCLUDE_COMMON
-     and sstate-outputdirs is in BB_SIGNATURE_EXCLUDE_FLAGS. Without the token
-     the task does not re-run on a tree with a valid stamp, the new directory
-     stays empty, and the consumer fails where it used to work
+   - flutter-engine and dart-sdk deploy build-machine tools;
+     flutter-engine-sdk and dart-sdk-tools stage them. Both pairs found the
+     path by reading DEPLOY_DIR_IMAGE, which the two halves can resolve
+     differently: native.bbclass and nativesdk.bbclass set
+     MACHINEOVERRIDES = "", so a machine-scoped redirect reaches the producer
+     only
+   - meta-ti-bsp/conf/layer.conf sets DEPLOY_DIR_IMAGE:ti-soc, which is how
+     thorstenl312 hit it (#1197)
+   - conf/include/host-tools.inc owns both paths now, derived from DEPLOY_DIR
+   - FLUTTER_HOST_TOOLS_LAYOUT in do_deploy[vardeps] and do_install[vardeps]:
+     DEPLOY_DIR and sstate-outputdirs are both signature-excluded, so without
+     it do_deploy does not re-run and the new directory stays empty
 2. ci: build a dart app (#1206)
-   - dart-example-hello is the only dart-app recipe CI builds, and the only
-     thing that runs dart-sdk-tools' do_install. #1185 added both dart apps to
-     the musl resolve list, and a resolve never reaches do_install, so the dart
-     half of the handoff had no coverage at all
-   - off for qemuarm, like the other app builds
+   - dart-example-hello is the only thing in CI that runs dart-sdk-tools'
+     do_install. The resolve list does not reach it. Off for qemuarm
+3. host tools: declare the SDK's libc for the nativesdk packages (#1207)
+   - both consumers package binaries linked against the build host's libc and
+     declared no RDEPENDS, so QA could not resolve libm.so.6(GLIBC_2.29).
+     nativesdk-glibc provides it; INSANE_SKIP would have moved the failure to
+     run time
+   - not exercised by CI, which builds no nativesdk package
 
 October 18, 2026
 1. roll to Flutter 3.47.7 (#1200)
