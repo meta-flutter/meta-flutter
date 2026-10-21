@@ -1,5 +1,35 @@
 # Changelog
 
+October 21, 2026
+1. host tools: one deploy path, owned by the layer (#1206)
+   - flutter-engine deploys build-machine tools for flutter-engine-sdk to
+     stage, and dart-sdk does the same for dart-sdk-tools. Both pairs agreed on
+     the location by each reading DEPLOY_DIR_IMAGE, which cannot hold: the
+     producer is a target recipe, the consumer is native, and native.bbclass
+     and nativesdk.bbclass both set MACHINEOVERRIDES = "", so a machine-scoped
+     redirect of that variable reaches one half of the handoff and not the
+     other
+   - meta-ti does exactly that. meta-ti-bsp/conf/layer.conf sets
+     DEPLOY_DIR_IMAGE:ti-soc = "${TI_COMMON_DEPLOY}/images/${MACHINE}", so on a
+     TI machine the engine deploys to ${TOPDIR}/deploy-ti/images/${MACHINE}
+     while flutter-engine-sdk-native looks in ${DEPLOY_DIR}/images/${MACHINE}
+     and finds nothing. Reported and diagnosed by thorstenl312 in #1197
+   - conf/include/host-tools.inc owns both paths now, derived from DEPLOY_DIR,
+     which no layer here redirects. MACHINE is untouched in the native and
+     nativesdk contexts, so the value holds in all three variants
+   - FLUTTER_HOST_TOOLS_LAYOUT is in each producer's do_deploy[vardeps] and
+     each consumer's do_install[vardeps]. Moving a deploy path does not change
+     do_deploy's signature on its own: DEPLOY_DIR is in BB_HASHEXCLUDE_COMMON
+     and sstate-outputdirs is in BB_SIGNATURE_EXCLUDE_FLAGS. Without the token
+     the task does not re-run on a tree with a valid stamp, the new directory
+     stays empty, and the consumer fails where it used to work
+2. ci: build a dart app (#1206)
+   - dart-example-hello is the only dart-app recipe CI builds, and the only
+     thing that runs dart-sdk-tools' do_install. #1185 added both dart apps to
+     the musl resolve list, and a resolve never reaches do_install, so the dart
+     half of the handoff had no coverage at all
+   - off for qemuarm, like the other app builds
+
 October 18, 2026
 1. roll to Flutter 3.47.7 (#1202)
    - FLUTTER_SDK_TAG 3.47.5 -> 3.47.7, the dart, engine and release revision
