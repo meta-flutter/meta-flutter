@@ -16,6 +16,7 @@ LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/BSD-3-Clause;md5=550794465ba0ec5312d6919e203a55f9"
 
 require conf/include/flutter-version.inc
+require conf/include/host-tools.inc
 
 PV = "${@get_flutter_sdk_version(d)}"
 
@@ -36,13 +37,13 @@ do_compile[noexec] = "1"
 FLUTTER_ENGINE_SRCREV = "${@get_flutter_hash(d)}"
 # MACHINE too: the tools are built for a target, so the set staged here is
 # the one the engine built for this machine, not a machine-independent copy.
-do_install[vardeps] += "FLUTTER_ENGINE_SRCREV MACHINE"
+do_install[vardeps] += "FLUTTER_ENGINE_SRCREV MACHINE FLUTTER_HOST_TOOLS_LAYOUT"
 do_install[depends] += "flutter-engine:do_deploy"
 
 FLUTTER_SDK_TOOLS_DIR = "${bindir}/flutter-engine-sdk/${PV}"
 
 do_install() {
-    src="${DEPLOY_DIR_IMAGE}/flutter-engine-sdk/${PV}"
+    src="${FLUTTER_ENGINE_HOST_TOOLS_DIR}/flutter-engine-sdk/${PV}"
 
     if [ ! -d "$src" ]; then
         bbfatal "flutter-engine deployed no host tools at $src"
