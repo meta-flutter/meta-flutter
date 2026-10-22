@@ -1,5 +1,32 @@
 # Changelog
 
+October 21, 2026
+1. host tools: one deploy path, owned by the layer (#1206)
+   - flutter-engine and dart-sdk deploy build-machine tools;
+     flutter-engine-sdk and dart-sdk-tools stage them. Both pairs found the
+     path by reading DEPLOY_DIR_IMAGE, which the two halves can resolve
+     differently: native.bbclass and nativesdk.bbclass set
+     MACHINEOVERRIDES = "", so a machine-scoped redirect reaches the producer
+     only
+   - meta-ti-bsp/conf/layer.conf sets DEPLOY_DIR_IMAGE:ti-soc, which is how
+     thorstenl312 hit it (#1197)
+   - conf/include/host-tools.inc owns both paths now, derived from DEPLOY_DIR
+   - FLUTTER_HOST_TOOLS_LAYOUT in do_deploy[vardeps] and do_install[vardeps]:
+     DEPLOY_DIR and sstate-outputdirs are both signature-excluded, so without
+     it do_deploy does not re-run and the new directory stays empty
+2. ci: build a dart app, not on this branch yet (#1206)
+   - dart-example-hello is the only thing that runs dart-sdk-tools'
+     do_install, and the resolve list does not reach it. Added on the other
+     four branches. Held here: dart-sdk-native does not compile on scarthgap,
+     where oe-core's gcc toolchain adds -fcanon-prefix-map to
+     DEBUG_PREFIX_MAP and dart's bundled clang rejects it
+3. host tools: declare the SDK's libc for the nativesdk packages (#1207)
+   - both consumers package binaries linked against the build host's libc and
+     declared no RDEPENDS, so QA could not resolve libm.so.6(GLIBC_2.29).
+     nativesdk-glibc provides it; INSANE_SKIP would have moved the failure to
+     run time
+   - not exercised by CI, which builds no nativesdk package
+
 October 18, 2026
 1. roll to Flutter 3.47.7 (#1201)
    - FLUTTER_SDK_TAG 3.47.5 -> 3.47.7, the dart, engine and release revision

@@ -34,6 +34,7 @@ LIBCPLUSPLUS = "-stdlib=libc++"
 require conf/include/gn-utils.inc
 require conf/include/clang-utils.inc
 require conf/include/flutter-version.inc
+require conf/include/host-tools.inc
 
 PV = "${FLUTTER_SDK_VERSION}"
 
@@ -541,6 +542,12 @@ do_install() {
 # target-specific build tree (out/linux_<mode>_<target>/clang_<host>/). A shared
 # path also collides outright -- every machine in a multi-machine build writes
 # the same files, and sstate refuses that.
+#
+# The path is conf/include/host-tools.inc's so this and flutter-engine-sdk
+# cannot disagree about it, and the layout token is in vardeps so moving it
+# re-runs this task.
+do_deploy[sstate-outputdirs] = "${FLUTTER_ENGINE_HOST_TOOLS_DIR}"
+do_deploy[vardeps] += "FLUTTER_HOST_TOOLS_LAYOUT"
 do_deploy() {
     # BUILD_DIR below is relative to the engine source root, the same as
     # do_install's.
