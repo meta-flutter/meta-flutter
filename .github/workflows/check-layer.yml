@@ -143,7 +143,21 @@ jobs:
                  ../meta-yocto/meta-poky
                  ../meta-drm
                  ../meta-vulkan"
+          rc=0
           yocto-check-layer ../meta-flutter ../meta-flutter/meta-flutter-apps -n \
               --no-auto-dependency \
               --dependency ../meta-openembedded/meta-oe $stack \
-              --additional-layers $stack
+              --additional-layers $stack 2>&1 | tee check-layer.log || rc=$?
+
+          # continue-on-error reports this step as a success, so the verdict has
+          # to go somewhere it can be read without opening the log.
+          {
+              echo '### yocto-check-layer'
+              echo '```'
+              sed -n '/Summary of results:/,$p' check-layer.log
+              echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$rc" != 0 ]; then
+              echo "::warning::yocto-check-layer reported failures, see the job summary"
+          fi
+          exit $rc
