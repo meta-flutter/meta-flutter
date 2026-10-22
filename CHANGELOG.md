@@ -1,5 +1,22 @@
 # Changelog
 
+October 22, 2026
+1. ci: run yocto-check-layer (#1217)
+   - the compliance suite was never run here. On a GitHub-hosted runner: it
+     parses and resolves and builds nothing, so it does not queue behind the
+     self-hosted matrix
+   - both layers are under test. meta-flutter-apps needed a README and
+     LAYERDEPENDS = "core flutter-layer", which 202 recipes already required
+     by inheriting flutter-app
+   - not gating: the suite errors on any task with [network] = "1" outside
+     do_fetch and its allow-list is hardcoded in yocto-check-layer.bbclass.
+     do_archive_pub_cache and gn-fetcher need the network where they are. See
+     #1218
+   - the verdict goes to $GITHUB_STEP_SUMMARY, since continue-on-error reports
+     the step as a success whatever the suite says
+   - README.md gains a maintainer line: test_readme wants "maintainer",
+     "patch" and an email, and only "patch" was there
+
 October 21, 2026
 1. host tools: one deploy path, owned by the layer (#1206)
    - flutter-engine and dart-sdk deploy build-machine tools;
