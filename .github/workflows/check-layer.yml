@@ -124,9 +124,10 @@ jobs:
           # find python3-absl-native; only --additional-layers left
           # meta-filesystems unable to find networking-layer.
           #
-          # -n disables auto layer discovery. Without it, passing
-          # ../meta-flutter also finds meta-flutter-apps nested inside it and
-          # tests that too, which fails test_readme for want of one.
+          # -n disables auto layer discovery, so the layers under test are named
+          # rather than found. Both are tested: meta-flutter-apps is a layer of
+          # its own, and its LAYERDEPENDS on flutter-layer resolves because the
+          # layers under test join the dependency pool.
           #
           # --no-auto-dependency: test this layer, not the stack under it.
           #
@@ -141,9 +142,8 @@ jobs:
                  ../meta-openembedded/meta-python
                  ../meta-yocto/meta-poky
                  ../meta-drm
-                 ../meta-vulkan
-                 ../meta-flutter/meta-flutter-apps"
-          yocto-check-layer ../meta-flutter -n \
+                 ../meta-vulkan"
+          yocto-check-layer ../meta-flutter ../meta-flutter/meta-flutter-apps -n \
               --no-auto-dependency \
               --dependency ../meta-openembedded/meta-oe $stack \
               --additional-layers $stack
