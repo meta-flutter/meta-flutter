@@ -1,0 +1,163 @@
+# yocto-check-layer, the Yocto layer compliance suite.
+#
+# Runs on a GitHub-hosted runner. It parses, resolves and inspects; it compiles
+# nothing, so it has no business queueing behind the self-hosted matrix -- the
+# same argument roll.yml makes. The dependency stack is cloned fresh each run,
+# shallow, which costs a few minutes and keeps the job stateless.
+
+name: check-layer
+
+on:
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+    paths:
+      - 'conf/**'
+      - 'classes/**'
+      - 'lib/**'
+      - 'recipes-*/**'
+      - 'dynamic-layers/**'
+      - 'meta-flutter-apps/**'
+      - 'README.md'
+      - '.github/workflows/check-layer.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: check-layer-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  YOCTO_BRANCH: wrynose
+  BITBAKE_BRANCH: '2.18'
+  DRM_BRANCH: master
+  VULKAN_BRANCH: master
+
+jobs:
+  check-layer:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          path: meta-flutter
+
+      - name: Install what bitbake's sanity check wants
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends \
+              build-essential chrpath cpio debianutils diffstat file gawk \
+              iputils-ping libacl1 liblz4-tool locales python3-git \
+              python3-jinja2 python3-pexpect python3-subunit socat texinfo \
+              unzip xz-utils zstd
+          sudo locale-gen en_US.UTF-8
+
+          # bitbake needs unprivileged user namespaces, which Ubuntu 24.04
+          # restricts through AppArmor -- "User namespaces are not usable by
+          # BitBake" otherwise, when it generates world signatures. ubuntu-latest
+          # is 24.04, and a hosted runner lets us lift it.
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
+      - name: Fetch the dependency stack
+        run: |
+          set -euo pipefail
+          # Shallow and single-branch: nothing here needs history. Cloned in
+          # parallel, with each pid waited on, since `wait` with no operands
+          # always returns 0 and would hide a failed clone.
+          pids=""
+          for spec in \
+              "${{ env.BITBAKE_BRANCH }}|https://github.com/openembedded/bitbake.git" \
+              "${{ env.YOCTO_BRANCH }}|https://github.com/openembedded/openembedded-core.git" \
+              "${{ env.YOCTO_BRANCH }}|https://github.com/yoctoproject/meta-yocto.git" \
+              "${{ env.YOCTO_BRANCH }}|https://github.com/openembedded/meta-openembedded.git" \
+              "${{ env.DRM_BRANCH }}|https://github.com/jwinarske/meta-drm.git" \
+              "${{ env.VULKAN_BRANCH }}|https://github.com/jwinarske/meta-vulkan.git" ; do
+              branch=${spec%%|*}
+              repo=${spec#*|}
+              git clone -q --depth 1 --single-branch -b "$branch" "$repo" &
+              pids="$pids $!:$repo@$branch"
+          done
+          rc=0
+          for entry in $pids; do
+              pid=${entry%%:*}
+              repo=${entry#*:}
+              if ! wait "$pid"; then
+                  echo "::error::clone failed: $repo"
+                  rc=1
+              fi
+          done
+          exit $rc
+
+      # Not gating, and the comment above the invocation says why: the suite's
+      # network rule cannot be satisfied by this layer today, so a red result
+      # here is expected and the job is here to show the rest.
+      - name: yocto-check-layer
+        continue-on-error: true
+        env:
+          LANG: en_US.UTF-8
+        run: |
+          # No -u: oe-init-build-env reads BBSERVER and friends unset, and
+          # dies with "unbound variable" before it gets anywhere.
+          set -eo pipefail
+          . ./openembedded-core/oe-init-build-env build > /dev/null
+
+          # Expected to fail on the network rule, which is why this step does
+          # not gate. yocto-check-layer.bbclass walks the task graph from
+          # do_build, skips do_fetch, and errors on any task with
+          # [network] = "1". Its allow-list is hardcoded:
+          #
+          #   allowed = []
+          #   allowed += ["build-appliance-image:do_image"]
+          #
+          # so there is no way for a layer to declare an intentional one. This
+          # layer has around 40: do_archive_pub_cache resolves an app's pub
+          # dependencies, gn-fetcher syncs the engine's DEPS tree, and both
+          # need the network where they are. Fixing it means moving that work
+          # into do_fetch or vendoring every app's lockfile into SRC_URI, and
+          # neither is a CI change.
+          #
+          # Everything else the suite checks is worth watching, so it runs.
+          #
+          # The stack goes in both buckets, and they do different jobs:
+          # --dependency is only the pool that LAYERDEPENDS is resolved
+          # against, while --additional-layers is what actually lands in
+          # bblayers.conf. Only meta-oe in --dependency left world unable to
+          # find python3-absl-native; only --additional-layers left
+          # meta-filesystems unable to find networking-layer.
+          #
+          # -n disables auto layer discovery, so the layers under test are named
+          # rather than found. Both are tested: meta-flutter-apps is a layer of
+          # its own, and its LAYERDEPENDS on flutter-layer resolves because the
+          # layers under test join the dependency pool.
+          #
+          # --no-auto-dependency: test this layer, not the stack under it.
+          #
+          # No --machines, so test_machine_world and test_machine_signatures
+          # skip. This layer defines containerx86-64 and containerarm64, so the
+          # suite classifies it BSP; putting those through the machine tests is
+          # worth doing once this lands clean.
+          stack="../meta-openembedded/meta-filesystems
+                 ../meta-openembedded/meta-gnome
+                 ../meta-openembedded/meta-multimedia
+                 ../meta-openembedded/meta-networking
+                 ../meta-openembedded/meta-python
+                 ../meta-yocto/meta-poky
+                 ../meta-drm
+                 ../meta-vulkan"
+          rc=0
+          yocto-check-layer ../meta-flutter ../meta-flutter/meta-flutter-apps -n \
+              --no-auto-dependency \
+              --dependency ../meta-openembedded/meta-oe $stack \
+              --additional-layers $stack 2>&1 | tee check-layer.log || rc=$?
+
+          # continue-on-error reports this step as a success, so the verdict has
+          # to go somewhere it can be read without opening the log.
+          {
+              echo '### yocto-check-layer'
+              echo '```'
+              sed -n '/Summary of results:/,$p' check-layer.log
+              echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$rc" != 0 ]; then
+              echo "::warning::yocto-check-layer reported failures, see the job summary"
+          fi
+          exit $rc
