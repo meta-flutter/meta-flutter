@@ -1,5 +1,28 @@
 # Changelog
 
+October 22, 2026
+1. ci: run yocto-check-layer (#1221)
+   - port of #1217 from wrynose, with this branch's pins and stack. On a
+     GitHub-hosted runner: it parses and resolves and builds nothing, so it
+     does not queue behind the self-hosted matrix
+   - stack adds meta-clang and meta-lts-mixins, which master does not need: a
+     BBFILES_DYNAMIC key names each one's collection. meta-drm and meta-vulkan
+     stay out, nothing under test reaches them in a world build
+   - both layers are under test. meta-flutter-apps needed a README, and its
+     LAYERDEPENDS gains core alongside flutter-layer
+   - the suite gets the distro configuration ci-build.inc builds this layer
+     with. nodistro's defaults have no opengl on this release, so
+     features_check skipped flutter-engine and world collapsed with nothing
+     PROVIDES it; adding features one at a time then hit systemd and
+     gnome-shell in turn
+   - not gating: the suite errors on any task with [network] = "1" outside
+     do_fetch and its allow-list is hardcoded. See #1223 and #1224
+   - test_signatures fails on this branch only: capnproto_%.bbappend changes
+     meta-oe's capnproto basehash, and 183 signatures with it. Fix is a
+     meta-oe backport, which the append already names
+   - README.md gains a maintainer line: test_readme wants "maintainer",
+     "patch" and an email, and only "patch" was there
+
 October 21, 2026
 1. host tools: one deploy path, owned by the layer (#1206)
    - flutter-engine and dart-sdk deploy build-machine tools;
