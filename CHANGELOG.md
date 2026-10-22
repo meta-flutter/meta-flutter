@@ -14,9 +14,12 @@ October 21, 2026
    - FLUTTER_HOST_TOOLS_LAYOUT in do_deploy[vardeps] and do_install[vardeps]:
      DEPLOY_DIR and sstate-outputdirs are both signature-excluded, so without
      it do_deploy does not re-run and the new directory stays empty
-2. ci: build a dart app (#1206)
-   - dart-example-hello is the only thing in CI that runs dart-sdk-tools'
-     do_install. The resolve list does not reach it. Off for qemuarm
+2. ci: build a dart app, not on this branch yet (#1206)
+   - dart-example-hello is the only thing that runs dart-sdk-tools'
+     do_install, and the resolve list does not reach it. Added on the other
+     four branches. Held here: dart-sdk-native does not compile on scarthgap,
+     where oe-core's gcc toolchain adds -fcanon-prefix-map to
+     DEBUG_PREFIX_MAP and dart's bundled clang rejects it
 3. host tools: declare the SDK's libc for the nativesdk packages (#1207)
    - both consumers package binaries linked against the build host's libc and
      declared no RDEPENDS, so QA could not resolve libm.so.6(GLIBC_2.29).
