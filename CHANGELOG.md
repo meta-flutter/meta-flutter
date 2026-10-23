@@ -17,6 +17,14 @@ October 22, 2026
    - README.md gains a maintainer line: test_readme wants "maintainer",
      "patch" and an email, and only "patch" was there
 
+2. ci: name the flatpak build remote
+   - flatpak-app.bbclass skips an app recipe whose FLATPAK_REMOTE is unset,
+     and it defaults to FLATPAK_BUILD_REMOTE, which nothing here set. Both
+     flatpak-minimal app targets stopped providing anything and the matrix
+     failed with "Nothing PROVIDES"
+   - upstream is cloned at a branch tip and the guard reached its default
+     branch on October 21. ci-build.inc now names a remote
+
 October 21, 2026
 1. host tools: one deploy path, owned by the layer (#1206)
    - flutter-engine and dart-sdk deploy build-machine tools;
