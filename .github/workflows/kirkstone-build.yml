@@ -25,6 +25,7 @@ on:
       - 'docs/**'
       - 'tools/**'
       - '.github/workflows/tools-tests.yml'
+      - '.github/workflows/check-layer.yml'
       - '.gitignore'
       - 'LICENSE'
   workflow_dispatch:

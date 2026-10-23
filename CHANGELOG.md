@@ -1,5 +1,25 @@
 # Changelog
 
+October 24, 2026
+1. ci: run yocto-check-layer (#1221)
+   - port of #1217, third of the four branches. On a GitHub-hosted runner: it
+     parses and resolves and builds nothing, so it does not queue behind the
+     self-hosted matrix
+   - stack adds meta-clang, which master does not need: a BBFILES_DYNAMIC key
+     names clang-layer in both layers under test. meta-drm and meta-vulkan
+     stay out, nothing under test reaches them in a world build
+   - the suite runs with the distro configuration ci-build.inc builds this
+     layer with. nodistro's defaults have no opengl on this release, so
+     features_check would skip flutter-engine and take world with it (#1231)
+   - both layers are under test. meta-flutter-apps needed a README and a
+     LAYERDEPENDS of its own, which 203 recipes already required by
+     inheriting flutter-app
+   - not gating. Two failures are expected: the network rule (#1223, #1224),
+     and test_signatures, which names clang_%.bbappend and zenity_%.bbappend
+     for changing the basehash of recipes this layer does not own
+   - README.md gains a maintainer line: test_readme wants "maintainer",
+     "patch" and an email, and only "patch" was there
+
 October 21, 2026
 1. host tools: one deploy path, owned by the layer (#1206)
    - flutter-engine and dart-sdk deploy build-machine tools;

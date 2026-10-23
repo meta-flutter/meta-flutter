@@ -2,6 +2,10 @@
 
 Yocto Layer for Google Flutter related projects.
 
+Maintainer: Joel Winarske <joel.winarske@linux.com>
+
+Send patches as pull requests against the branch for your release.
+
 ### Discord Server https://discord.gg/cBkecwT65Q
 
 ### Recommended development flow
