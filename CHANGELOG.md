@@ -1,5 +1,15 @@
 # Changelog
 
+October 23, 2026
+1. ci: run check-layer against the supported distro configuration
+   - the suite ran under nodistro, whose defaults have no systemd, polkit or
+     pam. sdbus-cpp-examples DEPENDS on systemd and the apps layer's gnome
+     flatpak example RDEPENDS on xdg-desktop-portal-gnome, so test_world
+     failed on a configuration the real build never has
+   - check-layer.yml now mirrors ci-build.inc's distro settings. Scarthgap
+     went from world collapsing to meta-flutter-apps passing on this change
+     (#1227)
+
 October 22, 2026
 1. ci: run yocto-check-layer (#1217)
    - the compliance suite was never run here. On a GitHub-hosted runner: it
