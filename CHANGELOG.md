@@ -1,7 +1,22 @@
 # Changelog
 
 October 23, 2026
-1. ci: run check-layer against the supported distro configuration
+1. flutter-sdk: use the build host's own Dart and engine tools (#1233)
+   - do_unpack ran the release archive's x86-64 dart on any build host. Since
+     46d3a8d4 the archive's bin/cache is kept rather than deleted, so
+     Flutter's bootstrap no longer fetches a host-arch Dart, and an aarch64
+     host failed with "Exec format error"
+   - the host dart-sdk, engine artifacts and font-subset are staged through
+     SRC_URI from the engine revision the SDK was built from, keyed by
+     BUILD_ARCH. do_unpack stays offline, which is the point of 46d3a8d4
+   - common.inc already resolved the host tools through the build arch, so
+     app builds would have failed next; artifacts.zip covers that
+   - the archives publish no checksum, so tools/host_sdk_hashes.py records
+     them in conf/include/host-sdk.json and the roll runs it
+   - no change on an x86-64 host: the anonymous function returns before
+     adding an entry
+
+2. ci: run check-layer against the supported distro configuration
    - the suite ran under nodistro, whose defaults have no systemd, polkit or
      pam. sdbus-cpp-examples DEPENDS on systemd and the apps layer's gnome
      flatpak example RDEPENDS on xdg-desktop-portal-gnome, so test_world
@@ -10,7 +25,7 @@ October 23, 2026
      went from world collapsing to meta-flutter-apps passing on this change
      (#1227)
 
-2. ci: drop the flatpak build remote again
+3. ci: drop the flatpak build remote again
    - #1228 set FLATPAK_BUILD_REMOTE here because this branch builds
      flatpak-minimal-* targets. Nothing reads it: those two recipes live in
      meta-flutter-apps and inherit flutter-app-native, while the class that
@@ -686,8 +701,8 @@ Aug 14, 2024
 1. missing include python3-dir to common.inc
 
 Aug 13. 2024
-1. caching pub fetcher v1
-2. auto-roll apps; known build breaks on gallery and super-dash
+2. caching pub fetcher v1
+3. auto-roll apps; known build breaks on gallery and super-dash
 
 Aug 12, 2024
 1. pubspec tool supports hosted and git sources
@@ -792,7 +807,7 @@ May 13, 2024
 3. Version ivi-homescreen to v1.0
 4. Version flutter-auto to v1.0
 5. Update flutter-auto repo and commit to match ivi-homescreen v1.6. flutter-auto recipes now uses EXE_OUTPUT_NAME=flutter-auto
-7. Move archive pubspec after patch, before configure
+6. Move archive pubspec after patch, before configure
 
 
 Apr 22, 2024

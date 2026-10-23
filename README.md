@@ -16,6 +16,14 @@ Send patches as pull requests against the branch for your release.
 * Add your apps recipe and your selected embedder to IMAGE_INSTALL in your conf/local.conf file.
 * Image device
 
+### Supported build hosts
+
+x86-64 and aarch64. Flutter publishes its Linux SDK archive for x86-64 only,
+so on an aarch64 host the SDK's bundled Dart and host engine tools are
+replaced with the ones Flutter publishes per engine revision; the sha256 of
+those lives in conf/include/host-sdk.json and the roll records it. CI runs on
+x86-64 only, so aarch64 is supported but not continuously tested.
+
 ### Supported Flutter Application types
 
 * Flutter Application
