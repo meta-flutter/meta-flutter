@@ -1,0 +1,9 @@
+{
+  "deb287481e3ce9468f3434937ced4240a70539ca": {
+    "arm64": {
+      "dart-sdk": "fae969baffbfe18c17efcb5124f3668baa886db19a80851a51f1fdb20074649a",
+      "artifacts": "5fafe5f569b813973f43bb994f83d576635c8fff725896bc668378fa16c9c7f0",
+      "font-subset": "5fe95bc7c187eb78917fc00e789dc1f90da79ee5ede5b5e38d2670b74fe37fa0"
+    }
+  }
+}
