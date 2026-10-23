@@ -14,7 +14,7 @@ SECTION = "graphics"
 LICENSE = "Apache-2.0 AND BSD-3-Clause AND OFL-1.1"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=b7eeb61b41ae366e94383bca5e113fce"
 
-SRCREV = "aa0f1b4a9572dcb6fad4258061d2033ddda7fb65"
+SRCREV = "ccff53d6f6a9a7de01e8d1140d061345b6b3819e"
 SRC_URI = "git://github.com/flutter/games.git;lfs=1;branch=main;protocol=https"
 
 PUBSPEC_APPNAME = "ads"
