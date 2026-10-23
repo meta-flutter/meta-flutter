@@ -1,5 +1,14 @@
 # Changelog
 
+October 23, 2026
+1. ci: name the flatpak build remote (#1228)
+   - flatpak-app.bbclass skips an app recipe whose FLATPAK_REMOTE is unset,
+     and it defaults to FLATPAK_BUILD_REMOTE, which nothing here set. The
+     flatpak-minimal app targets stopped providing anything and the matrix
+     failed with "Nothing PROVIDES"
+   - upstream is cloned at a branch tip and the guard reached its default
+     branch on October 21. ci-build.inc now names a remote
+
 October 22, 2026
 1. ci: run yocto-check-layer (#1221)
    - port of #1217 from wrynose, with this branch's pins and stack. On a
