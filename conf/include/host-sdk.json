@@ -1,0 +1,16 @@
+{
+  "cf636b1dfb818dd6a3ff16e390e93b1a036969c8": {
+    "arm64": {
+      "artifacts": "7b3872e00f044087b52122d6c0328893227659cd912af63ffa6a78d54330601f",
+      "dart-sdk": "deecc25fa5a2811206654ba11c00e2dcf28519fb6a4bedfa335b70aa2882f6bb",
+      "font-subset": "f0ffd487412aaefd4d4585dc45f22d75bd89ac4818e22e6a93d103ff514a9a88"
+    }
+  },
+  "deb287481e3ce9468f3434937ced4240a70539ca": {
+    "arm64": {
+      "artifacts": "5fafe5f569b813973f43bb994f83d576635c8fff725896bc668378fa16c9c7f0",
+      "dart-sdk": "fae969baffbfe18c17efcb5124f3668baa886db19a80851a51f1fdb20074649a",
+      "font-subset": "5fe95bc7c187eb78917fc00e789dc1f90da79ee5ede5b5e38d2670b74fe37fa0"
+    }
+  }
+}

@@ -1,5 +1,30 @@
 # Changelog
 
+October 25, 2026
+1. flutter-sdk: use the build host's own Dart and engine tools (#1233)
+   - port from wrynose (#1234). do_unpack ran the release archive's x86-64
+     dart on any build host, so an aarch64 host failed with "Exec format
+     error"
+   - the host dart-sdk, engine artifacts and font-subset are staged through
+     SRC_URI from the engine revision the SDK was built from, keyed by
+     BUILD_ARCH. do_unpack stays offline
+   - conf/include/host-sdk.json is keyed by engine revision and carries both
+     3.47.7's and this roll's 3.47.8 at cf636b1dfb81. This branch has no roll
+     hook yet, so the roll could not record them; the same file now ships the
+     hook, so the next roll here maintains it
+2. flutter-sdk: rebuild flutter_tools.snapshot for non-x86-64 hosts (#1236)
+   - the archive's flutter_tools.snapshot is an app-jit snapshot built by the
+     x86-64 Dart VM. Its stamp is the SDK's git HEAD plus FLUTTER_TOOL_ARGS
+     (shared.sh:124), and neither moves here, so shared.sh hands the x64
+     snapshot to the host VM and it refuses to load
+   - do_unpack rebuilds it with the staged host Dart against the offline
+     resolve. Deleting it instead would send shared.sh to pub upgrade and the
+     network, which do_unpack must not reach
+   - the flutter config calls move after the rebuild, on every host, and so
+     now run with PUB_CACHE set to the SDK cache. flutter config does not
+     resolve packages, so nothing changes on x86-64 beyond the order
+   - from AhmedAdelWafdy7, tested on an aarch64 build host (#1233)
+
 October 24, 2026
 1. SECURITY.md: how to report a vulnerability
    - port from wrynose (#1239). This branch runs no yocto-check-layer, and this

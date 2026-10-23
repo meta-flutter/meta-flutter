@@ -57,3 +57,60 @@ def _get_flutter_release_info(d, key):
 
 def get_flutter_sdk_version(d):
     return _get_flutter_release_info(d, "version")
+
+# Flutter ships one Linux SDK archive and it is x86-64: every entry in
+# releases_linux.json is dart_sdk_arch x64. Its bin/cache/dart-sdk and
+# bin/cache/artifacts/engine/linux-x64 are x86-64 binaries, and do_unpack runs
+# them, so on any other build host they have to be replaced with the archives
+# Flutter publishes per engine revision. That is what the SDK's own
+# bin/internal/update_dart_sdk.sh does from uname -m, and what this layer did
+# until do_unpack stopped deleting bin/cache. See #1233.
+FLUTTER_HOST_SDK_BASE_URL ??= "https://storage.googleapis.com/flutter_infra_release/flutter"
+
+def flutter_build_host_arch(d):
+    """Flutter's name for the build host's architecture."""
+    build_arch = d.getVar("BUILD_ARCH")
+    arch = {"x86_64": "x64", "aarch64": "arm64"}.get(build_arch)
+    if arch is None:
+        raise ValueError(
+            f"No Flutter host SDK for build host {build_arch}: Flutter "
+            "publishes dart-sdk-linux-x64 and dart-sdk-linux-arm64 only")
+    return arch
+
+def get_flutter_engine_revision(d):
+    """The engine revision the pinned SDK was built from."""
+    import json
+    import inspect
+    flutter_sdk_tag = d.getVar("FLUTTER_SDK_TAG")
+    cwd = os.path.dirname(inspect.getfile(lambda: None))
+    with open(os.path.join(cwd, 'engine-revision.json'), encoding='utf-8') as f:
+        revision = json.load(f).get(flutter_sdk_tag, "")
+
+    if revision == "":
+        raise ValueError(
+            f"No engine revision for {flutter_sdk_tag} in engine-revision.json")
+
+    return revision
+
+def get_flutter_host_sdk_hashes(d, arch):
+    """sha256 of the host SDK archives for this engine revision and arch.
+
+    The archives carry no published checksum, so they are recorded rather
+    than fetched. tools/host_sdk_hashes.py writes them and the roll runs it.
+    """
+    import json
+    import inspect
+    revision = get_flutter_engine_revision(d)
+    cwd = os.path.dirname(inspect.getfile(lambda: None))
+    with open(os.path.join(cwd, 'host-sdk.json'), encoding='utf-8') as f:
+        hashes = json.load(f).get(revision, {}).get(arch, {})
+
+    missing = [k for k in ("dart-sdk", "artifacts", "font-subset")
+               if k not in hashes]
+    if missing:
+        raise ValueError(
+            f"conf/include/host-sdk.json has no {', '.join(missing)} sha256 "
+            f"for {arch} at engine {revision}. Record them with:\n"
+            f"  tools/host_sdk_hashes.py --path . --arch {arch}")
+
+    return hashes
