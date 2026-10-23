@@ -10,6 +10,12 @@ October 23, 2026
      went from world collapsing to meta-flutter-apps passing on this change
      (#1227)
 
+2. ci: drop the flatpak build remote again
+   - #1228 set FLATPAK_BUILD_REMOTE here because this branch builds
+     flatpak-minimal-* targets. Nothing reads it: those two recipes live in
+     meta-flutter-apps and inherit flutter-app-native, while the class that
+     wants the variable is in meta-flatpak-minimal, which only master clones
+
 October 22, 2026
 1. ci: run yocto-check-layer (#1217)
    - the compliance suite was never run here. On a GitHub-hosted runner: it
@@ -26,14 +32,6 @@ October 22, 2026
      the step as a success whatever the suite says
    - README.md gains a maintainer line: test_readme wants "maintainer",
      "patch" and an email, and only "patch" was there
-
-2. ci: name the flatpak build remote
-   - flatpak-app.bbclass skips an app recipe whose FLATPAK_REMOTE is unset,
-     and it defaults to FLATPAK_BUILD_REMOTE, which nothing here set. Both
-     flatpak-minimal app targets stopped providing anything and the matrix
-     failed with "Nothing PROVIDES"
-   - upstream is cloned at a branch tip and the guard reached its default
-     branch on October 21. ci-build.inc now names a remote
 
 October 21, 2026
 1. host tools: one deploy path, owned by the layer (#1206)
