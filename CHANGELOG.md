@@ -1,5 +1,20 @@
 # Changelog
 
+October 25, 2026
+1. flutter-sdk: use the build host's own Dart and engine tools (#1233)
+   - port from wrynose (#1234). do_unpack ran the release archive's x86-64
+     dart on any build host, so an aarch64 host failed with "Exec format
+     error"
+   - the host dart-sdk, engine artifacts and font-subset are staged through
+     SRC_URI from the engine revision the SDK was built from, keyed by
+     BUILD_ARCH. do_unpack stays offline
+   - conf/include/host-sdk.json is keyed by engine revision. This branch is on
+     3.47.8 at cf636b1dfb81, which wrynose never carried, so those hashes are
+     recorded here beside 3.47.7's
+   - rolls record them from here on: tools/roll_meta_flutter.py calls
+     host_sdk_hashes.update after the dart recipe step, so a roll past 3.47.8
+     keeps aarch64 working without a manual step
+
 October 24, 2026
 1. ci: run yocto-check-layer (#1221)
    - port of #1217 from wrynose, with this branch's pins and stack. On a
