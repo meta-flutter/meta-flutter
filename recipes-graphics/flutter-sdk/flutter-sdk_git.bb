@@ -57,16 +57,43 @@ SRC_URI = "\
 "
 SRC_URI[flutter-sdk.sha256sum] = "${@get_flutter_sha256(d)}"
 
+# The host tools, when the build host is not x86-64.
+#
+# An anonymous function rather than SRC_URI above, because the same decision
+# has to set the entries and their checksum flags, and because it must not run
+# at all on an x86-64 host, where the archive's own copies are correct and
+# nothing extra should be fetched. See #1233 and flutter-version.inc.
+python () {
+    arch = flutter_build_host_arch(d)
+    if arch == "x64":
+        return
+
+    revision = get_flutter_engine_revision(d)
+    hashes = get_flutter_host_sdk_hashes(d, arch)
+    base = f"{d.getVar('FLUTTER_HOST_SDK_BASE_URL')}/{revision}"
+
+    # Same layout the SDK's own cache uses: the dart-sdk zip carries its own
+    # dart-sdk/ directory, while the engine zips are flat and unpack into the
+    # per-host artifacts directory.
+    d.appendVar('SRC_URI',
+        f' {base}/dart-sdk-linux-{arch}.zip;name=host-dart-sdk;subdir=host-sdk'
+        f' {base}/linux-{arch}/artifacts.zip;name=host-artifacts;subdir=host-sdk/engine'
+        f' {base}/linux-{arch}/font-subset.zip;name=host-font-subset;subdir=host-sdk/engine')
+
+    d.setVarFlag('SRC_URI', 'host-dart-sdk.sha256sum', hashes['dart-sdk'])
+    d.setVarFlag('SRC_URI', 'host-artifacts.sha256sum', hashes['artifacts'])
+    d.setVarFlag('SRC_URI', 'host-font-subset.sha256sum', hashes['font-subset'])
+}
+
 # No SRC_URI entry for the material fonts. One was here, with
 # destsuffix=${D}.../bin/cache/artifacts/material_fonts, and it placed nothing:
 # destsuffix is implemented by the git, hg, npm and npmsw fetchers only, and
 # wget inherits the generic unpack, which honours subdir alone and ignores an
 # unknown parameter. The files landed in ${WORKDIR} and were never installed.
 #
-# Placement would not have survived anyway -- do_unpack:append below removes
-# ${S}/bin/cache, and ${D} does not exist at do_unpack. flutter_tools fetches
-# the fonts itself during do_unpack, which is why the dead entry looked like it
-# worked.
+# Placement would not have survived anyway: ${D} does not exist at do_unpack,
+# and do_unpack:append used to delete ${S}/bin/cache outright. The archive
+# ships the fonts, which is why the dead entry looked like it worked.
 #
 # Fetching precache artifacts declaratively is #711 and needs more than a
 # placement parameter: somewhere that survives the rmtree, and a way to stop
@@ -120,6 +147,31 @@ python do_unpack:append() {
     for pattern in ('android-*', 'ios*', 'darwin*', 'windows*'):
         for path in glob.glob(f'{source_dir}/bin/cache/artifacts/engine/{pattern}'):
             shutil.rmtree(path, ignore_errors=True)
+
+    # Put the host's own tools over the archive's x86-64 ones, before the
+    # flutter calls below run any of them. bin/cache/dart-sdk.stamp is left as
+    # the archive wrote it: it names the engine revision these archives come
+    # from, and bin/internal/shared.sh re-downloads the SDK when it does not
+    # match, which is exactly what has to stay unnecessary here. See #1233.
+    host_arch = flutter_build_host_arch(d)
+    if host_arch != 'x64':
+        unpackdir = d.getVar('UNPACKDIR') or d.getVar('WORKDIR')
+        host_sdk = os.path.join(unpackdir, 'host-sdk')
+
+        dart_sdk = f'{source_dir}/bin/cache/dart-sdk'
+        shutil.rmtree(dart_sdk, ignore_errors=True)
+        shutil.move(f'{host_sdk}/dart-sdk', dart_sdk)
+
+        # The x86-64 engine directory is left in place rather than pruned: it
+        # is not read on this host -- common.inc resolves the host tools
+        # through linux-${BUILD_ARCH} -- and dropping it is a separate change
+        # with its own risk.
+        engine = f'{source_dir}/bin/cache/artifacts/engine/linux-{host_arch}'
+        bb.utils.mkdirhier(engine)
+        shutil.copytree(f'{host_sdk}/engine', engine, dirs_exist_ok=True)
+
+        bb.note(f'flutter-sdk: staged the linux-{host_arch} dart-sdk and '
+                f'engine artifacts over the archive\'s x86-64 copies')
 
     env = os.environ
 
