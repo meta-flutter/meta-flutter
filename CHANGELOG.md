@@ -1,5 +1,21 @@
 # Changelog
 
+October 24, 2026
+1. ci: run yocto-check-layer (#1221)
+   - port of #1217 from wrynose, with this branch's pins and stack. On a
+     GitHub-hosted runner: it parses and resolves and builds nothing, so it
+     does not queue behind the self-hosted matrix
+   - both layers are under test. meta-flutter-apps needed a README and
+     LAYERDEPENDS = "core flutter-layer", which 202 recipes already required
+     by inheriting flutter-app. scarthgap had already declared it
+   - the suite runs with the distro configuration ci-build.inc builds this
+     layer with, not nodistro's defaults, which carry no systemd, polkit or
+     pam and fail test_world on a configuration nothing builds (#1231)
+   - not gating: the suite errors on any task with [network] = "1" outside
+     do_fetch and its allow-list is hardcoded. See #1223 and #1224
+   - README.md gains a maintainer line: test_readme wants "maintainer",
+     "patch" and an email, and only "patch" was there
+
 October 23, 2026
 1. ci: name the flatpak build remote (#1228)
    - flatpak-app.bbclass skips an app recipe whose FLATPAK_REMOTE is unset,
