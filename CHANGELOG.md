@@ -1,5 +1,19 @@
 # Changelog
 
+October 24, 2026
+1. SECURITY.md: how to report a vulnerability
+   - yocto-check-layer's test_security wants a non-empty SECURITY file in the
+     layer or at the repository top level. One file at the root clears both
+     layers: find_file_by_name checks the layer path and the git toplevel, and
+     meta-flutter-apps lives in this repository
+   - only wrynose and master's oe-core has the test. The file belongs on every
+     maintained branch regardless, since a reporter on kirkstone needs it as
+     much as one here
+   - GitHub private vulnerability reporting is disabled on the repository, so
+     the private route is the maintainer's address
+   - SECURITY.md joins check-layer.yml's paths trigger. Without it a change to
+     the file would not run the suite that checks for it
+
 October 23, 2026
 1. flutter-sdk: use the build host's own Dart and engine tools (#1233)
    - do_unpack ran the release archive's x86-64 dart on any build host. Since
