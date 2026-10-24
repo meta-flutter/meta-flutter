@@ -208,14 +208,6 @@ python do_unpack_append() {
     flutter_sdk_tag = d.getVar('FLUTTER_SDK_TAG')
     bb.note(f'Flutter SDK: {flutter_sdk_tag}')
 
-    run_command(d, 'flutter config --clear-features', source_dir, env)
-    run_command(d, 'flutter config --enable-linux-desktop', source_dir, env)
-    run_command(d, 'flutter config --enable-custom-devices', source_dir, env)
-    run_command(d, 'flutter config --enable-web', source_dir, env)
-    run_command(d, 'flutter config --no-analytics', source_dir, env)
-    run_command(d, 'dart --disable-analytics', source_dir, env)
-    run_command(d, 'flutter config --list', source_dir, env)
-
     # Stage the pub cache fetched through SRC_URI, then resolve against it.
     #
     # Measured at 3.47.5 under network isolation: the archive's
@@ -329,6 +321,38 @@ python do_unpack_append() {
         if '/b/s/w/ir' in contents:
             bb.fatal('%s still names the build machine pub cache after '
                      'pub get --offline' % package_config)
+
+    # The archive's flutter_tools.snapshot is an app-jit snapshot built by the
+    # x86-64 Dart VM. Its stamp is the SDK's git HEAD plus FLUTTER_TOOL_ARGS
+    # (shared.sh:124-125); neither moves here, so shared.sh does not rebuild
+    # it. The x64 snapshot cannot load on a non-x86-64 VM:
+    #
+    #   Snapshot not compatible with the current VM configuration: the snapshot
+    #   requires '... x64 linux ...' but the VM has '... arm64 linux ...'
+    #
+    # Rebuild it with the staged host Dart. The stamp is left as the archive
+    # wrote it.
+    if host_arch != 'x64':
+        cmd = (f'{dart} --verbosity=error '
+               '--snapshot=bin/cache/flutter_tools.snapshot '
+               '--snapshot-kind=app-jit '
+               '--packages=packages/flutter_tools/.dart_tool/package_config.json '
+               '--no-enable-mirrors packages/flutter_tools/bin/flutter_tools.dart')
+        bb.note('Running [%s] in %s' % (cmd, source_dir))
+        status, output = getstatusoutput(cmd, source_dir, env)
+        if status:
+            bb.fatal('rebuilding the flutter tool snapshot for linux-%s failed %d:\n%s'
+                     % (host_arch, status, output))
+
+    # Config calls write ${WORKDIR}/settings. They run on every host; PUB_CACHE
+    # is sdk_cache from the resolve above.
+    run_command(d, 'flutter config --clear-features', source_dir, env)
+    run_command(d, 'flutter config --enable-linux-desktop', source_dir, env)
+    run_command(d, 'flutter config --enable-custom-devices', source_dir, env)
+    run_command(d, 'flutter config --enable-web', source_dir, env)
+    run_command(d, 'flutter config --no-analytics', source_dir, env)
+    run_command(d, 'dart --disable-analytics', source_dir, env)
+    run_command(d, 'flutter config --list', source_dir, env)
 
     # Not `flutter doctor`: it runs `dart pub --directory packages/flutter_tools
     # get` without --offline, so it reaches the network. Measured at 3.47.5 that
