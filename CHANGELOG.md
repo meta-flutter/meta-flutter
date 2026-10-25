@@ -1,5 +1,15 @@
 # Changelog
 
+October 24, 2026
+1. SECURITY.md: how to report a vulnerability
+   - port from wrynose (#1239). This release's oe-core has no test_security, so
+     nothing here checks for the file. It ships anyway: a reporter on this
+     branch needs the policy as much as one on wrynose
+   - GitHub private vulnerability reporting is disabled on the repository, so
+     the private route is the maintainer's address
+   - SECURITY.md joins check-layer.yml's paths trigger, to keep the five
+     copies of that workflow in step
+
 October 22, 2026
 1. ci: run yocto-check-layer (#1221)
    - port of #1217 from wrynose, with this branch's pins and stack. On a
