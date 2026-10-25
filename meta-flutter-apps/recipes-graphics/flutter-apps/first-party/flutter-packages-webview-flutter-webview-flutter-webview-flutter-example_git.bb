@@ -14,7 +14,7 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=2b36ca50262dc615e560c27654badb26"
 
-SRCREV = "da40eaf4548ae0d179b3469e7c26c8e2260ed68d"
+SRCREV = "23a05b6ad5d55bc0df5b9340623570b69064edf1"
 SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=https"
 
 PUBSPEC_APPNAME = "webview_flutter_example"
