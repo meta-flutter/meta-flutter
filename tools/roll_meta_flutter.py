@@ -557,6 +557,13 @@ def main():
     print_banner(f'Updating dart-sdk recipe')
     update_dart_recipe(args.path, flutter_sdk_version)
 
+    # After update_version_files() above, which is what puts this version's
+    # engine revision in engine-revision.json. The archives are keyed by that
+    # revision, so there is nothing to hash before it lands. See #1233.
+    print_banner('Recording host SDK hashes')
+    from host_sdk_hashes import update as update_host_sdk_hashes
+    update_host_sdk_hashes(args.path, flutter_sdk_version)
+
     #
     # The apps the SDK itself ships. These have no manifest entry and no
     # SRCREV: they move with FLUTTER_SDK_TAG, so they are regenerated here
