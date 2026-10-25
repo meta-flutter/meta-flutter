@@ -15,6 +15,16 @@ October 24, 2026
      do_fetch and its allow-list is hardcoded. See #1223 and #1224
    - README.md gains a maintainer line: test_readme wants "maintainer",
      "patch" and an email, and only "patch" was there
+2. SECURITY.md: how to report a vulnerability
+   - port from wrynose (#1239). yocto-check-layer's test_security wants a
+     non-empty SECURITY file in the layer or at the repository top level, and
+     this release's oe-core has that test
+   - one file at the root clears both layers: find_file_by_name checks the
+     layer path and the git toplevel, and meta-flutter-apps lives here
+   - GitHub private vulnerability reporting is disabled on the repository, so
+     the private route is the maintainer's address
+   - SECURITY.md joins check-layer.yml's paths trigger. Without it a change to
+     the policy would not run the suite that checks for it
 
 October 23, 2026
 1. ci: name the flatpak build remote (#1228)
