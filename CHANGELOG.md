@@ -1,5 +1,14 @@
 # Changelog
 
+October 24, 2026
+1. SECURITY.md: how to report a vulnerability
+   - port from wrynose (#1239). This branch runs no yocto-check-layer, and this
+     release's oe-core has no test_security either, so nothing checks for the
+     file. It ships so a reporter on dunfell has the policy a reporter on
+     wrynose has
+   - GitHub private vulnerability reporting is disabled on the repository, so
+     the private route is the maintainer's address
+
 October 21, 2026
 1. host tools: one deploy path, owned by the layer (#1206)
    - flutter-engine and dart-sdk deploy build-machine tools;
