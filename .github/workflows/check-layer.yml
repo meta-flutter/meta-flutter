@@ -18,6 +18,7 @@ on:
       - 'dynamic-layers/**'
       - 'meta-flutter-apps/**'
       - 'README.md'
+      - 'SECURITY.md'
       - '.github/workflows/check-layer.yml'
   workflow_dispatch:
 

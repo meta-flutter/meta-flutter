@@ -19,6 +19,14 @@ October 24, 2026
      for changing the basehash of recipes this layer does not own
    - README.md gains a maintainer line: test_readme wants "maintainer",
      "patch" and an email, and only "patch" was there
+2. SECURITY.md: how to report a vulnerability
+   - port from wrynose (#1239). This release's oe-core has no test_security, so
+     nothing here checks for the file. It ships anyway: a reporter on this
+     branch needs the policy as much as one on wrynose
+   - GitHub private vulnerability reporting is disabled on the repository, so
+     the private route is the maintainer's address
+   - SECURITY.md joins check-layer.yml's paths trigger, to keep the five
+     copies of that workflow in step
 
 October 21, 2026
 1. host tools: one deploy path, owned by the layer (#1206)
