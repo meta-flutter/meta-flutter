@@ -13,6 +13,18 @@ October 24, 2026
      the private route is the maintainer's address
    - SECURITY.md joins check-layer.yml's paths trigger. Without it a change to
      the file would not run the suite that checks for it
+2. flutter-sdk: rebuild flutter_tools.snapshot for non-x86-64 hosts (#1236)
+   - the archive's flutter_tools.snapshot is an app-jit snapshot built by the
+     x86-64 Dart VM. Its stamp is the SDK's git HEAD plus FLUTTER_TOOL_ARGS
+     (shared.sh:124), and neither moves here, so shared.sh hands the x64
+     snapshot to the host VM and it refuses to load
+   - do_unpack rebuilds it with the staged host Dart against the offline
+     resolve. Deleting it instead would send shared.sh to pub upgrade and the
+     network, which do_unpack must not reach
+   - the flutter config calls move after the rebuild, on every host, and so
+     now run with PUB_CACHE set to the SDK cache. flutter config does not
+     resolve packages, so nothing changes on x86-64 beyond the order
+   - from AhmedAdelWafdy7, tested on an aarch64 build host (#1233)
 
 October 23, 2026
 1. flutter-sdk: use the build host's own Dart and engine tools (#1233)
