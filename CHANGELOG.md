@@ -1,5 +1,26 @@
 # Changelog
 
+October 26, 2026
+1. roll ivi-homescreen v3.0 to v3.0.0, and ihs_wl_server to v0.1.0
+   - v3.0.0 is 05fb91a0, 262 commits on from b7646dc0 and four behind the
+     v3.0 branch tip. A tag rather than the tip, so the pin names a release
+   - the v3 chain defines HOMESCREEN_COMMIT in three places and all three
+     move together: ivi-homescreen-v3.inc, which ivi-homescreen_3.0 and
+     flutter-auto_3.0 both require, ivi-homescreen-shared_3.0 and
+     ivi-homescreen-test.inc. Rolling only the .inc would leave ihs_shared
+     and the nine test recipes fetching a different commit of the same repo
+   - the v2.0 recipes keep dd6d9224. v2.0 upstream has not moved
+   - PLUGINS_COMMIT and V4L2WC_COMMIT already pinned their branch tips, so
+     neither changes
+   - ihs_wl_server goes to its v0.1.0 tag, 1627b97d, which is also where main
+     now sits. Nineteen commits on: wp_security_context_v1, per-view sandbox
+     identity, SANDBOX_APP_ID in the example, per-axis view scaling with
+     sizeOnScreen, and no longer timing a frame callback after now
+   - LICENSE is unchanged. The egl-wl-display cargo feature would link
+     libwayland-server and pull smithay's backend_egl and use_system_lib, but
+     nothing here enables it and DEPENDS carries no wayland. LIC_FILES_CHKSUM
+     still matches: the LICENSE file is byte-identical at the tag
+
 October 24, 2026
 1. SECURITY.md: how to report a vulnerability
    - yocto-check-layer's test_security wants a non-empty SECURITY file in the
