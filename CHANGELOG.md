@@ -1,5 +1,19 @@
 # Changelog
 
+October 26, 2026
+1. roll ivi-homescreen v3.0 to v3.0.0
+   - v3.0.0 is 05fb91a0, 262 commits on from b7646dc0 and four behind the
+     v3.0 branch tip. The tag is annotated, so the pin is the commit it
+     dereferences to, not the tag object 944a4720
+   - the v3 chain defines HOMESCREEN_COMMIT in three places and all three
+     move together: ivi-homescreen-v3.inc, which ivi-homescreen_3.0 and
+     flutter-auto_3.0 both require, ivi-homescreen-shared_3.0 and
+     ivi-homescreen-test.inc. Rolling only the .inc would leave ihs_shared
+     and the nine test recipes fetching a different commit of the same repo
+   - the v2.0 recipes keep dd6d9224. v2.0 upstream has not moved
+   - PLUGINS_COMMIT and V4L2WC_COMMIT already pinned their branch tips, so
+     neither changes
+
 October 25, 2026
 1. flutter-sdk: use the build host's own Dart and engine tools (#1233)
    - port from wrynose (#1234). do_unpack ran the release archive's x86-64
