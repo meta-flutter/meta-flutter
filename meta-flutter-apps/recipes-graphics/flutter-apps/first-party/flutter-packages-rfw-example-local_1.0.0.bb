@@ -14,7 +14,7 @@ SECTION = "graphics"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=2b36ca50262dc615e560c27654badb26"
 
-SRCREV = "b7ec2d0a7f9003bf6bb2bd65f537c5700e4d3bbf"
+SRCREV = "3258d45ac0f73c86fbe53a2e2c7b0ea4946d793c"
 SRC_URI = "git://github.com/flutter/packages.git;lfs=1;branch=main;protocol=https"
 
 PUBSPEC_APPNAME = "local"
