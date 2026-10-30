@@ -27,7 +27,7 @@ SECTION = "graphics"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=39ae29158ce710399736340c60147314"
 
-HOMESCREEN_COMMIT ??= "b7646dc04c404375deed2d3d91ab1322be2cb554"
+HOMESCREEN_COMMIT ??= "05fb91a0d0e09cd0fb099299dcf2202e1a4d21e4"
 SRCREV = "${HOMESCREEN_COMMIT}"
 
 # Plain git rather than the embedder's gitsm. The apps are pure Dart and none of
