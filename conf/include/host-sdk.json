@@ -1,4 +1,11 @@
 {
+  "89c39edfdfae2949f6806e4a315c0c08522238b7": {
+    "arm64": {
+      "artifacts": "145da0cdfce49cab3201b528350bb0680f85568946f38a1a5eb8bf82aff408ed",
+      "dart-sdk": "0e92a65ec5f99c5fd88f9477dedc321972d027731b3fb58264f951a571a1dd12",
+      "font-subset": "dc5ff333957c88cb385a92e31afda3745d83456744dcf7211c6bafaa389798af"
+    }
+  },
   "cf636b1dfb818dd6a3ff16e390e93b1a036969c8": {
     "arm64": {
       "artifacts": "7b3872e00f044087b52122d6c0328893227659cd912af63ffa6a78d54330601f",
