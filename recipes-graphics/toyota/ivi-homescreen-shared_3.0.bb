@@ -37,7 +37,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=39ae29158ce710399736340c60147314"
 
 # Must stay in lock-step with the embedder recipes: the .so they link at build
 # time and the one this package installs have to be the same library.
-HOMESCREEN_COMMIT ??= "b7646dc04c404375deed2d3d91ab1322be2cb554"
+HOMESCREEN_COMMIT ??= "05fb91a0d0e09cd0fb099299dcf2202e1a4d21e4"
 
 # gitsm: the MCP provider compiles against third_party/rapidjson, which is a
 # submodule. The other submodules are unused here but the fetch is shared with

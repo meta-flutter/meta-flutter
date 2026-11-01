@@ -27,7 +27,7 @@ LICENSE = "Apache-2.0 AND MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=1bb8e4c9af5dd10ccb6c8bae63fb4a2d"
 
 SRC_URI = "git://github.com/toyota-connected/ihs_wl_server.git;protocol=https;branch=main"
-SRCREV = "606abc53dc2498f1e7f4c938c6a8e851880a82ab"
+SRCREV = "1627b97da6976a11f6717d4f69a5e6f3940244d1"
 
 PV = "0.1.0+git"
 
