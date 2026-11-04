@@ -345,27 +345,18 @@ uses and which libraries they name. There is no layer-wide hook.
 
 ### 32-bit targets
 
-Flutter app recipes do not build on 32-bit. `flutter build bundle` accepts only
-64-bit Linux target platforms -- as of 3.47.1 `TargetPlatform` carries
-`linux_x64`, `linux_arm64` and `linux_riscv64` and nothing 32-bit -- so
-`FLUTTER_APP_SUPPORTED_ARCHS` skips app recipes on other architectures at parse
-time rather than failing in `do_compile` after a full fetch and `pub get`.
+Upstream `flutter build bundle` accepts only 64-bit Linux target platforms --
+`TargetPlatform` carries `linux_x64`, `linux_arm64` and `linux_riscv64`. The
+`flutter-sdk` recipe patches `linux_arm` into flutter_tools
+(`recipes-graphics/flutter-sdk/files/0001-flutter_tools-add-linux-arm-target-platform.patch`)
+and rebuilds the tool snapshot from the patched source, so a 32-bit ARM
+`MACHINE` builds app bundles like any other: the asset bundle is built as
+`linux-arm`, the native-assets manifest is keyed `linux_arm` as the engine
+expects, and `libapp.so` comes from `gen_snapshot` out of this layer's own
+`engine_sdk.zip`, built per `MACHINE`. The patch also lets a custom device
+declare `linux-arm`.
 
-The restriction is narrower than it looks. Only the bundle step is gated, and
-what it produces is largely architecture-neutral: assets, fonts and `app.dill`,
-which is Dart kernel. The architecture-specific artifact, `libapp.so`, comes
-from `gen_snapshot` out of this layer's own `engine_sdk.zip`, built per
-`MACHINE` -- and Dart has emitted arm32 for years. The engine and the embedders
-still build for armv7 and link against a working 32-bit `libflutter_engine.so`.
-
-So building the bundle as `linux-arm64` purely to satisfy the tool's allowlist,
-and letting `gen_snapshot` emit the real arm32 code, looks feasible on paper.
-Be aware of what it costs before trying: `--target-platform` is also what keys
-`NativeAssetsManifest.json`, so an app with any FFI plugin would get a manifest
-keyed `linux_arm64` while the engine looks up `linux_arm`. That turns a build
-failure into a silent runtime one -- the key miss described above, with no
-`["system", ...]` entry found and the fallback `dlopen` left to fail. For an app
-with no native assets the question does not arise.
-
-Closing the gap properly is upstream Flutter work: a `linux_arm` value in
-`TargetPlatform`.
+x86 and riscv32 are not supported: Dart has no ia32 AOT and no riscv32, so
+there is no `gen_snapshot` for them. riscv32 exists in the Dart VM source but
+nothing ships for it. `FLUTTER_APP_SUPPORTED_ARCHS` skips app
+recipes there at parse time.

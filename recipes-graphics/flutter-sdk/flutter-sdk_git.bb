@@ -52,8 +52,16 @@ PV = "${FLUTTER_SDK_VERSION}"
 
 inherit pkgconfig
 
+FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
+
+# flutter build bundle has no 32-bit target platform. The patch adds
+# TargetPlatform.linux_arm so a 32-bit ARM MACHINE can build app bundles with
+# the right native assets key. Dart has no riscv32 and no ia32 AOT, so arm is
+# the only 32-bit target worth adding. do_patch:append below rebuilds the tool
+# snapshot from the patched source.
 SRC_URI = "\
     https://storage.googleapis.com/flutter_infra_release/releases/${@get_flutter_archive(d)};name=flutter-sdk \
+    file://0001-flutter_tools-add-linux-arm-target-platform.patch \
 "
 SRC_URI[flutter-sdk.sha256sum] = "${@get_flutter_sha256(d)}"
 
@@ -323,27 +331,9 @@ python do_unpack:append() {
             bb.fatal('%s still names the build machine pub cache after '
                      'pub get --offline' % package_config)
 
-    # The archive's flutter_tools.snapshot is an app-jit snapshot built by the
-    # x86-64 Dart VM. Its stamp is the SDK's git HEAD plus FLUTTER_TOOL_ARGS
-    # (shared.sh:124-125); neither moves here, so shared.sh does not rebuild
-    # it. The x64 snapshot cannot load on a non-x86-64 VM:
-    #
-    #   Snapshot not compatible with the current VM configuration: the snapshot
-    #   requires '... x64 linux ...' but the VM has '... arm64 linux ...'
-    #
-    # Rebuild it with the staged host Dart. The stamp is left as the archive
-    # wrote it.
-    if host_arch != 'x64':
-        cmd = (f'{dart} --verbosity=error '
-               '--snapshot=bin/cache/flutter_tools.snapshot '
-               '--snapshot-kind=app-jit '
-               '--packages=packages/flutter_tools/.dart_tool/package_config.json '
-               '--no-enable-mirrors packages/flutter_tools/bin/flutter_tools.dart')
-        bb.note('Running [%s] in %s' % (cmd, source_dir))
-        status, output = getstatusoutput(cmd, source_dir, env)
-        if status:
-            bb.fatal('rebuilding the flutter tool snapshot for linux-%s failed %d:\n%s'
-                     % (host_arch, status, output))
+    # The tool snapshot is rebuilt in do_patch:append, after the flutter_tools
+    # patch in SRC_URI has been applied; the archive's snapshot is x86-64 only
+    # and predates the patch either way.
 
     # Config calls write ${WORKDIR}/settings. They run on every host; PUB_CACHE
     # is sdk_cache from the resolve above.
@@ -365,6 +355,37 @@ python do_unpack:append() {
     # once.
     run_command(d, 'flutter --version', source_dir, env)
 
+}
+
+python do_patch:append() {
+    # The archive's flutter_tools.snapshot is an app-jit snapshot built by the
+    # x86-64 Dart VM from unpatched source. Its stamp is the SDK's git HEAD
+    # plus FLUTTER_TOOL_ARGS (shared.sh:124-125); neither moves here, so
+    # shared.sh never rebuilds it -- not for the patch above, and not on a
+    # non-x86-64 host, where the x64 snapshot cannot load:
+    #
+    #   Snapshot not compatible with the current VM configuration: the snapshot
+    #   requires '... x64 linux ...' but the VM has '... arm64 linux ...'
+    #
+    # Rebuild it from the patched source with the staged host Dart. The stamp
+    # is left as the archive wrote it. packages/flutter_tools was resolved in
+    # do_unpack:append, so --packages finds its package_config.json.
+    source_dir = d.getVar('S')
+    host_arch = flutter_build_host_arch(d)
+    dart = f'{source_dir}/bin/cache/dart-sdk/bin/dart'
+    env = dict(os.environ)
+    env['HOME'] = d.getVar('WORKDIR')
+    env['PUB_CACHE'] = f'{source_dir}/.pub-cache'
+    cmd = (f'{dart} --verbosity=error '
+           '--snapshot=bin/cache/flutter_tools.snapshot '
+           '--snapshot-kind=app-jit '
+           '--packages=packages/flutter_tools/.dart_tool/package_config.json '
+           '--no-enable-mirrors packages/flutter_tools/bin/flutter_tools.dart')
+    bb.note('Running [%s] in %s' % (cmd, source_dir))
+    status, output = getstatusoutput(cmd, source_dir, env)
+    if status:
+        bb.fatal('rebuilding the flutter tool snapshot for linux-%s failed %d:\n%s'
+                 % (host_arch, status, output))
 }
 
 FLUTTER_SETTINGS_NAME = "settings"

@@ -28,18 +28,13 @@ BUILD_TYPE = "app"
 FLUTTER_BUILD_ARGS ??= "bundle"
 FLUTTER_BUILD_ARGS:append = " --target-platform linux-${@gn_target_arch_name(d)}"
 
-# flutter build bundle only accepts 64-bit Linux target platforms. As of 3.47.1
-# TargetPlatform carries linux_x64, linux_arm64 and linux_riscv64 and nothing
-# 32-bit, so linux-arm and linux-x86 are rejected outright:
-#
-#   "linux-arm" is not an allowed value for option "--target-platform".
-#
-# This is a tooling limit, not an engine one. flutter-engine still builds for
-# armv7 and ships a working 32-bit libflutter_engine.so, and the embedders link
-# against it, so a 32-bit target remains usable -- it just cannot have its app
-# bundle produced by the flutter tool. Skip the app recipes there rather than
+# flutter build bundle only accepts the target platforms TargetPlatform
+# carries. Upstream that is linux_x64, linux_arm64 and linux_riscv64; the
+# flutter-sdk recipe patches in linux_arm, so 32-bit ARM builds too. x86 and
+# riscv32 stay out: Dart has no ia32 AOT and no riscv32 at all, so gen_snapshot
+# could not produce a libapp.so for them. Skip those at parse time rather than
 # fail in do_compile after a full fetch and pub get.
-FLUTTER_APP_SUPPORTED_ARCHS ?= "x64 arm64 riscv64"
+FLUTTER_APP_SUPPORTED_ARCHS ?= "x64 arm64 riscv64 arm"
 
 python () {
     arch = d.getVar('GN_TARGET_ARCH_NAME')
