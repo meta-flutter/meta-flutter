@@ -1,5 +1,25 @@
 # Changelog
 
+November 10, 2026
+1. flutter-sdk: linux-arm target platform, so 32-bit ARM app recipes build
+   (#1262)
+   - 3ad3a09 skipped every flutter app recipe on 32-bit targets. flutter build
+     bundle only accepts what TargetPlatform carries, and upstream that is
+     linux_x64, linux_arm64 and linux_riscv64
+   - the SDK recipe now patches flutter_tools to add TargetPlatform.linux_arm,
+     rather than passing linux-arm64 as a stand-in. The native assets manifest
+     is keyed linux_arm, hooks see Architecture.arm, and custom devices accept
+     linux-arm, so the SDK dev flow works too
+   - flutter-app gains arm in FLUTTER_APP_SUPPORTED_ARCHS. x86 and riscv32
+     stay skipped: Dart has no ia32 AOT and nothing ships riscv32, so
+     gen_snapshot could not produce a libapp.so either way
+   - the tool snapshot is rebuilt from the patched source in do_patch:append.
+     Its stamp is the SDK's git HEAD plus FLUTTER_TOOL_ARGS, neither of which
+     moves, so shared.sh would otherwise keep the archive's unpatched snapshot
+   - do_unpack still rebuilds it on a non-x86-64 host, before the flutter
+     config calls. do_patch runs later, and those calls cannot load an x64
+     snapshot (#1233)
+
 October 26, 2026
 1. roll ivi-homescreen v3.0 to v3.0.0, and ihs_wl_server to v0.1.0
    - v3.0.0 is 05fb91a0, 262 commits on from b7646dc0 and four behind the
