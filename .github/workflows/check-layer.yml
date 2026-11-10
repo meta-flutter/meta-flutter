@@ -35,7 +35,19 @@ env:
 
 jobs:
   check-layer:
-    runs-on: ubuntu-latest
+    # Pinned, not ubuntu-latest. That label moved to Ubuntu 26.04, which ships
+    # Python 3.14, where multiprocessing defaults to the forkserver start
+    # method instead of fork. bitbake's CookerParser is only picklable under
+    # fork, so parsing dies before any test runs:
+    #
+    #   _pickle.PicklingError: Can't pickle local object
+    #   CoreRecipeInfo.init_cacheData.<locals>.<lambda>
+    #   ... when serializing bb.cooker.Parser object
+    #
+    # Nothing here can fix that: the start method is bitbake's own call, and
+    # the release branches are pinned to bitbake versions that will never
+    # carry the fix. Revisit when this branch's bitbake handles forkserver.
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v5
@@ -48,15 +60,16 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq --no-install-recommends \
               build-essential chrpath cpio debianutils diffstat file gawk \
-              iputils-ping libacl1 liblz4-tool locales python3-git \
+              iputils-ping libacl1 lz4 locales python3-git \
               python3-jinja2 python3-pexpect python3-subunit socat texinfo \
               unzip xz-utils zstd
           sudo locale-gen en_US.UTF-8
 
-          # bitbake needs unprivileged user namespaces, which Ubuntu 24.04
-          # restricts through AppArmor -- "User namespaces are not usable by
-          # BitBake" otherwise, when it generates world signatures. ubuntu-latest
-          # is 24.04, and a hosted runner lets us lift it.
+          # bitbake needs unprivileged user namespaces, which Ubuntu restricts
+          # through AppArmor from 24.04 on -- "User namespaces are not usable
+          # by BitBake" otherwise, when it generates world signatures. A hosted
+          # runner lets us lift it. The image is pinned to 24.04 above, so this
+          # stays needed rather than becoming version-dependent.
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
 
       - name: Fetch the dependency stack
