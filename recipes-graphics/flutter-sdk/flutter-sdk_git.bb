@@ -331,9 +331,24 @@ python do_unpack:append() {
             bb.fatal('%s still names the build machine pub cache after '
                      'pub get --offline' % package_config)
 
-    # The tool snapshot is rebuilt in do_patch:append, after the flutter_tools
-    # patch in SRC_URI has been applied; the archive's snapshot is x86-64 only
-    # and predates the patch either way.
+    # do_patch:append rebuilds the snapshot from the patched source, which is
+    # what ships. That is too late for the config calls below: do_patch runs
+    # after do_unpack, and on a non-x86-64 host the archive's x64 snapshot
+    # cannot load at all, so every one of them fails 255 and ${WORKDIR}/settings
+    # is never written -- the do_install failure in #1233. Rebuild here too,
+    # only where the archive's snapshot is unusable. Unpatched is fine: these
+    # calls set feature flags and do not touch target platforms.
+    if host_arch != 'x64':
+        cmd = (f'{dart} --verbosity=error '
+               '--snapshot=bin/cache/flutter_tools.snapshot '
+               '--snapshot-kind=app-jit '
+               '--packages=packages/flutter_tools/.dart_tool/package_config.json '
+               '--no-enable-mirrors packages/flutter_tools/bin/flutter_tools.dart')
+        bb.note('Running [%s] in %s' % (cmd, source_dir))
+        status, output = getstatusoutput(cmd, source_dir, env)
+        if status:
+            bb.fatal('rebuilding the flutter tool snapshot for linux-%s failed %d:\n%s'
+                     % (host_arch, status, output))
 
     # Config calls write ${WORKDIR}/settings. They run on every host; PUB_CACHE
     # is sdk_cache from the resolve above.
