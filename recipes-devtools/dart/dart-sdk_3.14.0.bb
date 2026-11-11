@@ -25,7 +25,7 @@ DEPENDS += "\
 
 S = "${UNPACKDIR}/gn"
 
-SRCREV = "416e33b0ffaef062a60ec966bb8c82ed2b83f128"
+SRCREV = "fa8c1270c374c1346931583a17c3b7f278d3822d"
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 SRC_URI = " \
