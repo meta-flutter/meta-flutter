@@ -45,6 +45,93 @@ CXXFLAGS += "-rtlib=compiler-rt -fuse-ld=lld"
 # "--target-platform linux-${@gn_target_arch_name(d)}" to FLUTTER_BUILD_ARGS.
 # This class must not repeat that, or --target-platform is passed twice.
 
+# Native-asset build hooks read their settings only from hooks.user_defines in
+# the pub workspace's pubspec.yaml; the hook runner does not pass the
+# environment through. FLUTTER_NATIVE_USER_DEFINES is a JSON object keyed by
+# package name, for example
+#
+#   FLUTTER_NATIVE_USER_DEFINES = '{"sqlite3": {"source": "system"}}'
+#
+# do_configure_native_hooks appends it to pubspec.yaml as a flow mapping (JSON
+# is valid YAML), leaving the rest of the file as it is. It runs before
+# do_archive_pub_cache, the layer's "before pub runs" point: an edit after
+# resolution makes pub re-resolve, which needs the network. The block is marked
+# and rewritten on every run, so changing or clearing the value never leaves
+# old settings behind.
+FLUTTER_NATIVE_USER_DEFINES ??= ""
+
+python () {
+    import json
+    import os
+
+    defines = d.getVar('FLUTTER_NATIVE_USER_DEFINES')
+    if not defines:
+        return
+    try:
+        value = json.loads(defines)
+    except ValueError as e:
+        bb.fatal('FLUTTER_NATIVE_USER_DEFINES is not valid JSON: %s' % e)
+    if not isinstance(value, dict) or not all(isinstance(v, dict) for v in value.values()):
+        bb.fatal('FLUTTER_NATIVE_USER_DEFINES must map package names to objects')
+    # The value becomes part of the app's source: it reaches the hooks and
+    # names the pub cache archive in DL_DIR. A build directory path would
+    # differ between build directories.
+    for var in ('TOPDIR', 'TMPDIR', 'DL_DIR'):
+        path = d.getVar(var)
+        for p in {path, os.path.realpath(path)} if path else ():
+            if len(p) > 1 and p in defines:
+                bb.fatal('FLUTTER_NATIVE_USER_DEFINES must not contain %s paths; '
+                         'use target paths such as libdir' % var)
+}
+
+python do_configure_native_hooks() {
+    import json
+    import os
+    import re
+
+    marker = '# Written by do_configure_native_hooks from FLUTTER_NATIVE_USER_DEFINES\n'
+    defines = d.getVar('FLUTTER_NATIVE_USER_DEFINES')
+    pubspec = os.path.join(d.getVar('S'), d.getVar('FLUTTER_PUB_ROOT') or '', 'pubspec.yaml')
+    if not os.path.exists(pubspec):
+        if defines:
+            bb.fatal('FLUTTER_NATIVE_USER_DEFINES is set, but %s does not exist' % pubspec)
+        return
+
+    with open(pubspec) as f:
+        text = f.read()
+    source, found, block = text.partition(marker)
+    # The block is written last and is a single line. Anything after it was
+    # added by something else and would be lost on rewrite.
+    if found and not re.fullmatch(r'hooks: [^\n]*\n', block):
+        bb.fatal('%s has content after the FLUTTER_NATIVE_USER_DEFINES block; '
+                 'move it above the marker line' % pubspec)
+
+    if defines:
+        # The flathub-catalog recipe's former do_inject_user_defines appended
+        # this, unmarked. The edit survives in S while the do_unpack stamp
+        # stays valid, so replace it rather than fail on it.
+        legacy = '\nhooks:\n  user_defines:\n    sqlite3:\n      source: system\n'
+        if source.endswith(legacy):
+            source = source[:-len(legacy)]
+        if re.search(r'^hooks\s*:', source, re.MULTILINE):
+            bb.fatal('%s already has a hooks section; set its user_defines in the '
+                     'recipe instead of FLUTTER_NATIVE_USER_DEFINES.' % pubspec)
+        hooks = json.dumps({'user_defines': json.loads(defines)}, sort_keys=True)
+        if source and not source.endswith('\n'):
+            source += '\n'
+        result = source + marker + 'hooks: %s\n' % hooks
+    else:
+        result = source
+
+    # Unchanged content keeps its mtime, which pub compares with the lockfile.
+    if result != text:
+        with open(pubspec, 'w') as f:
+            f.write(result)
+        bb.note('Wrote native hook user defines to %s' % pubspec)
+}
+# In the graph even when the value is empty, so clearing it removes the block.
+addtask configure_native_hooks after do_patch before do_archive_pub_cache
+
 # Native-assets hook output.
 #
 # conf/include/common.inc runs `flutter build` via run_command(), which captures
