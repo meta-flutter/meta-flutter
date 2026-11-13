@@ -133,6 +133,13 @@ PACKAGECONFIG ??= "\
     dart-secure-socket \
     "
 
+# Same 32-bit break as dart-sdk: the dart dynamic modules FFI trampoline
+# does not compile for a 32-bit target. CI builds release only, which is
+# AOT, where DART_PRECOMPILED_RUNTIME excludes that code, but the default
+# PACKAGECONFIG above includes debug, which is JIT and does reach it.
+PACKAGECONFIG:remove:arm = "dart-dynamic-modules"
+PACKAGECONFIG:remove:riscv32 = "dart-dynamic-modules"
+
 
 PACKAGECONFIG[asan] = "--asan"
 PACKAGECONFIG[backtrace] = "--backtrace,--no-backtrace"

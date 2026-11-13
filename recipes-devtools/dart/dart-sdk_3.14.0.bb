@@ -60,6 +60,20 @@ EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 # since enabling them could only ever break the build.
 PACKAGECONFIG ??= "verify-sdk-hash dynamic-modules"
 
+# dart_dynamic_modules is off upstream: runtime_args.gni defaults it false
+# and tools/gn.py defaults --dart-dynamic-modules to False. It is on here,
+# and the bytecode interpreter's FFI trampoline is not 32-bit clean --
+# FfiCallArguments carries register values in uword, so runtime/vm/
+# runtime_entry.cc fails to build a double out of one:
+#
+#   runtime_entry.cc:1406:26: error: no matching function for call to 'bit_cast'
+#   note: because 'sizeof(double) == sizeof(unsigned int)' (8 == 4)
+#
+# The field was uint64_t before the 3.14.0 refactor. Nothing upstream hits
+# this because the feature ships off. Drop it where it does not build.
+PACKAGECONFIG:remove:arm = "dynamic-modules"
+PACKAGECONFIG:remove:riscv32 = "dynamic-modules"
+
 PACKAGECONFIG[verify-sdk-hash] = "--verify-sdk-hash"
 PACKAGECONFIG[use-crashpad] = "--use-crashpad"
 PACKAGECONFIG[use-qemu] = "--use-qemu"
