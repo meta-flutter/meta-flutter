@@ -40,6 +40,20 @@ November 13, 2026
    - scoped to riscv64 through SRC_URI. Every other target links with the
      bundled clang, where upstream's flag is right, and arm64 built the
      engine on this roll to prove it
+5. dart-sdk, flutter-engine: no dart dynamic modules on 32-bit
+   - 3.14.0 refactored the dynamic modules FFI trampoline to carry register
+     values in uword. A double does not fit in one on a 32-bit target, so
+     runtime_entry.cc fails to compile and master-qemuarm died in do_compile
+   - the code sits behind DART_DYNAMIC_MODULES, which upstream ships off:
+     runtime_args.gni defaults dart_dynamic_modules false and tools/gn.py
+     defaults --dart-dynamic-modules to False. Both recipes turn it on, so
+     this is ours to switch back rather than upstream source to patch
+   - dropped through PACKAGECONFIG on arm and riscv32 only. 64-bit targets
+     are unchanged
+   - flutter-engine carries the same flag and the same break. CI has not hit
+     it because ci-build.inc leaves release only, which is AOT, where
+     DART_PRECOMPILED_RUNTIME excludes the code. A default build includes
+     debug, which is JIT and does reach it
 
 November 10, 2026
 1. flutter-sdk: linux-arm target platform, so 32-bit ARM app recipes build
