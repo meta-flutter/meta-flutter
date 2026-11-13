@@ -20,6 +20,19 @@ November 13, 2026
      org-dartlang-sdk, so dropping the patch loses nothing
    - the stale buildpaths comment goes with it. It documented a skip that is
      not in INSANE_SKIP and called #827 not yet fixed when #827 is closed
+3. flutter-engine: three stale patches on the 3.50.0 roll
+   - 0011-build-Make-SDK-artifacts is byte-identical to the dart-sdk patch
+     and dead for the same reason. It only ran on musl, which is the path CI
+     builds
+   - 0002-flutter-third_party-swiftshader-llvm-16.0 is obsolete. The pin
+     moved to flutter.googlesource.com/third_party/swiftshader @1be9f836 and
+     that fork already selects llvm-16.0 for non-fuchsia
+   - 0006-fml-fixes-text_input was rebased, not dropped. Hunk 3 anchored on
+     a line upstream has since fixed, text_.at(start) to text_.at(end) in
+     the delete-range loop, so forcing it would have reinstated the bug.
+     Regenerated at zero fuzz and zero offset
+   - the other four, 0001 swiftshader, 0003-gn, 0003-suppres-musl and 0009,
+     were checked against the rolled sources and still apply
 
 November 10, 2026
 1. flutter-sdk: linux-arm target platform, so 32-bit ARM app recipes build
