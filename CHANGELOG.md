@@ -11,6 +11,15 @@ November 13, 2026
    - the seven cost riscv64 59 minutes on run 42903059943, and qemuarm's last
      green run was 3h51m51s with them skipped, so it lands near 4h50m against
      GitHub's 6 hour per-job limit. The other branches still carry the guards
+2. dart-sdk: drop the buildpaths patch, 3.14.0 carries it
+   - the backport of dart-review 543800 landed upstream, so applying it to
+     already-patched source failed all six hunks and broke master-qemux86-64
+     on this roll
+   - patched 416e33b0 against pristine 3.14.0 differs only in the scheme
+     string, which upstream named org-dartlang-gnroot rather than
+     org-dartlang-sdk, so dropping the patch loses nothing
+   - the stale buildpaths comment goes with it. It documented a skip that is
+     not in INSANE_SKIP and called #827 not yet fixed when #827 is closed
 
 November 10, 2026
 1. flutter-sdk: linux-arm target platform, so 32-bit ARM app recipes build
