@@ -33,6 +33,13 @@ November 13, 2026
      Regenerated at zero fuzz and zero offset
    - the other four, 0001 swiftshader, 0003-gn, 0003-suppres-musl and 0009,
      were checked against the rolled sources and still apply
+4. flutter-engine: unwindlib must match rtlib on riscv64
+   - 3.50.0 added --unwindlib=libunwind to the custom libcxx link flags for
+     linux. riscv64 builds with the native clang, which defaults to
+     --rtlib=libgcc, and clang refuses that pair
+   - scoped to riscv64 through SRC_URI. Every other target links with the
+     bundled clang, where upstream's flag is right, and arm64 built the
+     engine on this roll to prove it
 
 November 10, 2026
 1. flutter-sdk: linux-arm target platform, so 32-bit ARM app recipes build
