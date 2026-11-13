@@ -65,9 +65,12 @@ S = "${UNPACKDIR}/gn"
 # its native musl locale path when told it is on musl, which
 # FLUTTER_ENGINE_CXX_LIBC_FLAGS already does via -D_LIBCPP_HAS_MUSL_LIBC. They
 # stopped applying at 3.47.1 and are redundant with that define.
+#
+# 0011-build-Make-SDK-artifacts-independent-of-the-builder-s was dropped at
+# 3.50.0: it backported dart-review 543800, which has landed upstream. The
+# vendored dart is the same revision the dart-sdk recipe builds.
 SRC_URI:libc-musl += "\
     file://0003-suppres-musl-libc-warning.patch;patchdir=engine/src/flutter/third_party/dart \
-    file://0011-build-Make-SDK-artifacts-independent-of-the-builder-s.patch;patchdir=engine/src/flutter/third_party/dart \
     "
 
 inherit gn-fetcher features_check pkgconfig deploy
