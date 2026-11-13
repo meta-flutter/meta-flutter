@@ -1,5 +1,17 @@
 # Changelog
 
+November 13, 2026
+1. ci: build the app steps on qemuarm (#1268)
+   - the seven app steps were off for the one 32-bit machine in the matrix
+     because flutter build bundle had no linux-arm target platform, so the
+     app recipes did not parse. #1262 added it, and this branch rebases that
+     patch onto 3.50.0
+   - Build a dart app keeps its guard. A 32-bit arm dart target is untested
+     and not what that step is for
+   - the seven cost riscv64 59 minutes on run 42903059943, and qemuarm's last
+     green run was 3h51m51s with them skipped, so it lands near 4h50m against
+     GitHub's 6 hour per-job limit. The other branches still carry the guards
+
 November 10, 2026
 1. flutter-sdk: linux-arm target platform, so 32-bit ARM app recipes build
    (#1262)
