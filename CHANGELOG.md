@@ -83,6 +83,15 @@ November 13, 2026
      fifteen recipes deep in the app steps hours later
    - adding the postfunc changes do_patch's hash, so flutter-sdk and
      flutter-sdk-native rebuild once
+9. firebase-ffi-demo: SRCREV for the 3.50.0 lockfiles
+   - 3.50.0 pins test_api 0.7.14, vector_math 2.4.4 and meta 1.19.0 and adds
+     listen, so do_archive_pub_cache failed --enforce-lockfile with exit 65
+     on all four machines
+   - fixed upstream in jwinarske/firebase_ffi#95, which regenerated all 19
+     lockfiles in that repo. The new head also carries #96, a material_ui
+     example dependency that is pure Dart and needs no DEPENDS
+   - master only. The new lockfiles do not resolve under 3.47.5, and wrynose,
+     scarthgap and kirkstone all pin c205ef08, so each waits for its own roll
 
 November 10, 2026
 1. flutter-sdk: linux-arm target platform, so 32-bit ARM app recipes build
