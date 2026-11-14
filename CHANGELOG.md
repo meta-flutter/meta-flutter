@@ -74,6 +74,15 @@ November 13, 2026
    - the guards #1268 describes kept the app steps off the only 32-bit
      machine in the matrix, so nothing ever ran the tool this way. #1262's
      own patch header claimed build bundle accepted linux-arm
+8. flutter-sdk: assert the built tool accepts the target platforms
+   - a do_patch postfunc runs the snapshot the app recipes run and requires
+     every value in FLUTTER_TOOL_TARGET_PLATFORMS to appear in build bundle
+     --help. linux-arm64 must not answer for linux-arm, which is what the
+     trailing [\w-] guard is for
+   - it fires in flutter-sdk-native, step 10 and under a minute, rather than
+     fifteen recipes deep in the app steps hours later
+   - adding the postfunc changes do_patch's hash, so flutter-sdk and
+     flutter-sdk-native rebuild once
 
 November 10, 2026
 1. flutter-sdk: linux-arm target platform, so 32-bit ARM app recipes build
