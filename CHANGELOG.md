@@ -54,6 +54,15 @@ November 13, 2026
      it because ci-build.inc leaves release only, which is AOT, where
      DART_PRECOMPILED_RUNTIME excludes the code. A default build includes
      debug, which is JIT and does reach it
+6. flutter-engine: SRC_URI override blocks replaced instead of appending
+   - SRC_URI:riscv64 += appends to the override variable, and the override
+     then replaces SRC_URI outright. riscv64 was left holding only the
+     unwindlib patch, with no git url and none of the other patches, so
+     do_patch failed with "No file to patch" on run 43512124482
+   - both blocks are :append:<override> now, which resolves to the base
+     SRC_URI plus the extra entry
+   - the libc-musl block had the same defect from the day it was written.
+     CI parses and dry-runs musl but never builds it, so nothing caught it
 
 November 10, 2026
 1. flutter-sdk: linux-arm target platform, so 32-bit ARM app recipes build
