@@ -68,7 +68,7 @@ S = "${UNPACKDIR}/gn"
 # 0011-build-Make-SDK-artifacts-independent-of-the-builder-s was dropped at
 # 3.50.0: it backported dart-review 543800, which has landed upstream. The
 # vendored dart is the same revision the dart-sdk recipe builds.
-SRC_URI:libc-musl += "\
+SRC_URI:append:libc-musl = "\
     file://0003-suppres-musl-libc-warning.patch;patchdir=engine/src/flutter/third_party/dart \
     "
 
@@ -76,7 +76,12 @@ SRC_URI:libc-musl += "\
 # defaults to --rtlib=libgcc. 3.50.0 added --unwindlib=libunwind to the
 # custom libcxx link flags for linux, and clang rejects that pair. Every
 # other target uses the bundled clang, where upstream's flag is correct.
-SRC_URI:riscv64 += "\
+#
+# Both blocks are :append:<override>, not :<override> +=. The second form
+# appends to the override variable and then replaces SRC_URI with it, so
+# riscv64 lost the git url and every other patch and do_patch failed with
+# "No file to patch". See run 43512124482.
+SRC_URI:append:riscv64 = "\
     file://0012-build-config-unwindlib-riscv64.patch \
     "
 
