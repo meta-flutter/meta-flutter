@@ -403,6 +403,60 @@ python do_patch:append() {
                  % (host_arch, status, output))
 }
 
+# The --target-platform values the app recipes pass to flutter build bundle.
+# linux-arm comes from the patch above; the other three are upstream's.
+FLUTTER_TOOL_TARGET_PLATFORMS ?= "linux-x64 linux-arm64 linux-riscv64 linux-arm"
+
+# Assert the rebuilt tool accepts them.
+#
+# build bundle validates --target-platform against a literal list in
+# commands/build_bundle.dart, separate from the TargetPlatform enum. A patch
+# can add the enum, the name mapping, the os getter, native assets and custom
+# devices, and still leave the tool rejecting the value it was just taught:
+#
+#   "linux-arm" is not an allowed value for option "--target-platform".
+#   exiting with code 64
+#
+# That shipped in #1262 and surfaced on run 43512124482, fifteen app recipes
+# deep on the one 32-bit machine in the matrix, because the guards #1268
+# describes kept the app steps off it. Ask the snapshot the app recipes run,
+# here, where it is cheap and the failure names the cause.
+python assert_tool_target_platforms() {
+    import os
+    import re
+
+    source_dir = d.getVar('S')
+    dart = f'{source_dir}/bin/cache/dart-sdk/bin/dart'
+    workdir = d.getVar('WORKDIR')
+
+    env = dict(os.environ)
+    env['HOME'] = workdir
+    env['XDG_CONFIG_HOME'] = workdir
+    env['PUB_CACHE'] = f'{source_dir}/.pub-cache'
+    env['FLUTTER_ROOT'] = source_dir
+
+    cmd = f'{dart} bin/cache/flutter_tools.snapshot build bundle --help'
+    bb.note('Running [%s] in %s' % (cmd, source_dir))
+    status, output = getstatusoutput(cmd, source_dir, env)
+    if status:
+        bb.fatal('asking the flutter tool for its target platforms failed '
+                 '%d:\n%s' % (status, output))
+
+    wanted = (d.getVar('FLUTTER_TOOL_TARGET_PLATFORMS') or '').split()
+    # Trailing [\w-] guard: linux-arm64 in the list must not answer for
+    # linux-arm, which is the whole bug this check exists for.
+    missing = [p for p in wanted
+               if not re.search(r'%s(?![\w-])' % re.escape(p), output)]
+    if missing:
+        bb.fatal('the flutter tool rejects --target-platform %s.\n'
+                 'build bundle --help reported:\n%s'
+                 % (' '.join(missing), output))
+
+    bb.note('flutter-sdk: the tool accepts --target-platform %s'
+            % ' '.join(wanted))
+}
+do_patch[postfuncs] += "assert_tool_target_platforms"
+
 FLUTTER_SETTINGS_NAME = "settings"
 
 do_install() {

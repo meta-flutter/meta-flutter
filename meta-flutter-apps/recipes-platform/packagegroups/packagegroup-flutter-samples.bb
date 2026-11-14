@@ -15,8 +15,7 @@ RDEPENDS:${PN} += " \
     flutter-samples-add-to-app-android-view-flutter-module-using-plugin-content-sizing-android-view \
     flutter-samples-add-to-app-books-flutter-module-books \
     flutter-samples-add-to-app-fullscreen-flutter-module-fullscreen \
-    flutter-samples-add-to-app-ios-content-resizing-flutter-module \
-    flutter-samples-add-to-app-ios-content-resizing-ios-content-resizing-flutter-module \
+    flutter-samples-add-to-app-ios-content-resizing-flutter-module-flutter-module-content-resizing \
     flutter-samples-add-to-app-multiple-flutters-multiple-flutters-module \
     flutter-samples-add-to-app-plugin-flutter-module-using-plugin \
     flutter-samples-add-to-app-prebuilt-module-flutter-module \

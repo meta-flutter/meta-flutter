@@ -52,8 +52,9 @@ LIC_FILES_CHKSUM = "\
 # later patch's hunks assume the earlier ones are in. 0006 is macOS-only and is
 # not here. 0010 and 0011 are ours.
 #
-# The boringssl- one is apply=no: it belongs to a staged dependency rather
-# than to ${S}, so patch_externals applies it and do_patch does not.
+# The boringssl- and zlib- ones are apply=no: they belong to a staged
+# dependency rather than to ${S}, so patch_externals applies them and do_patch
+# does not.
 #
 SRC_URI = "\
     git://github.com/firebase/firebase-cpp-sdk.git;protocol=https;nobranch=1;name=sdk;destsuffix=firebase-cpp-sdk \
@@ -68,6 +69,7 @@ SRC_URI = "\
     file://0010-external-let-leveldb-use-a-local-source-tree.patch \
     file://0011-Recognize-riscv-on-desktop-Linux.patch \
     file://boringssl-0001-generate-err_data-without-go-module-mode.patch;apply=no \
+    file://zlib-0001-avoid-compiler-complaints-if-_TIME_BITS-defined.patch;apply=no \
     "
 
 #
@@ -237,9 +239,11 @@ do_configure:prepend() {
 # without their .git.
 #
 # Ours for a dependency go in the same pass, named <dep>-*.patch in SRC_URI.
+# zlib is in the list for one of those alone -- it has no upstream
+# PATCH_COMMAND, and the inner loop skips the glob that does not match.
 do_patch[postfuncs] += "patch_externals"
 patch_externals() {
-    for dep in boringssl flatbuffers uWebSockets; do
+    for dep in boringssl flatbuffers uWebSockets zlib; do
         for p in ${S}/scripts/git/patches/$dep/*.patch ${UNPACKDIR}/$dep-*.patch; do
             [ -e "$p" ] || continue
             # Stamped: do_patch re-runs whenever the task signature changes, and

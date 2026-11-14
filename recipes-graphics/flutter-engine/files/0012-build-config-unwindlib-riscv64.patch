@@ -1,0 +1,45 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Fri, 13 Nov 2026 04:30:00 -0800
+Subject: [PATCH] build/config: unwindlib must match rtlib on riscv64
+
+3.50.0 added --unwindlib=libunwind to the custom libcxx link flags for
+linux. riscv64 builds the engine with the native clang rather than the
+bundled one, because the bundled one cannot link there, and the native
+clang defaults to --rtlib=libgcc. clang refuses the pair:
+
+  clang++: error: --rtlib=libgcc requires --unwindlib=libgcc
+
+Point the flag at the unwinder that matches the rtlib actually in use.
+The recipe's ABI interop gate already expects libgcc_s on this
+configuration and says so in its rule 4 note, so this is the deviation
+the recipe chose, spelled out on the link line.
+
+Scoped to riscv64 through SRC_URI, since every other target links with
+the bundled clang, where upstream's libunwind is correct.
+
+Upstream-Status: Inappropriate [oe-specific toolchain combination]
+
+Signed-off-by: Joel Winarske <joel.winarske@linux.com>
+---
+ engine/src/build/config/compiler/BUILD.gn | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/engine/src/build/config/compiler/BUILD.gn b/engine/src/build/config/compiler/BUILD.gn
+--- a/engine/src/build/config/compiler/BUILD.gn
++++ b/engine/src/build/config/compiler/BUILD.gn
+@@ -648,8 +648,10 @@
+ 
+     if (is_linux) {
+       # Our custom libcxx doesn't include the unwinder, which is included in
+-      # libc++.a. Link the libunwind directly.
+-      ldflags += [ "--unwindlib=libunwind" ]
++      # libc++.a. Link the unwinder that matches the rtlib in use: this
++      # target builds with the native clang, which defaults to
++      # --rtlib=libgcc, and clang rejects that paired with libunwind.
++      ldflags += [ "--unwindlib=libgcc" ]
+     }
+   }
+ 
+-- 
+2.52.0

@@ -50,7 +50,6 @@ SRC_URI = "\
     file://0006-fml-fixes-text_input-compiler-warnings.patch \
     file://0009-build-config-do-not-treat-warnings-as-errors.patch \
     file://0001-flutter-third_party-swiftshader-pointer-cast-to-void.patch \
-    file://0002-flutter-third_party-swiftshader-llvm-16.0-required-f.patch \
     ${SRC_URI_EXTRA} \
     "
 SRCREV_FORMAT .= "_flutter_sdk"
@@ -65,9 +64,25 @@ S = "${UNPACKDIR}/gn"
 # its native musl locale path when told it is on musl, which
 # FLUTTER_ENGINE_CXX_LIBC_FLAGS already does via -D_LIBCPP_HAS_MUSL_LIBC. They
 # stopped applying at 3.47.1 and are redundant with that define.
-SRC_URI:libc-musl += "\
+#
+# 0011-build-Make-SDK-artifacts-independent-of-the-builder-s was dropped at
+# 3.50.0: it backported dart-review 543800, which has landed upstream. The
+# vendored dart is the same revision the dart-sdk recipe builds.
+SRC_URI:append:libc-musl = "\
     file://0003-suppres-musl-libc-warning.patch;patchdir=engine/src/flutter/third_party/dart \
-    file://0011-build-Make-SDK-artifacts-independent-of-the-builder-s.patch;patchdir=engine/src/flutter/third_party/dart \
+    "
+
+# riscv64 links the engine with the native clang (see CLANG_PATH), which
+# defaults to --rtlib=libgcc. 3.50.0 added --unwindlib=libunwind to the
+# custom libcxx link flags for linux, and clang rejects that pair. Every
+# other target uses the bundled clang, where upstream's flag is correct.
+#
+# Both blocks are :append:<override>, not :<override> +=. The second form
+# appends to the override variable and then replaces SRC_URI with it, so
+# riscv64 lost the git url and every other patch and do_patch failed with
+# "No file to patch". See run 43512124482.
+SRC_URI:append:riscv64 = "\
+    file://0012-build-config-unwindlib-riscv64.patch \
     "
 
 inherit gn-fetcher features_check pkgconfig deploy
@@ -122,6 +137,13 @@ PACKAGECONFIG ??= "\
     dart-dynamic-modules \
     dart-secure-socket \
     "
+
+# Same 32-bit break as dart-sdk: the dart dynamic modules FFI trampoline
+# does not compile for a 32-bit target. CI builds release only, which is
+# AOT, where DART_PRECOMPILED_RUNTIME excludes that code, but the default
+# PACKAGECONFIG above includes debug, which is JIT and does reach it.
+PACKAGECONFIG:remove:arm = "dart-dynamic-modules"
+PACKAGECONFIG:remove:riscv32 = "dart-dynamic-modules"
 
 
 PACKAGECONFIG[asan] = "--asan"
