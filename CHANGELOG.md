@@ -63,6 +63,17 @@ November 13, 2026
      SRC_URI plus the extra entry
    - the libc-musl block had the same defect from the day it was written.
      CI parses and dry-runs musl but never builds it, so nothing caught it
+7. flutter-sdk: linux-arm was missing from build bundle's allowed list
+   - flutter build bundle validates --target-platform against a literal list
+     in commands/build_bundle.dart, separate from the TargetPlatform enum.
+     #1262 added the enum and every mapping around it but not that list, so
+     the tool rejected the value it had just been taught
+   - fifteen app recipes failed that way on run 43512124482, every one
+     qemuarm tried: "linux-arm" is not an allowed value for option
+     "--target-platform", exit 64
+   - the guards #1268 describes kept the app steps off the only 32-bit
+     machine in the matrix, so nothing ever ran the tool this way. #1262's
+     own patch header claimed build bundle accepted linux-arm
 
 November 10, 2026
 1. flutter-sdk: linux-arm target platform, so 32-bit ARM app recipes build
