@@ -3,7 +3,9 @@ From: Joel Winarske <joel.winarske@gmail.com>
 Date: Thu, 12 Nov 2026 03:57:02 -0800
 Subject: [PATCH] flutter_tools: add linux-arm target platform
 
--TargetPlatform.linux_arm, accepted by flutter build bundle
+-TargetPlatform.linux_arm, plus 'linux-arm' in the --target-platform
+ allowed list in commands/build_bundle.dart. That list is a separate
+ literal and rejects any value not in it
 -the os getter maps it to linux, which carries the feature flag
  check, the kernel snapshot os name and both artifact dispatches
 -native assets map to Architecture.arm, manifest keyed linux_arm
@@ -19,10 +21,11 @@ Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
  packages/flutter_tools/lib/src/build_info.dart         |  6 +++++-
  .../lib/src/build_system/targets/common.dart           |  1 +
  packages/flutter_tools/lib/src/commands/assemble.dart  |  3 +++
+ .../flutter_tools/lib/src/commands/build_bundle.dart   |  1 +
  .../lib/src/custom_devices/custom_device.dart          |  1 +
  .../lib/src/custom_devices/custom_device_config.dart   | 10 ++++++----
  .../lib/src/isolated/native_assets/targets.dart        |  3 +++
- 8 files changed, 22 insertions(+), 5 deletions(-)
+ 9 files changed, 23 insertions(+), 5 deletions(-)
 
 diff --git a/packages/flutter_tools/lib/src/artifacts.dart b/packages/flutter_tools/lib/src/artifacts.dart
 index 6a09182..81203df 100644
@@ -133,6 +136,18 @@ index d39f0fa..d86ff74 100644
    const ReleaseAndroidApplication(),
    // This is a one-off rule for bundle and aot compat.
    const CopyFlutterBundle(),
+diff --git a/packages/flutter_tools/lib/src/commands/build_bundle.dart b/packages/flutter_tools/lib/src/commands/build_bundle.dart
+index 9d08502..6e35993 100644
+--- a/packages/flutter_tools/lib/src/commands/build_bundle.dart
++++ b/packages/flutter_tools/lib/src/commands/build_bundle.dart
+@@ -58,6 +58,7 @@ class BuildBundleCommand extends BuildSubCommand {
+           'linux-x64',
+           'linux-arm64',
+           'linux-riscv64',
++          'linux-arm',
+           'windows-x64',
+           'windows-arm64',
+         ],
 diff --git a/packages/flutter_tools/lib/src/custom_devices/custom_device.dart b/packages/flutter_tools/lib/src/custom_devices/custom_device.dart
 index b0da33a..76246c2 100644
 --- a/packages/flutter_tools/lib/src/custom_devices/custom_device.dart
@@ -209,3 +224,6 @@ index 8795cbf..8165079 100644
      case TargetPlatform.linux_x64:
      case TargetPlatform.tester:
      case TargetPlatform.web_javascript:
+-- 
+2.56.0
+
