@@ -16,7 +16,7 @@ SECTION = "graphics"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=46382638866a5bb9f04134b101d78fb2"
 
-SRCREV = "c205ef08bb48728ebf4f3665abbee966a9647ab4"
+SRCREV = "1ba943e436be26295414a14c3a92652f83feb757"
 SRC_URI = "git://github.com/jwinarske/firebase_ffi.git;branch=main;protocol=https"
 
 FLUTTER_APPLICATION_PATH = "example"
