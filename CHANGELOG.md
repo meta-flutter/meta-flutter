@@ -92,6 +92,17 @@ November 13, 2026
      example dependency that is pure Dart and needs no DEPENDS
    - master only. The new lockfiles do not resolve under 3.47.5, and wrynose,
      scarthgap and kirkstone all pin c205ef08, so each waits for its own roll
+10. firebase-cpp-sdk: the bundled zlib does not build for 32-bit
+    - gzguts.h undefines _FILE_OFFSET_BITS whenever _LARGEFILE64_SOURCE is
+      set, and glibc rejects that pair once _TIME_BITS is 64. oe-core puts
+      both flags in TARGET_CC_ARCH for 32-bit arm, so the four gz*.c files
+      failed to compile and qemuarm failed at firebase-ffi-demo on run
+      43613924842
+    - madler/zlib a566e156 is the fix and has shipped since v1.3. This recipe
+      pins v1.2.11, the revision cmake/external/zlib.cmake names, so it is
+      backported rather than the pin moved
+    - zlib joins the patch_externals dep list. It is there for our patch
+      alone, having no upstream PATCH_COMMAND of its own
 
 November 10, 2026
 1. flutter-sdk: linux-arm target platform, so 32-bit ARM app recipes build
