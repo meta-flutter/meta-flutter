@@ -27,9 +27,9 @@ LICENSE = "Apache-2.0 AND MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=1bb8e4c9af5dd10ccb6c8bae63fb4a2d"
 
 SRC_URI = "git://github.com/toyota-connected/ihs_wl_server.git;protocol=https;branch=main"
-SRCREV = "1627b97da6976a11f6717d4f69a5e6f3940244d1"
+SRCREV = "2ac9766fdffd5865f2b5c2334a79445f59b99ec2"
 
-PV = "0.1.0+git"
+PV = "0.2.0+git"
 
 PUBSPEC_APPNAME = "ihs_wayland_server_example"
 FLUTTER_APPLICATION_PATH = "dart/ihs_wayland_server/example"
