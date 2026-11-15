@@ -24,6 +24,32 @@ November 15, 2026
    - that NOTICE names LGPL-2.1 and BSD-3-Clause code the native hook
      compiles in, which the LICENSE field does not reflect. Pre-existing,
      left for its own change
+4. jwinarske-bluez-native-flutter-ble-scanner: roll to 0.3.4, and declare
+   the LGPL
+   - 0.3.4 builds the bundled sdbus-c++ shared and links it dynamically.
+     Until then it was static, so LGPL-2.1 object code sat inside
+     libbluez_nc.so, which is Apache-2.0, and LGPL section 6 came with it.
+     432 sdbus symbols were defined in that library before and none are now
+   - libsdbus-c++.so.2 now installs beside it, which satisfies section 6 by
+     the shared-library route. The package still ships the library, so
+     LICENSE is Apache-2.0 AND LGPL-2.1-only and the submodule's COPYING is
+     checksummed. This is the item 3 note above, taken
+   - the exception beside that COPYING covers header material and preserves
+     section 6, so it does not change the license. Checksummed rather than
+     named, since no SPDX identifier exists for it
+   - PRIVATE_LIBS names both bundled libraries. The class installs native
+     assets twice, inside the Flutter bundle and again on the linker search
+     path, so one soname registers as two shlib providers and do_package
+     failed with "Multiple shlib providers for libsdbus-c++.so.2". The same
+     duplication has always applied to libbluez_nc.so, which nothing links
+     against, so this is the first bundled library to hit it
+   - only the intra-package dependency is dropped. libsdbus-c++.so.2's own
+     NEEDED libsystemd.so.0 still resolves, so the runtime dependency on the
+     sd-bus provider is unchanged
+   - still built from the submodule, not meta-oe's sdbus-c++: hook libraries
+     are built -stdlib=libc++ and that recipe builds against libstdc++, so
+     the std::string entry points do not match. meta-oe is also on 1.0.0 on
+     kirkstone and 0.8.1 on dunfell, against the v2 API this uses
 
 November 13, 2026
 1. ci: build the app steps on qemuarm (#1268)
