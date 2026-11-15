@@ -24,6 +24,26 @@ November 15, 2026
    - that NOTICE names LGPL-2.1 and BSD-3-Clause code the native hook
      compiles in, which the LICENSE field does not reflect. Pre-existing,
      left for its own change
+4. jwinarske-bluez-native-flutter-ble-scanner: roll to 0.3.4, and declare
+   the LGPL
+   - 0.3.4 builds the bundled sdbus-c++ shared and links it dynamically.
+     Until then it was static, so LGPL-2.1 object code sat inside
+     libbluez_nc.so, which is Apache-2.0, and LGPL section 6 came with it.
+     432 sdbus symbols were defined in that library before and none are now
+   - libsdbus-c++.so.2 now installs beside it, which satisfies section 6 by
+     the shared-library route. The package still ships the library, so
+     LICENSE is Apache-2.0 AND LGPL-2.1-only and the submodule's COPYING is
+     checksummed. This is the item 3 note above, taken
+   - the exception beside that COPYING covers header material and preserves
+     section 6, so it does not change the license. Checksummed rather than
+     named, since no SPDX identifier exists for it
+   - no install-side change. flutter-app-native copies the whole
+     native-assets directory and writes the ld.so.conf.d fragment, so the
+     second library installs and resolves without the recipe naming it
+   - still built from the submodule, not meta-oe's sdbus-c++: hook libraries
+     are built -stdlib=libc++ and that recipe builds against libstdc++, so
+     the std::string entry points do not match. meta-oe is also on 1.0.0 on
+     kirkstone and 0.8.1 on dunfell, against the v2 API this uses
 
 November 13, 2026
 1. ci: build the app steps on qemuarm (#1268)
