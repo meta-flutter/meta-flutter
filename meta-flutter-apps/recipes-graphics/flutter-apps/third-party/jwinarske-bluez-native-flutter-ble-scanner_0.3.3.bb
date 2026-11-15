@@ -11,11 +11,16 @@ BUGTRACKER = "https://github.com/jwinarske/bluez_native/issues"
 SECTION = "graphics"
 
 LICENSE = "Apache-2.0"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=86d3f3a95c324c9479bd8986968f4327"
+# NOTICE is new at 0.3.3 and carries the Apache-2.0 section 4(d)
+# attribution, so it is checksummed with the license text it belongs to.
+LIC_FILES_CHKSUM = "\
+    file://LICENSE;md5=86e590365d39c174b8169fbff5df50a7 \
+    file://NOTICE;md5=552cf7c610f97eaad7ed84a1d847f1ee \
+    "
 
 # gitsm: native/third_party/sdbus-cpp is a submodule, add_subdirectory'd by the
 # native build hook.
-SRCREV = "77d4c4c3060cf8a0fbce738381cd532f39be68d9"
+SRCREV = "1f9e6c889385fd3dc8581083088714eee919a83f"
 SRC_URI = "gitsm://github.com/jwinarske/bluez_native.git;branch=main;protocol=https"
 
 # The vendored sdbus-c++ needs an sd-bus implementation at configure time.
