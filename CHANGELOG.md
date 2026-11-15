@@ -1,5 +1,30 @@
 # Changelog
 
+November 15, 2026
+1. ivi-homescreen: roll the v3.0 pin to bf37d028
+   - 19 commits on from v3.0.0, all drm-kms rotation: --drm-rotation on the
+     GPU for the egl and vulkan backends, a refusal when the display or
+     backend cannot do the angle, a GL composite and rotation for additional
+     outputs, and two wayland-vulkan swapchain lifetime fixes
+   - all three definitions of HOMESCREEN_COMMIT move together, so the ten
+     integration tests and ihs_shared stay on the embedder being shipped
+   - no pubspec or lockfile churn in the gap, and test/integration is
+     identical at both ends, so no test recipe is added or dropped
+2. ihs-wl-server-example: roll to v0.2.0
+   - tag to tag, 17 commits, window reporting and foreign windows
+   - PV follows the dart pubspec, 0.1.0+git to 0.2.0+git
+   - the example pins flutter/material.dart to 3.47 upstream while this
+     branch is on 3.50.0. The declared environment did not move
+3. jwinarske-bluez-native-flutter-ble-scanner: roll to 0.3.3
+   - 13 commits: profile-specific device connection, the connectProfile UUID
+     normalized, and a result reported on every native exit path
+   - PV is in the filename, so the recipe is renamed
+   - LICENSE picked up its copyright line, so LIC_FILES_CHKSUM moves, and
+     the new NOTICE file is checksummed with it
+   - that NOTICE names LGPL-2.1 and BSD-3-Clause code the native hook
+     compiles in, which the LICENSE field does not reflect. Pre-existing,
+     left for its own change
+
 November 13, 2026
 1. ci: build the app steps on qemuarm (#1268)
    - the seven app steps were off for the one 32-bit machine in the matrix
