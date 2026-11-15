@@ -31,9 +31,9 @@ LICENSE = "Apache-2.0 & MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=1bb8e4c9af5dd10ccb6c8bae63fb4a2d"
 
 SRC_URI = "git://github.com/toyota-connected/ihs_wl_server.git;protocol=https;branch=main"
-SRCREV = "606abc53dc2498f1e7f4c938c6a8e851880a82ab"
+SRCREV = "2ac9766fdffd5865f2b5c2334a79445f59b99ec2"
 
-PV = "0.1.0+git"
+PV = "0.2.0+git"
 S = "${WORKDIR}/git"
 
 PUBSPEC_APPNAME = "ihs_wayland_server_example"
