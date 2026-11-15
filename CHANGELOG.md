@@ -37,9 +37,15 @@ November 15, 2026
    - the exception beside that COPYING covers header material and preserves
      section 6, so it does not change the license. Checksummed rather than
      named, since no SPDX identifier exists for it
-   - no install-side change. flutter-app-native copies the whole
-     native-assets directory and writes the ld.so.conf.d fragment, so the
-     second library installs and resolves without the recipe naming it
+   - PRIVATE_LIBS names both bundled libraries. The class installs native
+     assets twice, inside the Flutter bundle and again on the linker search
+     path, so one soname registers as two shlib providers and do_package
+     failed with "Multiple shlib providers for libsdbus-c++.so.2". The same
+     duplication has always applied to libbluez_nc.so, which nothing links
+     against, so this is the first bundled library to hit it
+   - only the intra-package dependency is dropped. libsdbus-c++.so.2's own
+     NEEDED libsystemd.so.0 still resolves, so the runtime dependency on the
+     sd-bus provider is unchanged
    - still built from the submodule, not meta-oe's sdbus-c++: hook libraries
      are built -stdlib=libc++ and that recipe builds against libstdc++, so
      the std::string entry points do not match. meta-oe is also on 1.0.0 on
