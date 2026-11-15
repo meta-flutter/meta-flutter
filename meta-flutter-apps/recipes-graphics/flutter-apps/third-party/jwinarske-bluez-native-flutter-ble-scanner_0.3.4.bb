@@ -50,5 +50,28 @@ FLUTTER_APPLICATION_INSTALL_SUFFIX = "bluez-native-example-flutter-ble-scanner"
 
 inherit flutter-app-native
 
+# Both bundled libraries are private to this app, and shlib tracking has to be
+# told so.
+#
+# flutter-app-native installs the native assets twice: once inside the Flutter
+# bundle, at data/flutter_assets/native_assets/linux, because flutter-app.inc
+# copies the whole bundle, and once at lib/native_assets, which is the copy the
+# class puts on the linker search path through ld.so.conf.d. Two directories,
+# one soname, so each library registers as two shlib providers -- and when
+# libbluez_nc.so's NEEDED libsdbus-c++.so.2 is resolved, both match and
+# do_package fails with "Multiple shlib providers".
+#
+# libbluez_nc.so has always been installed twice as well. It never tripped this
+# because it is dlopened by bare name rather than linked, so nothing resolves a
+# NEEDED against it. 0.3.4 is the first version to bundle a library that is
+# both duplicated and actually linked.
+#
+# PRIVATE_LIBS is the right answer rather than a workaround: neither library is
+# something this package offers to others. libbluez_nc.so is an app asset the
+# engine dlopens, and libsdbus-c++.so.2 is resolved beside it by $ORIGIN and by
+# the ld.so.conf.d fragment, not by a package dependency. Any native-assets app
+# that bundles a versioned library will need the same.
+PRIVATE_LIBS:${PN} = "libbluez_nc.so libsdbus-c++.so.2"
+
 # bluez_nc talks to BlueZ over D-Bus; the daemon must be on the image.
 RDEPENDS:${PN} += "bluez5"
