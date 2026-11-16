@@ -387,9 +387,7 @@ jobs:
       # packages/flutter_tools -- which does not inherit our --offline, so in a
       # network-isolated do_compile it can only fail.
       - name: Build ivi-homescreen integration tests
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         shell: bash
         working-directory: ../wrynose-linux-dummy
         run: |
@@ -422,9 +420,7 @@ jobs:
       # ihs_wayland_server's example: an FFI app whose build hook builds its
       # Rust library with cargo (flutter-app-native, FLUTTER_NATIVE_CARGO).
       - name: Build ihs-wl-server-example
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         shell: bash
         working-directory: ../wrynose-linux-dummy
         run: |
@@ -446,9 +442,7 @@ jobs:
       #
       # flatpak_dart: talks to the flatpak system libraries.
       - name: Build flatpak-minimal-flatpak-dart-flutter-remote-manager
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         shell: bash
         working-directory: ../wrynose-linux-dummy
         run: |
@@ -458,9 +452,7 @@ jobs:
       #
       # appstream_dart: resolves a system sqlite3 through a hook user_define.
       - name: Build flatpak-minimal-appstream-dart-flathub-catalog
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         shell: bash
         working-directory: ../wrynose-linux-dummy
         run: |
@@ -470,9 +462,7 @@ jobs:
       #
       # bluez_native: compiles a vendored sdbus-c++ from its own hook.
       - name: Build the Flutter SDK example apps
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         shell: bash
         working-directory: ../wrynose-linux-dummy
         run: |
@@ -496,8 +486,8 @@ jobs:
       # The musl resolve above only resolves it, and a missing or misplaced
       # deploy shows up at do_install, not in a taskgraph. See #1197.
       - name: Build a dart app
-        # Off for qemuarm like the app builds below. Whether a 32-bit arm dart
-        # target works here is untested, and not what this step is for.
+        # Off for qemuarm. Whether a 32-bit arm dart target works here is
+        # untested, and not what this step is for.
         if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
         shell: bash
         working-directory: ../wrynose-linux-dummy
@@ -506,9 +496,7 @@ jobs:
           bitbake dart-example-hello
 
       - name: Build jwinarske-bluez-native-flutter-ble-scanner
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         shell: bash
         working-directory: ../wrynose-linux-dummy
         run: |
@@ -516,9 +504,7 @@ jobs:
           bitbake jwinarske-bluez-native-flutter-ble-scanner
 
       - name: Build jwinarske-firebase-ffi-firebase-ffi-demo
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         shell: bash
         working-directory: ../wrynose-linux-dummy
         run: |
