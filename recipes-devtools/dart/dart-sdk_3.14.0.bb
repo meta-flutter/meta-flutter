@@ -31,7 +31,6 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 SRC_URI = " \
     gn://github.com/dart-lang/sdk.git;gn_name=sdk \
     file://gcc_toolchain.gni.in \
-    file://0001-build-Make-SDK-artifacts-independent-of-the-builder-s.patch;patchdir=${S}/sdk \
 "
 
 require conf/include/flutter-clang-toolchain.inc
