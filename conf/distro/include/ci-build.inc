@@ -77,6 +77,25 @@ LICENSE_FLAGS_ACCEPTED += "commercial"
 PACKAGECONFIG:remove:pn-flutter-engine = " debug profile"
 
 # ***************************************
+# Name the remote the flatpak app recipes build their refs under.
+#
+# flatpak-app.bbclass skips any app recipe whose FLATPAK_REMOTE is unset, and
+# FLATPAK_REMOTE defaults to FLATPAK_BUILD_REMOTE. Nothing in CI installs the
+# refs, so the name only has to exist and match [A-Za-z0-9][A-Za-z0-9._-]*.
+#
+# Without it the appstream_dart target stops providing anything:
+#
+#   ERROR: Nothing PROVIDES 'flatpak-minimal-appstream-dart-flathub-catalog'
+#   ... was skipped: set FLATPAK_BUILD_REMOTE to the remote refs built here
+#   install under
+#
+# #1228 set this and it was dropped again, correctly at the time: the two app
+# recipes were local and inherited flutter-app-native only, so nothing read
+# it. They now come from meta-flatpak-minimal, where appstream_dart inherits
+# flatpak-flutter-app and so flatpak-app, which is the guard above.
+FLATPAK_BUILD_REMOTE ?= "ci"
+
+# ***************************************
 IMAGE_INSTALL:append = " \
               ffmpeg \
               flatpak \
