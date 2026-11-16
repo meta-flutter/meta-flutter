@@ -73,6 +73,9 @@ jobs:
       # thing to track there.
       DRM_BRANCH: master
       VULKAN_BRANCH: master
+      # meta-flatpak-minimal has no wrynose branch either. Its master declares
+      # LAYERSERIES_COMPAT wrynose, so that is the branch to track.
+      FLATPAK_MINIMAL_BRANCH: master
 
     runs-on: [self-hosted, linux]
 
@@ -133,7 +136,7 @@ jobs:
           # every layer cloned below must be listed here: this is a persistent
           # self-hosted runner and 'git clone' into an existing directory fails.
           rm -rf poky bitbake openembedded-core meta-yocto \
-                 meta-openembedded meta-drm meta-vulkan
+                 meta-openembedded meta-drm meta-vulkan meta-flatpak-minimal
           # 'wait' with no operands always returns 0, so collect the pids and
           # wait on each to see a failed clone.
           pids=""
@@ -143,7 +146,8 @@ jobs:
               "${{ env.YOCTO_BRANCH }}|https://github.com/yoctoproject/meta-yocto.git" \
               "${{ env.YOCTO_BRANCH }}|https://github.com/openembedded/meta-openembedded.git" \
               "${{ env.DRM_BRANCH }}|https://github.com/jwinarske/meta-drm.git" \
-              "${{ env.VULKAN_BRANCH }}|https://github.com/jwinarske/meta-vulkan.git" ; do
+              "${{ env.VULKAN_BRANCH }}|https://github.com/jwinarske/meta-vulkan.git" \
+              "${{ env.FLATPAK_MINIMAL_BRANCH }}|https://github.com/flatpak-minimal/meta-flatpak-minimal.git" ; do
               branch=${spec%%|*}
               repo=${spec#*|}
               git clone -b "$branch" --single-branch "$repo" &
@@ -224,7 +228,8 @@ jobs:
               ../meta-drm \
               ../meta-vulkan \
               ../../meta-flutter \
-              ../../meta-flutter/meta-flutter-apps
+              ../../meta-flutter/meta-flutter-apps \
+              ../meta-flatpak-minimal
           bitbake-layers show-layers
           echo '***************************************'
           bitbake -e virtual/kernel | grep "^PV"
@@ -387,9 +392,7 @@ jobs:
       # packages/flutter_tools -- which does not inherit our --offline, so in a
       # network-isolated do_compile it can only fail.
       - name: Build ivi-homescreen integration tests
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         shell: bash
         working-directory: ../wrynose-linux-dummy
         run: |
@@ -422,9 +425,7 @@ jobs:
       # ihs_wayland_server's example: an FFI app whose build hook builds its
       # Rust library with cargo (flutter-app-native, FLUTTER_NATIVE_CARGO).
       - name: Build ihs-wl-server-example
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         shell: bash
         working-directory: ../wrynose-linux-dummy
         run: |
@@ -444,11 +445,12 @@ jobs:
       # hook resolves a host compiler and emits a host-architecture library into
       # a target package (meta-flutter#801).
       #
-      # flatpak_dart: talks to the flatpak system libraries.
+      # flatpak_dart: talks to the flatpak system libraries. This recipe and
+      # the appstream_dart one below now live in meta-flatpak-minimal, cloned
+      # above. They stay in this matrix because they are the coverage for
+      # flutter-app-native and the vendored pub cache.
       - name: Build flatpak-minimal-flatpak-dart-flutter-remote-manager
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         shell: bash
         working-directory: ../wrynose-linux-dummy
         run: |
@@ -458,9 +460,7 @@ jobs:
       #
       # appstream_dart: resolves a system sqlite3 through a hook user_define.
       - name: Build flatpak-minimal-appstream-dart-flathub-catalog
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         shell: bash
         working-directory: ../wrynose-linux-dummy
         run: |
@@ -470,9 +470,7 @@ jobs:
       #
       # bluez_native: compiles a vendored sdbus-c++ from its own hook.
       - name: Build the Flutter SDK example apps
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         shell: bash
         working-directory: ../wrynose-linux-dummy
         run: |
@@ -496,8 +494,8 @@ jobs:
       # The musl resolve above only resolves it, and a missing or misplaced
       # deploy shows up at do_install, not in a taskgraph. See #1197.
       - name: Build a dart app
-        # Off for qemuarm like the app builds below. Whether a 32-bit arm dart
-        # target works here is untested, and not what this step is for.
+        # Off for qemuarm. Whether a 32-bit arm dart target works here is
+        # untested, and not what this step is for.
         if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
         shell: bash
         working-directory: ../wrynose-linux-dummy
@@ -506,9 +504,7 @@ jobs:
           bitbake dart-example-hello
 
       - name: Build jwinarske-bluez-native-flutter-ble-scanner
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         shell: bash
         working-directory: ../wrynose-linux-dummy
         run: |
@@ -516,9 +512,7 @@ jobs:
           bitbake jwinarske-bluez-native-flutter-ble-scanner
 
       - name: Build jwinarske-firebase-ffi-firebase-ffi-demo
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         shell: bash
         working-directory: ../wrynose-linux-dummy
         run: |

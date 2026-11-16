@@ -7,7 +7,7 @@
 #
 
 SUMMARY = "record_use_test_app"
-DESCRIPTION = "A new Flutter application project."
+DESCRIPTION = "An integration test app for testing Record Use in both link hooks and icon tree shaking."
 
 PUBSPEC_APPNAME = "record_use_test_app"
 FLUTTER_APPLICATION_PATH = "dev/integration_tests/record_use_test_app"

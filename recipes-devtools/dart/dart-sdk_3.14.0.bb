@@ -25,13 +25,12 @@ DEPENDS += "\
 
 S = "${UNPACKDIR}/gn"
 
-SRCREV = "416e33b0ffaef062a60ec966bb8c82ed2b83f128"
+SRCREV = "fa8c1270c374c1346931583a17c3b7f278d3822d"
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 SRC_URI = " \
     gn://github.com/dart-lang/sdk.git;gn_name=sdk \
     file://gcc_toolchain.gni.in \
-    file://0001-build-Make-SDK-artifacts-independent-of-the-builder-s.patch;patchdir=${S}/sdk \
 "
 
 require conf/include/flutter-clang-toolchain.inc
@@ -60,6 +59,20 @@ EXTRA_GN_SYNC ?= "--shallow --no-history -R -D"
 # immediately. The PACKAGECONFIG entries are removed rather than defaulted off,
 # since enabling them could only ever break the build.
 PACKAGECONFIG ??= "verify-sdk-hash dynamic-modules"
+
+# dart_dynamic_modules is off upstream: runtime_args.gni defaults it false
+# and tools/gn.py defaults --dart-dynamic-modules to False. It is on here,
+# and the bytecode interpreter's FFI trampoline is not 32-bit clean --
+# FfiCallArguments carries register values in uword, so runtime/vm/
+# runtime_entry.cc fails to build a double out of one:
+#
+#   runtime_entry.cc:1406:26: error: no matching function for call to 'bit_cast'
+#   note: because 'sizeof(double) == sizeof(unsigned int)' (8 == 4)
+#
+# The field was uint64_t before the 3.14.0 refactor. Nothing upstream hits
+# this because the feature ships off. Drop it where it does not build.
+PACKAGECONFIG:remove:arm = "dynamic-modules"
+PACKAGECONFIG:remove:riscv32 = "dynamic-modules"
 
 PACKAGECONFIG[verify-sdk-hash] = "--verify-sdk-hash"
 PACKAGECONFIG[use-crashpad] = "--use-crashpad"
@@ -149,10 +162,6 @@ do_install() {
     cp -R ${BUILD_DIR}/dart-sdk/* ${D}${datadir}/dart-sdk/
 }
 
-# buildpaths: gen_kernel_aot.dart.snapshot embeds a build path. It comes out
-# of the SDK's own `ninja create_sdk`, so it is not ours to construct and not
-# yet fixed -- see #827. The skip arrived here undocumented with the 3.47.1
-# roll; it is a known defect being hidden, not a check that does not apply.
 INSANE_SKIP:${PN} = "already-stripped ldflags"
 
 FILES:${PN} += "${datadir}"

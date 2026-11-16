@@ -44,6 +44,170 @@ November 15, 2026
    - still built from the submodule, not meta-oe's sdbus-c++: hook libraries
      are built -stdlib=libc++ and that recipe builds against libstdc++, so
      the std::string entry points do not match
+4. roll to Flutter 3.50.0 (#1274)
+   - FLUTTER_SDK_TAG 3.47.8 -> 3.50.0, dart-sdk 3.13.7 -> 3.14.0 with the
+     recipe renamed and SRCREV fa8c1270, engine 371f7720, and 119 app
+     SRCREVs. releases_linux.json, dart-revision.json, engine-revision.json
+     and host-sdk.json all move with it
+   - staged by .github/workflows/roll.yml, dispatched with branch=wrynose.
+     The roll runs with this branch's own tools/, so LICENSE_OPERATOR is &
+     and OVERRIDE_STYLE is new throughout the generated recipes
+   - both pub cache fragments regenerated, 171 hosted and 1 git each
+   - flutter-sdk-dev-a11y-assessments is dropped. 3.50.0 removed
+     dev/a11y_assessments from the SDK tree, so there is no app to generate
+   - upstream restructured flutter/samples add_to_app/ios_content_resizing,
+     putting the module under flutter_module. Two generated recipes become
+     one, and the packagegroup follows
+   - nine apps skipped with a reason rather than generated to fail later.
+     Seven declare a Dart 2.x environment against the pinned 3.14.0, and
+     two do not solve: super_dash, where leap wants tiled ^0.10.1 and
+     flame_tiled wants ^0.12.0, and tcna-packages/packages/flatpak, on a
+     test and matcher conflict
+   - the qemuarm app-step guards come off with this roll, item 15 below, so
+     the one 32-bit machine builds the apps too. That is what proves the two
+     32-bit fixes below here rather than carrying them on master's evidence
+5. flutter-sdk: rebase the linux-arm patch onto 3.50.0
+   - flutter_tools is moving arch out of TargetPlatform and into CpuArch,
+     so 13 of the patch's 27 hunks rejected, 11 of them because the switch
+     they anchored to is gone
+   - the os getter carries the dispatch now, so adding linux_arm there
+     covers the feature flag check, the kernel snapshot os name, both
+     artifact path dispatches and osName. 15 files become 8
+   - one site is new. custom_device derived CpuArch through a wildcard
+     returning arm64, so a linux-arm custom device reported arm64. It
+     returns CpuArch.armv7 now
+6. dart-sdk: drop the buildpaths patch, 3.14.0 carries it
+   - the backport of dart-review 543800 landed upstream, so applying it to
+     already-patched source fails all six hunks. That is what broke
+     master-qemux86-64 on master's roll
+   - patched 416e33b0 against pristine 3.14.0 differs only in the scheme
+     string, which upstream named org-dartlang-gnroot rather than
+     org-dartlang-sdk, so dropping the patch loses nothing
+   - the stale buildpaths comment goes with it. It documented a skip that
+     is not in INSANE_SKIP and called #827 not yet fixed when #827 is
+     closed
+7. flutter-engine: three stale patches on the 3.50.0 roll
+   - 0011-build-Make-SDK-artifacts is byte-identical to the dart-sdk patch
+     and dead for the same reason. It only ran on musl, which is the path
+     CI builds
+   - 0002-flutter-third_party-swiftshader-llvm-16.0 is obsolete. The pin
+     moved to flutter.googlesource.com/third_party/swiftshader @1be9f836
+     and that fork already selects llvm-16.0 for non-fuchsia
+   - 0006-fml-fixes-text_input was rebased, not dropped. Hunk 3 anchored on
+     a line upstream has since fixed, text_.at(start) to text_.at(end) in
+     the delete-range loop, so forcing it would have reinstated the bug.
+     Regenerated at zero fuzz and zero offset
+   - the other four, 0001 swiftshader, 0003-gn, 0003-suppres-musl and 0009,
+     were checked against the rolled sources and still apply
+8. flutter-engine: unwindlib must match rtlib on riscv64
+   - 3.50.0 added --unwindlib=libunwind to the custom libcxx link flags for
+     linux. riscv64 builds with the native clang, which defaults to
+     --rtlib=libgcc, and clang refuses that pair
+   - scoped to riscv64 through SRC_URI. Every other target links with the
+     bundled clang, where upstream's flag is right
+9. dart-sdk, flutter-engine: no dart dynamic modules on 32-bit
+   - 3.14.0 refactored the dynamic modules FFI trampoline to carry register
+     values in uword. A double does not fit in one on a 32-bit target, so
+     runtime_entry.cc fails to compile and master-qemuarm died in do_compile
+   - the code sits behind DART_DYNAMIC_MODULES, which upstream ships off:
+     runtime_args.gni defaults dart_dynamic_modules false and tools/gn.py
+     defaults --dart-dynamic-modules to False. Both recipes turn it on, so
+     this is ours to switch back rather than upstream source to patch
+   - dropped through PACKAGECONFIG on arm and riscv32 only. 64-bit targets
+     are unchanged
+   - flutter-engine carries the same flag and the same break. CI has not hit
+     it because ci-build.inc leaves release only, which is AOT, where
+     DART_PRECOMPILED_RUNTIME excludes the code. A default build includes
+     debug, which is JIT and does reach it
+10. flutter-engine: SRC_URI override blocks replaced instead of appending
+    - SRC_URI:riscv64 += appends to the override variable, and the override
+      then replaces SRC_URI outright. riscv64 was left holding only the
+      unwindlib patch, with no git url and none of the other patches, so
+      do_patch failed with "No file to patch" on run 43512124482
+    - both blocks are :append:<override> now, which resolves to the base
+      SRC_URI plus the extra entry
+    - the libc-musl block had the same defect from the day it was written.
+      CI parses and dry-runs musl but never builds it, so nothing caught it
+11. flutter-sdk: linux-arm was missing from build bundle's allowed list
+    - flutter build bundle validates --target-platform against a literal
+      list in commands/build_bundle.dart, separate from the TargetPlatform
+      enum. #1262 added the enum and every mapping around it but not that
+      list, so the tool rejected the value it had just been taught
+    - fifteen app recipes failed that way on run 43512124482, every one
+      master's qemuarm tried: "linux-arm" is not an allowed value for
+      option "--target-platform", exit 64
+12. flutter-sdk: assert the built tool accepts the target platforms
+    - a do_patch postfunc runs the snapshot the app recipes run and
+      requires every value in FLUTTER_TOOL_TARGET_PLATFORMS to appear in
+      build bundle --help. linux-arm64 must not answer for linux-arm, which
+      is what the trailing [\w-] guard is for
+    - it fires in flutter-sdk-native, step 11 and under a minute, rather
+      than fifteen recipes deep in the app steps hours later
+    - adding the postfunc changes do_patch's hash, so flutter-sdk and
+      flutter-sdk-native rebuild once
+13. firebase-ffi-demo: SRCREV for the 3.50.0 lockfiles
+    - 3.50.0 pins test_api 0.7.14, vector_math 2.4.4 and meta 1.19.0 and
+      adds listen, so do_archive_pub_cache failed --enforce-lockfile with
+      exit 65 on all four of master's machines
+    - fixed upstream in jwinarske/firebase_ffi#95, which regenerated all 19
+      lockfiles in that repo. The new head also carries #96, a material_ui
+      example dependency that is pure Dart and needs no DEPENDS
+    - held back from this branch when it landed on master, because the new
+      lockfiles do not resolve under 3.47.8. It comes with the roll instead.
+      scarthgap and kirkstone still pin c205ef08 until theirs
+14. firebase-cpp-sdk: the bundled zlib does not build for 32-bit
+    - gzguts.h undefines _FILE_OFFSET_BITS whenever _LARGEFILE64_SOURCE is
+      set, and glibc rejects that pair once _TIME_BITS is 64. oe-core puts
+      both flags in TARGET_CC_ARCH for 32-bit arm, so the four gz*.c files
+      failed to compile and master's qemuarm failed at firebase-ffi-demo on
+      run 43613924842
+    - madler/zlib a566e156 is the fix and has shipped since v1.3. This
+      recipe pins v1.2.11, the revision cmake/external/zlib.cmake names, so
+      it is backported rather than the pin moved
+    - zlib joins the patch_externals dep list. It is there for our patch
+      alone, having no upstream PATCH_COMMAND of its own
+
+15. ci: build the app steps on qemuarm (#1268)
+    - the seven app steps were conditioned off for the one 32-bit machine in
+      the matrix because flutter build bundle had no linux-arm target
+      platform, so the app recipes did not parse. Item 11 above puts
+      linux-arm in the allowed list, which is what the guards waited on
+    - Build a dart app keeps its guard. Whether a 32-bit arm dart target
+      works is untested, and not what that step is for
+    - the seven cost qemuriscv64 16m48s on run 43738973787 against warm
+      sstate, and #1268 measured 59 minutes on a colder master run. Nothing
+      has built these recipes for qemuarm before, so the first run pays the
+      cold figure. qemuarm's base build is the wide term, 1h05m on that same
+      run and 4h18m on run 43111761363, so the bad case is a slow base plus
+      a cold hour: inside GitHub's 6 hour per-job limit, and not far inside
+    - scarthgap, kirkstone and dunfell keep their guards. #1268 tracks them
+
+16. meta-flutter-apps: move the flatpak-minimal app recipes to
+    meta-flatpak-minimal
+    - flatpak_dart and appstream_dart live under github.com/flatpak-minimal,
+      which has its own layer now. Both recipes move there under the same
+      names and this side drops them. No roll entry goes with them: neither
+      app is in this branch's flutter-apps.json, so nothing generated them
+      here
+    - the workflow keeps both steps, since they are the coverage for
+      flutter-app-native and the vendored pub cache, and clones
+      meta-flatpak-minimal as a layer instead. It gets its own branch
+      variable: there is no wrynose branch there and its master declares
+      LAYERSERIES_COMPAT wrynose, so this tracks master the way meta-drm and
+      meta-vulkan already do
+    - ci-build.inc gets FLATPAK_BUILD_REMOTE back. #1228 set it and it was
+      dropped again, right at the time, because the local recipes inherited
+      flutter-app-native only and nothing read it. The layer's appstream_dart
+      inherits flatpak-flutter-app and so flatpak-app, which skips a recipe
+      whose FLATPAK_REMOTE is unset
+    - this is also what settles the 32-bit build. glaze_meta.h read a wire
+      length as uint64_t and brace-initialized a string_view from it, which
+      narrows on a 32-bit host and is ill-formed in a braced init list, so
+      clang rejected it in three translation units and qemuarm failed at
+      do_compile on run 43801731686, the first run to build the app steps
+      for that machine. The layer's recipe patches it against the same pin,
+      and upstream has since landed the same change as dbfb4429, so this
+      branch need carry neither
 
 November 10, 2026
 1. flutter-sdk: linux-arm target platform, so 32-bit ARM app recipes build
