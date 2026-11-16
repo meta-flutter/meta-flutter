@@ -72,6 +72,14 @@ SRC_URI:libc-musl += "\
     file://0003-suppres-musl-libc-warning.patch;patchdir=engine/src/flutter/third_party/dart \
     "
 
+# riscv64 links the engine with the native clang (see CLANG_PATH), which
+# defaults to --rtlib=libgcc. 3.50.0 added --unwindlib=libunwind to the
+# custom libcxx link flags for linux, and clang rejects that pair. Every
+# other target uses the bundled clang, where upstream's flag is correct.
+SRC_URI:riscv64 += "\
+    file://0012-build-config-unwindlib-riscv64.patch \
+    "
+
 inherit gn-fetcher features_check pkgconfig deploy
 
 # gn writes its output inside the sync directory; keep it out of the
