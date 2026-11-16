@@ -50,7 +50,6 @@ SRC_URI = "\
     file://0006-fml-fixes-text_input-compiler-warnings.patch \
     file://0009-build-config-do-not-treat-warnings-as-errors.patch \
     file://0001-flutter-third_party-swiftshader-pointer-cast-to-void.patch \
-    file://0002-flutter-third_party-swiftshader-llvm-16.0-required-f.patch \
     ${SRC_URI_EXTRA} \
     "
 SRCREV_FORMAT .= "_flutter_sdk"
