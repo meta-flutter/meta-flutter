@@ -13,7 +13,7 @@ SECTION = "graphics"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=2ae04493455a6ed09a6df86162e3cbb4"
 
-SRCREV = "1b31c7ef6ba4b8f29cd26382f9c66a348544c115"
+SRCREV = "dbfb4429af7c07a1f5d5e9507e9dae629e5cc542"
 SRC_URI = "git://github.com/flatpak-minimal/flatpak_dart.git;branch=main;protocol=https"
 
 # native/CMakeLists.txt: pkg_check_modules(flatpak, glib-2.0), both REQUIRED.
