@@ -11,10 +11,9 @@ Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
  1 file changed, 7 insertions(+), 7 deletions(-)
 
 diff --git a/engine/src/flutter/shell/platform/common/text_input_model.cc b/engine/src/flutter/shell/platform/common/text_input_model.cc
-index a21fe1ff3ef..ef807409dc1 100644
 --- a/engine/src/flutter/shell/platform/common/text_input_model.cc
 +++ b/engine/src/flutter/shell/platform/common/text_input_model.cc
-@@ -157,7 +157,7 @@ bool TextInputModel::Backspace() {
+@@ -171,7 +171,7 @@
    // There is no selection. Delete the preceding codepoint.
    size_t position = selection_.position();
    if (position != editable_range().start()) {
@@ -23,7 +22,7 @@ index a21fe1ff3ef..ef807409dc1 100644
      text_.erase(position - count, count);
      selection_ = TextRange(position - count);
      if (composing_) {
-@@ -175,7 +175,7 @@ bool TextInputModel::Delete() {
+@@ -189,7 +189,7 @@
    // There is no selection. Delete the preceding codepoint.
    size_t position = selection_.position();
    if (position < editable_range().end()) {
@@ -32,7 +31,7 @@ index a21fe1ff3ef..ef807409dc1 100644
      text_.erase(position, count);
      if (composing_) {
        composing_range_.set_end(composing_range_.end() - count);
-@@ -196,17 +196,17 @@ bool TextInputModel::DeleteSurrounding(int offset_from_cursor, int count) {
+@@ -212,17 +212,17 @@
          count = i;
          break;
        }
@@ -40,20 +39,20 @@ index a21fe1ff3ef..ef807409dc1 100644
 +      start -= IsTrailingSurrogate(static_cast<char32_t>(text_.at(start - 1))) ? 2 : 1;
      }
    } else {
-     for (int i = 0; i < offset_from_cursor && start != max_pos; i++) {
+     for (int i = 0; i < offset_from_cursor && start < max_pos; i++) {
 -      start += IsLeadingSurrogate(text_.at(start)) ? 2 : 1;
 +      start += IsLeadingSurrogate(static_cast<char32_t>(text_.at(start))) ? 2 : 1;
      }
    }
  
    auto end = start;
-   for (int i = 0; i < count && end != max_pos; i++) {
--    end += IsLeadingSurrogate(text_.at(start)) ? 2 : 1;
-+    end += IsLeadingSurrogate(static_cast<char32_t>(text_.at(start))) ? 2 : 1;
+   for (int i = 0; i < count && end < max_pos; i++) {
+-    end += IsLeadingSurrogate(text_.at(end)) ? 2 : 1;
++    end += IsLeadingSurrogate(static_cast<char32_t>(text_.at(end))) ? 2 : 1;
    }
  
    if (start == end) {
-@@ -271,7 +271,7 @@ bool TextInputModel::MoveCursorForward() {
+@@ -302,7 +302,7 @@
    // Otherwise, move the cursor forward.
    size_t position = selection_.position();
    if (position != editable_range().end()) {
@@ -62,7 +61,7 @@ index a21fe1ff3ef..ef807409dc1 100644
      selection_ = TextRange(position + count);
      return true;
    }
-@@ -287,7 +287,7 @@ bool TextInputModel::MoveCursorBack() {
+@@ -318,7 +318,7 @@
    // Otherwise, move the cursor backward.
    size_t position = selection_.position();
    if (position != editable_range().start()) {
@@ -73,4 +72,3 @@ index a21fe1ff3ef..ef807409dc1 100644
    }
 -- 
 2.51.1
-
