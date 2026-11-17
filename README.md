@@ -252,3 +252,21 @@ To populate a mirror, build once with network access and copy the tarball out of
 
     BB_FETCH_PREMIRRORONLY = "1"
     BB_NO_NETWORK = "1"
+
+## 32-bit targets
+
+Upstream `flutter build bundle` accepts only 64-bit Linux target platforms --
+`TargetPlatform` carries `linux_x64`, `linux_arm64` and `linux_riscv64`. The
+`flutter-sdk` recipe patches `linux_arm` into flutter_tools
+(`recipes-graphics/flutter-sdk/files/0001-flutter_tools-add-linux-arm-target-platform.patch`)
+and rebuilds the tool snapshot from the patched source, so a 32-bit ARM
+`MACHINE` builds app bundles like any other: the asset bundle is built as
+`linux-arm`, the native-assets manifest is keyed `linux_arm` as the engine
+expects, and `libapp.so` comes from `gen_snapshot` out of this layer's own
+`engine_sdk.zip`, built per `MACHINE`. The patch also lets a custom device
+declare `linux-arm`.
+
+x86 and riscv32 are not supported: Dart has no ia32 AOT and no riscv32, so
+there is no `gen_snapshot` for them. riscv32 exists in the Dart VM source but
+nothing ships for it. `FLUTTER_APP_SUPPORTED_ARCHS` skips app
+recipes there at parse time.
