@@ -69,7 +69,11 @@ S = "${WORKDIR}/gn"
 # 0011-build-Make-SDK-artifacts-independent-of-the-builder-s was dropped at
 # 3.50.0: it backported dart-review 543800, which has landed upstream. The
 # vendored dart is the same revision the dart-sdk recipe builds.
-SRC_URI:libc-musl += "\
+#
+# :append:libc-musl, not :libc-musl +=. The second form appends to the
+# override variable and then replaces SRC_URI with it, so the block would
+# drop the git url and every other patch.
+SRC_URI:append:libc-musl = "\
     file://0003-suppres-musl-libc-warning.patch;patchdir=engine/src/flutter/third_party/dart \
     "
 
