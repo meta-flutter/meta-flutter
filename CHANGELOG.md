@@ -56,6 +56,132 @@ November 15, 2026
      the same v2 API, so the version is not the obstacle on this branch
    - S stays explicit: the git fetcher unpacks to ${WORKDIR}/git on this
      release, and the LIC_FILES_CHKSUM paths into the submodule follow it
+4. roll to Flutter 3.50.0 (#1277)
+   - FLUTTER_SDK_TAG 3.47.8 -> 3.50.0, dart-sdk 3.13.7 -> 3.14.0 with the
+     recipe renamed and SRCREV fa8c1270, engine 371f7720, and 118 app
+     SRCREVs. releases_linux.json, dart-revision.json, engine-revision.json
+     and host-sdk.json all move with it
+   - staged by .github/workflows/roll.yml, dispatched with branch=scarthgap.
+     The roll runs with this branch's own tools/, so LICENSE_OPERATOR is &
+     and OVERRIDE_STYLE is new throughout the generated recipes
+   - both pub cache fragments regenerated, 171 hosted and 1 git each
+   - flutter-sdk-dev-a11y-assessments is dropped. 3.50.0 removed
+     dev/a11y_assessments from the SDK tree, so there is no app to generate
+   - upstream renamed the pubspec of flutter/samples
+     add_to_app/ios_content_resizing/flutter_module to
+     flutter_module_content_resizing while keeping the directory. Recipe
+     names come from the pubspec, so a new recipe is generated and the
+     packagegroup takes it. The two old recipes are left behind,
+     unreferenced and on their old SRCREV; master and wrynose carry the same
+     three files, so this is the generator's behavior and not new here
+   - nine apps skipped with a reason rather than generated to fail later.
+     Seven declare a Dart 2.x environment against the pinned 3.14.0, and
+     two do not solve: super_dash, where leap wants tiled ^0.10.1 and
+     flame_tiled wants ^0.12.0, and tcna-packages/packages/flatpak, on a
+     test and matcher conflict
+   - the qemuarm app-step guards come off with this roll, item 14 below, so
+     the one 32-bit machine builds the apps too
+5. flutter-sdk: linux-arm target platform
+   - an add here, not a rebase. #1262 landed this on master and wrynose and
+     was never ported, so flutter build bundle on this branch had no 32-bit
+     target platform at all
+   - the file is wrynose's verbatim, which already carries both its 3.50.0
+     rebase and the 'linux-arm' entry in the --target-platform allowed list
+     in commands/build_bundle.dart, a separate literal that rejects anything
+     not in it. So there is no separate allowed-list commit here
+   - flutter-app gains arm in FLUTTER_APP_SUPPORTED_ARCHS. 3ad3a09 made the
+     app recipes raise SkipRecipe on a 32-bit MACHINE, and that guard is
+     separate from what the tool accepts, so without it every app step fails
+     with "Nothing PROVIDES" no matter how well the patch works. x86 and
+     riscv32 stay skipped: Dart has no ia32 AOT and nothing ships riscv32, so
+     gen_snapshot could not produce a libapp.so either way
+   - README gains wrynose's 32-bit targets section
+   - FILESEXTRAPATHS and a files directory arrive with it, and
+     do_patch:append rebuilds flutter_tools.snapshot from the patched
+     source. The archive ships an x86-64 app-jit snapshot that shared.sh
+     will not rebuild, so without that the patch would not reach the tool
+     that ships
+   - the do_unpack rebuild stays, guarded on a non-x86-64 host, because the
+     config calls there run before do_patch
+   - S stays ${WORKDIR}/flutter. UNPACKDIR arrives in styhead and nothing
+     defines it on this branch
+6. dart-sdk: drop the buildpaths patch, 3.14.0 carries it
+   - the backport of dart-review 543800 landed upstream, so applying it to
+     already-patched source fails all six hunks
+   - no stale comment to drop with it. The INSANE_SKIP commentary master and
+     wrynose carried was never on this branch
+7. flutter-engine: three stale patches on the 3.50.0 roll
+   - 0011-build-Make-SDK-artifacts is byte-identical to the dart-sdk patch
+     and dead for the same reason
+   - 0002-flutter-third_party-swiftshader-llvm-16.0 is obsolete. The pin
+     moved to flutter.googlesource.com/third_party/swiftshader @1be9f836
+     and that fork already selects llvm-16.0 for non-fuchsia
+   - 0006-fml-fixes-text_input was rebased, not dropped. Hunk 3 anchored on
+     a line upstream has since fixed, text_.at(start) to text_.at(end) in
+     the delete-range loop, so forcing it would have reinstated the bug
+8. dart-sdk, flutter-engine: no dart dynamic modules on 32-bit
+   - 3.14.0 refactored the dynamic modules FFI trampoline to carry register
+     values in uword. A double does not fit in one on a 32-bit target, so
+     runtime_entry.cc fails to compile
+   - off for arm and any other 32-bit target, left on elsewhere
+9. flutter-engine: append to SRC_URI, do not replace it
+   - SRC_URI:libc-musl += appends to the override variable, and when
+     the override is active bitbake replaces SRC_URI with it. A musl
+     build would get the musl patch and no git url
+   - master fixed a riscv64 block of the same shape. That block is not
+     here: its unwindlib patch is master-only, since 98ebdf7a builds the
+     engine with its own clang on riscv64
+   - CI parses and dry-runs musl but never builds it, so nothing caught
+     this
+10. flutter-sdk: assert the built tool accepts the target platforms
+    - FLUTTER_TOOL_TARGET_PLATFORMS lists what the app recipes pass to
+      flutter build bundle, and do_unpack now asks the built tool and fails
+      if any of them is missing
+    - the trailing [\w-] guard matters: linux-arm64 in the tool's own list
+      must not answer for linux-arm, which is the bug the check exists for
+    - this is why item 5 is not optional on this branch. The list names
+      linux-arm, so without the patch the assert fails on every machine
+11. firebase-ffi-demo: SRCREV for the 3.50.0 lockfiles
+    - the demo's lockfiles were regenerated for 3.50.0 upstream, so the pin
+      moves with the roll rather than resolving against 3.47.8
+12. firebase-cpp-sdk: backport zlib's _TIME_BITS fix
+    - the bundled zlib's gzguts.h undefines _FILE_OFFSET_BITS whenever
+      _LARGEFILE64_SOURCE is set, and glibc rejects that pair once
+      _TIME_BITS is 64, so the four gz* sources fail on any 32-bit target
+    - madler/zlib a566e156, backported rather than the pin moved, since the
+      point of supplying these sources is to build the set upstream tests
+    - zlib joins the patch_externals dep list for that patch alone
+    - the glob stays ${WORKDIR}/$dep-*.patch where master and wrynose use
+      ${UNPACKDIR}. UNPACKDIR is undefined here, so it would expand empty,
+      the glob would not match, and the loop's own skip would drop the patch
+      silently
+13. flatpak-minimal-flatpak-dart-flutter-remote-manager: roll to dbfb4429
+    - item 14 builds this recipe for a 32-bit target for the first time and
+      the old pin does not compile there. glaze_meta.h read a wire length as
+      uint64_t and brace-initialized a string_view from it, which narrows on
+      a 32-bit host and is ill-formed in a braced init list
+    - dbfb4429's parent is exactly the revision pinned here, so this is a one
+      commit advance. main has since taken unrelated host launch-env work,
+      which is left alone. Only native/include/glaze_meta.h moves, so no
+      Dart dependency changes and the vendored pub cache is untouched
+    - wrynose does not carry this. Its two recipes moved to
+      meta-flatpak-minimal, which patches the same narrowing against the old
+      revision. That layer declares LAYERSERIES_COMPAT wrynose blacksail and
+      has no scarthgap branch, so this branch keeps both recipes local and
+      takes the upstream fix instead. The move is not ported
+14. ci: build the app steps on qemuarm
+    - eight app steps were conditioned off for the one 32-bit machine
+      because flutter build bundle had no linux-arm target platform, so the
+      app recipes did not parse there. Item 5 is what changes that
+    - all eight go, where master and wrynose keep one. Those branches have a
+      Build a dart app step, guarded because a 32-bit arm dart target is
+      untested and not what that step is for; this branch has no such step.
+      Its extra step, the generated app recipe populate_lic check from #978,
+      is guarded for the parse reason alone and goes with the rest
+    - the test-runner comment claimed it builds on qemuarm unlike the app
+      recipes below it. That is no longer true of any of them
+    - #1268 covered scarthgap, kirkstone and dunfell. It now covers
+      kirkstone and dunfell
 
 October 26, 2026
 1. roll ivi-homescreen v3.0 to v3.0.0
