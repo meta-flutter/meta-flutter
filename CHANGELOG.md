@@ -1,5 +1,62 @@
 # Changelog
 
+November 15, 2026
+1. ivi-homescreen: roll the v3.0 pin to bf37d028
+   - 19 commits on from v3.0.0, all drm-kms rotation: --drm-rotation on the
+     GPU for the egl and vulkan backends, a refusal when the display or
+     backend cannot do the angle, a GL composite and rotation for additional
+     outputs, and two wayland-vulkan swapchain lifetime fixes
+   - all three definitions of HOMESCREEN_COMMIT move together, so the ten
+     integration tests and ihs_shared stay on the embedder being shipped
+   - no pubspec or lockfile churn in the gap, and test/integration is
+     identical at both ends, so no test recipe is added or dropped
+2. ihs-wl-server-example: roll to v0.2.0
+   - two releases, not one: the pin was 606abc53, taken for the
+     platform-view ABI 1.17 break, and the October 26 roll to v0.1.0 missed
+     this recipe because this branch keeps it in
+     dynamic-layers/scarthgap-rust-mixin. 36 commits rather than 17
+   - v0.1.0 is wp_security_context_v1, sandbox identity for views,
+     SANDBOX_APP_ID in the example, and per-axis view scaling with
+     sizeOnScreen. v0.2.0 is window reporting and foreign windows
+   - PV follows the dart pubspec, 0.1.0+git to 0.2.0+git
+   - build.rs still asks for platform-view ABI 1.16 or newer and the v3.0
+     roll above leaves it at 1.23, so the two rolls do not interact.
+     rust-version is still 1.94.1, which the scarthgap/rust mixin covers
+   - upstream pinned flutter/material.dart to 3.47 in the example, which is
+     where this branch sits. The declared environment did not move
+3. jwinarske-bluez-native-flutter-ble-scanner: roll to 0.3.4
+   - 20 commits from the old pin, 0.3.1 plus the SCD41 example, across three
+     releases. 0.3.2 and 0.3.3 add the NOTICE file and the LICENSE copyright
+     line, profile-specific device connection, the connectProfile UUID
+     normalized, and a result on every native exit path. PV is in the
+     filename, so the recipe is renamed
+   - 0.3.4 builds sdbus-c++ shared and links it dynamically. Until then it
+     was static, so LGPL-2.1 object code sat inside libbluez_nc.so, which is
+     Apache-2.0, and LGPL section 6 came with it. 432 sdbus symbols were
+     defined in that library before and none are now
+   - libsdbus-c++.so.2 now installs beside it, which satisfies section 6 by
+     the shared-library route. The package still ships the library, so
+     LICENSE is Apache-2.0 & LGPL-2.1-only and the submodule's COPYING is
+     checksummed. "&" rather than master's "AND": this branch's oe-core
+     validates separators against '&|() ', so AND fails license-format
+   - the exception beside that COPYING covers header material and preserves
+     section 6, so it does not change the license. Checksummed rather than
+     named, since no SPDX identifier exists for it
+   - PRIVATE_LIBS names both bundled libraries, carried over from the master
+     fix rather than waiting for CI to find it again. The class installs
+     native assets twice, inside the Flutter bundle and again on the linker
+     search path, so one soname registers as two shlib providers and
+     do_package fails with "Multiple shlib providers for libsdbus-c++.so.2"
+   - only the intra-package dependency is dropped. libsdbus-c++.so.2's own
+     NEEDED libsystemd.so.0 still resolves, so the runtime dependency on the
+     sd-bus provider is unchanged
+   - still built from the submodule, not meta-oe's sdbus-c++: hook libraries
+     are built -stdlib=libc++ and that recipe builds against libstdc++, so
+     the std::string entry points do not match. meta-oe here is on 2.0.0,
+     the same v2 API, so the version is not the obstacle on this branch
+   - S stays explicit: the git fetcher unpacks to ${WORKDIR}/git on this
+     release, and the LIC_FILES_CHKSUM paths into the submodule follow it
+
 October 26, 2026
 1. roll ivi-homescreen v3.0 to v3.0.0
    - v3.0.0 is 05fb91a0, 262 commits on from b7646dc0 and four behind the
