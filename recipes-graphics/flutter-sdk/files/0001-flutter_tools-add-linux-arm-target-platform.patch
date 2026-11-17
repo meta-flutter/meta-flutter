@@ -1,0 +1,229 @@
+From 925aab7c341a18f362365b444aef3b8cbb77e70b Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@gmail.com>
+Date: Thu, 12 Nov 2026 03:57:02 -0800
+Subject: [PATCH] flutter_tools: add linux-arm target platform
+
+-TargetPlatform.linux_arm, plus 'linux-arm' in the --target-platform
+ allowed list in commands/build_bundle.dart. That list is a separate
+ literal and rejects any value not in it
+-the os getter maps it to linux, which carries the feature flag
+ check, the kernel snapshot os name and both artifact dispatches
+-native assets map to Architecture.arm, manifest keyed linux_arm
+-custom devices accept linux-arm and report CpuArch.armv7
+-not a host platform, artifacts and build linux unchanged
+
+Upstream-Status: Pending
+
+Signed-off-by: Joel Winarske <joel.winarske@gmail.com>
+---
+ packages/flutter_tools/lib/src/artifacts.dart          |  2 ++
+ packages/flutter_tools/lib/src/base/build.dart         |  1 +
+ packages/flutter_tools/lib/src/build_info.dart         |  6 +++++-
+ .../lib/src/build_system/targets/common.dart           |  1 +
+ packages/flutter_tools/lib/src/commands/assemble.dart  |  3 +++
+ .../flutter_tools/lib/src/commands/build_bundle.dart   |  1 +
+ .../lib/src/custom_devices/custom_device.dart          |  1 +
+ .../lib/src/custom_devices/custom_device_config.dart   | 10 ++++++----
+ .../lib/src/isolated/native_assets/targets.dart        |  3 +++
+ 9 files changed, 23 insertions(+), 5 deletions(-)
+
+diff --git a/packages/flutter_tools/lib/src/artifacts.dart b/packages/flutter_tools/lib/src/artifacts.dart
+index 6a09182..81203df 100644
+--- a/packages/flutter_tools/lib/src/artifacts.dart
++++ b/packages/flutter_tools/lib/src/artifacts.dart
+@@ -210,6 +210,7 @@ TargetPlatform? _mapTargetPlatform(TargetPlatform? targetPlatform) {
+     case TargetPlatform.linux_x64:
+     case TargetPlatform.linux_arm64:
+     case TargetPlatform.linux_riscv64:
++    case TargetPlatform.linux_arm:
+     case TargetPlatform.windows_x64:
+     case TargetPlatform.windows_arm64:
+     case TargetPlatform.fuchsia_arm64:
+@@ -1549,6 +1550,7 @@ String _getPrebuiltTarget(Platform platform, OperatingSystemUtils operatingSyste
+     case TargetPlatform.fuchsia_x64:
+     case TargetPlatform.web_javascript:
+     case TargetPlatform.tester:
++    case TargetPlatform.linux_arm:
+       throwToolExit('Unsupported host platform: $hostPlatform');
+     case TargetPlatform.unsupported:
+       TargetPlatform.throwUnsupportedTarget();
+diff --git a/packages/flutter_tools/lib/src/base/build.dart b/packages/flutter_tools/lib/src/base/build.dart
+index 5549376..ea6f634 100644
+--- a/packages/flutter_tools/lib/src/base/build.dart
++++ b/packages/flutter_tools/lib/src/base/build.dart
+@@ -301,6 +301,7 @@ class AOTSnapshotter {
+       TargetPlatform.linux_x64,
+       TargetPlatform.linux_arm64,
+       TargetPlatform.linux_riscv64,
++      TargetPlatform.linux_arm,
+       TargetPlatform.windows_x64,
+       TargetPlatform.windows_arm64,
+     ].contains(platform);
+diff --git a/packages/flutter_tools/lib/src/build_info.dart b/packages/flutter_tools/lib/src/build_info.dart
+index 8cd0fcf..e941209 100644
+--- a/packages/flutter_tools/lib/src/build_info.dart
++++ b/packages/flutter_tools/lib/src/build_info.dart
+@@ -713,6 +713,7 @@ enum TargetPlatform {
+   linux_x64('linux-x64'),
+   linux_arm64('linux-arm64'),
+   linux_riscv64('linux-riscv64'),
++  linux_arm('linux-arm'),
+   windows_x64('windows-x64'),
+   windows_arm64('windows-arm64'),
+   fuchsia_arm64('fuchsia-arm64'),
+@@ -744,6 +745,7 @@ enum TargetPlatform {
+       'linux-x64' => TargetPlatform.linux_x64,
+       'linux-arm64' => TargetPlatform.linux_arm64,
+       'linux-riscv64' => TargetPlatform.linux_riscv64,
++      'linux-arm' => TargetPlatform.linux_arm,
+       'windows-x64' => TargetPlatform.windows_x64,
+       'windows-arm64' => TargetPlatform.windows_arm64,
+       'web-javascript' => TargetPlatform.web_javascript,
+@@ -773,6 +775,7 @@ enum TargetPlatform {
+     ios ||
+     linux_arm64 ||
+     linux_riscv64 ||
++    linux_arm ||
+     linux_x64 ||
+     tester ||
+     web_javascript ||
+@@ -787,7 +790,7 @@ enum TargetPlatform {
+     android || android_arm || android_arm64 || android_x64 => .android,
+     ios => .ios,
+     darwin => .macos,
+-    linux_x64 || linux_arm64 || linux_riscv64 => .linux,
++    linux_x64 || linux_arm64 || linux_riscv64 || linux_arm => .linux,
+     windows_x64 || windows_arm64 => .windows,
+     fuchsia_arm64 || fuchsia_x64 => .fuchsia,
+     web_javascript => .web,
+@@ -811,6 +814,7 @@ enum TargetPlatform {
+     linux_x64 || darwin || windows_x64 => 'x64',
+     linux_arm64 || windows_arm64 => 'arm64',
+     linux_riscv64 => 'riscv64',
++    linux_arm => 'arm',
+     android ||
+     android_arm ||
+     android_arm64 ||
+diff --git a/packages/flutter_tools/lib/src/build_system/targets/common.dart b/packages/flutter_tools/lib/src/build_system/targets/common.dart
+index 60bc0ce..c64ec21 100644
+--- a/packages/flutter_tools/lib/src/build_system/targets/common.dart
++++ b/packages/flutter_tools/lib/src/build_system/targets/common.dart
+@@ -248,6 +248,7 @@ class KernelSnapshot extends Target {
+       case TargetPlatform.ios:
+       case TargetPlatform.linux_arm64:
+       case TargetPlatform.linux_riscv64:
++      case TargetPlatform.linux_arm:
+       case TargetPlatform.tester:
+       case TargetPlatform.web_javascript:
+         forceLinkPlatform = false;
+diff --git a/packages/flutter_tools/lib/src/commands/assemble.dart b/packages/flutter_tools/lib/src/commands/assemble.dart
+index d39f0fa..d86ff74 100644
+--- a/packages/flutter_tools/lib/src/commands/assemble.dart
++++ b/packages/flutter_tools/lib/src/commands/assemble.dart
+@@ -49,12 +49,15 @@ var _kDefaultTargets = <Target>[
+   const DebugBundleLinuxAssets(TargetPlatform.linux_x64),
+   const DebugBundleLinuxAssets(TargetPlatform.linux_arm64),
+   const DebugBundleLinuxAssets(TargetPlatform.linux_riscv64),
++  const DebugBundleLinuxAssets(TargetPlatform.linux_arm),
+   const ProfileBundleLinuxAssets(TargetPlatform.linux_x64),
+   const ProfileBundleLinuxAssets(TargetPlatform.linux_arm64),
+   const ProfileBundleLinuxAssets(TargetPlatform.linux_riscv64),
++  const ProfileBundleLinuxAssets(TargetPlatform.linux_arm),
+   const ReleaseBundleLinuxAssets(TargetPlatform.linux_x64),
+   const ReleaseBundleLinuxAssets(TargetPlatform.linux_arm64),
+   const ReleaseBundleLinuxAssets(TargetPlatform.linux_riscv64),
++  const ReleaseBundleLinuxAssets(TargetPlatform.linux_arm),
+   const ReleaseAndroidApplication(),
+   // This is a one-off rule for bundle and aot compat.
+   const CopyFlutterBundle(),
+diff --git a/packages/flutter_tools/lib/src/commands/build_bundle.dart b/packages/flutter_tools/lib/src/commands/build_bundle.dart
+index 9d08502..6e35993 100644
+--- a/packages/flutter_tools/lib/src/commands/build_bundle.dart
++++ b/packages/flutter_tools/lib/src/commands/build_bundle.dart
+@@ -58,6 +58,7 @@ class BuildBundleCommand extends BuildSubCommand {
+           'linux-x64',
+           'linux-arm64',
+           'linux-riscv64',
++          'linux-arm',
+           'windows-x64',
+           'windows-arm64',
+         ],
+diff --git a/packages/flutter_tools/lib/src/custom_devices/custom_device.dart b/packages/flutter_tools/lib/src/custom_devices/custom_device.dart
+index b0da33a..76246c2 100644
+--- a/packages/flutter_tools/lib/src/custom_devices/custom_device.dart
++++ b/packages/flutter_tools/lib/src/custom_devices/custom_device.dart
+@@ -787,6 +787,7 @@ class CustomDevice extends Device {
+     // CustomDeviceConfig), so the arch is derived from that.
+     return switch (_config.platform) {
+       TargetPlatform.linux_x64 => CpuArch.x64,
++      TargetPlatform.linux_arm => CpuArch.armv7,
+       _ => CpuArch.arm64,
+     };
+   }
+diff --git a/packages/flutter_tools/lib/src/custom_devices/custom_device_config.dart b/packages/flutter_tools/lib/src/custom_devices/custom_device_config.dart
+index ad2080c..a2fc302 100644
+--- a/packages/flutter_tools/lib/src/custom_devices/custom_device_config.dart
++++ b/packages/flutter_tools/lib/src/custom_devices/custom_device_config.dart
+@@ -99,7 +99,8 @@ class CustomDeviceConfig {
+        assert(
+          platform == null ||
+              platform == TargetPlatform.linux_x64 ||
+-             platform == TargetPlatform.linux_arm64,
++             platform == TargetPlatform.linux_arm64 ||
++             platform == TargetPlatform.linux_arm,
+        );
+ 
+   /// Create a CustomDeviceConfig from some JSON value.
+@@ -130,7 +131,7 @@ class CustomDeviceConfig {
+     final String? archString = _castStringOrNull(
+       typedMap[_kPlatform],
+       _kPlatform,
+-      'null or one of linux-arm64, linux-x64',
++      'null or one of linux-arm64, linux-arm, linux-x64',
+     );
+ 
+     late TargetPlatform? platform;
+@@ -139,16 +140,17 @@ class CustomDeviceConfig {
+     } on UnsupportedError {
+       throw const CustomDeviceRevivalException.fromDescriptions(
+         _kPlatform,
+-        'null or one of linux-arm64, linux-x64',
++        'null or one of linux-arm64, linux-arm, linux-x64',
+       );
+     }
+ 
+     if (platform != null &&
+         platform != TargetPlatform.linux_arm64 &&
++        platform != TargetPlatform.linux_arm &&
+         platform != TargetPlatform.linux_x64) {
+       throw const CustomDeviceRevivalException.fromDescriptions(
+         _kPlatform,
+-        'null or one of linux-arm64, linux-x64',
++        'null or one of linux-arm64, linux-arm, linux-x64',
+       );
+     }
+ 
+diff --git a/packages/flutter_tools/lib/src/isolated/native_assets/targets.dart b/packages/flutter_tools/lib/src/isolated/native_assets/targets.dart
+index 8795cbf..8165079 100644
+--- a/packages/flutter_tools/lib/src/isolated/native_assets/targets.dart
++++ b/packages/flutter_tools/lib/src/isolated/native_assets/targets.dart
+@@ -76,6 +76,8 @@ sealed class AssetBuildTarget {
+         return _linuxTarget(supportedAssetTypes, Architecture.arm64, buildMode, buildDirectory);
+       case TargetPlatform.linux_riscv64:
+         return _linuxTarget(supportedAssetTypes, Architecture.riscv64, buildMode, buildDirectory);
++      case TargetPlatform.linux_arm:
++        return _linuxTarget(supportedAssetTypes, Architecture.arm, buildMode, buildDirectory);
+       case TargetPlatform.windows_arm64:
+         return _windowsTarget(supportedAssetTypes, Architecture.arm64);
+       case TargetPlatform.darwin:
+@@ -437,6 +439,7 @@ List<CpuArch> _androidArchs(TargetPlatform targetPlatform, String? androidArchsE
+     case TargetPlatform.ios:
+     case TargetPlatform.linux_arm64:
+     case TargetPlatform.linux_riscv64:
++    case TargetPlatform.linux_arm:
+     case TargetPlatform.linux_x64:
+     case TargetPlatform.tester:
+     case TargetPlatform.web_javascript:
+-- 
+2.56.0
+
