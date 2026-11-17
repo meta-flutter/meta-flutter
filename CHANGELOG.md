@@ -1,5 +1,48 @@
 # Changelog
 
+November 15, 2026
+1. ivi-homescreen: roll the v3.0 pin to bf37d028
+   - 19 commits on from v3.0.0, all drm-kms rotation: --drm-rotation on the
+     GPU for the egl and vulkan backends, a refusal when the display or
+     backend cannot do the angle, a GL composite and rotation for additional
+     outputs, and two wayland-vulkan swapchain lifetime fixes
+   - all three definitions of HOMESCREEN_COMMIT move together, so the ten
+     integration tests and ihs_shared stay on the embedder being shipped
+   - no pubspec or lockfile churn in the gap, and test/integration is
+     identical at both ends, so no test recipe is added or dropped
+2. jwinarske-bluez-native-flutter-ble-scanner: roll to 0.3.4
+   - 20 commits from the old pin, 0.3.1 plus the SCD41 example, across three
+     releases. 0.3.2 and 0.3.3 add the NOTICE file and the LICENSE copyright
+     line, profile-specific device connection, the connectProfile UUID
+     normalized, and a result on every native exit path. PV is in the
+     filename, so the recipe is renamed
+   - 0.3.4 builds sdbus-c++ shared and links it dynamically. Until then it
+     was static, so LGPL-2.1 object code sat inside libbluez_nc.so, which is
+     Apache-2.0, and LGPL section 6 came with it. 432 sdbus symbols were
+     defined in that library before and none are now
+   - libsdbus-c++.so.2 now installs beside it, which satisfies section 6 by
+     the shared-library route. The package still ships the library, so
+     LICENSE is Apache-2.0 & LGPL-2.1-only and the submodule's COPYING is
+     checksummed. "&" rather than master's "AND": this release's oe-core
+     validates separators against '&|() ', so AND fails license-format
+   - the exception beside that COPYING covers header material and preserves
+     section 6, so it does not change the license. Checksummed rather than
+     named, since no SPDX identifier exists for it
+   - meta-oe on kirkstone carries sdbus-c++ 1.0.0, the v1 API, so the
+     submodule is required here rather than merely preferred. The standard
+     library rules meta-oe's recipe out in either case: hook libraries are
+     built -stdlib=libc++ and that recipe builds against libstdc++
+   - PRIVATE_LIBS names both bundled libraries. It was a fix on master,
+     where the class installs native assets twice and one soname registered
+     as two shlib providers; this branch's class copies from a path the
+     flutter tool stopped writing, so there is one copy and no failure. The
+     line is still true and keeps the recipe aligned across branches
+   - that stale copy is #870, fixed on master by 1ae2065f and not ported
+     here. The engine dlopens a native asset by bare name and nothing on
+     this branch puts the bundle directory on the linker search path, so
+     libbluez_nc.so is not reachable at runtime. This roll is about what the
+     package ships and is licensed under, and does not change that
+
 October 26, 2026
 1. roll ivi-homescreen v3.0 to v3.0.0
    - v3.0.0 is 05fb91a0, 262 commits on from b7646dc0 and four behind the
