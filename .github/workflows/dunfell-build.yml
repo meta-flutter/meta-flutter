@@ -376,9 +376,7 @@ jobs:
                   flutter-drm-eglstream-backend
 
       - name: Build the Flutter SDK example apps
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         shell: bash
         working-directory: ../dunfell-linux-dummy
         run: |
@@ -410,9 +408,7 @@ jobs:
       # packages/flutter_tools -- which does not inherit our --offline, so in a
       # network-isolated do_compile it can only fail.
       - name: Build ivi-homescreen integration tests
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         shell: bash
         working-directory: ../dunfell-linux-dummy
         run: |
@@ -462,9 +458,11 @@ jobs:
       # packagekit_dart: talks to PackageKit over D-Bus, exercising the same
       # hook path against a system library that does exist here.
       - name: Build jwinarske-packagekit-dart-packagekit-catalog
-        # No linux-arm target platform for flutter build bundle, and the
-        # package's hook handles only x64 and arm64, so riscv64 is out too --
-        # see COMPATIBLE_HOST on the recipe.
+        # The package's hook handles only x64 and arm64, so the 32-bit machine
+        # is out along with riscv64 -- see COMPATIBLE_HOST on the recipe. A
+        # target platform for flutter build bundle does not change that. No
+        # riscv64 machine is in this branch's matrix, so that half is there for
+        # a machine added later.
         if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' && matrix.machine != 'qemuriscv64' }}
         shell: bash
         working-directory: ../dunfell-linux-dummy
@@ -479,8 +477,8 @@ jobs:
       # The musl resolve above only resolves it, and a missing or misplaced
       # deploy shows up at do_install, not in a taskgraph. See #1197.
       - name: Build a dart app
-        # Off for qemuarm like the app builds below. Whether a 32-bit arm dart
-        # target works here is untested, and not what this step is for.
+        # Off for qemuarm. Whether a 32-bit arm dart target works here is
+        # untested, and not what this step is for.
         if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
         shell: bash
         working-directory: ../dunfell-linux-dummy
@@ -489,9 +487,7 @@ jobs:
           bitbake dart-example-hello
 
       - name: Build jwinarske-bluez-native-flutter-ble-scanner
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         shell: bash
         working-directory: ../dunfell-linux-dummy
         run: |
@@ -503,9 +499,7 @@ jobs:
       # roll dropping S from every generated recipe (#978). LIC_FILES_CHKSUM
       # resolves against S, so this fails on the first task that reads it.
       - name: Check a generated app recipe unpacks into S
-        # flutter build bundle has no linux-arm target platform,
-        # so the app recipes do not parse for a 32-bit machine
-        if: ${{ !cancelled() && steps.base.outcome == 'success' && matrix.machine != 'qemuarm' }}
+        if: ${{ !cancelled() && steps.base.outcome == 'success' }}
         shell: bash
         working-directory: ../dunfell-linux-dummy
         run: |
