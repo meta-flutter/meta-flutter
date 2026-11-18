@@ -1,5 +1,35 @@
 # Changelog
 
+November 18, 2026
+1. dart-sdk: build against the target sysroot, not Dart's bundled one
+   - the recipe exported DART_USE_SYSROOT="${TARGET_SYSROOT}", a variable
+     this release does not define, so it went out empty and gn.py's
+     UseSysroot() read that as no sysroot given and took Dart's own
+   - passing the path alone does not work either. gn.py parses the value as
+     an arch-keyed map, "<arch>=<path>", where arch is the whole -a value.
+     The arch string moves into DART_GN_ARCH, one definition for both the -a
+     argument and the key
+   - one gn arg cannot serve both halves of a cross build. target_sysroot
+     applies to the host toolchain too, so the x86-64 half compiled against
+     the target's headers and glibc rejected it with "__WORDSIZE is not
+     defined". A patch,
+     0001-build-config-target-sysroot-for-the-target-half-only.patch, scopes
+     the assignment to the toolchain whose current_cpu matches target_cpu and
+     leaves the host half on //buildtools/sysroot/linux, where it already was
+     and where the cross gen_snapshot needs it
+   - cross builds only. A native build has one gn toolchain for both halves,
+     nothing for the patch to separate, so the staged sysroot would reach the
+     tools gn runs during the build and gen_snapshot would link against a
+     glibc ld.so will not hand it, "version `GLIBC_2.43' not found". x64
+     gives nothing up by sitting out, 3.14.0 leaves it on
+     //buildtools/sysroot/linux, a glibc 2.18 floor
+   - nothing failed on this branch. 3.14.0's jammy sysroot sets a glibc 2.34
+     floor and this release is past it, so dunfell was the only branch where
+     it surfaced, as do_package_qa file-rdeps on dartvm, utils/gen_snapshot
+     and utils/wasm-opt
+   - ports the dunfell change, per #1283. DART_USE_TOOLCHAIN is inert for the
+     same keying reason and is left alone
+
 November 15, 2026
 1. ivi-homescreen: roll the v3.0 pin to bf37d028
    - 19 commits on from v3.0.0, all drm-kms rotation: --drm-rotation on the
