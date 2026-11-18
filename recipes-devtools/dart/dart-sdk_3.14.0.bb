@@ -33,6 +33,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 SRC_URI = " \
     gn://github.com/dart-lang/sdk.git;gn_name=sdk \
     file://gcc_toolchain.gni.in \
+    file://0001-build-config-target-sysroot-for-the-target-half-only.patch;patchdir=${S}/sdk \
 "
 
 inherit gn-fetcher pkgconfig deploy
@@ -93,13 +94,23 @@ GN_HOST_ARCH = "${@gn_host_arch_name(d)}"
 
 # --arm-float-abi [soft,softfp,hard]
 
-GN_ARGS_append_armv7 = " -a arm_${GN_HOST_ARCH} --arm-float-abi ${TARGET_FPU}"
-GN_ARGS_append_armv7a = " -a arm_${GN_HOST_ARCH} --arm-float-abi ${TARGET_FPU}"
-GN_ARGS_append_armv7ve = " -a arm_${GN_HOST_ARCH} --arm-float-abi ${TARGET_FPU}"
-GN_ARGS_append_aarch64 = " -a arm64_${GN_HOST_ARCH}"
-GN_ARGS_append_x86-64 = " -a x64_${GN_HOST_ARCH}"
-GN_ARGS_append_riscv32 = " -a riscv32_${GN_HOST_ARCH}"
-GN_ARGS_append_riscv64 = " -a riscv64_${GN_HOST_ARCH}"
+# The whole -a value, "<target>_<host>" for a cross build. Also the key
+# DART_USE_SYSROOT has to carry below, so it lives in one place.
+DART_GN_ARCH_armv7 = "arm_${GN_HOST_ARCH}"
+DART_GN_ARCH_armv7a = "arm_${GN_HOST_ARCH}"
+DART_GN_ARCH_armv7ve = "arm_${GN_HOST_ARCH}"
+DART_GN_ARCH_aarch64 = "arm64_${GN_HOST_ARCH}"
+DART_GN_ARCH_x86-64 = "x64_${GN_HOST_ARCH}"
+DART_GN_ARCH_riscv32 = "riscv32_${GN_HOST_ARCH}"
+DART_GN_ARCH_riscv64 = "riscv64_${GN_HOST_ARCH}"
+
+GN_ARGS_append_armv7 = " -a ${DART_GN_ARCH} --arm-float-abi ${TARGET_FPU}"
+GN_ARGS_append_armv7a = " -a ${DART_GN_ARCH} --arm-float-abi ${TARGET_FPU}"
+GN_ARGS_append_armv7ve = " -a ${DART_GN_ARCH} --arm-float-abi ${TARGET_FPU}"
+GN_ARGS_append_aarch64 = " -a ${DART_GN_ARCH}"
+GN_ARGS_append_x86-64 = " -a ${DART_GN_ARCH}"
+GN_ARGS_append_riscv32 = " -a ${DART_GN_ARCH}"
+GN_ARGS_append_riscv64 = " -a ${DART_GN_ARCH}"
 
 OUT_DIR = "${S}/sdk/out"
 
@@ -114,7 +125,18 @@ do_configure() {
     # we only build one mode type
     rm -rf "${OUT_DIR}" || true
 
-    export DART_USE_SYSROOT="${TARGET_SYSROOT}"
+    # gn.py reads this as an arch-keyed map, "<arch>=<path>", and drops
+    # anything that does not parse as one. TARGET_SYSROOT is not a variable
+    # this release defines, so what went out before was empty, gn.py decided
+    # no sysroot had been given, and the build took Dart's own bundled one.
+    # Skip it on a machine with no DART_GN_ARCH rather than send a bare "=".
+    # One gn arg cannot cover both halves of a cross build, so the sysroot.gni
+    # patch is what keeps this off the host toolchain.
+    if [ -n "${DART_GN_ARCH}" ]; then
+        export DART_USE_SYSROOT="${DART_GN_ARCH}=${STAGING_DIR_TARGET}"
+    fi
+    # Inert, and left that way for now: gn.py keys this one by plain cpu
+    # name, and the clang toolchains it picks ignore the prefix regardless.
     export DART_USE_TOOLCHAIN="${STAGING_DIR_NATIVE}/usr/bin"
 
     #
@@ -134,7 +156,11 @@ do_compile() {
 
     cd ${S}/sdk
 
-    export DART_USE_SYSROOT="${TARGET_SYSROOT}"
+    # Keyed and guarded as in do_configure, since ninja re-runs gn when the
+    # args change.
+    if [ -n "${DART_GN_ARCH}" ]; then
+        export DART_USE_SYSROOT="${DART_GN_ARCH}=${STAGING_DIR_TARGET}"
+    fi
     export DART_USE_TOOLCHAIN="${STAGING_DIR_NATIVE}/usr/bin"
 
     BUILD_DIR="${OUT_DIR}/$(ls ${OUT_DIR})"
