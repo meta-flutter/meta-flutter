@@ -1,0 +1,34 @@
+From: Mark Adler <madler@alumni.caltech.edu>
+Subject: [PATCH] Avoid compiler complaints if _TIME_BITS defined when building zlib
+
+gzguts.h undefines _FILE_OFFSET_BITS whenever _LARGEFILE64_SOURCE is set,
+and glibc rejects that pair once _TIME_BITS is 64:
+
+    features-time64.h:26:5: error: "_TIME_BITS=64 is allowed only with
+    _FILE_OFFSET_BITS=64"
+
+oe-core puts both flags in TARGET_CC_ARCH for 32-bit arm, so the four gz*.c
+files fail to compile for any 32-bit target. zlib does not use time_t, so
+dropping _TIME_BITS along with _FILE_OFFSET_BITS is the whole fix.
+
+In zlib since v1.3. The SDK pins v1.2.11, the revision
+cmake/external/zlib.cmake names, so this is backported rather than the pin
+moved.
+
+Upstream-Status: Backport [https://github.com/madler/zlib/commit/a566e156b3fa07b566ddbf6801b517a9dba04fa3]
+Signed-off-by: Joel Winarske <joel.winarske@linux.com>
+---
+--- a/gzguts.h
++++ b/gzguts.h
+@@ -7,9 +7,8 @@
+ #  ifndef _LARGEFILE_SOURCE
+ #    define _LARGEFILE_SOURCE 1
+ #  endif
+-#  ifdef _FILE_OFFSET_BITS
+-#    undef _FILE_OFFSET_BITS
+-#  endif
++#  undef _FILE_OFFSET_BITS
++#  undef _TIME_BITS
+ #endif
+ 
+ #ifdef HAVE_HIDDEN
