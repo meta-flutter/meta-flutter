@@ -46,7 +46,6 @@ SRC_URI = "\
     file://0006-fml-fixes-text_input-compiler-warnings.patch \
     file://0009-build-config-do-not-treat-warnings-as-errors.patch \
     file://0001-flutter-third_party-swiftshader-pointer-cast-to-void.patch \
-    file://0002-flutter-third_party-swiftshader-llvm-16.0-required-f.patch \
     ${SRC_URI_EXTRA} \
     "
 SRCREV_FORMAT .= "_flutter_sdk"
@@ -64,9 +63,16 @@ S = "${WORKDIR}/gn"
 # its native musl locale path when told it is on musl, which
 # FLUTTER_ENGINE_CXX_LIBC_FLAGS already does via -D_LIBCPP_HAS_MUSL_LIBC. They
 # stopped applying at 3.47.1 and are redundant with that define.
-SRC_URI_libc-musl += "\
+#
+# 0011-build-Make-SDK-artifacts-independent-of-the-builder-s was dropped at
+# 3.50.0: it backported dart-review 543800, which has landed upstream. The
+# vendored dart is the same revision the dart-sdk recipe builds.
+#
+# SRC_URI_append_libc-musl, not SRC_URI_libc-musl +=. The second form
+# appends to the override variable and then replaces SRC_URI with it, so
+# the block would drop the git url and every other patch.
+SRC_URI_append_libc-musl = "\
     file://0003-suppres-musl-libc-warning.patch;patchdir=engine/src/flutter/third_party/dart \
-    file://0011-build-Make-SDK-artifacts-independent-of-the-builder-s.patch;patchdir=engine/src/flutter/third_party/dart \
     "
 
 inherit gn-fetcher features_check pkgconfig deploy
@@ -121,6 +127,13 @@ PACKAGECONFIG ??= "\
     dart-dynamic-modules \
     dart-secure-socket \
     "
+
+# Same 32-bit break as dart-sdk: the dart dynamic modules FFI trampoline
+# does not compile for a 32-bit target. CI builds release only, which is
+# AOT, where DART_PRECOMPILED_RUNTIME excludes that code, but the default
+# PACKAGECONFIG above includes debug, which is JIT and does reach it.
+PACKAGECONFIG_remove_arm = "dart-dynamic-modules"
+PACKAGECONFIG_remove_riscv32 = "dart-dynamic-modules"
 
 
 PACKAGECONFIG[asan] = "--asan"

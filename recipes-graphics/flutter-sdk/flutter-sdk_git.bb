@@ -51,8 +51,16 @@ PV = "${FLUTTER_SDK_VERSION}"
 
 inherit pkgconfig
 
+FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+
+# flutter build bundle has no 32-bit target platform. The patch adds
+# TargetPlatform.linux_arm so a 32-bit ARM MACHINE can build app bundles with
+# the right native assets key. Dart has no riscv32 and no ia32 AOT, so arm is
+# the only 32-bit target worth adding. do_patch_append below rebuilds the tool
+# snapshot from the patched source.
 SRC_URI = "\
     https://storage.googleapis.com/flutter_infra_release/releases/${@get_flutter_archive(d)};name=flutter-sdk \
+    file://0001-flutter_tools-add-linux-arm-target-platform.patch \
 "
 SRC_URI[flutter-sdk.sha256sum] = "${@get_flutter_sha256(d)}"
 
@@ -322,16 +330,13 @@ python do_unpack_append() {
             bb.fatal('%s still names the build machine pub cache after '
                      'pub get --offline' % package_config)
 
-    # The archive's flutter_tools.snapshot is an app-jit snapshot built by the
-    # x86-64 Dart VM. Its stamp is the SDK's git HEAD plus FLUTTER_TOOL_ARGS
-    # (shared.sh:124-125); neither moves here, so shared.sh does not rebuild
-    # it. The x64 snapshot cannot load on a non-x86-64 VM:
-    #
-    #   Snapshot not compatible with the current VM configuration: the snapshot
-    #   requires '... x64 linux ...' but the VM has '... arm64 linux ...'
-    #
-    # Rebuild it with the staged host Dart. The stamp is left as the archive
-    # wrote it.
+    # do_patch_append rebuilds the snapshot from the patched source, which is
+    # what ships. That is too late for the config calls below: do_patch runs
+    # after do_unpack, and on a non-x86-64 host the archive's x64 snapshot
+    # cannot load at all, so every one of them fails 255 and ${WORKDIR}/settings
+    # is never written -- the do_install failure in #1233. Rebuild here too,
+    # only where the archive's snapshot is unusable. Unpatched is fine: these
+    # calls set feature flags and do not touch target platforms.
     if host_arch != 'x64':
         cmd = (f'{dart} --verbosity=error '
                '--snapshot=bin/cache/flutter_tools.snapshot '
@@ -363,7 +368,93 @@ python do_unpack_append() {
     # usable. `flutter --version` exercises the same snapshot and returns at
     # once.
     run_command(d, 'flutter --version', source_dir, env)
+
 }
+
+python do_patch_append() {
+    # The archive's flutter_tools.snapshot is an app-jit snapshot built by the
+    # x86-64 Dart VM from unpatched source. Its stamp is the SDK's git HEAD
+    # plus FLUTTER_TOOL_ARGS (shared.sh:124-125); neither moves here, so
+    # shared.sh never rebuilds it -- not for the patch above, and not on a
+    # non-x86-64 host, where the x64 snapshot cannot load:
+    #
+    #   Snapshot not compatible with the current VM configuration: the snapshot
+    #   requires '... x64 linux ...' but the VM has '... arm64 linux ...'
+    #
+    # Rebuild it from the patched source with the staged host Dart. The stamp
+    # is left as the archive wrote it. packages/flutter_tools was resolved in
+    # do_unpack_append, so --packages finds its package_config.json.
+    source_dir = d.getVar('S')
+    host_arch = flutter_build_host_arch(d)
+    dart = f'{source_dir}/bin/cache/dart-sdk/bin/dart'
+    env = dict(os.environ)
+    env['HOME'] = d.getVar('WORKDIR')
+    env['PUB_CACHE'] = f'{source_dir}/.pub-cache'
+    cmd = (f'{dart} --verbosity=error '
+           '--snapshot=bin/cache/flutter_tools.snapshot '
+           '--snapshot-kind=app-jit '
+           '--packages=packages/flutter_tools/.dart_tool/package_config.json '
+           '--no-enable-mirrors packages/flutter_tools/bin/flutter_tools.dart')
+    bb.note('Running [%s] in %s' % (cmd, source_dir))
+    status, output = getstatusoutput(cmd, source_dir, env)
+    if status:
+        bb.fatal('rebuilding the flutter tool snapshot for linux-%s failed %d:\n%s'
+                 % (host_arch, status, output))
+}
+
+# The --target-platform values the app recipes pass to flutter build bundle.
+# linux-arm comes from the patch above; the other three are upstream's.
+FLUTTER_TOOL_TARGET_PLATFORMS ?= "linux-x64 linux-arm64 linux-riscv64 linux-arm"
+
+# Assert the rebuilt tool accepts them.
+#
+# build bundle validates --target-platform against a literal list in
+# commands/build_bundle.dart, separate from the TargetPlatform enum. A patch
+# can add the enum, the name mapping, the os getter, native assets and custom
+# devices, and still leave the tool rejecting the value it was just taught:
+#
+#   "linux-arm" is not an allowed value for option "--target-platform".
+#   exiting with code 64
+#
+# That shipped in #1262 and surfaced on run 43512124482, fifteen app recipes
+# deep on the one 32-bit machine in the matrix, because the guards #1268
+# describes kept the app steps off it. Ask the snapshot the app recipes run,
+# here, where it is cheap and the failure names the cause.
+python assert_tool_target_platforms() {
+    import os
+    import re
+
+    source_dir = d.getVar('S')
+    dart = f'{source_dir}/bin/cache/dart-sdk/bin/dart'
+    workdir = d.getVar('WORKDIR')
+
+    env = dict(os.environ)
+    env['HOME'] = workdir
+    env['XDG_CONFIG_HOME'] = workdir
+    env['PUB_CACHE'] = f'{source_dir}/.pub-cache'
+    env['FLUTTER_ROOT'] = source_dir
+
+    cmd = f'{dart} bin/cache/flutter_tools.snapshot build bundle --help'
+    bb.note('Running [%s] in %s' % (cmd, source_dir))
+    status, output = getstatusoutput(cmd, source_dir, env)
+    if status:
+        bb.fatal('asking the flutter tool for its target platforms failed '
+                 '%d:\n%s' % (status, output))
+
+    wanted = (d.getVar('FLUTTER_TOOL_TARGET_PLATFORMS') or '').split()
+    # Trailing [\w-] guard: linux-arm64 in the list must not answer for
+    # linux-arm, which is the whole bug this check exists for.
+    missing = [p for p in wanted
+               if not re.search(r'%s(?![\w-])' % re.escape(p), output)]
+    if missing:
+        bb.fatal('the flutter tool rejects --target-platform %s.\n'
+                 'build bundle --help reported:\n%s'
+                 % (' '.join(missing), output))
+
+    bb.note('flutter-sdk: the tool accepts --target-platform %s'
+            % ' '.join(wanted))
+}
+do_patch[postfuncs] += "assert_tool_target_platforms"
 
 FLUTTER_SETTINGS_NAME = "settings"
 

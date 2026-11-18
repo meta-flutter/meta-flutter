@@ -1,0 +1,71 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Joel Winarske <joel.winarske@linux.com>
+Date: Wed, 18 Nov 2026 09:30:00 -0800
+Subject: [PATCH] build/config: target sysroot for the target half only
+
+target_sysroot applies to every toolchain in the list at the end of
+sysroot.gni, the host one included. A cross build has two halves, and the
+sysroot this layer passes is the OE recipe sysroot for one machine, so the
+host half compiles an x86_64 translation unit against the target's headers
+and glibc stops it:
+
+  FAILED: clang_x64/obj/.../runtime/libdart_precompiler.version.o
+  clang++ ... -m64 -march=x86-64 --target=x86_64-linux-gnu
+    --sysroot=.../aarch64-oe-linux/dart-sdk/3.14.0-r0/recipe-sysroot
+  recipe-sysroot/usr/include/bits/wordsize.h:23:2: error: "__WORDSIZE is
+    not defined"
+
+The bundled sysroots never hit this. They are selected inside a current_cpu
+test, which gn re-evaluates per toolchain, so the host half gets x64's and
+the target half gets the target's. One gn arg cannot do that, so the test
+moves to where the arg is consumed. target_cpu is not re-evaluated, and
+comparing the two is what separates the halves.
+
+The host half keeps //buildtools/sysroot/linux, which is what the debian
+branch above hands x64 and so what it was already building against. It is
+not a detail that can be dropped: this half produces the cross gen_snapshot
+that dart-sdk-tools stages and that runs on the build machine, and with no
+sysroot at all it would fall through to the build container's own headers.
+
+Scoped to the case where the sysroot arrived on the command line, which is
+an empty dart_sysroot with a non-empty target_sysroot. An upstream build
+takes neither new branch.
+
+Upstream-Status: Inappropriate [oe-specific cross layout]
+Signed-off-by: Joel Winarske <joel.winarske@linux.com>
+---
+diff --git a/build/config/sysroot.gni b/build/config/sysroot.gni
+--- a/build/config/sysroot.gni
++++ b/build/config/sysroot.gni
+@@ -50,14 +50,30 @@
+   }
+ }
+ 
++# An empty dart_sysroot with a non-empty target_sysroot means the sysroot came
++# in on the command line rather than from the block above. meta-flutter does
++# that, and what it passes is the OE recipe sysroot for one machine, so it
++# fits the target half of a cross build and nothing else. current_cpu is
++# re-evaluated per toolchain while target_cpu is not, which is what separates
++# the halves here. Without that test the host half compiles clang_x64/
++# objects with an x86_64 triple against the target sysroot, and glibc's own
++# headers stop it:
++#
++#   bits/wordsize.h:23:2: error: "__WORDSIZE is not defined"
++#
++# The host half keeps the sysroot it had before anything was passed, which is
++# also the one the cross gen_snapshot has always been built against.
+ if ((current_toolchain == host_toolchain ||
+      current_toolchain == default_toolchain ||
+      current_toolchain == "${default_toolchain}_shared" ||
+      current_toolchain == "${default_toolchain}_asan" ||
+      current_toolchain == "${default_toolchain}_msan" ||
+      current_toolchain == "${default_toolchain}_tsan") &&
+-    target_sysroot != "") {
++    target_sysroot != "" && (dart_sysroot != "" || current_cpu == target_cpu)) {
+   sysroot = target_sysroot
++} else if (is_linux && dart_sysroot == "" && target_sysroot != "" &&
++           current_cpu != target_cpu) {
++  sysroot = rebase_path("//buildtools/sysroot/linux", root_build_dir)
+ } else if (is_android) {
+   import("//build/config/android/config.gni")
+   sysroot = rebase_path("$android_toolchain_root/sysroot", root_build_dir)
