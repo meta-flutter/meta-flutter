@@ -14,7 +14,7 @@ SECTION = "graphics"
 LICENSE = "Apache-2.0 AND BSD-3-Clause AND OFL-1.1"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=b7eeb61b41ae366e94383bca5e113fce"
 
-SRCREV = "86079a3992cbc9264a0304298fd159636711631b"
+SRCREV = "e3ba3c566e332c6f6c0dd54ce2a6306b7abf114b"
 SRC_URI = "git://github.com/flutter/games.git;lfs=1;branch=main;protocol=https"
 
 PUBSPEC_APPNAME = "multiplayer"
