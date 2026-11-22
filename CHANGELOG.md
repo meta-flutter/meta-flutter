@@ -1,5 +1,39 @@
 # Changelog
 
+November 22, 2026
+1. flutter-app-native: build CBuilder hooks with the target toolchain
+   - a native-assets hook that compiles through native_toolchain_c's
+     CBuilder gets no compiler from flutter build bundle and looks for one
+     on the build host, clang when host and target architecture match,
+     <arch>-linux-gnu-gcc when they do not. Neither is OE's toolchain. #801
+   - flutter-sdk carries the flutter_tools patch from e6d0024 again, rebased
+     onto 3.50.0. It reads FLUTTER_HOOK_CC, FLUTTER_HOOK_AR and
+     FLUTTER_HOOK_LD and builds the hook's CCompilerConfig from them. Unset,
+     it changes nothing
+   - c120a20 dropped that patch because it never ran, bin/flutter kept using
+     the archive's prebuilt snapshot. do_patch:append rebuilds the snapshot
+     from the patched source now, so a SRC_URI entry is all it took, and
+     do_patch fails if the rebuilt snapshot does not contain the three names
+   - the class points the variables at wrappers in WORKDIR, since the config
+     carries three paths and nothing else: flutter-hook-clang runs ${CC}
+     with ${CFLAGS} and ${LDFLAGS}, flutter-hook-llvm-ar runs ${AR},
+     flutter-hook-ld runs ${LD}. The names are for native_toolchain_c, which
+     identifies a tool from its file name and stops on one it does not know
+   - -Qunused-arguments in the compiler wrapper. CBuilder compiles and links
+     through the one binary and clang warns about the link flags on a
+     compile, fatally under -Werror
+   - C++ sources are compiled as clang -x c++ with CFLAGS and link the
+     library CBuilder names, libstdc++ by default. The -stdlib=libc++ a
+     cmake hook gets here does not apply to them
+   - meta-flutter-apps: cbuilder-hook-test, an app whose hook runs CBuilder
+     three ways, a static archive, a C shared library linked against it and
+     a C++ shared library. Built on x86-64 for a cortexa72-cortexa53
+     machine, both libraries are AArch64, the C++ one needs libstdc++.so.6
+     and do_package_qa passes. With FLUTTER_HOOK_CC emptied the hook stops
+     with "No compiler configured on host 'linux_x64' with target
+     'linux_arm64'"
+   - not tried: a build host that is not x86-64, a 32-bit arm target
+
 November 18, 2026
 1. dart-sdk: build against the target sysroot, not Dart's bundled one
    - the recipe exported DART_USE_SYSROOT="${TARGET_SYSROOT}", a variable
