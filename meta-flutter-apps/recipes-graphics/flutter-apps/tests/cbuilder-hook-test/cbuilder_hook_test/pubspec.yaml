@@ -1,0 +1,17 @@
+name: cbuilder_hook_test
+description: >-
+  A Flutter app whose build hook compiles C and C++ with native_toolchain_c's
+  CBuilder, to check that a cross build uses the target toolchain.
+publish_to: none
+version: 1.0.0
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  code_assets: ^2.0.0
+  flutter:
+    sdk: flutter
+  hooks: ^2.2.0
+  logging: ^1.3.0
+  native_toolchain_c: ^0.19.4
