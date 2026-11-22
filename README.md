@@ -314,11 +314,14 @@ not own the source has to append it:
         sqlite3:
           source: system
 
-Do that in a task between `do_patch` and `do_archive_pub_cache`. Editing
-`pubspec.yaml` after the first dependency resolution makes the offline
-`pub get` in `do_compile` re-resolve, which reaches for security advisories and
-fails with no network. A `hooks:` section changes no dependency, so the lockfile
-is unaffected.
+`flutter-app-native` writes that block. Set `FLUTTER_NATIVE_USER_DEFINES` and
+the class appends it between `do_patch` and `do_archive_pub_cache`, which is
+where it has to land: editing `pubspec.yaml` after the first dependency
+resolution makes the offline `pub get` in `do_compile` re-resolve, which
+reaches for security advisories and fails with no network. A `hooks:` section
+changes no dependency, so the lockfile is unaffected. The variable, the values
+it takes and what it refuses are in
+[docs/native-assets.md](docs/native-assets.md).
 
 **The unversioned name has to exist on the image.** Depend on the runtime
 package and symlink the unversioned name into the bundle's own `lib` directory:

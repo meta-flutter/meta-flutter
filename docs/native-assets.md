@@ -18,6 +18,10 @@ In this example the absolute `name` is deliberate. A bare `"name": "sqlite3"`
 makes the hook look for the unversioned `libsqlite3.so`, which OE ships only
 in `libsqlite3-dev`.
 
+The example comes from `flatpak-minimal-appstream-dart-flathub-catalog` in
+meta-flatpak-minimal. That recipe injects the same block with its own
+`do_inject_user_defines` task today, and is the first to move to the variable.
+
 The variable is not specific to `sqlite3`. It takes settings for any number
 of packages, direct or transitive dependencies, and passes them through
 unchanged. The keys each package accepts are defined by its hook; read the
@@ -63,7 +67,8 @@ into the source tree being worked on.
 
 - `pubspec.yaml` must not already have a `hooks:` section. A recipe whose
   upstream pubspec has one edits that section itself. The one exception
-  exists only to migrate the flathub-catalog recipe off its
+  exists only to migrate meta-flatpak-minimal's
+  `flatpak-minimal-appstream-dart-flathub-catalog` off its
   `do_inject_user_defines`, which this variable replaces: the unmarked
   `sqlite3: source: system` block that task appends is removed and rewritten
   as the marked block.
