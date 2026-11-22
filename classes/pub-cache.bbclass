@@ -64,8 +64,9 @@ python do_install_pubspec_lock() {
     bb.note("installed vendored pubspec.lock from %s" % name)
 }
 # after do_patch, not just do_unpack: a patch -- or a task ordered around
-# one, such as flutter-app-native's do_configure_native_hooks -- can change
-# pubspec.yaml or pubspec.lock. Resolving before that lands means
+# one, such as flutter-app-native's do_configure_native_hooks, or the
+# flathub-catalog app's own do_inject_user_defines -- can change pubspec.yaml
+# or pubspec.lock. Resolving before that lands means
 # resolving against source that is not what gets built, and an edit arriving
 # afterwards makes pub re-resolve, which reaches for the network.
 # Also after do_archive_pub_cache, for the same reason do_pub_get_offline is:
@@ -268,7 +269,8 @@ do_pub_get_offline() {
 # Ordered after do_archive_pub_cache as well, even though this class makes
 # that task noexec. It is the layer's convention for "before pub runs": a
 # recipe that must touch the source first orders itself before it, as
-# flutter-app-native's do_configure_native_hooks does. Ordering only against
+# flutter-app-native's do_configure_native_hooks and the flathub-catalog
+# app's do_inject_user_defines both do. Ordering only against
 # do_patch left both siblings of it with no relative order, so the edit could
 # land after resolution -- and pub then re-resolves, fetching security
 # advisories from pub.dev and failing with no network.
