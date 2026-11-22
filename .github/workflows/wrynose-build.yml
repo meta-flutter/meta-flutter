@@ -79,6 +79,12 @@ jobs:
 
     runs-on: [self-hosted, linux]
 
+    # The default is 360 and qemuarm needs more than that on the slower
+    # runner: a measured run reached step 23 of 29 at exactly 6h00m00s and
+    # was cancelled mid-step, where the same job on the faster runner takes
+    # 1h26m. 720 still catches a wedged job long before GitHub's own cap.
+    timeout-minutes: 720
+
     container:
       image: ghcr.io/meta-flutter/meta-flutter/ubuntu-24-dev:main
       options:
