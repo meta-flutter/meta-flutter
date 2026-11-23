@@ -3,10 +3,12 @@
 # during a Flutter app build.
 #
 # For apps whose Dart packages carry a native-assets build hook
-# (hook/build.dart) that drives CMake. The hook runs inside `flutter build`, so
-# it cannot see OE's cross environment; this class puts a cmake wrapper on PATH
-# that injects the toolchain file and pkg-config settings, then installs the
-# resulting libraries into the app bundle.
+# (hook/build.dart) that drives CMake, or that compiles through
+# native_toolchain_c's CBuilder. The hook runs inside `flutter build`, so it
+# cannot see OE's cross environment; this class puts a cmake wrapper on PATH
+# that injects the toolchain file and pkg-config settings, hands the flutter
+# tool compiler wrappers that carry OE's flags, then installs the resulting
+# libraries into the app bundle.
 #
 # Inherit this INSTEAD OF flutter-app.
 #
@@ -191,7 +193,81 @@ inherit cmake pkgconfig
 
 # Skip cmake do_configure
 do_configure[noexec] = "1"
-do_compile[prefuncs] += "flutter_native_cmake_setup flutter_native_path_setup"
+do_compile[prefuncs] += "flutter_native_cmake_setup flutter_native_toolchain_setup flutter_native_toolchain_env flutter_native_path_setup"
+
+# Tell the code-asset hooks which toolchain to use.
+#
+# This is for a hook that compiles through native_toolchain_c's CBuilder rather
+# than by running cmake. CBuilder takes its compiler from the hook's input, and
+# a hook built through `flutter build bundle` is given none: on Linux the
+# flutter tool reads one only from the app's CMake cache, and a bundle build
+# has no CMake app project. native_toolchain_c then looks on the build host --
+# for clang when host and target architecture match, for <arch>-linux-gnu-gcc
+# when they do not -- and whatever it finds there knows nothing of OE's sysroot
+# or flags. See meta-flutter#801.
+#
+# The patched SDK reads FLUTTER_HOOK_CC / _AR / _LD, but CCompilerConfig carries
+# only paths, with nowhere to put --sysroot or the rest of OE's flags. So point
+# it at wrappers, the same trick the cmake wrapper below uses.
+#
+# The file names are not free. native_toolchain_c decides what a tool is from
+# its path (native_toolchain/recognizer.dart): a compiler has to end in "clang"
+# and an archiver in "llvm-ar" to be taken for what this class's toolchain is,
+# and a path it cannot place is "not recognized", which ends the hook.
+flutter_native_toolchain_setup() {
+
+    # CBuilder drives compiling and linking through this one binary and never
+    # execs a linker, so the link flags have to be here too. On a -c call they
+    # are unused, as is the -fuse-ld=lld in CFLAGS, and clang warns about each
+    # one. A hook built with -Werror turns that into a failure, hence
+    # -Qunused-arguments.
+    #
+    # C++ comes through here as well, as `clang -x c++`. It gets CFLAGS rather
+    # than CXXFLAGS, and links the C++ library CBuilder names with -l, which on
+    # Linux is libstdc++ unless the hook sets cppLinkStdLib. The -stdlib=libc++
+    # this class gives a cmake hook does not reach it.
+    cat > ${WORKDIR}/flutter-hook-clang <<HOOK_CC_EOF
+#!/bin/sh
+exec ${CC} -Qunused-arguments ${CFLAGS} ${LDFLAGS} "\$@"
+HOOK_CC_EOF
+
+    # Invoked directly as `ar rc <lib> <objects>`.
+    cat > ${WORKDIR}/flutter-hook-llvm-ar <<HOOK_AR_EOF
+#!/bin/sh
+exec ${AR} "\$@"
+HOOK_AR_EOF
+
+    # CCompilerConfig requires a linker even though native_toolchain_c links
+    # through the compiler driver. Give it the real one rather than a stub.
+    cat > ${WORKDIR}/flutter-hook-ld <<HOOK_LD_EOF
+#!/bin/sh
+exec ${LD} "\$@"
+HOOK_LD_EOF
+
+    chmod +x ${WORKDIR}/flutter-hook-clang ${WORKDIR}/flutter-hook-llvm-ar ${WORKDIR}/flutter-hook-ld
+}
+
+FLUTTER_HOOK_CC = "${WORKDIR}/flutter-hook-clang"
+FLUTTER_HOOK_AR = "${WORKDIR}/flutter-hook-llvm-ar"
+FLUTTER_HOOK_LD = "${WORKDIR}/flutter-hook-ld"
+
+# Put them where the flutter invocation will see them.
+#
+# It is the flutter tool that reads these, not the hook. The tool writes the
+# paths into the hook's input, and the hook itself runs with a filtered
+# environment that would not carry them.
+#
+# common.inc's do_compile is a python task that seeds its subprocess
+# environment from os.environ. bitbake's `export` only populates the
+# environment of shell tasks, so exporting these would set them for nothing.
+# Prefuncs run in the same interpreter as the python task body, so mutating
+# os.environ here reaches it.
+python flutter_native_toolchain_env() {
+    for var in ('FLUTTER_HOOK_CC', 'FLUTTER_HOOK_AR', 'FLUTTER_HOOK_LD'):
+        value = d.getVar(var)
+        if value:
+            os.environ[var] = value
+}
 
 flutter_native_cmake_setup() {
     # Create cmake wrapper to insert OE environment options

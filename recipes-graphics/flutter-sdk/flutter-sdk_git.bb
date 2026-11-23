@@ -59,9 +59,18 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 # the right native assets key. Dart has no riscv32 and no ia32 AOT, so arm is
 # the only 32-bit target worth adding. do_patch:append below rebuilds the tool
 # snapshot from the patched source.
+#
+# flutter build bundle also has no way to be told which compiler a code-asset
+# build hook should use. On Linux the tool reads one from the app's CMake
+# cache, and a bundle build has no CMake project, so a hook that compiles
+# through native_toolchain_c is left to find a compiler on the build host. The
+# second patch reads FLUTTER_HOOK_CC / _AR / _LD, which
+# classes/flutter-app-native.bbclass points at the cross toolchain. It does
+# nothing while they are unset. See #801.
 SRC_URI = "\
     https://storage.googleapis.com/flutter_infra_release/releases/${@get_flutter_archive(d)};name=flutter-sdk \
     file://0001-flutter_tools-add-linux-arm-target-platform.patch \
+    file://0002-flutter_tools-let-a-caller-supply-the-code-asset-too.patch \
 "
 SRC_URI[flutter-sdk.sha256sum] = "${@get_flutter_sha256(d)}"
 
@@ -456,6 +465,36 @@ python assert_tool_target_platforms() {
             % ' '.join(wanted))
 }
 do_patch[postfuncs] += "assert_tool_target_platforms"
+
+# Assert the rebuilt tool reads the hook toolchain.
+#
+# Nothing in this recipe runs a build hook, and with FLUTTER_HOOK_CC unset the
+# patched tool behaves exactly like the unpatched one, so a snapshot built
+# without the patch is indistinguishable here by what it does. That is how the
+# patch shipped dead the first time: it applied, and bin/flutter went on
+# running the archive's prebuilt snapshot (#802, removed again in c120a20).
+#
+# So look at what the snapshot is rather than what it does. The variable names
+# are string constants that only the patch introduces, and an app-jit snapshot
+# stores them verbatim.
+python assert_tool_hook_toolchain() {
+    source_dir = d.getVar('S')
+    snapshot = f'{source_dir}/bin/cache/flutter_tools.snapshot'
+
+    with open(snapshot, 'rb') as f:
+        contents = f.read()
+
+    wanted = ('FLUTTER_HOOK_CC', 'FLUTTER_HOOK_AR', 'FLUTTER_HOOK_LD')
+    missing = [v for v in wanted if v.encode() not in contents]
+    if missing:
+        bb.fatal('%s does not mention %s: it was not built from the patched '
+                 'flutter_tools, so code-asset hooks in app builds would '
+                 'compile with a build host toolchain.'
+                 % (snapshot, ' '.join(missing)))
+
+    bb.note('flutter-sdk: the tool reads %s' % ' '.join(wanted))
+}
+do_patch[postfuncs] += "assert_tool_hook_toolchain"
 
 FLUTTER_SETTINGS_NAME = "settings"
 
