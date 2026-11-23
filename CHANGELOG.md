@@ -1,5 +1,35 @@
 # Changelog
 
+November 23, 2026
+1. README: port the three sections master carries
+   - gesture responsiveness on custom touch controllers, the LICENSE
+     operator split between master and the release branches, and FFI
+     plugins that load a system library
+   - 32-bit targets becomes a subsection of the last, as on master
+   - README.md is byte-identical on both branches now
+2. ci-build: keep license-format fatal
+   - the demotion dated from when CI cloned every layer at master. this
+     branch clones oe-core, meta-yocto and meta-openembedded at wrynose, so
+     that skew is gone
+   - coremark, coremark-pro, glmark2 and lmbench all live under
+     recipes-benchmark, which the BBMASK already removes from the parse, so
+     the demotion was redundant with a narrower fix already in place
+   - not harmless either: ERROR_QA:remove applies to the whole build, so a
+     license-format error in one of our own recipes showed as a warning in a
+     green run
+   - master's floret BBMASK is not ported. meta-openembedded has no floret
+     recipe on the wrynose branch
+3. flutter-engine: declare libflutter_engine.so as provided
+   - file-rdeps checks direct dependencies only, so the empty ${PN} package
+     has to expose the library its mode packages guarantee
+   - ports the master fix
+4. ivi-homescreen: drop the duplicate Apache-2.0 operand
+   - the plugins tree is Apache-2.0 like the base, so naming it again when
+     plugins are built is a duplicate operand for oe-core to flag, not a
+     second license
+   - only the MIT encoder has to follow the PACKAGECONFIG
+   - the & operator is kept. it is correct on this branch
+
 November 18, 2026
 1. dart-sdk: build against the target sysroot, not Dart's bundled one
    - the recipe exported DART_USE_SYSROOT="${TARGET_SYSROOT}", a variable
