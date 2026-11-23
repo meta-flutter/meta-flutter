@@ -102,6 +102,21 @@ Targets flutter-engine-* is known to work on
 * STM32MP157x - cortexa7t2hf
 * etc
 
+### Gesture responsiveness on custom touch controllers
+
+If drags and swipes feel unresponsive on a custom touch controller, the
+cause is usually Flutter's touch slop -- the distance a pointer must travel
+before a movement counts as a drag rather than a tap. The default suits a
+phone digitizer and is often too small for an industrial or resistive panel.
+
+Patch `kTouchSlop` in `flutter-sdk-native`:
+
+    packages/flutter/lib/src/gestures/constants.dart
+
+Raising it from 18 to 64 has made custom touch controllers markedly more
+responsive in the field. The right value is panel-specific, so treat 64 as a
+starting point rather than a recommendation.
+
 ## Include the Flutter SDK into Yocto SDK
 
 Add to local.conf file:
@@ -201,6 +216,28 @@ This file is the origin of truth for all of the Flutter Applications present, an
 
 roll_meta_flutter.py autogenerates all of the flutter application recipes.
 
+### The LICENSE operator differs between master and the release branches
+
+A `license_type` naming more than one license joins them with **`AND` on
+master** and with **`&` on wrynose, scarthgap, kirkstone and dunfell**. The
+same split applies to `LICENSE` in hand-written recipes. Both spellings are
+correct, on their own branch, and converting either way is a regression on the
+other -- so do not "fix" one to match the other, and take care when
+cherry-picking a recipe or a manifest entry between branches.
+
+The dividing line is oe-core commit 51c7930220 (2026-07-15, "lib/oe: Add SPDX
+license library"). Before it, `license.py` recognized only `& | ( )` as
+operators, and a bare `AND` matched the license *name* pattern -- so it was
+read as a license called "AND" and failed. Since it, `AND` is the native SPDX
+operator; `&` is accepted only because `_substitute_legacy_license()` rewrites
+it, and `license.py` then warns
+
+    <pn>: LICENSE is using an old syntax and should be upgraded to: "..."
+
+exactly when that rewrite fires. master builds against oe-core `master` -- CI
+clones it fresh on every run -- so master needs the newer form, and the release
+branches, pinned to older oe-core, need the older one.
+
 ## Process used to update a Rust recipe
 
 * Update recipe SRCREV to desired version, rename recipe name to match
@@ -253,7 +290,63 @@ To populate a mirror, build once with network access and copy the tarball out of
     BB_FETCH_PREMIRRORONLY = "1"
     BB_NO_NETWORK = "1"
 
-## 32-bit targets
+## Flutter FFI plugins that load a system library
+
+A Dart FFI plugin whose build hook emits a code asset resolved from the system
+ends up in `NativeAssetsManifest.json` as `["system", "lib<name>.so"]`, and the
+engine `dlopen`s that name at runtime. Plugins are written against desktop
+Linux, where the unversioned `.so` is always present. On a Yocto image it is
+not: oe-core ships `lib<name>.so.0.X.Y` and the SONAME symlink `lib<name>.so.0`
+in the runtime package, and the unversioned symlink only in `-dev`, which
+production images exclude. The plugin then fails at first use with
+
+    ArgumentError: Failed to load dynamic library 'libsqlite3.so'
+
+Two things have to be true, and fixing one without the other still fails.
+
+**The asset has to resolve to the system library rather than a vendored copy.**
+That is an app-side choice, expressed in the app's own `pubspec.yaml` -- a
+`hooks:` section is rejected in `pubspec_overrides.yaml`, so a recipe that does
+not own the source has to append it:
+
+    hooks:
+      user_defines:
+        sqlite3:
+          source: system
+
+`flutter-app-native` writes that block. Set `FLUTTER_NATIVE_USER_DEFINES` and
+the class appends it between `do_patch` and `do_archive_pub_cache`, which is
+where it has to land: editing `pubspec.yaml` after the first dependency
+resolution makes the offline `pub get` in `do_compile` re-resolve, which
+reaches for security advisories and fails with no network. A `hooks:` section
+changes no dependency, so the lockfile is unaffected. The variable, the values
+it takes and what it refuses are in
+[docs/native-assets.md](docs/native-assets.md).
+
+**The unversioned name has to exist on the image.** Depend on the runtime
+package and symlink the unversioned name into the bundle's own `lib` directory:
+
+    RDEPENDS:${PN} += "libsqlite3"
+
+    do_install:append() {
+        ln -sf ${libdir}/libsqlite3.so.0 \
+            ${D}${FLUTTER_INSTALL_DIR}/${FLUTTER_SDK_VERSION}/${FLUTTER_RUNTIME_MODE}/lib/libsqlite3.so
+    }
+
+The bundle's `lib` directory, not `${libdir}`. An unversioned `.so` under
+`${libdir}` belongs to `-dev` by oe-core convention and trips the `dev-so` QA
+check, so putting it there means suppressing a QA rule that is right. The bundle
+directory is already where the embedder finds `libflutter_engine.so`, and
+keeping the symlink there also avoids pulling `-dev` -- headers, static
+libraries and all -- into a production image.
+
+`flatpak-minimal-appstream-dart-flathub-catalog` carries both halves and is
+worth reading before writing a new one.
+
+This is per-app by necessity: only the recipe knows which FFI plugins its app
+uses and which libraries they name. There is no layer-wide hook.
+
+### 32-bit targets
 
 Upstream `flutter build bundle` accepts only 64-bit Linux target platforms --
 `TargetPlatform` carries `linux_x64`, `linux_arm64` and `linux_riscv64`. The
