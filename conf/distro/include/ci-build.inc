@@ -37,16 +37,18 @@ DISTRO_FEATURES:append = " systemd x11 wayland opengl pam polkit pipewire pulsea
 
 DISTRO_FEATURES_OPTED_OUT = ""
 
-# ***************************************
-# CI clones every layer at master. oe-core master tightened the license-format
-# QA to require & rather than AND, and meta-openembedded master has not caught
-# up: coremark, coremark-pro, glmark2 and lmbench all trip it. That is a fatal
-# QA error at parse time, so bitbake halts before reaching any meta-flutter
-# recipe. None of those recipes are built here, so demote the check to a warning
-# rather than let third-party layer skew block CI entirely. This file is CI-only
-# and does not affect QA for meta-flutter's own recipes in a real build.
-ERROR_QA:remove = "license-format"
-WARN_QA:append = " license-format"
+# license-format is deliberately left at its oe-core default, which is fatal.
+# It used to be demoted here, from when CI cloned every layer at master and
+# meta-openembedded's coremark, coremark-pro, glmark2 and lmbench joined
+# licenses with AND, halting parsing before any meta-flutter recipe was
+# reached. All four live under recipes-benchmark, which the BBMASK below
+# already removes from the parse entirely, so the demotion was redundant with
+# a narrower fix already in place.
+#
+# It was not harmless, either: ERROR_QA:remove applies to the whole build, so a
+# genuine license-format error in one of meta-flutter's own recipes surfaced as
+# a warning in a green CI run. That is the check that would have answered the
+# question in #823 directly. Keep the mask narrow and the check fatal.
 
 # meta-openembedded master is currently out of step with oe-core master in ways
 # that halt parsing before any meta-flutter recipe is reached, and meta-oe has no
@@ -83,16 +85,14 @@ PACKAGECONFIG:remove:pn-flutter-engine = " debug profile"
 # FLATPAK_REMOTE defaults to FLATPAK_BUILD_REMOTE. Nothing in CI installs the
 # refs, so the name only has to exist and match [A-Za-z0-9][A-Za-z0-9._-]*.
 #
-# Without it the appstream_dart target stops providing anything:
+# Without it the two flatpak-minimal app targets stop providing anything:
 #
 #   ERROR: Nothing PROVIDES 'flatpak-minimal-appstream-dart-flathub-catalog'
 #   ... was skipped: set FLATPAK_BUILD_REMOTE to the remote refs built here
 #   install under
 #
-# #1228 set this and it was dropped again, correctly at the time: the two app
-# recipes were local and inherited flutter-app-native only, so nothing read
-# it. They now come from meta-flatpak-minimal, where appstream_dart inherits
-# flatpak-flutter-app and so flatpak-app, which is the guard above.
+# meta-flatpak-minimal is cloned at a branch tip, and the guard reached its
+# default branch on 2026-10-21.
 FLATPAK_BUILD_REMOTE ?= "ci"
 
 # ***************************************
