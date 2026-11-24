@@ -14,7 +14,7 @@ SECTION = "graphics"
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57"
 
-SRCREV = "44a467d572f6d4b0c24fa3a088ccc0da0a9f7a80"
+SRCREV = "7e22b04c7a255ccf4db2cf649635d7878ea9c28e"
 SRC_URI = "git://github.com/googleads/googleads-mobile-flutter.git;lfs=0;branch=main;protocol=https"
 
 PUBSPEC_APPNAME = "api_demo"
