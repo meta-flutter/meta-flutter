@@ -7,7 +7,7 @@
 # Lockfile: the SDK's own, as shipped in the release archive (pub workspace, all members)
 
 PUB_CACHE_LOCAL ?= "pub_cache"
-PUBSPEC_LOCK_SHA256 = "e26b3d83951e2e11ca2bf760976dd32f9070ec7e3f7ddb3d84d8f44377abeb0f"
+PUBSPEC_LOCK_SHA256 = "9c61653df6b9cb6098b072a28d56ceefe586005a9b2dbd1bb764bb465fb98b15"
 
 # Hosted packages
 SRC_URI_append = " https://pub.dev/api/archives/_discoveryapis_commons-1.0.8.tar.gz;name=_discoveryapis_commons;subdir=${PUB_CACHE_LOCAL}/hosted/pub.dev/_discoveryapis_commons-1.0.8;downloadfilename=pub-cache/_discoveryapis_commons-1.0.8.tar.gz"
@@ -86,8 +86,8 @@ SRC_URI_append = " https://pub.dev/api/archives/devtools_shared-13.1.0.tar.gz;na
 SRC_URI[devtools_shared.sha256sum] = "13df2c17d5f21dd7c92d08145386d45e1153364c04e531e994afb0ee7b67554b"
 SRC_URI_append = " https://pub.dev/api/archives/dtd-4.0.0.tar.gz;name=dtd;subdir=${PUB_CACHE_LOCAL}/hosted/pub.dev/dtd-4.0.0;downloadfilename=pub-cache/dtd-4.0.0.tar.gz"
 SRC_URI[dtd.sha256sum] = "09ddb228b3d1478a093556357692a4c203ff4f9d5f8cda05dfdca0ff3fb7c5d3"
-SRC_URI_append = " https://pub.dev/api/archives/dwds-27.1.3.tar.gz;name=dwds;subdir=${PUB_CACHE_LOCAL}/hosted/pub.dev/dwds-27.1.3;downloadfilename=pub-cache/dwds-27.1.3.tar.gz"
-SRC_URI[dwds.sha256sum] = "91dd4abb4df82dbcc219ba4e9b85d7ee492f7549de9e098bc45a4a40ba7403a7"
+SRC_URI_append = " https://pub.dev/api/archives/dwds-27.2.1.tar.gz;name=dwds;subdir=${PUB_CACHE_LOCAL}/hosted/pub.dev/dwds-27.2.1;downloadfilename=pub-cache/dwds-27.2.1.tar.gz"
+SRC_URI[dwds.sha256sum] = "6d7b931386a211398f6173ab2d29a8c45d48b1c54fa050a47b901d04ec1aacb8"
 SRC_URI_append = " https://pub.dev/api/archives/extension_discovery-2.1.0.tar.gz;name=extension_discovery;subdir=${PUB_CACHE_LOCAL}/hosted/pub.dev/extension_discovery-2.1.0;downloadfilename=pub-cache/extension_discovery-2.1.0.tar.gz"
 SRC_URI[extension_discovery.sha256sum] = "de1fce715ab013cdfb00befc3bdf0914bea5e409c3a567b7f8f144bc061611a7"
 SRC_URI_append = " https://pub.dev/api/archives/fake_async-1.3.3.tar.gz;name=fake_async;subdir=${PUB_CACHE_LOCAL}/hosted/pub.dev/fake_async-1.3.3;downloadfilename=pub-cache/fake_async-1.3.3.tar.gz"
