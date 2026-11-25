@@ -6,6 +6,13 @@
       "font-subset": "fa58dbb8233c7910eb23c4a67bf771ef8e8fb780bfc9b1193a91a525fcb93193"
     }
   },
+  "4d35714800b9266b6693a58e1225ecd7e9e45ed7": {
+    "arm64": {
+      "artifacts": "582b16eea225eca160b5ae0eca6867c719e8ae388e098f3addb5863c82beac8d",
+      "dart-sdk": "9a6920b2da35b060fe3cbc6fd003a6266bd4604bbd79e336596e438d6d38f59f",
+      "font-subset": "b8b62eef4405aaca4f013468c2de3d3105df2f95cebdbbf1a3283bfb80df76e8"
+    }
+  },
   "cf636b1dfb818dd6a3ff16e390e93b1a036969c8": {
     "arm64": {
       "artifacts": "7b3872e00f044087b52122d6c0328893227659cd912af63ffa6a78d54330601f",
